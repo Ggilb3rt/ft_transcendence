@@ -1,0 +1,8 @@
+version: '3.9'
+
+services:
+    front_end:
+        image: vuepong
+        container_name: MyPong
+        init: true
+        restart: on-failure
