@@ -2,7 +2,7 @@
 
 by GGILBERT && PTROGER && ??
 
-![Whaow](https://www.nicepng.com/ourpic/u2w7r5q8q8a9q8t4_wow-meme-png-clip-royalty-free-download-eddy/)
+![Whaow](https://www.nicepng.com/png/detail/225-2258468_wow-meme-png-clip-royalty-free-download-eddy.png)
 
 ## TECH USED ##
 
