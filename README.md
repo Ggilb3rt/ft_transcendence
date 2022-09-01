@@ -32,13 +32,13 @@ by GGILBERT && PTROGER && ??
 
     First you will need to download sqitch client for Postgres. We will use Docker. Do :
 
-    ```
+
     docker pull sqitch/sqitch
     curl -L https://git.io/JJKCn -o sqitch && chmod +x sqitch
     ./sqitch help
-    ```
+
     !! THE CONTAINER WILL STAY UNTIL YOU KILL IT
-    
+
     DOCUMENTATION-> https://sqitch.org/docs/manual/
                     https://sqitch.org/docs/manual/sqitchtutorial/
 
