@@ -20,7 +20,7 @@ by GGILBERT && PTROGER && ??
 
 ## POSTGRES ##
 
-  1. CONTAINER
+  1 CONTAINER
 
     DOCUMENTATION-> https://hub.docker.com/_/postgres/
 
@@ -28,23 +28,23 @@ by GGILBERT && PTROGER && ??
     - launch initialization scripts only if /data doesnt exist
     - all envs variable cf link above
 
-  2. SETUP
+  2 SETUP
 
     First you will need to download sqitch client for Postgres. We will use Docker. Do :
 
-
+    ```
     docker pull sqitch/sqitch
     curl -L https://git.io/JJKCn -o sqitch && chmod +x sqitch
     ./sqitch help
-
+    ```
     !! THE CONTAINER WILL STAY UNTIL YOU KILL IT
-
+    
     DOCUMENTATION-> https://sqitch.org/docs/manual/
                     https://sqitch.org/docs/manual/sqitchtutorial/
 
     Sqitch is a tool to perform database migrations.
   
-  3. MIGRATIONS
+  3 MIGRATIONS
     Each time you use sqitch add, it creates a .sql file in which we write the script to migrate.
 
     do : 
