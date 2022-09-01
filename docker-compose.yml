@@ -1,8 +1,16 @@
 version: '3.9'
 
 services:
-    front_end:
-        image: vuepong
-        container_name: MyPong
-        init: true
-        restart: on-failure
+    # front_end:
+    #     image: vuepong
+    #     container_name: MyPong
+    #     init: true
+    #     restart: on-failure
+    
+    postgres:
+        image: postgres:alpine
+        ports:
+            - 5432:5432
+        env_file:
+        - ./envs/postgres.env
+    

@@ -1,0 +1,1 @@
+sqitch add $(sqd)$1 -n $2
