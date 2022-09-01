@@ -1,1 +1,1 @@
-sqitch add $(sqd)$1 -n $2
+sqitch add $(date -u "+%Y_%m_%d_%Hh%M_")$1 -n "$2"
