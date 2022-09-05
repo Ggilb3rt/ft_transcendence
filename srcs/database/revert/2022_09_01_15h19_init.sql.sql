@@ -2,6 +2,6 @@
 
 BEGIN;
 
-DROP SCHEMA transcendance
+DROP SCHEMA transcendance;
 
 COMMIT;
