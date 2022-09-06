@@ -12,7 +12,24 @@ services:
         ports:
             - 5432:5432
         env_file:
-        - ./envs/postgres.env
-    
-    # auth:
-    #     image: 
+            - ./envs/postgres.env
+        volumes:
+            - postgres_persistence:/var/lib/postgresql/data
+
+    w-back:
+        build:
+            context: ./srcs/w-back
+            target: dev
+        env_file:
+            - ./envs/postgres.env
+            - ./envs/w-back.env
+        volumes:
+        # for hot-reloading using Nodemon
+            - ./srcs/w-back/src:/app/src
+        depends_on:
+            - postgres
+        ports:
+            - 8080:8080
+
+volumes:
+    postgres_persistence:
