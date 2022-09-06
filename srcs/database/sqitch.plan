@@ -4,3 +4,6 @@
 
 2022_09_01_15h19_init.sql 2022-09-01T15:19:16Z Pierre TROGER <ptroger@e1r4p6.clusters.42paris.fr> # Creating database
 2022_09_05_17h53_user_table.sql 2022-09-05T17:53:17Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # create user table based on schema made
+2022_09_06_09h47_match_table.sql 2022-09-06T09:47:20Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # add match table and relations
+2022_09_06_10h00_channels_ban_tables.sql 2022-09-06T10:00:46Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # still building schema step by step
+2022_09_06_10h21_channels_users_relations.sql 2022-09-06T10:21:29Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # admin, messages, mute and user_list tables

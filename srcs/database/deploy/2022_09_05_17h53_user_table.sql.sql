@@ -4,8 +4,9 @@ BEGIN;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    tag_name TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    nickname TEXT NOT NULL,
     avatar_url TEXT NOT NULL,
     ranking INT,
     wins INT,
