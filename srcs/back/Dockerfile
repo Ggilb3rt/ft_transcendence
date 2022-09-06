@@ -1,4 +1,4 @@
-FROM node:latest AS start
+FROM node:13 AS start
 
 WORKDIR /app
 COPY package.json .
@@ -10,4 +10,4 @@ RUN npm install
 FROM dev-installation AS dev
 
 COPY . .
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start"]

@@ -15,21 +15,20 @@ services:
             - ./envs/postgres.env
         volumes:
             - postgres_persistence:/var/lib/postgresql/data
-
-    w-back:
+    back:
         build:
-            context: ./srcs/w-back
+            context: ./srcs/back
             target: dev
         env_file:
             - ./envs/postgres.env
-            - ./envs/w-back.env
+            - ./envs/back.env
         volumes:
         # for hot-reloading using Nodemon
-            - ./srcs/w-back/src:/app/src
+            - ./srcs/back/src:/app/src
         depends_on:
             - postgres
         ports:
-            - 8080:8080
+            - 3000:3000
 
 volumes:
     postgres_persistence:
