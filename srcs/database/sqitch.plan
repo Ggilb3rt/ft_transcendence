@@ -7,3 +7,4 @@
 2022_09_06_09h47_match_table.sql 2022-09-06T09:47:20Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # add match table and relations
 2022_09_06_10h00_channels_ban_tables.sql 2022-09-06T10:00:46Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # still building schema step by step
 2022_09_06_10h21_channels_users_relations.sql 2022-09-06T10:21:29Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # admin, messages, mute and user_list tables
+2022_09_06_15h50_create_roles.sql 2022-09-06T15:50:57Z Pierre Troger <ptroger@macbook-pro-de-pierre.home> # create different roles in order to grant permissions

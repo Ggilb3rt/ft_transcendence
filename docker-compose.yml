@@ -6,6 +6,8 @@ services:
     #     container_name: MyPong
     #     init: true
     #     restart: on-failure
+    #     network:
+    #       - frontend
     
     postgres:
         image: postgres:alpine
@@ -15,6 +17,8 @@ services:
             - ./envs/postgres.env
         volumes:
             - postgres_persistence:/var/lib/postgresql/data
+        networks:
+            - backend
     back:
         build:
             context: ./srcs/back
@@ -29,6 +33,15 @@ services:
             - postgres
         ports:
             - 3000:3000
+        networks:
+            - backend
+            - frontend
 
 volumes:
     postgres_persistence:
+
+networks:
+    backend:
+        driver: bridge
+    frontend:
+        driver: bridge
