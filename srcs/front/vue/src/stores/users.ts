@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import type { IUser } from '../../types'
+// import { mande } from 'mande'
 
 export interface IUserStoreState {
     userList: IUser[]
@@ -25,9 +26,10 @@ const homer: IUser = {
     img: "src/assets/avatars/homer.jpeg",
     level: 1,
     nbWin: 1,
-    nbLoose: 3,  
+    nbLoose: 3,
 };
 
+// const api = mande('http://localhost:3000/users')
 
 export const useUserStore = defineStore({
     id: "user",
@@ -48,6 +50,21 @@ export const useUserStore = defineStore({
         },
         getUserWinRate(user:IUser) {
             return (user.nbWin / user.nbLoose).toPrecision(2)
-        }
+        },
+        async getUsers() {
+            try {
+
+                // const result = await api.get('/')
+                const result = await fetch('http://localhost:3000/users')
+                const data = await result.json()
+                for (let i in data) {
+                    let tmp: IUser = data[i]
+                    this.userList.push(tmp)
+                }
+            } catch (error) {
+                console.log(error)
+                return error
+            }
+        },
     },
 })
