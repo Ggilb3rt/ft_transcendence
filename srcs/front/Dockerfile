@@ -1,7 +1,9 @@
-FROM node:latest
+FROM node:alpine
 
-RUN apt-get update
+# RUN apk add --no-cache bash
 
-COPY ./run.sh /run.sh
+COPY tool/config.sh /config.sh
 
-ENTRYPOINT ["/bin/bash", "/run.sh"]
+# EXPOSE 5173
+
+CMD ["/bin/ash", "/config.sh"]
