@@ -3,6 +3,7 @@
 BEGIN;
 
 CREATE TABLE admins (
+    id SERIAL PRIMARY KEY,
     channel_id INT,
     admin_id INT,
     FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE,
@@ -10,6 +11,7 @@ CREATE TABLE admins (
 );
 
 CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
     channel_id INT,
     sender_id INT,
     content TEXT NOT NULL,
@@ -19,6 +21,7 @@ CREATE TABLE messages (
 );
 
 CREATE TABLE muted (
+    id SERIAL PRIMARY KEY,
     channel_id INT,
     muted_id INT,
     mute_date TIMESTAMPTZ NOT NULL,
@@ -27,6 +30,7 @@ CREATE TABLE muted (
 );
 
 CREATE TABLE users_list (
+    id SERIAL PRIMARY KEY,
     channel_id INT,
     user_id INT,
     FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE,

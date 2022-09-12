@@ -12,7 +12,8 @@ CREATE TABLE channels (
 );
 
 CREATE TABLE ban_users (
-    id INT,
+    id SERIAL PRIMARY KEY,
+    user_id INT,
     banned_id INT,
     ban_begin TIMESTAMPTZ,
     FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
@@ -20,7 +21,8 @@ CREATE TABLE ban_users (
 );
 
 CREATE TABLE ban_channels (
-    id INT,
+    id SERIAL PRIMARY KEY,
+    user_id INT,
     banned_id INT,
     ban_begin TIMESTAMPTZ,
     FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,

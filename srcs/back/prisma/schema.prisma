@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admins {
+  id         Int       @id @default(autoincrement())
+  channel_id Int?
+  admin_id   Int?
+  users      users?    @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  channels   channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model ban_channels {
+  id                                  Int       @id @default(autoincrement())
+  user_id                             Int?
+  banned_id                           Int?
+  ban_begin                           DateTime? @db.Timestamptz(6)
+  users_ban_channels_banned_idTousers users?    @relation("ban_channels_banned_idTousers", fields: [banned_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_ban_channels_idTousers        users     @relation("ban_channels_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model ban_users {
+  id                               Int       @id @default(autoincrement())
+  user_id                          Int?
+  banned_id                        Int?
+  ban_begin                        DateTime? @db.Timestamptz(6)
+  users_ban_users_banned_idTousers users?    @relation("ban_users_banned_idTousers", fields: [banned_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_ban_users_idTousers        users     @relation("ban_users_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model channels {
+  id         Int          @id @default(autoincrement())
+  need_pass  Boolean?
+  pass       String?
+  is_public  Boolean?
+  chan_owner Int?
+  users      users?       @relation(fields: [chan_owner], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  admins     admins[]
+  messages   messages[]
+  muted      muted[]
+  users_list users_list[]
+}
+
+model friends {
+  first_user  Int
+  second_user Int
+
+  @@id([first_user, second_user])
+}
+
+model match {
+  id                                 Int    @id @default(autoincrement())
+  player_left_id                     Int?
+  player_right_id                    Int?
+  score_left                         Int?
+  score_right                        Int?
+  users_match_player_left_idTousers  users? @relation("match_player_left_idTousers", fields: [player_left_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_match_player_right_idTousers users? @relation("match_player_right_idTousers", fields: [player_right_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model messages {
+  id           Int       @id @default(autoincrement())
+  channel_id   Int?
+  sender_id    Int?
+  content      String
+  message_date DateTime  @db.Timestamptz(6)
+  channels     channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users?    @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model muted {
+  id         Int       @id @default(autoincrement())
+  channel_id Int?
+  muted_id   Int?
+  mute_date  DateTime  @db.Timestamptz(6)
+  channels   channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [muted_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id                                         Int            @id @default(autoincrement())
+  first_name                                 String
+  last_name                                  String
+  nickname                                   String
+  avatar_url                                 String
+  ranking                                    Int?
+  wins                                       Int?
+  loses                                      Int?
+  two_factor_auth                            Boolean?
+  admins                                     admins[]
+  ban_channels_ban_channels_banned_idTousers ban_channels[] @relation("ban_channels_banned_idTousers")
+  ban_channels_ban_channels_idTousers        ban_channels?  @relation("ban_channels_idTousers")
+  ban_users_ban_users_banned_idTousers       ban_users[]    @relation("ban_users_banned_idTousers")
+  ban_users_ban_users_idTousers              ban_users?     @relation("ban_users_idTousers")
+  channels                                   channels[]
+  match_match_player_left_idTousers          match[]        @relation("match_player_left_idTousers")
+  match_match_player_right_idTousers         match[]        @relation("match_player_right_idTousers")
+  messages                                   messages[]
+  muted                                      muted[]
+  users_list                                 users_list[]
+}
+
+model users_list {
+  id         Int       @id @default(autoincrement())
+  channel_id Int?
+  user_id    Int?
+  channels   channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}

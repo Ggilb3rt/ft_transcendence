@@ -3,6 +3,7 @@
 BEGIN;
 
 CREATE TABLE match (
+    id SERIAL PRIMARY KEY,
     player_left_id INT,
     player_right_id INT,
     score_left INT,
