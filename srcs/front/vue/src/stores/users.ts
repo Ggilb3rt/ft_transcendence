@@ -5,6 +5,8 @@ import type { IUser } from '../../types'
 export interface IUserStoreState {
     userList: IUser[]
     user: IUser | null
+    loading: boolean
+    error: any | null
 }
 
 const roger: IUser = {
@@ -35,7 +37,9 @@ export const useUserStore = defineStore({
     id: "user",
     state: (): IUserStoreState => ({
         userList: [roger, homer],
-        user: homer
+        user: homer,
+        loading: false,
+        error: null
     }),
     getters: {
         getUserTag: (state) => {
@@ -52,19 +56,28 @@ export const useUserStore = defineStore({
             return (user.nbWin / user.nbLoose).toPrecision(2)
         },
         async getUsers() {
+            this.userList = []
+            this.loading = true
             try {
-
-                // const result = await api.get('/')
-                const result = await fetch('http://localhost:3000/users')
-                const data = await result.json()
-                for (let i in data) {
-                    let tmp: IUser = data[i]
-                    this.userList.push(tmp)
-                }
+                this.userList = await fetch('http://localhost:3000/users')
+                    .then((response) => response.json())
             } catch (error) {
-                console.log(error)
-                return error
+                this.error = error
+            } finally {
+                this.loading = false
             }
+            // try {
+            //     // const result = await api.get('/')
+            //     const result = await fetch('http://localhost:3000/users')
+            //     const data = await result.json()
+            //     for (let i in data) {
+            //         let tmp: IUser = data[i]
+            //         this.userList.push(tmp)
+            //     }
+            // } catch (error) {
+            //     console.log(error)
+            //     return error
+            // }
         },
     },
 })

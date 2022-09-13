@@ -1,20 +1,60 @@
 <script setup lang="ts">
-  import TheWelcome from "@/components/TheWelcome.vue";
   import { storeToRefs } from 'pinia';
   import { useUserStore } from '@/stores/users';
+  import type { IUser } from '../../types';
+  import { mande } from 'mande';
   
   const userHomer = useUserStore()
-  const { user } = storeToRefs(userHomer) // is reactive
-  // const { user.isAdmin } = userHomer // is not reactive
+  const { user, loading, error } = storeToRefs(userHomer) // is reactive
+  const { getUsers } = userHomer // is not reactive
+  const api = mande('http://localhost:3000/users/');
   
+  getUsers()
+  
+  let userData: IUser = {
+    id: 0,
+    name: "",
+    tag: "",
+    isAdmin: false,
+    level: 0,
+    nbLoose: 0,
+    nbWin: 0,
+    img: ""
+  }
+  function postUser(userData: IUser) {
+    api.post(userData).then((userData) => {
+      userData = {
+        id: 0,
+        name: "",
+        tag: "",
+        isAdmin: false,
+        level: 0,
+        nbLoose: 0,
+        nbWin: 0,
+        img: ""
+      }
+    })
+  }
   </script>
 
 <template>
   <div class="about">
+    <div class="load-error">
+      <p v-if="loading">Loading contacts...</p>
+      <p v-if="error">{{ error.message }}</p>
+    </div>
     <h1>This is an about page</h1>
     <div v-if="user">
       <p>User {{ user.name }} is <span v-if="!user.isAdmin">not</span> an admin</p>
       <input v-model="user.name" placeholder="edit me" />
+    </div>
+    <br>
+    <div>
+      <h2>Create and post user</h2>
+      <input type="number" v-model="userData.id" placeholder="id">
+      <input type="text" v-model="userData.name" placeholder="name">
+      <input type="text" v-model="userData.tag" placeholder="tag">
+      <button @click="postUser(userData)">Create user</button>
     </div>
   </div>
 </template>
@@ -26,5 +66,10 @@
     display: flex;
     align-items: center;
   }
+}
+.load-error {
+  background: rgba(255, 10, 10, .4);
+  padding: 10px;
+  color: white;
 }
 </style>

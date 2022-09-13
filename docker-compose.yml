@@ -29,7 +29,8 @@ services:
             - backend
             - frontend
     front:
-        build: front
+        build:
+            context: ./srcs/front
         image: front-vue
         container_name: pong-front
         env_file: ./envs/front.env
