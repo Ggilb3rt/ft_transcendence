@@ -1,4 +1,4 @@
-FROM node:13 AS start
+FROM node:latest AS start
 
 WORKDIR /app
 COPY package.json .
