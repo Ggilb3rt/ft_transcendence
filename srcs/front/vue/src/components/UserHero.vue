@@ -7,7 +7,7 @@ export default {
   setup() {
     const counter = useCounterStore()
     const users = useUserStore()
-    const { getUserTag } = storeToRefs(users) // make getUserTag has a ref ==> reactive
+    const { getUserNick } = storeToRefs(users) // make getUserTag has a ref ==> reactive
 
     counter.count++
     counter.$patch({ count: counter.count + 1})
@@ -18,7 +18,7 @@ export default {
     return {
       counter,
       users,
-      getUserTag,
+      getUserNick,
     }
   },
   props: ["userProp"],
@@ -32,18 +32,20 @@ export default {
 </script>
 
 <template>
-  <div v-for="user in users.userList" class="heroCard">
-    <br>
-    <img class="heroAvatar" :src="user.img" :alt="user.name + ' avatar'" />
-    <p class="heroName">{{ user.name }}</p>
-    <p class="heroTag">
-      <a href="#" v-if="userProp == user.id">{{ user.tag }}</a>
-      <a href="#" v-else>{{ getUserTag }}</a>
-    </p>
-    <p>Win rate <b>{{ users.getUserWinRate(user) }}</b></p>
+  <div>
+    <div v-for="user in users.userList" class="heroCard">
+      <br>
+      <img class="heroAvatar" :src="user.avatar_url" :alt="user.name + ' avatar'" />
+      <p class="heroName">{{ user.first_name }} {{ user.last_name}}</p>
+      <p class="heroTag">
+        <a href="#" v-if="userProp != user.id">{{ user.nickname }}</a>
+        <a href="#" v-else>{{ getUserNick }}</a>
+      </p>
+      <p>Win rate <b>{{ users.getUserWinRate(user) }}</b></p>
+    </div>
   </div>
   <!-- <div class="heroCard">
-    <img class="heroAvatar" :src="user.img" :alt="user.name + ' avatar'" />
+    <img class="heroAvatar" :src="user.avatar_url" :alt="user.name + ' avatar'" />
     <p class="heroName">{{ user.name }}</p>
     <p class="heroTag">
       <a href="#">{{ tagName }}</a>
@@ -51,7 +53,7 @@ export default {
     </p>
   </div>
   <div class="heroCard">
-    <img class="heroAvatar" :src="users.user.img" :alt="users.user.name + ' avatar'" />
+    <img class="heroAvatar" :src="users.user.avatar_url" :alt="users.user.name + ' avatar'" />
     <p class="heroName">{{ users.user.name }}</p>
     <p class="heroTag">
       <a href="#">{{ getUserTag }}</a>

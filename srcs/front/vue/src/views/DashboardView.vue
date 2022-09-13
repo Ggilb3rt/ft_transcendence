@@ -4,14 +4,15 @@ import UserHero from "@/components/UserHero.vue";
 import type { IUser } from '../../types'
 
 const roger: IUser = {
-  id: 0,
-  isAdmin: true,
-  name: "Roger Rabbit",
-  tag: "rogerrabbit",
-  img: "src/assets/avatars/rogerRabbit.png",
-  level: 3,
-  nbWin: 7,
-  nbLoose: 3,
+    id: 0,
+    two_factor_auth: true,
+    first_name: "Roger",
+    last_name: "Rabbit",
+    nickname: "rogerrabbit",
+    avatar_url: "src/assets/avatars/rogerRabbit.png",
+    ranking: 3,
+    wins: 7,
+    loses: 3,
 };
 
 // const props = defineProps({
