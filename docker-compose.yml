@@ -26,6 +26,7 @@ services:
         env_file:
             - ./envs/postgres.env
             - ./envs/back.env
+        restart: always
         volumes:
         # for hot-reloading using Nodemon
             - ./srcs/back/src:/app/src
@@ -37,8 +38,9 @@ services:
             - backend
             - frontend
 
+
 volumes:
-    postgres_persistence:
+    postgres_persistence: {}
 
 networks:
     backend:

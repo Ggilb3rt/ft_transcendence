@@ -8,13 +8,14 @@ export class UsersController {
     constructor(private usersService: UsersService) {}
 
     @Post()
-    async create(@Body() user: Prisma.usersSelect) {
-        this.usersService.postOneUser(user);
+    async create(@Body('user') user: Prisma.usersSelect) {
+        console.log("Body == ", user);
+       return (this.usersService.postOneUser(user));
     }
 
     @Get()
     async getAllUsers() {
-        this.usersService.getAllUsers()
+       return (this.usersService.getAllUsers())
     }
 
 }

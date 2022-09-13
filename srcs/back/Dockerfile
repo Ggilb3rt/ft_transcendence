@@ -1,4 +1,4 @@
-FROM node:13 AS start
+FROM node:latest AS start
 
 WORKDIR /app
 COPY package.json .
@@ -10,4 +10,7 @@ RUN npm install
 FROM dev-installation AS dev
 
 COPY . .
+
+RUN npx prisma generate
+
 CMD ["npm", "run", "start"]
