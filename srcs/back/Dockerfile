@@ -10,4 +10,7 @@ RUN npm install
 FROM dev-installation AS dev
 
 COPY . .
+
+RUN npx prisma generate
+
 CMD ["npm", "run", "start"]
