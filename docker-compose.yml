@@ -42,12 +42,6 @@ services:
 
 volumes:
     postgres_persistence:
-        name: "postgres_persistence"
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ${PWD}/postgres_persistence
     
 
 networks:
