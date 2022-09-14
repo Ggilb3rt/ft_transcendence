@@ -59,13 +59,13 @@ go_bdd:
 
 
 logs:
-	cd srcs && docker compose logs pongFront pongBack pongBdd
+	docker compose logs pongFront pongBack pongBdd
 logs_wordpress:
-	cd srcs && docker compose logs wordpress
+	docker compose logs wordpress
 logs_mariadb:
-	cd srcs && docker compose logs mariadb
+	docker compose logs mariadb
 logs_nginx:
-	cd srcs && docker compose logs nginx
+	docker compose logs nginx
 
 outside_ip:
 	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' MyNginx

@@ -7,24 +7,26 @@ import TheWelcome from "@/components/TheWelcome.vue";
 
 <template>
   <main>
-    <ul class="gameList">
-      <li>
-        <a href="/baseGame">Pong<br>
-          <img src="../assets/pongGame.png" alt="view of standard game pong" srcset="">
-        </a>
-      </li>
-      <li>
-        <a href="/catGame">CatPong<br>
-          <img src="../assets/pongCat.png" alt="view of special game Cat pong" srcset="">
-        </a>
-      </li>
-      <li>
-        <a href="/tongGame">Tong<br>
-          <img src="../assets/more.jpeg" alt="another pong game" srcset="">
-        </a>
-      </li>
-    </ul>
-
+    <nav>
+      <ul class="gameList">
+        <li>
+          <a href="/baseGame">Pong<br>
+            <img src="../assets/pongGame.png" alt="view of standard game pong" srcset="">
+          </a>
+        </li>
+        <li>
+          <a href="/catGame">CatPong<br>
+            <img src="../assets/pongCat.png" alt="view of special game Cat pong" srcset="">
+          </a>
+        </li>
+        <li>
+          <a href="/tongGame">Tong<br>
+            <img src="../assets/more.jpeg" alt="another pong game" srcset="">
+          </a>
+        </li>
+      </ul>
+    </nav>
+      
     <!-- <TheWelcome /> -->
   </main>
 </template>
