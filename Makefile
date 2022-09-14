@@ -16,7 +16,7 @@ build:
 
 # Use
 up:
-	docker-compose -f ./docker-compose.yml up -d
+	docker-compose -f ./docker-compose.yml up
 
 down:
 	docker-compose -f ./docker-compose.yml down
@@ -34,7 +34,7 @@ rm_volumes:
 		&& sudo chmod -R 775 $(PWD)/data \
 		&& rm -rf $(PWD)/data; \
 	fi
-	-docker volume rm postgres_persistence
+	-docker volume rm ft_transcendence_postgres_persistence
 	-docker volume prune -f
 
 remove: down
