@@ -6,15 +6,9 @@ const prisma = new PrismaClient();
 @Injectable()
 class UsersService {
     async getAllUsers() {
-        prisma.users.findMany()
-        .then((users) => {
-          console.log("youpi ", users);
-          return (users);
-        })
-        .catch((reason) => {
-          console.log("error occured: ", reason);
-          return (reason);
-        })
+        const users = await prisma.users.findMany();
+        console.log("s ==> ", users);
+        return (users);
     }
     async postOneUser(user) {
         prisma.users.create( {data: user })
