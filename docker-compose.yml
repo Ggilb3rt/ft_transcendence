@@ -3,6 +3,7 @@ version: '3.9'
 services:    
     postgres:
         image: postgres:alpine
+        container_name: pongBdd
         ports:
             - 5432:5432
         env_file:
@@ -15,6 +16,7 @@ services:
         build:
             context: ./srcs/back
             target: dev
+        container_name: pongBack
         env_file:
             - ./envs/postgres.env
             - ./envs/back.env
@@ -33,7 +35,7 @@ services:
         build:
             context: ./srcs/front
         image: front-vue
-        container_name: pong-front
+        container_name: pongFront
         env_file: ./envs/front.env
         init: true
         volumes:

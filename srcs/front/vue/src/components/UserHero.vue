@@ -7,14 +7,14 @@ export default {
   setup() {
     const counter = useCounterStore()
     const users = useUserStore()
-    const { getUserNick } = storeToRefs(users) // make getUserTag has a ref ==> reactive
+    const { getUserNick } = storeToRefs(users) // make getUserNick has a ref ==> reactive
 
     counter.count++
     counter.$patch({ count: counter.count + 1})
     counter.increment()
 
     // ici je return tout le store mais c'est une mauvaise pratique car pas secure
-    // il vaut mieux faire comme avec 'getUserTag' et return uniquement le necessaire
+    // il vaut mieux faire comme avec 'getUserNick' et return uniquement le necessaire
     return {
       counter,
       users,
@@ -25,7 +25,6 @@ export default {
   data() {
     return {};
   },
-  // must be in user interface or somewhere else
   computed: {
   },
 };

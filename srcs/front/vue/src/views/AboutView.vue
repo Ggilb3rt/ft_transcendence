@@ -62,8 +62,8 @@
     </div>
     <h1>This is an about page</h1>
     <div v-if="user">
-      <p>User {{ user.name }} is <span v-if="!user.isAdmin">not</span> an admin</p>
-      <input v-model="user.name" placeholder="edit me" />
+      <p>User {{ user.first_name }} is <span v-if="!user.two_factor_auth">not</span> an admin</p>
+      <input v-model="user.first_name" placeholder="edit me" />
     </div>
     <br>
     <div>
