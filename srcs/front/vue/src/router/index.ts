@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import Dashboard from "../views/DashboardView.vue";
+import Game from "../views/GameView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,11 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: Dashboard,
+    },
+    {
+      path: "/game",
+      name: "game",
+      component: Game,
     },
     {
       path: '/:pathMatch(.*)*', redirect: '/'
