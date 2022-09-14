@@ -1,16 +1,9 @@
 version: '3.9'
 
-services:
-    # front_end:
-    #     image: vuepong
-    #     container_name: MyPong
-    #     init: true
-    #     restart: on-failure
-    #     network:
-    #       - frontend
-    
+services:    
     postgres:
         image: postgres:alpine
+        container_name: pongBdd
         ports:
             - 5432:5432
         env_file:
@@ -24,6 +17,7 @@ services:
         build:
             context: ./srcs/back
             target: dev
+        container_name: pongBack
         env_file:
             - ./envs/postgres.env
             - ./envs/back.env
@@ -37,6 +31,22 @@ services:
             - 3000:3000
         networks:
             - backend
+            - frontend
+    front:
+        build:
+            context: ./srcs/front
+        image: front-vue
+        container_name: pongFront
+        env_file: ./envs/front.env
+        init: true
+        volumes:
+            - ./srcs/front/vue:/appFront
+        depends_on:
+            - back
+        restart: on-failure
+        ports:
+          - 5173:5173
+        networks:
             - frontend
 
 

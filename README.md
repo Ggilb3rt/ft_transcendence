@@ -1,6 +1,6 @@
 # ft_transcendence
 
-by GGILBERT && PTROGER && ??
+by ORMARTIN && GGILBERT && PTROGER
 
 ![Whaow](https://www.nicepng.com/png/detail/225-2258468_wow-meme-png-clip-royalty-free-download-eddy.png)
 
@@ -16,6 +16,7 @@ by GGILBERT && PTROGER && ??
   |
   |-- Back -- NestJS
   |
+  |-- Front -- Vue
   |
 
 ## POSTGRES ##
