@@ -1,22 +1,15 @@
 <script lang="ts">
 import { storeToRefs } from 'pinia';
-import { useCounterStore } from '@/stores/counter';
 import { useUserStore } from '@/stores/users';
 
 export default {
   setup() {
-    const counter = useCounterStore()
     const users = useUserStore()
     const { getUserNick } = storeToRefs(users) // make getUserNick has a ref ==> reactive
-
-    counter.count++
-    counter.$patch({ count: counter.count + 1})
-    counter.increment()
 
     // ici je return tout le store mais c'est une mauvaise pratique car pas secure
     // il vaut mieux faire comme avec 'getUserNick' et return uniquement le necessaire
     return {
-      counter,
       users,
       getUserNick,
     }

@@ -29,6 +29,16 @@ const router = createRouter({
       name: "game",
       component: Game,
     },
+    // {
+      // cf https://router.vuejs.org/guide/essentials/named-views.html
+    //   path: "/chat",
+    //   name: "chat",
+    //   components: {
+    //     default: chatView,
+    //     channelList,
+    //     friendsList
+    //   }
+    // }
     {
       path: '/:pathMatch(.*)*', redirect: '/'
     }

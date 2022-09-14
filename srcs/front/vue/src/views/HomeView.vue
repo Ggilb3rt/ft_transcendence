@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import TheWelcome from "@/components/TheWelcome.vue";
+import router from "@/router";
 
-
+// we be usefull with Oauth2
+const isLog: boolean = false
+if (!isLog)
+  router.push('login')
 
 </script>
 
 <template>
-  <main>
+  <div>
     <nav>
       <ul class="gameList">
         <li>
@@ -28,7 +32,7 @@ import TheWelcome from "@/components/TheWelcome.vue";
     </nav>
       
     <!-- <TheWelcome /> -->
-  </main>
+  </div>
 </template>
 
 <style>
