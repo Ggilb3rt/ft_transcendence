@@ -3,7 +3,6 @@ version: '3.9'
 services:    
     postgres:
         image: postgres:alpine
-        container_name: pongBdd
         ports:
             - 5432:5432
         env_file:
