@@ -2,6 +2,7 @@ FROM node:latest AS start
 
 WORKDIR /app
 COPY package.json .
+COPY run.sh .
 
 FROM start AS dev-installation
 
@@ -11,6 +12,4 @@ FROM dev-installation AS dev
 
 COPY . .
 
-RUN npx prisma generate
-
-CMD ["npm", "run", "start"]
+CMD ["bash", "run.sh"]
