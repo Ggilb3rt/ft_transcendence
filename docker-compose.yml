@@ -15,6 +15,7 @@ services:
             - 5432:5432
         env_file:
             - ./envs/postgres.env
+        restart: unless-stopped
         volumes:
             - postgres_persistence:/var/lib/postgresql/data
         networks:
@@ -26,7 +27,7 @@ services:
         env_file:
             - ./envs/postgres.env
             - ./envs/back.env
-        restart: always
+        restart: unless-stopped
         volumes:
         # for hot-reloading using Nodemon
             - ./srcs/back/src:/app/src
@@ -40,7 +41,14 @@ services:
 
 
 volumes:
-    postgres_persistence: {}
+    postgres_persistence:
+        name: "postgres_persistence"
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${PWD}/postgres_persistence
+    
 
 networks:
     backend:
