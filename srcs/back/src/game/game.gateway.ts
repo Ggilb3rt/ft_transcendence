@@ -1,34 +1,54 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { CreateGameDto } from './dto/create-game.dto';
-import { UpdateGameDto } from './dto/update-game.dto';
+import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway()
+@WebSocketGateway({
+	cors: {
+		origin: '*'
+	}
+})
 export class GameGateway {
-  constructor(private readonly gameService: GameService) {}
 
-  @SubscribeMessage('createGame')
-  create(@MessageBody() createGameDto: CreateGameDto) {
-    return this.gameService.create(createGameDto);
-  }
+	// Reference to the socket.io server under the hood
+	@WebSocketServer()
+	server : Server;
+  	
+	constructor(private readonly gameService: GameService) {}
 
-  @SubscribeMessage('findAllGame')
-  findAll() {
-    return this.gameService.findAll();
-  }
+ 	@SubscribeMessage('createGame')
+	async create(
+	@MessageBody() createGameDto: CreateGameDto,
+	@ConnectedSocket() client: Socket
+	) {
+	   const game = await this.gameService.create(createGameDto, client.id);
+	
+		this.server.emit('game', game);
 
-  @SubscribeMessage('findOneGame')
-  findOne(@MessageBody() id: number) {
-    return this.gameService.findOne(id);
-  }
+		return game;
+	}
 
-  @SubscribeMessage('updateGame')
-  update(@MessageBody() updateGameDto: UpdateGameDto) {
-    return this.gameService.update(updateGameDto.id, updateGameDto);
-  }
+	@SubscribeMessage('findAllGame')
+	findAll() {
+		return this.gameService.findAll();
+	}
 
-  @SubscribeMessage('removeGame')
-  remove(@MessageBody() id: number) {
-    return this.gameService.remove(id);
-  }
+	@SubscribeMessage('join')
+	joinRoom(
+		@MessageBody('name') name: string,
+		@ConnectedSocket() client: Socket
+		) {
+		return this.gameService.identify(name, client.id);
+	}
+
+	@SubscribeMessage('typing')
+	async typing(
+		@MessageBody('isTyping') isTyping: boolean, 
+		@ConnectedSocket() client: Socket
+		) {
+		const name = await this.gameService.getClientName(client.id);
+	
+		// Send to clients except emetteur
+		client.broadcast.emit( 'typing', {name, isTyping} );
+	}
 }

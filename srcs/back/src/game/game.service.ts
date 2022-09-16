@@ -1,26 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
+import { Game } from './entities/game.entity';
 
 @Injectable()
 export class GameService {
-  create(createGameDto: CreateGameDto) {
-    return 'This action adds a new game';
-  }
+	messages: Game[] = [{ name: 'Oriane', text: 'hola' }];
+	clientToUser = {};
 
-  findAll() {
-    return `This action returns all game`;
-  }
+	identify(name: string, clientId: string) {
+		this.clientToUser[clientId] = name;
 
-  findOne(id: number) {
-    return `This action returns a #${id} game`;
-  }
+		return Object.values(this.clientToUser);
+	}
 
-  update(id: number, updateGameDto: UpdateGameDto) {
-    return `This action updates a #${id} game`;
-  }
+	getClientName(clientId: string) {
+		return this.clientToUser[clientId];
+	}
 
-  remove(id: number) {
-    return `This action removes a #${id} game`;
-  }
+  	create(createGameDto: CreateGameDto, clientId: string) {
+		const game = { 
+			name: this.clientToUser[clientId],
+			text: createGameDto.text,
+		};
+
+	    this.messages.push(game); // TODO
+		return game;
+	}
+
+ 	 findAll() {
+		// Si DB, ici on la requete
+  	  return this.messages;
+ 	 }
 }
