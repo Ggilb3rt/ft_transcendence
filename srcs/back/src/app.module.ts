@@ -8,11 +8,12 @@ import { LoginService } from './login/login.service';
 import { LoginController } from './login/login.controller';
 import { LoginModule } from './login/login.module';
 import { RegisterModule } from './register/register.module';
+import { GameModule } from './game/game.module';
 
 
 
 @Module({
-  imports: [ UsersModule, LoginModule, RegisterModule ],
+  imports: [ UsersModule, LoginModule, RegisterModule, GameModule ],
   controllers: [AppController, UsersController, LoginController],
   providers: [AppService, UsersService, LoginService],
 })
