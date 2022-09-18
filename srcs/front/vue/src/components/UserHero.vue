@@ -1,56 +1,26 @@
-<script lang="ts">
+<script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '@/stores/users';
+import { useUsersStore } from '@/stores/users';
+import UserGameStats from './UserGameStats.vue'
 
-export default {
-  setup() {
-    const users = useUserStore()
-    const { getUserNick } = storeToRefs(users) // make getUserNick has a ref ==> reactive
+const users = useUsersStore()
+const { getUserNick } = useUsersStore()
+// const { getUserNick } = storeToRefs(users) // make getUserNick has a ref ==> reactive
 
-    // ici je return tout le store mais c'est une mauvaise pratique car pas secure
-    // il vaut mieux faire comme avec 'getUserNick' et return uniquement le necessaire
-    return {
-      users,
-      getUserNick,
-    }
-  },
-  props: ["userProp"],
-  data() {
-    return {};
-  },
-  computed: {
-  },
-};
 </script>
 
 <template>
   <div>
-    <div v-for="user in users.userList" class="heroCard">
+    <div v-for="user in users.userList" :key="user.id" class="heroCard">
       <br>
-      <img class="heroAvatar" :src="user.avatar_url" :alt="user.name + ' avatar'" />
+      <img class="heroAvatar" :src="user.avatar_url" :alt="user.nickname + ' avatar'" />
       <p class="heroName">{{ user.first_name }} {{ user.last_name}}</p>
       <p class="heroTag">
-        <a href="#" v-if="userProp != user.id">{{ user.nickname }}</a>
-        <a href="#" v-else>{{ getUserNick }}</a>
+        <a href="#">{{ getUserNick(user) }}</a>
       </p>
-      <p>Win rate <b>{{ users.getUserWinRate(user) }}</b></p>
+      <UserGameStats :id="user.id" />
     </div>
   </div>
-  <!-- <div class="heroCard">
-    <img class="heroAvatar" :src="user.avatar_url" :alt="user.name + ' avatar'" />
-    <p class="heroName">{{ user.name }}</p>
-    <p class="heroTag">
-      <a href="#">{{ tagName }}</a>
-      {{counter.count + counter.name + " " + counter.doubleCount}}
-    </p>
-  </div>
-  <div class="heroCard">
-    <img class="heroAvatar" :src="users.user.avatar_url" :alt="users.user.name + ' avatar'" />
-    <p class="heroName">{{ users.user.name }}</p>
-    <p class="heroTag">
-      <a href="#">{{ getUserTag }}</a>
-    </p>
-  </div> -->
 </template>
 
 <style scoped>

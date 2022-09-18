@@ -10,11 +10,12 @@ if (!isLog)
 </script>
 
 <template>
-  <div>
+  <div class="vue_wrapper home">
+    <h1>Let's play a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
         <li>
-          <a href="/baseGame">Pong<br>
+          <a href="/baseGame" class="pongLink">Pong<br>
             <img src="../assets/pongGame.png" alt="view of standard game pong" srcset="">
           </a>
         </li>
@@ -41,15 +42,33 @@ if (!isLog)
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 0;
 }
 
 .gameList li a {
-
+  display: block;
+}
+.gameList li a:hover, .gameList li a:active {
+  background: none;
+}
+.gameList li a:hover img, .gameList li a:active img {
+  transition: border .1s ease-in;
+  border: 1px solid rgb(21, 216, 255);
 }
 
 .gameList li a img{
-  width: 70%;
-  max-height: 300px;
-  overflow: hidden;
+  width: 100%;
+  max-height: 400px;
+}
+
+@media screen and (min-width: 768px) {
+  .gameList {
+    flex-direction: row;
+    gap: 10px;
+    justify-content: left;
+  }
+  .gameList li a img{
+    max-height: 200px;
+  }
 }
 </style>

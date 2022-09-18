@@ -1,10 +1,11 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { useUserStore } from '@/stores/users';
+  import { useUsersStore } from '@/stores/users';
+  import VerticalNavVue from "./components/navigation/VerticalNav.vue";
   import type { IUser } from '../../types';
   import { mande } from 'mande';
   
-  const userHomer = useUserStore()
+  const userHomer = useUsersStore()
   const { user, loading, error } = storeToRefs(userHomer) // is reactive
   const { getUsers } = userHomer // is not reactive
   const api = mande('http://localhost:3000/users');
@@ -55,7 +56,8 @@
   </script>
 
 <template>
-  <div class="about">
+  <div class="vue_wrapper about">
+
     <div class="load-error">
       <p v-if="loading">Loading contacts...</p>
       <p v-if="error">{{ error.message }}</p>

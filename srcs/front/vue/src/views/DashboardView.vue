@@ -15,28 +15,15 @@ const roger: IUser = {
     loses: 3,
 };
 
-// const props = defineProps({
-//   user: {
-//     type: Object as () => PropType<IUser>,
-//   },
-// });
 </script>
 
 <template>
-  <div class="dashboard">
+  <div class="vue_wrapper dashboard">
     <h1>Dashboard</h1>
-    <UserHero :userProp="0" />
+    <UserHero />
   </div>
 </template>
 
 <style>
-@import url("https://fonts.googleapis.com/css2?family=Inder&display=swap");
 
-@media (min-width: 1024px) {
-  .dashboard {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
-}
 </style>

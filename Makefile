@@ -12,14 +12,14 @@ create_vol:
 	sudo chmod -R 775 $(PWD)/data
 
 build:
-	docker-compose -f ./docker-compose.yml build
+	docker compose -f ./docker-compose.yml build
 
 # Use
 up:
-	docker-compose -f ./docker-compose.yml up
+	docker compose -f ./docker-compose.yml up
 
 down:
-	docker-compose -f ./docker-compose.yml down
+	docker compose -f ./docker-compose.yml down
 
 ps:
 	docker ps -a

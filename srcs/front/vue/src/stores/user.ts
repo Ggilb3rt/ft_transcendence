@@ -3,43 +3,19 @@ import type { IUser } from '../../types'
 // import { mande } from 'mande'
 
 export interface IUserStoreState {
-    userList: IUser[]
     user: IUser | null
     loading: boolean
     error: any | null
 }
 
-const roger: IUser = {
-    id: 0,
-    two_factor_auth: true,
-    first_name: "Roger",
-    last_name: "Rabbit",
-    nickname: "rogerrabbit",
-    avatar_url: "src/assets/avatars/rogerRabbit.png",
-    ranking: 3,
-    wins: 7,
-    loses: 3,
-};
-
-const homer: IUser = {
-    id: 1,
-    two_factor_auth: false,
-    first_name: "Homer",
-    last_name: "Simpsons",
-    nickname: "homer",
-    avatar_url: "src/assets/avatars/homer.jpeg",
-    ranking: 1,
-    wins: 1,
-    loses: 3,
-};
-
 // const api = mande('http://localhost:3000/users')
 
-export const useUsersStore = defineStore({
-    id: "users",
-    state: (): IUserStoreState => ({
-        userList: [roger, homer],
-        user: homer,
+
+export const useUserStore = defineStore({
+    id: "user",
+    state: () => ({
+        neededId: 1 as Number,
+        user: null as IUser | null,
         loading: false,
         error: null
     }),
@@ -86,14 +62,17 @@ export const useUsersStore = defineStore({
             }
         },
         async getUsers() {
-            this.userList = []
             this.loading = true
             try {
-                this.userList = await fetch('http://localhost:3000/users', {
+                const userList = await fetch('http://localhost:3000/users', {
                     method: "get",
                 })
                     .then((response) => response.json())
-            } catch (error) {
+                userList.forEach(el => {
+                    if (el.id == this.neededId)
+                        this.user = el
+                });
+            } catch (error: any) {
                 this.error = error
             } finally {
                 this.loading = false
