@@ -2,8 +2,8 @@
 import { RouterLink, RouterView } from "vue-router";
 import { useUsersStore } from '@/stores/users';
 import HelloWorld from "./components/HelloWorld.vue";
-import VerticalNavVue from "./components/navigation/VerticalNav.vue";
-import FooterVue from "./components/Footer.vue";
+import PrimaryNav from "./components/navigation/PrimaryNav.vue";
+import Footer from "./components/Footer.vue";
 
 
 const users = useUsersStore();
@@ -22,13 +22,13 @@ const users = useUsersStore();
       height="125"
       />
       
-      <VerticalNavVue />
+      <PrimaryNav />
 
     </header>
 
     <RouterView />
 
-    <FooterVue />
+    <Footer />
   </main>
 </template>
 
@@ -43,7 +43,7 @@ header {
   max-height: 100vh;
   border-bottom: 1px solid;
   background: #000;
-  margin-bottom: 30px;
+  /* margin-bottom: 30px; */
 }
 
 .logo {

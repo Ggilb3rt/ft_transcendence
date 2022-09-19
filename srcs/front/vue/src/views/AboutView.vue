@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
+  import { ref } from 'vue'
   import { useUsersStore } from '@/stores/users';
-  import VerticalNavVue from "./components/navigation/VerticalNav.vue";
   import type { IUser } from '../../types';
   import { mande } from 'mande';
   
@@ -11,31 +11,6 @@
   const api = mande('http://localhost:3000/users');
   
   getUsers()
-  
-  // let userData: IUser = {
-  //   id: 0,
-  //   name: "",
-  //   tag: "",
-  //   isAdmin: false,
-  //   level: 0,
-  //   nbLoose: 0,
-  //   nbWin: 0,
-  //   avatar_url: ""
-  // }
-  // function postUser(userData: IUser) {
-  //   api.post(userData).then((userData) => {
-  //     userData = {
-  //       id: 0,
-  //       name: "",
-  //       tag: "",
-  //       isAdmin: false,
-  //       level: 0,
-  //       nbLoose: 0,
-  //       nbWin: 0,
-  //       avatar_url: ""
-  //     }
-  //   })
-  // }
 
   let userBDD = {
     first_name: "guillaume",
@@ -53,11 +28,11 @@
     }
     })
   }
-  </script>
+
+</script>
 
 <template>
   <div class="vue_wrapper about">
-
     <div class="load-error">
       <p v-if="loading">Loading contacts...</p>
       <p v-if="error">{{ error.message }}</p>

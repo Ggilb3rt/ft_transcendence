@@ -38,7 +38,6 @@ if (!isLog)
 
 <style>
 .gameList {
-  list-style: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
