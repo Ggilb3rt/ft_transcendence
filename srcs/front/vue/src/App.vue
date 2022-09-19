@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import { useUsersStore } from '@/stores/users';
-import HelloWorld from "./components/HelloWorld.vue";
+import { useUsersStore } from './stores/users';
+// import HelloWorld from "./components/HelloWorld.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
 
@@ -22,13 +22,13 @@ const users = useUsersStore();
       height="125"
       />
       
-      <PrimaryNav />
+      <PrimaryNav></PrimaryNav>
 
     </header>
 
     <RouterView />
 
-    <Footer />
+    <Footer></Footer>
   </main>
 </template>
 

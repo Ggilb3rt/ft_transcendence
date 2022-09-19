@@ -2,8 +2,8 @@
 	import { ref } from 'vue'
 
 	const props = defineProps({
-		model: [Object],
-		onRight: Boolean
+		model: {type: [Object], required: true},
+		onRight: {type: Boolean, required: true}
 	})
 
 	const isOpen = (index: number) => {
@@ -13,7 +13,7 @@
 		return props.model.items[index].children && props.model.items[index].children.length
 	}
 
-	function toggle(index) {
+	function toggle(index: number) {
 		props.model.items[index].isOpen = !props.model.items[index].isOpen
 	}
 

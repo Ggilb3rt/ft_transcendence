@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import { ref } from "vue";
-import { useUsersStore } from '@/stores/users';
+import { useUsersStore } from '../../stores/users';
 import { classPrivateMethod } from "@babel/types";
 
 const users = useUsersStore();

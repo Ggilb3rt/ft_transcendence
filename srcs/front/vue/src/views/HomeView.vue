@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TheWelcome from "@/components/TheWelcome.vue";
+import UserHero from "@/components/UserHero.vue";
 import router from "@/router";
 
 // we be usefull with Oauth2
@@ -31,7 +32,10 @@ if (!isLog)
         </li>
       </ul>
     </nav>
-      
+
+    <!-- <h1>Infos</h1>
+    <UserHero /> -->
+
     <!-- <TheWelcome /> -->
   </div>
 </template>
