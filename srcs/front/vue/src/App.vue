@@ -14,16 +14,8 @@ const users = useUsersStore();
 <template>
   <main>
     <header>
-      <img
-      alt="Pong logo"
-      class="logo"
-      src="@/assets/logo.svg"
-      width="125"
-      height="125"
-      />
-      
+      <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
       <PrimaryNav></PrimaryNav>
-
     </header>
 
     <RouterView />
@@ -48,6 +40,8 @@ header {
 
 .logo {
   display: block;
+  width: 125px;
+  height: 125px;
   /* margin: 0 auto 2rem; */
 }
 

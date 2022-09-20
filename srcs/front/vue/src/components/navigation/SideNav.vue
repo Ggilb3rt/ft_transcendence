@@ -1,32 +1,33 @@
 <script setup lang="ts">
 	import { ref } from 'vue'
-
+	
+	let winWidth = ref(window.innerWidth)
 	const props = defineProps({
 		model: {type: [Object], required: true},
 		onRight: {type: Boolean, required: true}
 	})
 
-	const isOpen = (index: number) => {
+	function isOpen(index: number) {
 		return props.model.items[index].isOpen
 	}
-	const isFolder = (index: number) => {
+	function isFolder(index: number) {
 		return props.model.items[index].children && props.model.items[index].children.length
 	}
-
 	function toggle(index: number) {
 		props.model.items[index].isOpen = !props.model.items[index].isOpen
 	}
 
-	let winWidth = ref(window.innerWidth)
-
 	window.addEventListener('resize', (e) => {
 		winWidth.value = window.innerWidth
+		if (winWidth.value >= 768)
+			props.model.isOpen = true
+		else
+			props.model.isOpen = false
 	});
 	if (winWidth.value >= 768)
 		props.model.isOpen = true
 	else
 		props.model.isOpen = false
-
 </script>
 
 <template>
@@ -35,18 +36,25 @@
 			class="btn_side"
 			@click="props.model.isOpen = !props.model.isOpen"
 			v-if="winWidth < 768">
-			{{ props.model.name }}
+			X
+			<!-- {{ props.model.name }} -->
 		</button>
 		<li v-for="el, index in model.items" :key="el">
 			<div
 				:class="{ bold: isFolder(index) }"
 				@click="toggle(index)">
-				{{ el.name }}
+				<a v-if="el.href" :href="el.href">
+					{{ el.name }}
+				</a>
+				<button v-else>{{ el.name }}</button>
 				<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
 			</div>
 			<ul v-show="isOpen(index)" v-if="isFolder(index)">
 				<li v-for="child in el.children" :key="child">
-					{{ child.name }}
+					<a v-if="child.href" :href="child.href">
+						{{ child.name }}
+					</a>
+					<button v-else>{{ child.name }}</button>
 				</li>
 			</ul>
 		</li>

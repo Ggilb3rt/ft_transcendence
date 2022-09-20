@@ -6,22 +6,22 @@
 		name: 'Channels',
 		isOpen: false,
 		items: [
-			{name: 'New', children: null},
+			{name: 'New', children: null, href: '/chat/new'},
 			{
 				name: 'All channels',
 				children: [	// need to get it
-					{ name: 'chan1' },
-					{ name: 'chan2' },
-					{ name: 'chan3' },
-					{ name: 'chan4' },
+					{ name: 'chan1', href: '/chat/id1' },
+					{ name: 'chan2', href: '/chat/id2' },
+					{ name: 'chan3', href: '/chat/id3' },
+					{ name: 'chan4', href: '/chat/id4' },
 				],
 				isOpen: false
 			},
 			{
 				name: 'My channels',
 				children: [
-					{ name: 'chan1' },
-					{ name: 'chan3' },
+					{ name: 'chan1', href: '/chat/id1' },
+					{ name: 'chan3', href: '/chat/id3' },
 				],
 				isOpen: true
 			}
@@ -102,7 +102,6 @@
 	function submit(e: Event) {
 		e.preventDefault()
 		if (msg.value) {
-			console.log(msg.value)
 			channelMsgs.push({
 				tag: "Homer",
 				img: "src/assets/avatars/homer.jpeg",
@@ -125,8 +124,8 @@
 		<div class="room">
 			<p v-for="msg in channelMsgs" :key="msg.tag" class="message">
 				<img :src="msg.img" :alt="msg.tag + ' avatar'">
-				<span class="tag">{{ msg.tag }} </span>
-				<span class="time"> {{ msg.date.toLocaleDateString() }}</span>
+				<span class="tag">{{ msg.tag }}  </span>
+				<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ msg.date.getMinutes() }}</span>
 				<br>
 				{{ msg.msg }}
 			</p>
