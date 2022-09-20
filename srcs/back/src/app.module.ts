@@ -4,11 +4,19 @@ import { AppService } from './app.service';
 import { UsersService } from './users/users.service';
 import { UsersController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
+import { LoginService } from './login/login.service';
+import { LoginController } from './login/login.controller';
+import { LoginModule } from './login/login.module';
+import { RegisterModule } from './register/register.module';
+import { AuthController } from './auth/auth.controller';
+import { AuthModule } from './auth/auth.module';
+import { AuthService } from './auth/auth.service';
+
 
 
 @Module({
-  imports: [ UsersModule ],
-  controllers: [AppController, UsersController],
-  providers: [AppService, UsersService],
+  imports: [ UsersModule, LoginModule, RegisterModule, AuthModule ],
+  controllers: [AppController, UsersController, LoginController, AuthController],
+  providers: [AppService, UsersService, LoginService, AuthService],
 })
 export class AppModule {}
