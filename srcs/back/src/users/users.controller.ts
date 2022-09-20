@@ -18,8 +18,9 @@ export class UsersController {
        return (this.usersService.getAllUsers())
     }
 
-    @Get('/id')
+    @Get('/:id')
     getOneUser(@Body('id') id: number) {
+        console.log("user id: " + id)
         return (this.usersService.getUserById(id))
     }
 

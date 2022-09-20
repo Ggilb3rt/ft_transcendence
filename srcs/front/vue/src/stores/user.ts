@@ -68,27 +68,13 @@ export const useUserStore = defineStore({
                     method: "get",
                 })
                     .then((response) => response.json())
-                // userList.forEach(el => {
-                //     if (el.id == this.neededId)
-                //         this.user = el
-                // });
+                console.log(user)
+                this.user = user
             } catch (error: any) {
                 this.error = error
             } finally {
                 this.loading = false
             }
-            // try {
-            //     // const result = await api.get('/')
-            //     const result = await fetch('http://localhost:3000/users')
-            //     const data = await result.json()
-            //     for (let i in data) {
-            //         let tmp: IUser = data[i]
-            //         this.userList.push(tmp)
-            //     }
-            // } catch (error) {
-            //     console.log(error)
-            //     return error
-            // }
         },
     },
 })
