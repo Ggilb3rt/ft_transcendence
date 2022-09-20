@@ -61,17 +61,17 @@ export const useUserStore = defineStore({
                     break
             }
         },
-        async getUsers() {
+        async getUser(id: number) {
             this.loading = true
             try {
-                const userList = await fetch('http://localhost:3000/users', {
+                const user = await fetch(`http://localhost:3000/users/${id}`, {
                     method: "get",
                 })
                     .then((response) => response.json())
-                userList.forEach(el => {
-                    if (el.id == this.neededId)
-                        this.user = el
-                });
+                // userList.forEach(el => {
+                //     if (el.id == this.neededId)
+                //         this.user = el
+                // });
             } catch (error: any) {
                 this.error = error
             } finally {

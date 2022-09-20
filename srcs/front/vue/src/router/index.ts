@@ -4,6 +4,11 @@ import Dashboard from "../views/DashboardView.vue";
 import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
 
+
+type gameList = 'pong' | 'catPong'
+
+const ourGames: gameList = 'pong';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -31,7 +36,7 @@ const router = createRouter({
       component: Dashboard,
     },
     {
-      path: "/game",
+      path: "/game/:ourGames?/:id?",
       name: "game",
       component: Game,
     },
@@ -46,7 +51,9 @@ const router = createRouter({
     //   }
     // }
     {
-      path: '/:pathMatch(.*)*', redirect: '/'
+      path: '/:pathMatch(.*)*',
+      name: "notFound",
+      redirect: '/'
     }
   ],
 });

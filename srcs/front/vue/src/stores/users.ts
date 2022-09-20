@@ -19,6 +19,8 @@ const roger: IUser = {
     ranking: 3,
     wins: 7,
     loses: 3,
+    friends: [1],
+    blocks: [3, 5, 6, 7]
 };
 
 const homer: IUser = {
@@ -31,6 +33,8 @@ const homer: IUser = {
     ranking: 1,
     wins: 1,
     loses: 3,
+    friends: [0, 1, 2, 3, 4],
+    blocks: [3, 2]
 };
 
 // const api = mande('http://localhost:3000/users')
@@ -98,18 +102,6 @@ export const useUsersStore = defineStore({
             } finally {
                 this.loading = false
             }
-            // try {
-            //     // const result = await api.get('/')
-            //     const result = await fetch('http://localhost:3000/users')
-            //     const data = await result.json()
-            //     for (let i in data) {
-            //         let tmp: IUser = data[i]
-            //         this.userList.push(tmp)
-            //     }
-            // } catch (error) {
-            //     console.log(error)
-            //     return error
-            // }
         },
     },
 })

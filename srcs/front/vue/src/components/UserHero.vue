@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { useUsersStore } from '@/stores/users';
+import { useUsersStore } from '../stores/users';
 import UserGameStats from './UserGameStats.vue'
+import UserList from './UserList.vue'
+import type { IUser } from '../../types';
 
 const users = useUsersStore()
 const { getUserNick } = useUsersStore()
 // const { getUserNick } = storeToRefs(users) // make getUserNick has a ref ==> reactive
+
+console.log(UserList)
 
 </script>
 
@@ -19,11 +23,15 @@ const { getUserNick } = useUsersStore()
         <a href="#">{{ getUserNick(user) }}</a>
       </p>
       <UserGameStats :id="user.id" />
+
+      <UserList title="Friends" :user="user" :list="user.friends"></UserList>
+      <UserList title="Block" :user="user" :list="user.blocks" ></UserList>
+
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
 .heroCard p {
   font-family: "Inder", sans-serif;
   font-style: normal;

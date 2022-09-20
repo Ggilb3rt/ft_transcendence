@@ -8,4 +8,6 @@ export interface IUser {
     ranking: number;
     wins: number;
     loses: number;
+    friends: number[];
+    blocks: number[];
   }

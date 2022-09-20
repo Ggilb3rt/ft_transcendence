@@ -2,7 +2,7 @@
 	import { reactive } from 'vue'
 
 	defineProps<{
-	  msg: string;
+		msg: string;
 	}>();
 
 	const state = reactive({

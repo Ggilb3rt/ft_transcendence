@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
-import { useUsersStore } from '@/stores/users';
+import { useUsersStore } from '../stores/users';
 
 const users = useUsersStore()
 const { getUserLevel, getUserWinRate } = useUsersStore()
@@ -12,7 +12,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="stat">
+  <div class="heroStat">
     <hr>
     <div v-for="user in users.userList" :key="user.id" class="heroGameStat">
       <div v-if="id == user.id">
@@ -34,10 +34,10 @@ const props = defineProps({
 
 <style scoped>
 
-.stat {
+.heroStat {
   margin: 15px 0;
 }
-.stat hr {
+.heroStat hr {
   margin: 15px 0;
 }
 .heroGameStat {
@@ -48,24 +48,10 @@ const props = defineProps({
   font-weight: 400;
 }
 
-.statVal {
+.heroStat .statVal {
   font-size: 20px;
   line-height: 25px;
   color: #fff;
 }
 
-.heroCard .heroAvatar {
-  max-width: 40%;
-  border-radius: 10px;
-}
-
-.heroCard .heroName {
-  font-size: 24px;
-  line-height: 30px;
-}
-
-.heroCard .heroTag {
-  font-size: 15px;
-  line-height: 19px;
-}
 </style>

@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import { useUsersStore } from './stores/users';
+import { useUserStore } from './stores/user';
 // import HelloWorld from "./components/HelloWorld.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
 
 
-const users = useUsersStore();
+const users = useUsersStore()
+const user = useUserStore()
+const { getUser } = user
 
+// getUser(1);
 
 </script>
 

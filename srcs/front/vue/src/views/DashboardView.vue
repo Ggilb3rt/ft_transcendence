@@ -1,19 +1,5 @@
 <script setup lang="ts">
-import type { PropType } from "vue";
 import UserHero from "@/components/UserHero.vue";
-import type { IUser } from '../../types'
-
-const roger: IUser = {
-    id: 0,
-    two_factor_auth: true,
-    first_name: "Roger",
-    last_name: "Rabbit",
-    nickname: "rogerrabbit",
-    avatar_url: "src/assets/avatars/rogerRabbit.png",
-    ranking: 3,
-    wins: 7,
-    loses: 3,
-};
 
 </script>
 
