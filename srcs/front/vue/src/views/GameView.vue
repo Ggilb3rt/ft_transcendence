@@ -23,7 +23,7 @@ import Game from "@/components/Game.vue";
 }
 </style> -->
 
-
+<!--
 <script setup lang="ts">
 	import { io } from "socket.io-client";
 	import { onBeforeMount, ref } from "vue";
@@ -118,5 +118,83 @@ import Game from "@/components/Game.vue";
 	
 	@media (min-width: 1024px) {
 	}
-	</style>
-	
+	</style> -->
+
+<script>
+//import Game from "@/components/Game.vue";
+import io from "socket.io-client";
+
+export default {
+  name: "Game",
+  data() {
+    return {
+      socket: {},
+      context: {},
+      position: {
+        x: 0,
+        y: 0,
+      },
+    };
+  },
+  // Lifecycle vue function : before the view renders
+  // Here we establish the connection with the server
+  created() {
+    this.socket = io("http://localhost:3000");
+  },
+  // Lifecycle vue function : before the view has rendered
+  // Here start listening for events
+  mounted() {
+    this.context = this.$refs.gameWindow.getContext("2d"); // where gameWindow is the name given to our canvas. $refs = query selector to get our canvas, then method getContext() applied to our canvas
+    this.socket.emit("connection", {}),
+      this.socket.on("position", (pos) => {
+        this.position = pos;
+        this.context.clearRect(
+          0,
+          0,
+          this.$refs.gameWindow,
+          this.$refs.gameWindow.height
+        );
+        this.context.fillRect(this.position.x, this.position.y, 20, 20);
+      });
+  },
+  methods: {
+    move(direction) {
+      this.socket.emit("move", direction);
+    },
+  },
+};
+</script>
+
+<template>
+  <div class="dashboard">
+    <h1>Classic Pong</h1>
+    <!-- <Game msg="Bonjour le jeu" /> -->
+  </div>
+  <div>
+    <canvas
+      ref="gameWindow"
+      width="640"
+      height="480"
+      style="border: 1px solid black"
+    >
+    </canvas>
+    <p>
+      <button v-on:clicK="move('right')">Right</button>
+      <button v-on:clicK="move('left')">Left</button>
+      <button v-on:clicK="move('up')">Up</button>
+      <button v-on:clicK="move('down')">Down</button>
+    </p>
+  </div>
+</template>
+
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inder&display=swap");
+
+@media (min-width: 1024px) {
+  .dashboard {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+}
+</style>

@@ -7,6 +7,10 @@ import { Game } from './entities/game.entity';
 export class GameService {
 	messages: Game[] = [{ name: 'Oriane', text: 'hola' }];
 	clientToUser = {};
+    position: {
+        x: 200;
+        y: 200
+    }
 
 	identify(name: string, clientId: string) {
 		this.clientToUser[clientId] = name;

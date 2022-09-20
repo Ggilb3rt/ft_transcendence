@@ -9,14 +9,14 @@ import { Server, Socket } from 'socket.io';
 	}
 })
 export class GameGateway {
-
+    
 	// Reference to the socket.io server under the hood
 	@WebSocketServer()
 	server : Server;
   	
 	constructor(private readonly gameService: GameService) {}
 
- 	@SubscribeMessage('createGame')
+	@SubscribeMessage('createGame')
 	async create(
 	@MessageBody() createGameDto: CreateGameDto,
 	@ConnectedSocket() client: Socket
@@ -26,7 +26,7 @@ export class GameGateway {
 		this.server.emit('game', game);
 
 		return game;
-	}
+    }
 
 	@SubscribeMessage('findAllGame')
 	findAll() {
@@ -51,4 +51,31 @@ export class GameGateway {
 		// Send to clients except emetteur
 		client.broadcast.emit( 'typing', {name, isTyping} );
 	}
+
+    @SubscribeMessage('connection') 
+    sendPosition(@ConnectedSocket() client: Socket) {
+        
+    //    console.log({ client: client });
+        var position = {
+            x: 200,
+            y: 200
+        }
+        this.server.emit('position', position);
+    }
+
+ /*   @SubscribeMessage('move')
+    movePosition(@MessageBody('direction') direction: string, data: string) {
+        switch(data) {
+            case "left":
+                position.x -=5;
+            case "right":
+                this.position.x +=5;
+            case "up":
+                this.position.y +=5;
+            case "down":
+                this.position.y -= 5;
+        }
+    }*/
+        
+
 }
