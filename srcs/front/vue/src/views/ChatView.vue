@@ -99,15 +99,45 @@
 	
 	let msg = ref("")
 
+	// function scrollToBottom(op) {
+	// 	const el = this.$el.getElementsByClassName('room')[0];
+		
+	// 	console.log(op)
+	// 	if (el) {
+	// 		el.scrollIntoView(op);
+	// 	}
+	// }
+
 	function submit(e: Event) {
 		e.preventDefault()
 		if (msg.value) {
-			channelMsgs.push({
-				tag: "Homer",
-				img: "src/assets/avatars/homer.jpeg",
-				msg: msg.value,
-				date: new Date()
-			})
+			// const toSend = new Promise ((resolve, error) => 
+			// {
+				channelMsgs.push({
+					tag: "Homer",
+					img: "src/assets/avatars/homer.jpeg",
+					msg: msg.value,
+					date: new Date()
+				})
+				// scrollToBottom(document.getElementById('room-view').lastChild)
+				// resolve(true)
+			// })
+			// .then((val) => {
+				// console.log(val)
+				const room = document.getElementById('room-view')
+				if (room) {
+					// const lastEl = room.getElementsByTagName('p');
+					console.log(room.childNodes.length)
+					console.log(room.childNodes)
+					// console.log(lastEl)
+					room.scrollTo({
+						top: room.scrollHeight,
+						left: 0,
+						behavior: 'smooth'
+					});
+					// lastEl[lastEl.length - 1].scrollIntoView({behavior: 'smooth'})
+				}
+			// })
 		}
 		msg.value = ""
 	}
@@ -121,7 +151,7 @@
 		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav>
 		
 		<!-- put it to a component ? -->
-		<div class="room">
+		<div class="room" id="room-view">
 			<p v-for="msg in channelMsgs" :key="msg.tag" class="message">
 				<img :src="msg.img" :alt="msg.tag + ' avatar'">
 				<span class="tag">{{ msg.tag }}  </span>
@@ -145,8 +175,19 @@
 	display: flex;
 	justify-content: space-between;
 	flex-flow: column;
+	padding: 0;
 }
 
+.room {
+	align-self: flex-start;
+	height: calc(90vh - 126px);
+	overflow: scroll;
+	padding: 20px;
+}
+.room form {
+	position: fixed;
+	bottom : 50px;
+}
 .room .message img{
 	width: 50px;
 	height: 50px;
@@ -155,11 +196,14 @@
 
 @media (min-width: 768px) {
 	.vue_wrapper.chat {
-		min-height: 90vh;
+		/* min-height: 90vh; */
 		align-items: center;
 		flex-flow: row;
 	}
 
+	.room {
+		flex-grow: 1;
+	}
 	.btn_side {
 		display: none;
 	}

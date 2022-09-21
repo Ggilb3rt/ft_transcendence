@@ -73,6 +73,7 @@
 	left: 0;
 	right: 0;
 	z-index: 10;
+	padding: 20px;
 }
 
 .side_left.open {

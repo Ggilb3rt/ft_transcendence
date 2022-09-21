@@ -12,6 +12,7 @@ const user = useUserStore()
 const { getUser } = user
 
 getUser(1);
+// getUser(2);
 
 </script>
 
