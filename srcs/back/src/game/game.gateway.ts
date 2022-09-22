@@ -41,98 +41,28 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`Client connected: ${client.id}`);
         client.emit('init', {data: "Hello world!"});
         
-        const gameState = this.gameservice.getGameState();
+      //  const gameState = this.gameservice.getGameState();
         
-        this.gameservice.startGameInterval(client, gameState);
+      //  this.gameservice.startGameInterval(client, gameState);
     }
 
-    
+    @SubscribeMessage('newGame')
+    handleNewGame(client: Socket) {
+        this.gameservice.handleNewGame(client);
+    }
+
+    @SubscribeMessage('joinGame')
+    handleJoinGame(client: Socket, gameCode: string) {
+        this.gameservice.handleJoinGame(client, gameCode, this.server);
+    }
 
     @SubscribeMessage('keydown')
     handleKeydown(client: Socket, keyCode: string)
     {
-        const gameState = this.gameservice.getGameState();
-        this.gameservice.handleKeydown(gameState, keyCode);
+        // REVENIR ICI POUR RECUPERER LE BON GAME STATE
+        //const gameState = this.gameservice.getGameState();
+        this.gameservice.handleKeydown(client, keyCode);
     }
-
-  	
-    //@SubscribeMessage('msgToServer')
-    //handleMessage(client: Socket, payload: any): WsResponse<string> {
-    //    return {event: "msgToClient", data: payload};
-        // Le WsResponse avec ce return est equivalent a :
-        // client.emit('msgToClient', payload);
-        // Ceci va envoyer la reponse uniquement au client qui a envoye l'event donc pas a tous dans le cas d'un chat
-        // Donc pour palier a ca, on initialize le server en haut, et on emit a partir du server et non du client 
-    //}
-
-   /* @SubscribeMessage('msgToServer')
-    handleMessage(client: Socket, text: string): void {
-        this.server.emit('msgToClient', text);
-    } */
-
-
-//	constructor(private readonly gameService: GameService) {}
-
-/*	@SubscribeMessage('createGame')
-	async create(
-	@MessageBody() createGameDto: CreateGameDto,
-	@ConnectedSocket() client: Socket
-	) {
-	   const game = await this.gameService.create(createGameDto, client.id);
-	
-		this.server.emit('game', game);
-
-		return game;
-    }
-
-	@SubscribeMessage('findAllGame')
-	findAll() {
-		return this.gameService.findAll();
-	}
-
-	@SubscribeMessage('join')
-	joinRoom(
-		@MessageBody('name') name: string,
-		@ConnectedSocket() client: Socket
-		) {
-		return this.gameService.identify(name, client.id);
-	}
-
-	@SubscribeMessage('typing')
-	async typing(
-		@MessageBody('isTyping') isTyping: boolean, 
-		@ConnectedSocket() client: Socket
-		) {
-		const name = await this.gameService.getClientName(client.id);
-	
-		// Send to clients except emetteur
-		client.broadcast.emit( 'typing', {name, isTyping} );
-	}
-
-    @SubscribeMessage('connection') 
-    sendPosition(@ConnectedSocket() client: Socket) {
-        
-    //    console.log({ client: client });
-        var position = {
-            x: 200,
-            y: 200
-        }
-        this.server.emit('position', position);
-    }*/
-
- /*   @SubscribeMessage('move')
-    movePosition(@MessageBody('direction') direction: string, data: string) {
-        switch(data) {
-            case "left":
-                position.x -=5;
-            case "right":
-                this.position.x +=5;
-            case "up":
-                this.position.y +=5;
-            case "down":
-                this.position.y -= 5;
-        }
-    }*/
-        
+   
 
 }
