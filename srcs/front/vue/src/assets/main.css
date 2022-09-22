@@ -21,7 +21,7 @@ h1 {
 
 a, .blue {
   text-decoration: none;
-  color: rgba(47, 128, 237, 1);
+  color: var(--global-c-blue);
   transition: 0.4s;
 }
 
@@ -42,7 +42,7 @@ a, .blue {
 
 @media (hover: hover) {
   a:hover {
-    background-color: rgba(47, 128, 237, 0.2);
+    background-color: var(--global-c-blue-hover);
   }
 }
 

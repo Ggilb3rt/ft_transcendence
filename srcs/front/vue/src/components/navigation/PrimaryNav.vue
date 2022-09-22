@@ -34,7 +34,7 @@ window.addEventListener('resize', (e) => {
 			</div>
 			<span v-else>X</span>
 			</button>
-			<RouterLink to="/">Home</RouterLink>
+			<RouterLink to="/">Play</RouterLink>
 			<RouterLink to="/about">About</RouterLink>
 			<RouterLink to="/chat">Chat</RouterLink>
 			<RouterLink to="/game">Game</RouterLink>
@@ -88,13 +88,7 @@ window.addEventListener('resize', (e) => {
 	background: none;
 	border: 3px solid #fff;
 	color: #fff;
-	transition: all .2s ease-in-out;
-}
-.btn-menu:hover {
-	cursor: pointer;
-}
-.btn-menu:active {
-	transform: scale(.95);
+	/* transition: all .2s ease-in-out; */
 }
 .bar {
 	display: block;
@@ -122,16 +116,16 @@ window.addEventListener('resize', (e) => {
 
 
 .userAvatar {
-  height: 64px;
-  width: 64px;
-  border-radius: 64px;
+  height: 60px;
+  width: 60px;
+  border-radius: 60px;
 }
 
 nav {
   width: 100%;
   font-size: 12px;
   text-align: center;
-  margin-top: 2rem;
+  /* margin-top: 2rem; */
   display: flex;
   /* align-items: center; */
   /* justify-content: center; */
@@ -173,8 +167,8 @@ nav a:first-of-type {
 	text-align: right;
 	/* margin-left: -1rem; */
 	font-size: 1rem;
-	padding: 1rem 0;
-	margin-top: 1rem;
+	/* padding: 1rem 0; */
+	/* margin-top: 1rem; */
 	}
 
 	nav a {

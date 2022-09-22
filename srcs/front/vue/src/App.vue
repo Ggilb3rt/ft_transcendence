@@ -1,18 +1,18 @@
 <script setup lang="ts">
+import type { IUser } from "../types"
 import { RouterLink, RouterView } from "vue-router";
-import { useUsersStore } from './stores/users';
+// import { useUsersStore } from './stores/users';
 import { useUserStore } from './stores/user';
 // import HelloWorld from "./components/HelloWorld.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
 
 
-const users = useUsersStore()
+// const users = useUsersStore()
 const user = useUserStore()
 const { getUser } = user
 
 getUser(1);
-// getUser(2);
 
 </script>
 
@@ -37,7 +37,7 @@ header {
   justify-content: right;
   gap: 30px;
   line-height: 1.5;
-  max-height: 100vh;
+  max-height: 90px;
   border-bottom: 1px solid;
   background: #000;
   /* margin-bottom: 30px; */
@@ -45,8 +45,8 @@ header {
 
 .logo {
   display: block;
-  width: 125px;
-  height: 125px;
+  width: 100px;
+  height: 100px;
   /* margin: 0 auto 2rem; */
 }
 

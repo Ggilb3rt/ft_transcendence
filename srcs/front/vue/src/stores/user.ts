@@ -3,7 +3,7 @@ import type { IUser } from '../../types'
 // import { mande } from 'mande'
 
 export interface IUserStoreState {
-    user: IUser | null
+    user: IUser
     loading: boolean
     error: any | null
 }
@@ -15,7 +15,7 @@ export const useUserStore = defineStore({
     id: "user",
     state: () => ({
         neededId: 1 as Number,
-        user: null as IUser | null,
+        user: {} as IUser,
         loading: false,
         error: null
     }),
@@ -26,8 +26,8 @@ export const useUserStore = defineStore({
         // },
     },
     actions: {
-        getUserNick(user:IUser): string {
-            return `@${user.nickname}`
+        getUserNick(): string {
+            return `@${this.user.nickname}`
         },
         changeUserNick(newTag:string) {
             if (this.user)
