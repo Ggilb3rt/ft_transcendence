@@ -46,6 +46,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameservice.startGameInterval(client, gameState);
     }
 
+    
+
     @SubscribeMessage('keydown')
     handleKeydown(client: Socket, keyCode: string)
     {
