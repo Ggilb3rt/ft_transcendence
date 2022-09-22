@@ -9,7 +9,6 @@ import {
     OnGatewayDisconnect,
     WsResponse } from '@nestjs/websockets';
 import { GameService } from './game.service';
-import { CreateGameDto } from './dto/create-game.dto';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
@@ -22,6 +21,8 @@ import { Logger } from '@nestjs/common';
 })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     
+    constructor(private readonly gameservice: GameService) {}
+
     private logger: Logger = new Logger('GameGateway');
 
 	// Reference to the socket.io server under the hood
@@ -33,11 +34,25 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
+        this.gameservice.reinitGameState();
     }
 
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
+        client.emit('init', {data: "Hello world!"});
+        
+        const gameState = this.gameservice.getGameState();
+        
+        this.gameservice.startGameInterval(client, gameState);
     }
+
+    @SubscribeMessage('keydown')
+    handleKeydown(client: Socket, keyCode: string)
+    {
+        const gameState = this.gameservice.getGameState();
+        this.gameservice.handleKeydown(gameState, keyCode);
+    }
+
   	
     //@SubscribeMessage('msgToServer')
     //handleMessage(client: Socket, payload: any): WsResponse<string> {
@@ -48,10 +63,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // Donc pour palier a ca, on initialize le server en haut, et on emit a partir du server et non du client 
     //}
 
-    @SubscribeMessage('msgToServer')
+   /* @SubscribeMessage('msgToServer')
     handleMessage(client: Socket, text: string): void {
         this.server.emit('msgToClient', text);
-    }
+    } */
 
 
 //	constructor(private readonly gameService: GameService) {}
