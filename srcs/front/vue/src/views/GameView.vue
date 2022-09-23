@@ -78,10 +78,11 @@ export default {
       this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
       window.addEventListener("keydown", this.keydown);
       this.gameActive = true;
-    },
+    }, 
     keydown(e) {
-      console.log(e.keyCode);
-      this.socket.emit("keydown", e.keyCode);
+      //console.log(e.keyCode);
+      if (this.gameActive)
+        this.socket.emit("keydown", e.keyCode);
     },
     paintGame(state) {
       this.context.fillStyle = BG_COLOR;
@@ -124,11 +125,14 @@ export default {
         }
         data = JSON.parse(data);
         if (data.winner === this.playerNumber) {
-            alert("You win !");
+            //alert("You win !");
+            console.log("You win !");
         } else {
-            alert("You lost !");
+            console.log("You lose !");
+            //alert("You lost !");
         }
         this.gameActive = false;
+        //this.reset();
     },
     handleGameCode(gameCode) {
         this.$refs.gameCodeDisplay.innerText = gameCode;
@@ -147,7 +151,7 @@ export default {
       this.init();
     },
     joinGame() {
-      console.log("joinGame");
+      //console.log("joinGame");
       const code = this.gameCode;
       this.gameCode = "";
       this.socket.emit("joinGame", code);

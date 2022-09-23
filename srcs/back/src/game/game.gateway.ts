@@ -34,16 +34,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        this.gameservice.reinitGameState();
+        this.gameservice.handleDisconnect(client, this.server);
     }
 
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
-        client.emit('init', {data: "Hello world!"});
-        
-      //  const gameState = this.gameservice.getGameState();
-        
-      //  this.gameservice.startGameInterval(client, gameState);
     }
 
     @SubscribeMessage('newGame')
@@ -57,10 +52,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     @SubscribeMessage('keydown')
-    handleKeydown(client: Socket, keyCode: string)
-    {
-        // REVENIR ICI POUR RECUPERER LE BON GAME STATE
-        //const gameState = this.gameservice.getGameState();
+    handleKeydown(client: Socket, keyCode: string) {
         this.gameservice.handleKeydown(client, keyCode);
     }
    

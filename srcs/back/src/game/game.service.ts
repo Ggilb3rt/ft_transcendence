@@ -8,17 +8,12 @@ import { FRAME_RATE, GRID_SIZE, GameState } from './entities';
 
 @Injectable()
 export class GameService {
-    /*	messages: Game[] = [{ name: 'Oriane', text: 'hola' }];
-	clientToUser = {};
-    position: {
-        x: 200;
-        y: 200
-    }*/
     clientRooms = {};
     state = {};
-    
-    gameState: GameState = {
-        players: [{
+
+    createGameState() {
+        //return this.gameState;
+        return  {players: [{
             pos: {
                 x: 3,
                 y: 10
@@ -32,30 +27,28 @@ export class GameService {
                 {x: 2, y: 10},
                 {x: 3, y: 10}
             ],
-         }, {
+            id: null,
+            }, {
             pos: {
-                x: 18,
-                y: 10
+                x: 2,
+                y: 11,
             },
             vel: {
                 x: 0,
-                y: 0
+                y: -1,
             },
             snake: [
-                {x: 20, y: 10},
-                {x: 19, y: 10},
-                {x: 18, y: 10}
+                {x: 4, y: 11},
+                {x: 3, y: 11},
+                {x: 2, y: 11}
             ],
+            id: null,
          }],
          food: {
             x: 7,
             y: 7
          },
-         gridsize: GRID_SIZE 
-    }
-
-    createGameState() {
-        return this.gameState;
+         gridsize: GRID_SIZE }
     }
 
     initGame() {
@@ -65,27 +58,17 @@ export class GameService {
     }
 
     reinitGameState() {
-    /*    this.gameState.player.pos.x = 3;
-        this.gameState.player.pos.y = 10;
-        this.gameState.player.vel.x = 1;
-        this.gameState.player.vel.y = 0;
-        this.gameState.player.snake = [{x:1, y:10}, {x:2, y:10}, {x:3, y:10}];
-        this.gameState.food.x = 7;
-        this.gameState.food.y = 7;*/
         this.initGame();
     }
 
-    //startGameInterval(client: Socket, state: GameState)
     startGameInterval(roomName: string, server: Server) {
         const intervalId = setInterval(() => {
             const winner = this.gameLoop(this.state[roomName]);
 
             if (!winner) {
                 this.emitGameState(roomName, this.state[roomName], server);
-                //client.emit('gameState', JSON.stringify(state));
             } else {
                 this.emitGameOver(roomName, winner, server)
-                //client.emit('gameOver');
                 clearInterval(intervalId);
                 this.state[roomName] = null;
             }
@@ -109,13 +92,19 @@ export class GameService {
             return ;
         }
 
+        console.log(state);
+        
         const playerOne = state.players[0];
         const playerTwo = state.players[1];
 
         playerOne.pos.x += playerOne.vel.x;
         playerOne.pos.y += playerOne.vel.y;
 
+        playerTwo.pos.x += playerTwo.vel.x;
+        playerTwo.pos.y += playerTwo.vel.y;
+
         if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
+            console.log("1");
             return (2); // player 2 wins (player 1 went out of the grid)
         }
 
@@ -140,6 +129,7 @@ export class GameService {
         if (playerOne.vel.x || playerOne.vel.y) {
             for (let cell of playerOne.snake) {
                 if (cell.x === playerOne.pos.x && cell.y === playerOne.pos.y) {
+                    console.log("2");
                     return (2); // player 2 wins (player 1 overlaped)
                 }
             }
@@ -162,7 +152,7 @@ export class GameService {
         return false; // no winner
     }
 
-    randomFood(state: GameState) {
+    randomFood(state/*: GameState*/) {
         let food = {
             x: Math.floor(Math.random() * GRID_SIZE),
             y: Math.floor(Math.random() * GRID_SIZE)
@@ -197,13 +187,17 @@ export class GameService {
             return ;
         }
 
+        let playerNumber;
+        if (this.state[roomName].players[0].id === client.id) {
+            playerNumber = 0;
+        } else {
+            playerNumber = 1;
+        }
+
         const vel = this.getUpdatedVelocity(keyCode);
 
         if (vel) {
-            // C'EST QUOI LE CLIENT NUMBER
-            //this.state[roomName].players[client.number - 1].vel = vel;
-            this.state[roomName].players[0].vel = vel;
-            //this.gameState.player.vel = vel;
+            this.state[roomName].players[playerNumber].vel = vel;
         }
 
     }
@@ -225,13 +219,11 @@ export class GameService {
         let roomName = this.makeid(5);
         this.clientRooms[client.id] = roomName;
         client.emit('gameCode', roomName);
-        console.log(roomName);
 
         this.state[roomName] = this.initGame();
 
         client.join(roomName);
-        //console.log(client);
-        //client.number = 1;
+        this.state[roomName].players[0].id = client.id;
         client.emit('init', 1);
     }
 
@@ -242,34 +234,23 @@ export class GameService {
         for (var i = 0; i < length; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
-        //console.log(result);
         return result;
     }
 
-    handleJoinGame(client: Socket, gameCode: string, server: Server) {
+    async handleJoinGame(client: Socket, gameCode: string, server: Server) {
         // On parcours les rooms et on recupere celle dont le nom est gameCode
-        // PROBLEME ICI
-        console.log(this.clientRooms);
-        //const room = server.sockets.adapter.rooms[gameCode];
-        const room = server.sockets.adapter.rooms.get(gameCode);
-        console.log(room);
+        const room = await server.sockets.adapter.rooms.has(gameCode);
 
         let allUsers;
         if (room) {
-            //allUsers = room.sockets.clients;
-            //allUsers = server.sockets.adapter.rooms[gameCode].sockets;
-            allUsers = server.in(gameCode).fetchSockets();
+            allUsers = await server.in(gameCode).fetchSockets();
         }
-
-    //    var allUsers = server.sockets.clients(gameCode);
-
-        //console.log(allUsers);
-
+        
         let numClients = 0;
         if (allUsers) {
             numClients = Object.keys(allUsers).length;
         }
-
+      
         // Personne waiting to play game donc personne a join
         if (numClients === 0) {
             client.emit('unknownGame');
@@ -278,13 +259,27 @@ export class GameService {
             client.emit('tooManyPlayers');
             return ;
         }
-
+        
         this.clientRooms[client.id] = gameCode;
 
         client.join(gameCode);
-        //client.number = 2;
+        this.state[gameCode].players[1].id = client.id;
         client.emit('init', 2);
 
         this.startGameInterval(gameCode, server);
+    }
+
+    async handleDisconnect(client: Socket, server: Server) {
+        
+
+        // Erreur a resoudre : quand deux joueurs jouent dans une room, l'erreur too many players OK.
+        // Mais si le player 1 part, et que le troisieme joueur retente le truc avec le meme gameCode, CRASH
+        // Pareil quand les deux joueurs sont partis.
+        
+       /* const gameCode = this.clientRooms[client.id];
+        const room = await server.sockets.adapter.rooms.has(gameCode);
+        if (room) {
+            this.clientRooms[gameCode].splice();
+        }*/
     }
 }
