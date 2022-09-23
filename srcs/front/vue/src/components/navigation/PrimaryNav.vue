@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import { ref } from "vue";
-import { useUsersStore } from '../../stores/users';
+import { useUserStore } from '../../stores/user';
 import { classPrivateMethod } from "@babel/types";
 
-const users = useUsersStore();
+const userStore = useUserStore();
 let	isActive = ref(false);
 
 let winWidth = ref(window.innerWidth)
@@ -39,7 +39,7 @@ window.addEventListener('resize', (e) => {
 			<RouterLink to="/chat">Chat</RouterLink>
 			<RouterLink to="/game">Game</RouterLink>
 			<RouterLink to="/dashboard">
-				<img v-if="users.user" :src="users.user.avatar_url" :alt="users.user.nickname + ' avatar'" class="userAvatar">
+				<img v-if="userStore.user" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>
 			</RouterLink>
 		</nav>
