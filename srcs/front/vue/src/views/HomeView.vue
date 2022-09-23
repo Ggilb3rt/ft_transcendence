@@ -107,7 +107,7 @@ async function findGame(game: string) {
   max-height: 400px;
 }
 
-@media screen and (min-width: 768px) {
+@media screen and screen and (min-width: 768px) {
   .gameList {
     flex-direction: row;
     gap: 10px;

@@ -84,13 +84,13 @@
 	display: block;
 }
 
-@media (min-width: 768px) {
+@media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
 	}
 }
 
-@media (min-width: 1024px) {
+@media screen and (min-width: 1024px) {
 	.side_right, .side_left {
 		width: calc(1 / 6 * 100%);
 	}

@@ -24,20 +24,20 @@ export const useUserStore = defineStore({
         //     if (state.user)
         //         return `@${state.user.nickname}`
         // },
+        getWinRate: (state) => {
+            return (state.user.wins / state.user.loses).toPrecision(2)
+        }
     },
     actions: {
         getUserNick(): string {
             return `@${this.user.nickname}`
         },
-        changeUserNick(newTag:string) {
+        setUserNick(newTag:string) {
             if (this.user)
                 this.user.nickname = newTag
         },
-        getUserWinRate(user:IUser) {
-            return (user.wins / user.loses).toPrecision(2)
-        },
-        getUserLevel(user:IUser): string {
-            switch (user.ranking) {
+        getUserLevel(): string {
+            switch (this.user.ranking) {
                 case 0:
                     return ("Pipou")
                     break
@@ -73,6 +73,18 @@ export const useUserStore = defineStore({
             } catch (error: any) {
                 this.error = error
             } finally {
+                if (!this.user.avatar_url)
+                    this.user.avatar_url = "src/assets/avatars/default.jpg"
+                if (!this.user.wins)
+                    this.user.wins = 5
+                if (!this.user.loses)
+                    this.user.loses = 1
+                if (!this.user.ranking)
+                    this.user.ranking = Math.round(this.user.wins / this.user.loses)
+                if (!this.user.friends)
+                    this.user.friends = [2, 3, 5]
+                if (!this.user.blocks)
+                    this.user.blocks = [10, 23, 45, 7, 2]
                 this.loading = false
             }
         },

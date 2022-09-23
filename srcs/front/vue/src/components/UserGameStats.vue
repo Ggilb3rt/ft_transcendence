@@ -1,31 +1,27 @@
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
-import { useUsersStore } from '../stores/users';
+import { useUserStore } from '../stores/user';
 
-const users = useUsersStore()
-const { getUserLevel, getUserWinRate } = useUsersStore()
-
-const props = defineProps({
-  id: Number
-})
+const userStore = useUserStore()
+const { getUserLevel } = useUserStore()
 
 </script>
 
 <template>
   <div class="heroStat">
     <hr>
-    <div v-for="user in users.userList" :key="user.id" class="heroGameStat">
-      <div v-if="id == user.id">
+    <div class="heroGameStat">
+      <div>
         <h3>Level</h3>
-        <p class="level statVal">{{ getUserLevel(user) }}</p>
+        <p class="level statVal">{{ getUserLevel() }}</p>
       </div>
-      <div v-if="id == user.id">
+      <div>
         <h3>Win rate</h3>
-        <p class="winRate statVal">{{ getUserWinRate(user) }}</p>
+        <p class="winRate statVal">{{ userStore.getWinRate }}</p>
       </div>
-      <div v-if="id == user.id">
+      <div>
         <h3>Last win</h3>
-        <p class="lastWin statVal">5 - 3</p>
+        <p class="lastWin statVal">7 - 3</p>
       </div>
     </div>
     <hr>

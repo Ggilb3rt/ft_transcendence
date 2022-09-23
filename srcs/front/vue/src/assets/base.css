@@ -26,6 +26,8 @@
   --global-c-red: rgba(235, 87, 87, 1);
   --global-c-red-hover: rgba(235, 87, 87, 0.25);
 
+  --global-border-radius: 5px;
+
 }
 
 /* semantic color variables for this project */
@@ -43,7 +45,7 @@
   --section-gap: 160px;
 }
 
-@media (prefers-color-scheme: dark) {
+@media screen and (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
     --color-background-soft: var(--vt-c-black-soft);
@@ -86,7 +88,7 @@ ul {
 }
 
 img {
-  border-radius: 5px;
+  border-radius: var(--global-border-radius);
 }
 
 button:hover {

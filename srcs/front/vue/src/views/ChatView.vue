@@ -194,7 +194,7 @@
 	border-radius: 50px;
 }
 
-@media (min-width: 768px) {
+@media screen and (min-width: 768px) {
 	.vue_wrapper.chat {
 		/* min-height: 90vh; */
 		align-items: center;
@@ -209,7 +209,7 @@
 	}
 }
 
-@media (min-width: 1024px) {
+@media screen and (min-width: 1024px) {
 
 }
 

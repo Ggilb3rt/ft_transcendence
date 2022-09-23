@@ -84,7 +84,7 @@ nav a:first-of-type {
   border: 0;
 } */
 
-@media (min-width: 1024px) {
+@media screen and (min-width: 1024px) {
 
   header {
   }
@@ -97,7 +97,7 @@ nav a:first-of-type {
 
 }
 
-@media (min-width: 768px) {
+@media screen and (min-width: 768px) {
   header {
     flex-direction: row;
     justify-content: space-between;

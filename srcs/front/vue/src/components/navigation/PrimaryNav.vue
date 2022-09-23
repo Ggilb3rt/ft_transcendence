@@ -152,13 +152,13 @@ nav a:first-of-type {
   border: 0;
 }
 
-@media (max-width: 490px) {
+@media screen and (max-width: 490px) {
 	.side_menu {
 		width: 100%;
 	}
 }
 
-@media (min-width: 768px) {
+@media screen and (min-width: 768px) {
 	/* .side-menu-container {
 		display: none;
 	} */

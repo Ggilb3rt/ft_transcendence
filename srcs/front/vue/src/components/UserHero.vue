@@ -16,104 +16,84 @@ const userStore = useUserStore()
 
 // edit system
 /*
-	if route id == user id && verifyConnected
-		change p.heroName p.heroTag img.heroAvatar by input with data
+if route id == user id && verifyConnected
+change p.heroName p.heroTag img.heroAvatar by input with data
 		when validate changes 
-			send post request with all data (not only the changed => easyer)
-				if response OK
+		send post request with all data (not only the changed => easyer)
+		if response OK
 					update the local pinia store
-*/
-
+					*/
+					
 /*
-	-----------------------------------------------------------------
-	|		Si pas moi			||			Si moi					|
-	|----------------------------------------------------------------
-	|	btn de demande d'ami	||	liste des demandes en attentes	|
-	|	btn bloquer				||			Ø						|
-	|	Ø						||	btn du mode édition				|
+-----------------------------------------------------------------
+|		Si pas moi			||			Si moi					|
+|----------------------------------------------------------------
+|	btn de demande d'ami	||	liste des demandes en attentes	|
+|	btn bloquer				||	btn du mode édition				|
+|	0						||	btn 2FA							|
+
 
 */
+
+
+
+let editMode = ref(false)
+let nicknameEdit = ref("")
+const nameList = ["pouet", 'lol', "ggilbert"] // need to get it from server
+function filteredNames() {
+	return nameList.filter((name) => name.toLowerCase() === (nicknameEdit.value.toLowerCase()))
+}
+
+function freeNick(newNick: string): boolean {
+	for (let i = 0; i != nameList.length; i++) {
+		if (nameList[i] == newNick)
+			return false
+	}
+	return true
+}
+
+function validNickChange(newNick: string) {
+	console.log(newNick)
+	if (freeNick(newNick) && newNick.length > 0) {
+		// await server validation
+		userStore.setUserNick(newNick)
+		editMode.value = false
+	}
+}
+
 
 </script>
 
 <template>
 	<div class="heroCard">
 		<div class="userBasics">
-			<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+			<figure class="heroFigure">
+				<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+			</figure>
 			<p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
 			<p class="heroTag">
-				<a href="#">{{ userStore.getUserNick() }}</a>
+				<div v-if="editMode">
+					<span>@<input type="text" v-model="nicknameEdit" :placeholder="userStore.user.nickname"></span>
+					<button @click="editMode = !editMode">X</button>
+					<button @click="validNickChange(nicknameEdit)" :class="{cant_click: filteredNames().length}">Change</button>
+					<div v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</div>
+				</div>
+				<div v-else>
+					<a href="#">{{ userStore.getUserNick() }}</a>
+					<button @click="editMode = !editMode">Edit</button>
+				</div>
 			</p>
 		</div>
-		<UserGameStats :id="userStore.user.id" />
+		<UserGameStats />
 
 		<UserMatchHistory></UserMatchHistory>
 
-		<div class="listOfUsers">
-			<h1>Friends static</h1>
-			<div class="usersInList">
-			<div class="userInList">
-				<img src="../assets/avatars/homer.jpeg" alt="default user">
-				<p><a href="#friendsLink">@basicFriend</a></p>
-				<button>X</button>
-			</div>
-			<div class="userInList">
-				<img src="../assets/avatars/default.jpg" alt="default user">
-				<p><a href="#friendsLink">@basic2Friend</a></p>
-				<button>X</button>
-			</div>
-			</div>
-		</div>
-
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends"></UserList>
 		<UserList title="Block" :user="userStore.user" :list="userStore.user.blocks" ></UserList>
-
-		<!-- <div v-for="user in users.userList" :key="user.id" class="heroCard">
-		<br>
-		<img class="heroAvatar" :src="user.avatar_url" :alt="user.nickname + ' avatar'" />
-		<p class="heroName">{{ user.first_name }} {{ user.last_name}}</p>
-		<p class="heroTag">
-			<a href="#">{{ getUserNick(user) }}</a>
-		</p>
-		<UserGameStats :id="user.id" />
-
-		<UserList title="Friends" :user="user" :list="user.friends"></UserList>
-		<UserList title="Block" :user="user" :list="user.blocks" ></UserList>
-
-		</div> -->
 	</div>
 </template>
 
 <style>
-
-.listOfUsers .usersInList {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 10px;
-	text-align: center;
-}
-
-.listOfUsers .usersInList .userInList button {
-	position: absolute;
-	top: -5px;
-	right: -5px;
-	color: #fff;
-	background: var(--global-c-red);
-	border: 1px solid var(--global-c-red-hover);
-	display: none;
-}
-
-.listOfUsers .usersInList .userInList:hover button{
-	display: block;
-}
-.listOfUsers .usersInList .userInList img{
-	width: 100px;
-}
-
-
-.heroCard .userBasics img{
-	/* max-width: 300px; */
-}
 
 .heroCard p {
   font-family: "Inder", sans-serif;
@@ -122,9 +102,40 @@ const userStore = useUserStore()
 }
 
 .heroCard .heroAvatar {
-  max-width: 40%;
-  border-radius: 10px;
+	max-width: 100%;
 }
+
+.heroCard .heroFigure {
+	max-width: 40%;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.heroCard .heroFigure:after {
+	font-family: "Inder", sans-serif;
+	color: var(--global-c-blue);
+	background: rgba(255,255,255, 1);
+	height: 50px;
+	width: 100%;
+	position: absolute;
+	transition: all .3s ease-out;
+	padding: 0 10px;
+	left: 0;
+	bottom: 0;
+	opacity: 0;
+	/* transform: translateY(100%); */
+	content: 'change avatar';
+	display: block;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.heroCard .heroFigure:hover:after {
+	opacity: 1;
+}
+
 
 .heroCard .heroName {
   font-size: 24px;

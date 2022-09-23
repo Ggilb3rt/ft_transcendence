@@ -42,7 +42,7 @@
 	}
 
 	
-	@media (min-width: 1024px) {
+	@media screen and (min-width: 1024px) {
 
 	}
 </style>

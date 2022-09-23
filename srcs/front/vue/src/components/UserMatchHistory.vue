@@ -95,6 +95,7 @@ const matchsHistory = [
 .matchHistory .matchResume {
   display: flex;
   padding: 10px;
+  border-radius: var(--global-border-radius);
 }
 
 .matchHistory .score {

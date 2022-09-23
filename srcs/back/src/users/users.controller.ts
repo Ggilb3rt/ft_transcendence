@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PrismaClient, Prisma } from '@prisma/client';
 
@@ -18,10 +18,10 @@ export class UsersController {
        return (this.usersService.getAllUsers())
     }
 
-    @Get('/:id')
-    getOneUser(@Body('id') id: number) {
-        console.log("user id: " + id)
-        return (this.usersService.getUserById(id))
+    @Get(':id')
+    getOneUser(@Param() param) {
+        console.log("user id: " + param.id)
+        return (this.usersService.getUserById(parseInt(param.id)))
     }
 
 }

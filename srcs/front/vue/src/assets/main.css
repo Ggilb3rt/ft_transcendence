@@ -40,13 +40,21 @@ a, .blue {
   padding: 0 1rem;
 }
 
-@media (hover: hover) {
+button.cant_click {
+	opacity: .7;
+}
+button.cant_click:hover {
+	cursor: not-allowed;
+}
+
+
+@media screen and (hover: hover) {
   a:hover {
     background-color: var(--global-c-blue-hover);
   }
 }
 
-@media (min-width: 768px) {
+@media screen and (min-width: 768px) {
   .vue_wrapper {
     min-height: 100vh;
     display: flex;
@@ -55,7 +63,7 @@ a, .blue {
   }
 }
 
-@media (min-width: 1024px) {
+@media screen and (min-width: 1024px) {
   body {
     display: flex;
     /* place-items: center; */
