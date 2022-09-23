@@ -54,7 +54,7 @@ const matchsHistory = [
 		<div v-for="match in matchsHistory" :key="match.opponent">
 			<div :class="{win: match.win, loose:!match.win}" class="matchResume">
 			<div class="me">
-				<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+				<img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
 				<p>{{userStore.getUserNick()}}</p>
 			</div>
 			<div class="score">
@@ -64,7 +64,7 @@ const matchsHistory = [
 				</p>
 			</div>
 			<div class="opponent">
-				<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+				<img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
 				<p>@dark_sasuke</p>
 			</div>
 			</div>
@@ -96,6 +96,10 @@ const matchsHistory = [
   display: flex;
   padding: 10px;
   border-radius: var(--global-border-radius);
+}
+
+.matchHistory .userAvatar {
+  max-width: 40%;
 }
 
 .matchHistory .score {

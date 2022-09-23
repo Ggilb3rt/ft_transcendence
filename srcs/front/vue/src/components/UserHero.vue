@@ -103,6 +103,7 @@ function validNickChange(newNick: string) {
 
 .heroCard .heroAvatar {
 	max-width: 100%;
+	border-radius: 10px;
 }
 
 .heroCard .heroFigure {
@@ -118,7 +119,7 @@ function validNickChange(newNick: string) {
 	height: 50px;
 	width: 100%;
 	position: absolute;
-	transition: all .3s ease-out;
+	transition: all .2s ease-in-out;
 	padding: 0 10px;
 	left: 0;
 	bottom: 0;
