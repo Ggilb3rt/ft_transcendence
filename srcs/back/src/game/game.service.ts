@@ -54,11 +54,12 @@ export class GameService {
                     x: 100,
                     y: 75,
                 },
-                speed: {
+                dir: {
                     x: 1,
-                    y: 1
+                    y: 6
                 },
-                size: 10,
+                rad: 10,
+                speed: 10,
             },
             players: [{
                 pos: {
@@ -126,24 +127,16 @@ export class GameService {
             return ;
         }
 
-        //console.log(state);
-        state.ball.pos.x += state.ball.speed.x;
-        //state.ball.pos.y += state.ball.speed.y;
-        //console.log(state);
+        let ball = state.ball;
 
-        //if (state.ball.pos.y < 0 || state.ball.pos.y >= GRID_SIZE) {
-        //    state.balle.pos.y *= -1;
-        //    return (false);
-        //}
-    /*    if (state.ball.pos.x < 0 || state.ball.pos.x >= GRID_SIZE) {
-            state.ball.speed.x *= -1;
-            //return (1);
-        }*/
+        this.ballMovement(ball);
 
-        return false;
+        if ((ball.pos.y - ball.rad) < 0 || (ball.pos.y + ball.rad) >= 480) {
+            ball.dir.y *= -1;
+        }
 
-    /*    console.log(state);
-        
+        return 0;
+        /*
         const playerOne = state.players[0];
         const playerTwo = state.players[1];
 
@@ -203,6 +196,11 @@ export class GameService {
 
 
 
+    }
+
+    ballMovement(ball) {
+        ball.pos.x += ball.dir.x;
+        ball.pos.y += ball.dir.y;
     }
 
  /*   randomFood(state) {

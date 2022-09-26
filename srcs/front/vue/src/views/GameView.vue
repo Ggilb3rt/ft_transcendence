@@ -22,11 +22,12 @@ export default {
             x: 100,
             y: 75,
           },
-          speed: {
+          dir: {
             x: 1,
             y: 1,
           },
-          size: 10,
+          rad: 10,
+          speed: 10,
         },
         players: [
           {
@@ -73,59 +74,44 @@ export default {
       this.$refs.initialScreen.style.display = "none";
       this.$refs.gameScreen.style.display = "block";
 
-      // Draw & fill the background
-      this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, 'white');
-      // Draw ball
-        
-        this.colorBall(this.gameState.ball.pos.x, this.gameState.ball.pos.y, this.gameState.ball.size, 0, 2 * Math.PI, SNAKE_COLOR);
-
-      /*this.colorRect(
+      this.colorBall(
         this.gameState.ball.pos.x,
         this.gameState.ball.pos.y,
-        this.gameState.ball.size,
-        this.gameState.ball.size,
-        FOOD_COLOR
-      );*/
-      //  this.ballMove();
-      //this.context.fillStyle = BG_COLOR;
-      //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+        this.gameState.ball.rad,
+        0,
+        2 * Math.PI
+      );
+
       //window.addEventListener("keydown", this.keydown);
       this.gameActive = true;
     },
     keydown(e) {
-      //console.log(e.keyCode);
       if (this.gameActive) this.socket.emit("keydown", e.keyCode);
     },
     colorRect(x, y, h, w, color) {
       this.context.fillStyle = color;
       this.context.fillRect(x, y, h, w);
     },
-    colorBall(x, y, rad, sa, ea, color) {
-        this.context.fillStyle = color;
-        this.context.arc(x, y, rad, sa, ea);
-        this.context.stroke();
+    colorBall(x, y, rad, sa, ea) {
+      this.context.beginPath();
+      this.context.fillStyle = "red";
+      this.context.arc(x, y, rad, sa, ea);
+      this.context.strokeStyle = "black";
+      this.context.strokeWidth = 4;
+      this.context.fill();
+      this.context.stroke();
     },
     paintGame(state) {
-      //this.context.fillStyle = BG_COLOR;
-      //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-        // Draw & fill the background
-      this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, 'white');
-      // Draw ball
-      
-      
-      /*this.colorRect(
-        this.gameState.ball.pos.x,
-        this.gameState.ball.pos.y,
-        this.gameState.ball.size,
-        this.gameState.ball.size,
-        FOOD_COLOR
-      );*/
-
-        const ballx = state.ball.pos.x;
-        const size = this.$refs.canvas.width / this.gameState.ball.size;
-        this.context.fillStyle = FOOD_COLOR;
-        //this.context.fillRect(ballx * size, 0, size, size);
-        this.colorBall(ballx, state.ball.pos.y, size, 0, 2 * Math.PI, SNAKE_COLOR);
+      this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      const ballx = state.ball.pos.x;
+      this.colorBall(
+        ballx,
+        state.ball.pos.y,
+        this.gameState.ball.rad,
+        0,
+        2 * Math.PI,
+        SNAKE_COLOR
+      );
 
       /*  const food = state.food;
       const gridsize = state.gridsize;
@@ -155,7 +141,7 @@ export default {
         return;
       }
       gameState = JSON.parse(gameState);
-      console.log(gameState);
+      //console.log(gameState);
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
@@ -200,10 +186,6 @@ export default {
       this.$refs.initialScreen.style.display = "block";
       this.$refs.gameScreen.style.display = "none";
     },
-    /*ballMove() {
-      this.gameState.ball.pos.x += this.gameState.ball.speed.x;
-      //this.gameState.ball.pos.y += this.gameState.ball.speed.y;
-    },*/
   },
 };
 </script>
@@ -241,7 +223,7 @@ export default {
 }
 
 #canvas {
-  /*background-color: black;*/
+  background-color: white;
   border: 1px solid black;
 }
 </style>
