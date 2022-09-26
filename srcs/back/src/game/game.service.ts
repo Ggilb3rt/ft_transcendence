@@ -2,7 +2,7 @@ import { Injectable, Global } from '@nestjs/common';
 import { Game } from './entities/game.entity';
 import { Socket, Server } from 'socket.io';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { FRAME_RATE, GRID_SIZE, GameState } from './entities';
+import { FRAME_RATE, GRID_SIZE, INITIAL_VELOCITY, GameState } from './entities';
 
 
 
@@ -12,83 +12,40 @@ export class GameService {
     state = {};
 
     createGameState() {
-    /*    return  {players: [{
-            pos: {
-                x: 3,
-                y: 10
-            },
-            vel: {
-                x: 1,
-                y: 0
-            },
-            snake: [
-                {x: 1, y: 10},
-                {x: 2, y: 10},
-                {x: 3, y: 10}
-            ],
-            id: null,
-            }, {
-            pos: {
-                x: 2,
-                y: 11,
-            },
-            vel: {
-                x: 0,
-                y: -1,
-            },
-            snake: [
-                {x: 4, y: 11},
-                {x: 3, y: 11},
-                {x: 2, y: 11}
-            ],
-            id: null,
-         }],
-         food: {
-            x: 7,
-            y: 7
-         },
-         gridsize: GRID_SIZE }*/
         return {
             ball: {
                 pos: {
-                    x: 100,
-                    y: 75,
+                    x: (640 / 2) - (10 / 2),
+                    y: (480 / 2) - (10 / 2),
                 },
                 dir: {
-                    x: 1,
-                    y: 6
+                    x: 0,
+                    y: 0,
                 },
                 rad: 10,
-                speed: 10,
+                speed: 5,
             },
-            players: [{
-                pos: {
-                    x: 0,
-                    y: 10,
-                },
-                speed: {
-                    x: 0,
-                    y: 0,
-                },
-                id: null,
-            }, 
-            {
-                pos: {
-                    x: 0,
-                    y: 10,
-                },
-                speed: {
-                    x: 0,
-                    y: 0,
-                }, 
-                id: null,
-            }]
+            player: [{
+                paddle: {
+                    x: 2,
+                    y: (480 / 2) - 50,
+                    w: 10,
+                    h: 100,
+                }
+              }, {
+                paddle: {
+                    x: 640 - 2,
+                    y: (480 / 2) - 50,
+                    w: 10,
+                    h: 100,
+                }
+              }]
         }
     }
 
     initGame() {
         const state = this.createGameState();
-        //this.randomFood(state);
+        this.randomDir(state.ball.dir);
         return state;
     }
 
@@ -131,9 +88,21 @@ export class GameService {
 
         this.ballMovement(ball);
 
-        if ((ball.pos.y - ball.rad) < 0 || (ball.pos.y + ball.rad) >= 480) {
-            ball.dir.y *= -1;
+        this.wallCollision(ball);
+
+    /*    if ((ball.pos.x + ball.rad) >= 640) {
+            return (2); // Player 1 wins
         }
+        if ((ball.pos.x - ball.rad) <= 0) {
+            return (1); // Player 2 wins
+        }*/
+
+       /* let paddleOne = state.players[0];
+        if ((paddleOne.pos.y <= 0)) {
+            paddleOne.pos.y = 0;
+        } else if (paddleOne.pos.y + paddleOne.dim.h >= 480) {
+            paddleOne.pos.y = 480 - paddleOne.dim.h;
+        }*/
 
         return 0;
         /*
@@ -199,30 +168,34 @@ export class GameService {
     }
 
     ballMovement(ball) {
-        ball.pos.x += ball.dir.x;
-        ball.pos.y += ball.dir.y;
+        ball.pos.x += ball.dir.x * ball.speed;
+        ball.pos.y += ball.dir.y * ball.speed;
     }
 
- /*   randomFood(state) {
-        let food = {
-            x: Math.floor(Math.random() * GRID_SIZE),
-            y: Math.floor(Math.random() * GRID_SIZE)
+    wallCollision(ball) {
+        if ((ball.pos.y - ball.rad) <= 0 || (ball.pos.y + ball.rad) >= 480) {
+            ball.dir.y *= -1;
         }
 
-        for (let cell of state.players[0].snake) {
-            if (cell.x === food.x && cell.y === food.y) {
-                return (this.randomFood(state))
-            }
+        if ((ball.pos.x - ball.rad) <= 0 || (ball.pos.x + ball.rad) >= 640) {
+            ball.dir.x *= -1;
         }
+    }
 
-        for (let cell of state.players[1].snake) {
-            if (cell.x === food.x && cell.y === food.y) {
-                return (this.randomFood(state))
-            }
+    randomDir(dir) {
+
+        while (Math.abs(dir.x) <= 0.2 || Math.abs(dir.x) >= 0.9)
+        {
+            const heading = this.randomNumberBetween(0, 2 * Math.PI);
+            dir.x = Math.cos(heading);
+            dir.y = Math.sin(heading);
         }
+        dir.speed = INITIAL_VELOCITY;
+    }
 
-        state.food = food;
-    }*/
+    randomNumberBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
 
     handleKeydown(client: Socket, keyCode : any) {
         const roomName = this.clientRooms[client.id];
@@ -239,7 +212,7 @@ export class GameService {
         }
 
         let playerNumber;
-        if (this.state[roomName].players[0].id === client.id) {
+        if (this.state[roomName].player[0].id === client.id) {
             playerNumber = 0;
         } else {
             playerNumber = 1;
@@ -248,21 +221,21 @@ export class GameService {
         const vel = this.getUpdatedVelocity(keyCode);
 
         if (vel) {
-            this.state[roomName].players[playerNumber].vel = vel;
+            this.state[roomName].player[playerNumber].vel = vel;
         }
 
     }
 
     getUpdatedVelocity(keyCode : number) {
         switch (keyCode) {
-            case 37: // left
-                return {x: -1, y: 0};
+        //    case 37: // left
+        //        return {x: -1, y: 0};
             case 38: // down
-                return {x: 0, y: -1};
-            case 39: // right
-                return {x: 1, y: 0};
+                return {y: -1};
+        //    case 39: // right
+        //        return {x: 1, y: 0};
             case 40: // up
-                return {x: 0, y: 1};
+                return {y: 1};
         }
     }
 
@@ -274,7 +247,7 @@ export class GameService {
         this.state[roomName] = this.initGame();
 
         client.join(roomName);
-        this.state[roomName].players[0].id = client.id;
+        this.state[roomName].player[0].id = client.id;
         client.emit('init', 1);
         //this.startGameInterval(roomName, server);
     }
@@ -315,7 +288,7 @@ export class GameService {
         this.clientRooms[client.id] = gameCode;
 
         client.join(gameCode);
-        this.state[gameCode].players[1].id = client.id;
+        this.state[gameCode].player[1].id = client.id;
         client.emit('init', 2);
 
         this.startGameInterval(gameCode, server);
