@@ -19,14 +19,14 @@ export default {
       gameState: {
         ball: {
           pos: {
-            x: 0,
-            y: 0,
+            x: 100,
+            y: 75,
           },
           speed: {
-            x: 4,
-            y: 6,
+            x: 1,
+            y: 1,
           },
-          size: 20,
+          size: 10,
         },
         players: [
           {
@@ -74,15 +74,18 @@ export default {
       this.$refs.gameScreen.style.display = "block";
 
       // Draw & fill the background
-      //this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, BG_COLOR);
+      this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, 'white');
       // Draw ball
-      this.colorRect(
+        
+        this.colorBall(this.gameState.ball.pos.x, this.gameState.ball.pos.y, this.gameState.ball.size, 0, 2 * Math.PI, SNAKE_COLOR);
+
+      /*this.colorRect(
         this.gameState.ball.pos.x,
         this.gameState.ball.pos.y,
         this.gameState.ball.size,
         this.gameState.ball.size,
         FOOD_COLOR
-      );
+      );*/
       //  this.ballMove();
       //this.context.fillStyle = BG_COLOR;
       //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
@@ -97,12 +100,19 @@ export default {
       this.context.fillStyle = color;
       this.context.fillRect(x, y, h, w);
     },
+    colorBall(x, y, rad, sa, ea, color) {
+        this.context.fillStyle = color;
+        this.context.arc(x, y, rad, sa, ea);
+        this.context.stroke();
+    },
     paintGame(state) {
       //this.context.fillStyle = BG_COLOR;
       //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
         // Draw & fill the background
-      //this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, BG_COLOR);
+      this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, 'white');
       // Draw ball
+      
+      
       /*this.colorRect(
         this.gameState.ball.pos.x,
         this.gameState.ball.pos.y,
@@ -114,8 +124,8 @@ export default {
         const ballx = state.ball.pos.x;
         const size = this.$refs.canvas.width / this.gameState.ball.size;
         this.context.fillStyle = FOOD_COLOR;
-        this.context.fillRect(ballx * size, 0, size, size);
-
+        //this.context.fillRect(ballx * size, 0, size, size);
+        this.colorBall(ballx, state.ball.pos.y, size, 0, 2 * Math.PI, SNAKE_COLOR);
 
       /*  const food = state.food;
       const gridsize = state.gridsize;

@@ -51,14 +51,14 @@ export class GameService {
         return {
             ball: {
                 pos: {
-                    x: 0,
-                    y: 0,
+                    x: 100,
+                    y: 75,
                 },
                 speed: {
                     x: 1,
                     y: 1
                 },
-                size: 20,
+                size: 10,
             },
             players: [{
                 pos: {
@@ -135,10 +135,10 @@ export class GameService {
         //    state.balle.pos.y *= -1;
         //    return (false);
         //}
-        if (state.ball.pos.x < 0 || state.ball.pos.x >= GRID_SIZE) {
+    /*    if (state.ball.pos.x < 0 || state.ball.pos.x >= GRID_SIZE) {
             state.ball.speed.x *= -1;
             //return (1);
-        }
+        }*/
 
         return false;
 
