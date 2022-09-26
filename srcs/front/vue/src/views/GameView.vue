@@ -29,21 +29,24 @@ export default {
           rad: 10,
           speed: 0,
         },
-        player: [{
+        player: [
+          {
             paddle: {
-                x: 2,
-                y: (480 / 2) - 50,
-                w: 10,
-                h: 100,
-            }
-          }, {
+              x: 2,
+              y: 480 / 2 - 50,
+              w: 10,
+              h: 100,
+            },
+          },
+          {
             paddle: {
-                x: 640 - 2,
-                y: (480 / 2) - 50,
-                w: 10,
-                h: 100,
-            }
-          }]
+              x: 640 - 2,
+              y: 480 / 2 - 50,
+              w: 10,
+              h: 100,
+            },
+          },
+        ],
       },
     };
   },
@@ -67,7 +70,7 @@ export default {
       this.$refs.initialScreen.style.display = "none";
       this.$refs.gameScreen.style.display = "block";
 
-      this.drawBall(
+    /*  this.drawBall(
         this.gameState.ball.pos.x,
         this.gameState.ball.pos.y,
         this.gameState.ball.rad,
@@ -75,38 +78,18 @@ export default {
         2 * Math.PI
       );
 
-    /*  this.drawPaddle(
-        this.gameState.players[0].pos.x,
-        this.gameState.players[0].pos.y,
-        this.gameState.players[0].dim.w,
-        this.gameState.players[0].dim.h,
-        "black"
+      this.drawRect(
+        this.gameState.player[0].paddle.x,
+        this.gameState.player[0].paddle.y,
+        this.gameState.player[0].paddle.w,
+        this.gameState.player[0].paddle.h
       );*/
-
-    this.drawRect(this.gameState.player[0].paddle.x, this.gameState.player[0].paddle.y, this.gameState.player[0].paddle.w, this.gameState.player[0].paddle.h);
-
 
       window.addEventListener("keydown", this.keydown);
       this.gameActive = true;
     },
     keydown(e) {
       if (this.gameActive) this.socket.emit("keydown", e.keyCode);
-    },
-    drawPaddle(x, y, w, h, color) {
-     /* this.context.beginPath();
-      this.context.rect(x, y, w, h);
-      this.context.fillStyle = color;
-      this.context.strokeStyle = color;
-      this.linedWith = 1;
-      this.context.fillStyle = color;
-      this.shadowBlur = 0;
-      this.context.shadowcolor = "blue";
-      this.context.strokeRect(x, y, w, h);
-      this.context.fill();
-      //this.contex.closePath();*/
-      //this.canvas.clear();
-      //this.context.circle(this.players[0].pos.x, this.$refs.canvas.height - this.players[0].dim.h, this.players[0].dim.h, this.players[0].dim.h );
-
     },
     drawBall(x, y, rad, sa, ea) {
       this.context.beginPath();
@@ -119,21 +102,18 @@ export default {
       this.context.stroke();
     },
     drawRect(x, y, w, h) {
-        this.context.beginPath();
-        //this.context.fillStyle = "black";
-        this.context.rect(x, y, w, h);
-        this.context.closePath();
-        this.context.fill();
+      this.context.beginPath();
+      //this.context.fillStyle = "black";
+      this.context.rect(x, y, w, h);
+      this.context.closePath();
+      this.context.fill();
     },
     clearRect() {
-        this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
     },
     paintGame(state) {
-     // this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-     //this.context.fillStyle = "white";
-     //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-     this.clearRect();
-     const ballx = state.ball.pos.x;
+      this.clearRect();
+      const ballx = state.ball.pos.x;
       this.drawBall(
         ballx,
         state.ball.pos.y,
@@ -142,47 +122,16 @@ export default {
         2 * Math.PI,
         SNAKE_COLOR
       );
-      //this.drawRect(this.players[0].paddlex, this.$refs.canvas.height - this.players[0].paddleh, this.players[0].paddlew, this.players[0].paddleh);
-       // this.drawRect(this.player.paddlex, this.$refs.canvas.height - this.player.paddleh, this.player.paddlew, this.player.paddleh);
-   this.drawRect(this.gameState.player[0].paddle.x, this.gameState.player[0].paddle.y, this.gameState.player[0].paddle.w, this.gameState.player[0].paddle.h);
-
-      //this.drawRect(state.players[0].pos.x, state.players[0].pos.y, state.players[0].dim.w, state.players[0].dim.h)
-      //this.paintPlayer(state.players[0]);
-
-      /*  const food = state.food;
-      const gridsize = state.gridsize;
-      const size = this.$refs.canvas.width / gridsize;
-      const players = state.players;
-
-      this.context.fillStyle = FOOD_COLOR;
-      this.context.fillRect(food.x * size, food.y * size, size, size);
-
-      this.paintPlayer(players[0], size, SNAKE_COLOR);
-      this.paintPlayer(players[1], size, "red");*/
+      this.paintPaddle(state.player[0]);
     },
-    paintPlayer(playerState /*, size, color*/) {
-      /*  const snake = playerState.snake;
+    paintPaddle(player) {
+     this.drawRect(
+        player.paddle.x,
+        player.paddle.y,
+        player.paddle.w,
+        player.paddle.h
+      );
 
-      this.context.fillStyle = color;
-
-      for (const cell of snake) {
-        this.context.fillRect(cell.x * size, cell.y * size, size, size);
-      }*/
-
-    /*   this.drawPaddle(
-        playerState.pos.x,
-        playerState.pos.y,
-        playerState.dim.w,
-        playerState.dim.h,
-        "black");*/
-      //this.context.fillStyle = "black";
-      //this.context.fillRect(playerState.pos.x, playerState.pos.y, playerState.dim.w, playerState.dim.h);
-      /*    this.drawPaddle(
-        this.gameState.players[0].pos.x,
-        this.gameState.players[0].pos.y,
-        this.gameState.players[0].dim.w,
-        this.gameState.players[0].dim.h,
-        "black");*/
     },
     handleInit(number) {
       this.playerNumber = number;
@@ -192,6 +141,7 @@ export default {
         return;
       }
       gameState = JSON.parse(gameState);
+      //console.log(gameState);
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
