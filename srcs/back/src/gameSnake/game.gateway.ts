@@ -43,7 +43,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('newGame')
     handleNewGame(client: Socket) {
-        this.gameservice.handleNewGame(client, this.server);
+        this.gameservice.handleNewGame(client);
     }
 
     @SubscribeMessage('joinGame')

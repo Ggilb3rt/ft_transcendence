@@ -5,8 +5,7 @@ import io from "socket.io-client";
 const BG_COLOR = "#231f20";
 const SNAKE_COLOR = "#c2c2c2";
 const FOOD_COLOR = "#e66916";
-
-
+const BALL_SIZE = 20;
 
 export default {
   name: "GamePong",
@@ -18,40 +17,39 @@ export default {
       context: {},
       gameCode: "",
       gameState: {
-        players: [{
+        ball: {
           pos: {
-            x: 3,
-            y: 10,
-          },
-          vel: {
-            x: 1,
+            x: 0,
             y: 0,
           },
-          snake: [
-            { x: 1, y: 10 },
-            { x: 2, y: 10 },
-            { x: 3, y: 10 },
-          ],
-        }, {
-          pos: {
-            x: 3,
-            y: 10,
+          speed: {
+            x: 4,
+            y: 6,
           },
-          vel: {
-            x: 1,
-            y: 0,
-          },
-          snake: [
-            { x: 1, y: 10 },
-            { x: 2, y: 10 },
-            { x: 3, y: 10 },
-          ],
-        }],
-        food: {
-          x: 7,
-          y: 7,
+          size: 20,
         },
-        gridsize: 20,
+        players: [
+          {
+            pos: {
+              x: 0,
+              y: 10,
+            },
+            speed: {
+              x: 0,
+              y: 0,
+            },
+          },
+          {
+            pos: {
+              x: 0,
+              y: 10,
+            },
+            speed: {
+              x: 0,
+              y: 0,
+            },
+          },
+        ],
       },
     };
   },
@@ -74,21 +72,52 @@ export default {
     init() {
       this.$refs.initialScreen.style.display = "none";
       this.$refs.gameScreen.style.display = "block";
-      this.context.fillStyle = BG_COLOR;
-      this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-      window.addEventListener("keydown", this.keydown);
+
+      // Draw & fill the background
+      //this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, BG_COLOR);
+      // Draw ball
+      this.colorRect(
+        this.gameState.ball.pos.x,
+        this.gameState.ball.pos.y,
+        this.gameState.ball.size,
+        this.gameState.ball.size,
+        FOOD_COLOR
+      );
+      //  this.ballMove();
+      //this.context.fillStyle = BG_COLOR;
+      //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      //window.addEventListener("keydown", this.keydown);
       this.gameActive = true;
-    }, 
+    },
     keydown(e) {
       //console.log(e.keyCode);
-      if (this.gameActive)
-        this.socket.emit("keydown", e.keyCode);
+      if (this.gameActive) this.socket.emit("keydown", e.keyCode);
+    },
+    colorRect(x, y, h, w, color) {
+      this.context.fillStyle = color;
+      this.context.fillRect(x, y, h, w);
     },
     paintGame(state) {
-      this.context.fillStyle = BG_COLOR;
-      this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      //this.context.fillStyle = BG_COLOR;
+      //this.context.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+        // Draw & fill the background
+      //this.colorRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height, BG_COLOR);
+      // Draw ball
+      /*this.colorRect(
+        this.gameState.ball.pos.x,
+        this.gameState.ball.pos.y,
+        this.gameState.ball.size,
+        this.gameState.ball.size,
+        FOOD_COLOR
+      );*/
 
-      const food = state.food;
+        const ballx = state.ball.pos.x;
+        const size = this.$refs.canvas.width / this.gameState.ball.size;
+        this.context.fillStyle = FOOD_COLOR;
+        this.context.fillRect(ballx * size, 0, size, size);
+
+
+      /*  const food = state.food;
       const gridsize = state.gridsize;
       const size = this.$refs.canvas.width / gridsize;
       const players = state.players;
@@ -97,9 +126,9 @@ export default {
       this.context.fillRect(food.x * size, food.y * size, size, size);
 
       this.paintPlayer(players[0], size, SNAKE_COLOR);
-      this.paintPlayer(players[1], size, 'red');
+      this.paintPlayer(players[1], size, "red");*/
     },
-    paintPlayer(playerState, size, color) {
+    /*paintPlayer(playerState, size, color) {
       const snake = playerState.snake;
 
       this.context.fillStyle = color;
@@ -107,63 +136,64 @@ export default {
       for (const cell of snake) {
         this.context.fillRect(cell.x * size, cell.y * size, size, size);
       }
-    },
+    },*/
     handleInit(number) {
-      //console.log(number);
       this.playerNumber = number;
     },
     handleGameState(gameState) {
-        if (!this.gameActive) {
-            return ;
-        }
+      if (!this.gameActive) {
+        return;
+      }
       gameState = JSON.parse(gameState);
+      console.log(gameState);
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
-        if (!this.gameActive) {
-            return ;
-        }
-        data = JSON.parse(data);
-        if (data.winner === this.playerNumber) {
-            //alert("You win !");
-            console.log("You win !");
-        } else {
-            console.log("You lose !");
-            //alert("You lost !");
-        }
-        this.gameActive = false;
-        //this.reset();
+      if (!this.gameActive) {
+        return;
+      }
+      data = JSON.parse(data);
+      if (data.winner === this.playerNumber) {
+        //alert("You win !");
+        console.log("You win !");
+      } else {
+        console.log("You lose !");
+        //alert("You lost !");
+      }
+      this.gameActive = false;
     },
     handleGameCode(gameCode) {
-        this.$refs.gameCodeDisplay.innerText = gameCode;
+      this.$refs.gameCodeDisplay.innerText = gameCode;
     },
     handleUnknownGame() {
-        this.reset();
-        alert("Unknown game code");
+      this.reset();
+      alert("Unknown game code");
     },
     handleTooManyPlayers() {
-        this.reset();
-        alert("This game is already in progress");
+      this.reset();
+      alert("This game is already in progress");
     },
     newGame() {
-        //   console.log("newGame");
       this.socket.emit("newGame");
       this.init();
     },
     joinGame() {
-      //console.log("joinGame");
       const code = this.gameCode;
       this.gameCode = "";
       this.socket.emit("joinGame", code);
       this.init();
     },
     reset() {
-        this.playerNumber = null;
-        this.gameCode = "";
-        this.$refs.gameCodeDisplay.innerText = "";
-        this.$refs.initialScreen.style.display = "block";
-        this.$refs.gameScreen.style.display = "none";
-    }
+      this.playerNumber = null;
+      this.gameCode = "";
+      this.$refs.gameCodeDisplay.innerText = "";
+      this.$refs.initialScreen.style.display = "block";
+      this.$refs.gameScreen.style.display = "none";
+    },
+    /*ballMove() {
+      this.gameState.ball.pos.x += this.gameState.ball.speed.x;
+      //this.gameState.ball.pos.y += this.gameState.ball.speed.y;
+    },*/
   },
 };
 </script>
@@ -185,13 +215,11 @@ export default {
     <div id="gameScreen" ref="gameScreen" class="h-100">
       <h1>THE GAME</h1>
       <div class="d-flex flex-column align-items-center justify-content-center h-100">
-        <h1>Your game code is: <span id="gameCodeDisplay" ref="gameCodeDisplay"></span></h1>
-        <canvas
-          ref="canvas"
-          width="600"
-          height="600"
-          style="border: 1px solid black"
-        ></canvas>
+        <h1>
+          Your game code is:
+          <span id="gameCodeDisplay" ref="gameCodeDisplay"></span>
+        </h1>
+        <canvas id="canvas" ref="canvas" width="640" height="480"></canvas>
       </div>
     </div>
   </div>
@@ -200,5 +228,10 @@ export default {
 <style>
 #gameScreen {
   display: none;
+}
+
+#canvas {
+  /*background-color: black;*/
+  border: 1px solid black;
 }
 </style>

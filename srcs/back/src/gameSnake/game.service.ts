@@ -12,7 +12,7 @@ export class GameService {
     state = {};
 
     createGameState() {
-    /*    return  {players: [{
+        return  {players: [{
             pos: {
                 x: 3,
                 y: 10
@@ -47,47 +47,12 @@ export class GameService {
             x: 7,
             y: 7
          },
-         gridsize: GRID_SIZE }*/
-        return {
-            ball: {
-                pos: {
-                    x: 0,
-                    y: 0,
-                },
-                speed: {
-                    x: 1,
-                    y: 1
-                },
-                size: 20,
-            },
-            players: [{
-                pos: {
-                    x: 0,
-                    y: 10,
-                },
-                speed: {
-                    x: 0,
-                    y: 0,
-                },
-                id: null,
-            }, 
-            {
-                pos: {
-                    x: 0,
-                    y: 10,
-                },
-                speed: {
-                    x: 0,
-                    y: 0,
-                }, 
-                id: null,
-            }]
-        }
+         gridsize: GRID_SIZE }
     }
 
     initGame() {
         const state = this.createGameState();
-        //this.randomFood(state);
+        this.randomFood(state);
         return state;
     }
 
@@ -121,28 +86,12 @@ export class GameService {
     }
 
 
-    gameLoop(state) {
+    gameLoop(state: GameState) {
         if (!state) {
             return ;
         }
 
-        //console.log(state);
-        state.ball.pos.x += state.ball.speed.x;
-        //state.ball.pos.y += state.ball.speed.y;
-        //console.log(state);
-
-        //if (state.ball.pos.y < 0 || state.ball.pos.y >= GRID_SIZE) {
-        //    state.balle.pos.y *= -1;
-        //    return (false);
-        //}
-        if (state.ball.pos.x < 0 || state.ball.pos.x >= GRID_SIZE) {
-            state.ball.speed.x *= -1;
-            //return (1);
-        }
-
-        return false;
-
-    /*    console.log(state);
+        console.log(state);
         
         const playerOne = state.players[0];
         const playerTwo = state.players[1];
@@ -199,13 +148,10 @@ export class GameService {
             playerTwo.snake.shift();
         }
 
-        return false; // no winner*/
-
-
-
+        return false; // no winner
     }
 
- /*   randomFood(state) {
+    randomFood(state/*: GameState*/) {
         let food = {
             x: Math.floor(Math.random() * GRID_SIZE),
             y: Math.floor(Math.random() * GRID_SIZE)
@@ -224,7 +170,7 @@ export class GameService {
         }
 
         state.food = food;
-    }*/
+    }
 
     handleKeydown(client: Socket, keyCode : any) {
         const roomName = this.clientRooms[client.id];
@@ -268,7 +214,7 @@ export class GameService {
         }
     }
 
-    handleNewGame(client: Socket, server: Server) {
+    handleNewGame(client: Socket) {
         let roomName = this.makeid(5);
         this.clientRooms[client.id] = roomName;
         client.emit('gameCode', roomName);
@@ -278,7 +224,6 @@ export class GameService {
         client.join(roomName);
         this.state[roomName].players[0].id = client.id;
         client.emit('init', 1);
-        //this.startGameInterval(roomName, server);
     }
 
     makeid(length: number) {
