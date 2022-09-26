@@ -31,14 +31,18 @@ export class GameService {
                     y: (480 / 2) - 50,
                     w: 10,
                     h: 100,
-                }
+                },
+                vel: 0,
+                id: null,
               }, {
                 paddle: {
                     x: 640 - 2,
                     y: (480 / 2) - 50,
                     w: 10,
                     h: 100,
-                }
+                },
+                vel: 0,
+                id: null,
               }]
         }
     }
@@ -90,6 +94,12 @@ export class GameService {
 
         this.wallCollision(ball);
 
+        let players = state.player;
+        
+        this.paddleCollision(ball, players);
+
+        this.paddleMovement(players)
+
     /*    if ((ball.pos.x + ball.rad) >= 640) {
             return (2); // Player 1 wins
         }
@@ -104,18 +114,19 @@ export class GameService {
             paddleOne.pos.y = 480 - paddleOne.dim.h;
         }*/
 
-        return 0;
-        /*
-        const playerOne = state.players[0];
-        const playerTwo = state.players[1];
+        //return 0;
 
-        playerOne.pos.x += playerOne.vel.x;
-        playerOne.pos.y += playerOne.vel.y;
+        
+     /*   const playerOne = state.player[0];
+        const playerTwo = state.player[1];
 
-        playerTwo.pos.x += playerTwo.vel.x;
-        playerTwo.pos.y += playerTwo.vel.y;
+        playerOne.x += playerOne.vel;
+        playerOne.y += playerOne.vel;
 
-        if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
+        playerTwo.x += playerTwo.vel;
+        playerTwo.y += playerTwo.vel;*/
+
+    /*    if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
             console.log("1");
             return (2); // player 2 wins (player 1 went out of the grid)
         }
@@ -136,9 +147,9 @@ export class GameService {
             playerTwo.pos.x += playerTwo.vel.x;
             playerTwo.pos.y += playerTwo.vel.y;
             this.randomFood(state);
-        }
+        }*/
 
-        if (playerOne.vel.x || playerOne.vel.y) {
+        /*if (playerOne.vel) {
             for (let cell of playerOne.snake) {
                 if (cell.x === playerOne.pos.x && cell.y === playerOne.pos.y) {
                     console.log("2");
@@ -159,10 +170,11 @@ export class GameService {
             
             playerTwo.snake.push({ ...playerTwo.pos });
             playerTwo.snake.shift();
-        }
+        }*/
 
-        return false; // no winner*/
+        //return false; // no winner*/
 
+        return (0);
 
 
     }
@@ -180,6 +192,24 @@ export class GameService {
         if ((ball.pos.x - ball.rad) <= 0 || (ball.pos.x + ball.rad) >= 640) {
             ball.dir.x *= -1;
         }
+    }
+
+    paddleCollision(ball, players) {
+       
+
+    }
+
+    paddleMovement(players) {
+        let playerOne = players[0];
+        //let playerTwo = players[1];
+        // ATTENTION VITESSE DONNE ICI ARBITRAIRE
+        console.log(playerOne.vel);
+        if (playerOne.vel === 1) {
+            playerOne.paddle.y += 5;
+        } else if (playerOne.vel === -1) {
+            playerOne.paddle.y -= 5;
+        }
+        playerOne.vel = 0;
     }
 
     randomDir(dir) {
@@ -228,14 +258,10 @@ export class GameService {
 
     getUpdatedVelocity(keyCode : number) {
         switch (keyCode) {
-        //    case 37: // left
-        //        return {x: -1, y: 0};
             case 38: // down
-                return {y: -1};
-        //    case 39: // right
-        //        return {x: 1, y: 0};
+                return -1;
             case 40: // up
-                return {y: 1};
+                return 1;
         }
     }
 
@@ -301,10 +327,10 @@ export class GameService {
         // Mais si le player 1 part, et que le troisieme joueur retente le truc avec le meme gameCode, CRASH
         // Pareil quand les deux joueurs sont partis.
 
-       /* const gameCode = this.clientRooms[client.id];
+       const gameCode = this.clientRooms[client.id];
         const room = await server.sockets.adapter.rooms.has(gameCode);
         if (room) {
             this.clientRooms[gameCode].splice();
-        }*/
+        }
     }
 }

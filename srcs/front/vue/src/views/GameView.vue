@@ -37,6 +37,7 @@ export default {
               w: 10,
               h: 100,
             },
+            vel: 0,
           },
           {
             paddle: {
@@ -45,6 +46,7 @@ export default {
               w: 10,
               h: 100,
             },
+            vel: 0,
           },
         ],
       },
@@ -89,6 +91,7 @@ export default {
       this.gameActive = true;
     },
     keydown(e) {
+        console.log(e.keyCode);
       if (this.gameActive) this.socket.emit("keydown", e.keyCode);
     },
     drawBall(x, y, rad, sa, ea) {
@@ -125,6 +128,7 @@ export default {
       this.paintPaddle(state.player[0]);
     },
     paintPaddle(player) {
+       
      this.drawRect(
         player.paddle.x,
         player.paddle.y,
@@ -194,7 +198,7 @@ export default {
   <div class="container h-100">
     <div id="initalScreen" ref="initialScreen" class="h-100">
       <div class="d-flex flex-column align-items-center justify-content-center h-100">
-        <h1>Multiplayer Snake</h1>
+        <h1>Multiplayer Pong</h1>
         <button type="submit" @click.prevent="newGame">Create New Game</button>
         <div>OR</div>
         <div class="form-group">
