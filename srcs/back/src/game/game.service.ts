@@ -1,8 +1,8 @@
 import { Injectable, Global } from '@nestjs/common';
-import { Game } from './interfaces/game.entity';
+import { Game } from './classes/game.class';
 import { Socket, Server } from 'socket.io';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { FRAME_RATE, GRID_SIZE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W } from './interfaces';
+import { FRAME_RATE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W, CANVAS_HEIGHT, DEFAULT_PADDLE_H } from './constants';
 import { Ball, Player } from "./classes";
 
 
@@ -17,7 +17,8 @@ export class GameService {
             players: [
                 new Player,
                 new Player,
-            ]
+            ],
+            roomName: String,
         }
     }
 
@@ -29,7 +30,7 @@ export class GameService {
     }
 
     reinitGameState() {
-        this.initGame();
+        return this.initGame();
     }
 
     setPlayerPos(players) {
@@ -37,7 +38,7 @@ export class GameService {
         playerOne.posx = 2;
 
         let playerTwo = players[1];
-        playerTwo.posx = CANVAS_WIDTH - DEFAULT_PADDLE_W - 2;
+        playerTwo.posx = CANVAS_WIDTH - playerTwo.width - 2;
     }
 
     startGameInterval(roomName: string, server: Server) {
@@ -65,101 +66,28 @@ export class GameService {
             .emit('gameOver', JSON.stringify({ winner }));
     }
 
-
     gameLoop(state) {
         if (!state) {
             return;
         }
 
         let ball = state.ball;
-
         this.ballMovement(ball);
-
         this.wallCollision(ball);
 
         let players = state.players;
-
+        this.paddleMovement(players)
         this.paddleCollision(ball, players);
 
-        this.paddleMovement(players)
-
-        /*    if ((ball.pos.x + ball.rad) >= 640) {
-                return (2); // Player 1 wins
-            }
-            if ((ball.pos.x - ball.rad) <= 0) {
+        // attention erreur ici probablement
+        if ((ball.posx + ball.rad) <= 0) {
+            return (2); // Player 1 wins
+        }
+          /*  if ((ball.pos.x - ball.rad) <= 0) {
                 return (1); // Player 2 wins
             }*/
 
-        /* let paddleOne = state.players[0];
-         if ((paddleOne.pos.y <= 0)) {
-             paddleOne.pos.y = 0;
-         } else if (paddleOne.pos.y + paddleOne.dim.h >= 480) {
-             paddleOne.pos.y = 480 - paddleOne.dim.h;
-         }*/
-
-        //return 0;
-
-
-        /*   const playerOne = state.player[0];
-           const playerTwo = state.player[1];
-   
-           playerOne.x += playerOne.vel;
-           playerOne.y += playerOne.vel;
-   
-           playerTwo.x += playerTwo.vel;
-           playerTwo.y += playerTwo.vel;*/
-
-        /*    if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
-                console.log("1");
-                return (2); // player 2 wins (player 1 went out of the grid)
-            }
-    
-            if (playerTwo.pos.x < 0 || playerTwo.pos.x >= GRID_SIZE || playerTwo.pos.y < 0 || playerTwo.pos.y >= GRID_SIZE) {
-                return (1); // player 1 wins (player 2 went out of the grid)
-            }
-    
-            if (state.food.x === playerOne.pos.x && state.food.y === playerOne.pos.y) {
-                playerOne.snake.push({ ...playerOne.pos });
-                playerOne.pos.x += playerOne.vel.x;
-                playerOne.pos.y += playerOne.vel.y;
-                this.randomFood(state);
-            }
-    
-            if (state.food.x === playerTwo.pos.x && state.food.y === playerTwo.pos.y) {
-                playerTwo.snake.push({ ...playerTwo.pos });
-                playerTwo.pos.x += playerTwo.vel.x;
-                playerTwo.pos.y += playerTwo.vel.y;
-                this.randomFood(state);
-            }*/
-
-        /*if (playerOne.vel) {
-            for (let cell of playerOne.snake) {
-                if (cell.x === playerOne.pos.x && cell.y === playerOne.pos.y) {
-                    console.log("2");
-                    return (2); // player 2 wins (player 1 overlaped)
-                }
-            }
-            
-            playerOne.snake.push({ ...playerOne.pos });
-            playerOne.snake.shift();
-        }
-
-        if (playerTwo.vel.x || playerTwo.vel.y) {
-            for (let cell of playerTwo.snake) {
-                if (cell.x === playerTwo.pos.x && cell.y === playerTwo.pos.y) {
-                    return (1); // player 1 wins (player 2 overlaped)
-                }
-            }
-            
-            playerTwo.snake.push({ ...playerTwo.pos });
-            playerTwo.snake.shift();
-        }*/
-
-        //return false; // no winner*/
-
-        return (0);
-
-
+        return (0); // no winner
     }
 
     ballMovement(ball) {
@@ -172,40 +100,76 @@ export class GameService {
             ball.diry *= -1;
         }
 
-        if ((ball.posx - ball.rad) <= 0 || (ball.posx + ball.rad) >= 640) {
+        if (/*(ball.posx - ball.rad) <= 0 || */(ball.posx + ball.rad) >= 640) {
             ball.dirx *= -1;
         }
     }
 
     paddleCollision(ball, players) {
+        // https://stackoverflow.com/questions/17768301/top-of-paddle-collision-detection-pong
 
+        let playerOne = players[0];
 
+        if (ball.posx <= playerOne.posx + playerOne.width) {
+            var rad = ball.rad / 2;
+            var padding = 3;
+
+            if (ball.posx + padding >= playerOne.posx + playerOne.width
+                && ball.posy - rad >= playerOne.posy
+                && ball.posy + rad <= playerOne.posy + playerOne.height) {
+
+                console.log("front connect");
+                ball.dirx *= -1;
+                console.log("TAPPE1");
+
+            } else if (ball.posy - CANVAS_HEIGHT >= playerOne.posy
+                && ball.posy <= playerOne.posy
+                && ball.posx - rad >= playerOne.posx) {
+
+                var x = ball.posx + rad;
+                var y = ball.posy + rad;
+                var px = playerOne.posx + playerOne.width;
+                var py = playerOne.posy;
+
+                if (ball.posy + CANVAS_HEIGHT > playerOne.posy) {
+                    py += playerOne.height;
+                }
+
+                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
+
+                if (dist <= rad && dist >= rad - padding) {
+                    var angle = Math.asin(x - px / y - py);
+                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
+                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
+                    console.log("TAPPEE2");
+                }
+            }
+        }
     }
 
     paddleMovement(players) {
         let playerOne = players[0];
-        //let playerTwo = players[1];
-        // ATTENTION VITESSE DONNE ICI ARBITRAIRE
-        if (playerOne.speed === 1) {
-            playerOne.posy += 10;
-        } else if (playerOne.speed === -1) {
-            playerOne.posy -= 10;
+        if (playerOne.vel === 1) {
+            playerOne.posy += playerOne.speed * INITIAL_VELOCITY;
+        } else if (playerOne.vel === -1) {
+            playerOne.posy -= playerOne.speed * INITIAL_VELOCITY;
         }
-       // playerOne.speed = 0;
+
+        if (playerOne.posy <= 0) {
+            playerOne.posy = 0;
+        } else if (playerOne.posy + DEFAULT_PADDLE_H >= CANVAS_HEIGHT) {
+            playerOne.posy = CANVAS_HEIGHT - DEFAULT_PADDLE_H;
+        }
 
         let playerTwo = players[1];
-        //let playerTwo = players[1];
-        // ATTENTION VITESSE DONNE ICI ARBITRAIRE
-        if (playerTwo.speed === 1) {
-            playerTwo.posy += 10;
-        } else if (playerTwo.speed === -1) {
-            playerTwo.posy -= 10;
+        if (playerTwo.vel === 1) {
+            playerTwo.posy += playerTwo.speed * INITIAL_VELOCITY;
+        } else if (playerTwo.vel === -1) {
+            playerTwo.posy -= playerTwo.speed * INITIAL_VELOCITY;
         }
-        //playerTwo.vel = 0;
     }
 
     randomDir(ball) {
-
         while (Math.abs(ball.dirx) <= 0.2 || Math.abs(ball.dirx) >= 0.9) {
             const heading = this.randomNumberBetween(0, 2 * Math.PI);
             ball.dirx = Math.cos(heading);
@@ -242,11 +206,11 @@ export class GameService {
         const vel = this.getUpdatedVelocity(keyCode);
 
         if (vel) {
-            this.state[roomName].players[playerNumber].speed = vel;
+            this.state[roomName].players[playerNumber].vel = vel;
         }
 
     }
-    
+
     getUpdatedVelocity(keyCode: number) {
         switch (keyCode) {
             case 38: // down
@@ -257,8 +221,6 @@ export class GameService {
     }
 
     handleKeyup(client: Socket, keyCode: any) {
-
-        console.log("ON EST LA");
         const roomName = this.clientRooms[client.id];
 
         if (!roomName) {
@@ -283,7 +245,7 @@ export class GameService {
             playerNumber = 1;
         }
 
-        this.state[roomName].players[playerNumber].speed = 0;
+        this.state[roomName].players[playerNumber].vel = 0;
     }
 
 
@@ -293,6 +255,7 @@ export class GameService {
         client.emit('gameCode', roomName);
 
         this.state[roomName] = this.initGame();
+        this.state[roomName].roomName = roomName;
 
         client.join(roomName);
         this.state[roomName].players[0].id = client.id;
@@ -344,15 +307,29 @@ export class GameService {
 
     async handleDisconnect(client: Socket, server: Server) {
 
+        const roomName = this.clientRooms[client.id];
 
-        // Erreur a resoudre : quand deux joueurs jouent dans une room, l'erreur too many players OK.
-        // Mais si le player 1 part, et que le troisieme joueur retente le truc avec le meme gameCode, CRASH
-        // Pareil quand les deux joueurs sont partis.
+        let allUsers;
+        if (roomName) {
+            allUsers = await server.in(roomName).fetchSockets();
+            console.log("hola");
+            let sockets = [];
+            allUsers.forEach(function(s) {
+                console.log(s.id);
+                s.emit('disconnected');
+                s.leave(roomName);
+                sockets.push(s.id);
+            });
+            sockets.forEach( socket => Reflect.deleteProperty(this.clientRooms, socket));
+        }
+        
+        Reflect.deleteProperty(this.clientRooms, client.id);
+    }
 
-        /*  const gameCode = this.clientRooms[client.id];
-           const room = await server.sockets.adapter.rooms.has(gameCode);
-           if (room) {
-               this.clientRooms[gameCode].splice();
-           }*/
+    handleReMatch(client: Socket, gameCode: string, server: Server) {
+        console.log("hello");
+        this.state[gameCode] = this.initGame();
+        console.log(this.state[gameCode]);
+        this.startGameInterval(gameCode, server);
     }
 }

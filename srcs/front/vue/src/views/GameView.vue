@@ -18,11 +18,11 @@ export default {
       gameActive: false,
       context: {},
       gameCode: "",
-      gameState: {
+      /*gameState: {
         ball: Ball,
         playerOne: Player,
         playerTwo: Player,
-      },
+      },*/
     };
   },
   created() {
@@ -34,9 +34,13 @@ export default {
     this.socket.on("gameCode", this.handleGameCode);
     this.socket.on("unknownGame", this.handleUnknownGame);
     this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
+    this.socket.on("disconnected", this.handleDisconnected);
   },
   mounted() {
     this.context = this.$refs.canvas.getContext("2d");
+  },
+  unmounted() {
+    this.socket.close();
   },
   methods: {
     init() {
@@ -52,7 +56,7 @@ export default {
       if (this.gameActive) this.socket.emit("keydown", e.keyCode);
     },
     keyup(e) {
-        if (this.gameActive) this.socket.emit("keyup", e.keyCode);
+      if (this.gameActive) this.socket.emit("keyup", e.keyCode);
     },
     drawBall(x, y, rad, sa, ea) {
       this.context.beginPath();
@@ -76,7 +80,14 @@ export default {
     paintGame(state) {
       this.clearRect();
       //const ballx = state.ball.posx;
-      this.drawBall(state.ball.posx, state.ball.posy, BALL_SIZE, 0, 2 * Math.PI, BALL_COLOR);
+      this.drawBall(
+        state.ball.posx,
+        state.ball.posy,
+        BALL_SIZE,
+        0,
+        2 * Math.PI,
+        BALL_COLOR
+      );
       this.paintPaddle(state.players[0]);
       this.paintPaddle(state.players[1]);
     },
@@ -91,7 +102,8 @@ export default {
         return;
       }
       gameState = JSON.parse(gameState);
-      //console.log(gameState);
+      
+      this.gameCode = gameState.roomName;
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
@@ -106,7 +118,7 @@ export default {
         console.log("You lose !");
         //alert("You lost !");
       }
-      this.gameActive = false;
+      //this.gameActive = false;
     },
     handleGameCode(gameCode) {
       this.$refs.gameCodeDisplay.innerText = gameCode;
@@ -125,7 +137,7 @@ export default {
     },
     joinGame() {
       const code = this.gameCode;
-      this.gameCode = "";
+      //this.gameCode = "";
       this.socket.emit("joinGame", code);
       this.init();
     },
@@ -140,6 +152,16 @@ export default {
       this.width = this.$refs.container.offsetWitdht;
       this.height = this.$refs.canvas.offsetHeight;
     },
+    handleDisconnected() {
+        console.log("You have been disconnected");
+        //this.socket.close();
+        //alert("You have been disconnected !");
+        //this.socket.delete("http://localhost:3000"); // ?????
+    },
+    reMatch() {
+        console.log(this.gameCode);
+        this.socket.emit("reMatch", JSON.stringify(this.gameCode));
+    }
   },
 };
 </script>
@@ -166,6 +188,7 @@ export default {
           <span id="gameCodeDisplay" ref="gameCodeDisplay"></span>
         </h1>
         <canvas id="canvas" ref="canvas" width="640" height="480"></canvas>
+        <button type="submit" @click.prevent="reMatch">Re-Match !</button>
       </div>
     </div>
   </div>

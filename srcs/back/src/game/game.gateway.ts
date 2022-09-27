@@ -60,6 +60,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleKeyUp(client: Socket, keyCode: string) {
         this.gameservice.handleKeyup(client, keyCode);
     }
+
+    @SubscribeMessage('reMatch')
+    handleReMatch(client: Socket, gameCode: string) {
+        console.log("GAMECODE");
+        //let gameCode = JSON.parse(data); 
+        console.log(gameCode);
+        this.gameservice.handleReMatch(client, gameCode, this.server);
+    }
    
 
 }
