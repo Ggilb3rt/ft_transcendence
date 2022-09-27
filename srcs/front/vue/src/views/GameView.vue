@@ -1,11 +1,13 @@
 <!-- eslint-disable prettier/prettier -->
 <script>
 import io from "socket.io-client";
+import { Ball, Player } from "@/components/game";
 
-const BG_COLOR = "#231f20";
-const SNAKE_COLOR = "#c2c2c2";
-const FOOD_COLOR = "#e66916";
-const BALL_SIZE = 20;
+const WIDTH = 0;
+const HEIGHT = 0;
+
+const BALL_COLOR = "#c2c2c2";
+const BALL_SIZE = 10;
 
 export default {
   name: "GamePong",
@@ -17,38 +19,9 @@ export default {
       context: {},
       gameCode: "",
       gameState: {
-        ball: {
-          pos: {
-            x: 640 / 2 + 10 / 2,
-            y: 480 / 2 - 10 / 2,
-          },
-          dir: {
-            x: 0,
-            y: 0,
-          },
-          rad: 10,
-          speed: 0,
-        },
-        player: [
-          {
-            paddle: {
-              x: 2,
-              y: 480 / 2 - 50,
-              w: 10,
-              h: 100,
-            },
-            vel: 0,
-          },
-          {
-            paddle: {
-              x: 640 - 2,
-              y: 480 / 2 - 50,
-              w: 10,
-              h: 100,
-            },
-            vel: 0,
-          },
-        ],
+        ball: Ball,
+        playerOne: Player,
+        playerTwo: Player,
       },
     };
   },
@@ -64,35 +37,22 @@ export default {
   },
   mounted() {
     this.context = this.$refs.canvas.getContext("2d");
-    //this.init();
-    //this.paintGame(this.gameState);
   },
   methods: {
     init() {
+      this.WIDTH = this.$refs.canvas.width;
+      this.HEIGHT = this.$refs.canvas.height;
       this.$refs.initialScreen.style.display = "none";
       this.$refs.gameScreen.style.display = "block";
-
-    /*  this.drawBall(
-        this.gameState.ball.pos.x,
-        this.gameState.ball.pos.y,
-        this.gameState.ball.rad,
-        0,
-        2 * Math.PI
-      );
-
-      this.drawRect(
-        this.gameState.player[0].paddle.x,
-        this.gameState.player[0].paddle.y,
-        this.gameState.player[0].paddle.w,
-        this.gameState.player[0].paddle.h
-      );*/
-
       window.addEventListener("keydown", this.keydown);
+      window.addEventListener("keyup", this.keyup);
       this.gameActive = true;
     },
     keydown(e) {
-        console.log(e.keyCode);
       if (this.gameActive) this.socket.emit("keydown", e.keyCode);
+    },
+    keyup(e) {
+        if (this.gameActive) this.socket.emit("keyup", e.keyCode);
     },
     drawBall(x, y, rad, sa, ea) {
       this.context.beginPath();
@@ -106,36 +66,22 @@ export default {
     },
     drawRect(x, y, w, h) {
       this.context.beginPath();
-      //this.context.fillStyle = "black";
       this.context.rect(x, y, w, h);
       this.context.closePath();
       this.context.fill();
     },
     clearRect() {
-      this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      this.context.clearRect(0, 0, this.WIDTH, this.HEIGHT);
     },
     paintGame(state) {
       this.clearRect();
-      const ballx = state.ball.pos.x;
-      this.drawBall(
-        ballx,
-        state.ball.pos.y,
-        this.gameState.ball.rad,
-        0,
-        2 * Math.PI,
-        SNAKE_COLOR
-      );
-      this.paintPaddle(state.player[0]);
+      //const ballx = state.ball.posx;
+      this.drawBall(state.ball.posx, state.ball.posy, BALL_SIZE, 0, 2 * Math.PI, BALL_COLOR);
+      this.paintPaddle(state.players[0]);
+      this.paintPaddle(state.players[1]);
     },
     paintPaddle(player) {
-       
-     this.drawRect(
-        player.paddle.x,
-        player.paddle.y,
-        player.paddle.w,
-        player.paddle.h
-      );
-
+      this.drawRect(player.posx, player.posy, player.width, player.height);
     },
     handleInit(number) {
       this.playerNumber = number;
@@ -190,6 +136,10 @@ export default {
       this.$refs.initialScreen.style.display = "block";
       this.$refs.gameScreen.style.display = "none";
     },
+    resizeCanvas() {
+      this.width = this.$refs.container.offsetWitdht;
+      this.height = this.$refs.canvas.offsetHeight;
+    },
   },
 };
 </script>
@@ -227,7 +177,7 @@ export default {
 }
 
 #canvas {
-  background-color: blue;
+  background-color: black;
   border: 1px solid black;
 }
 </style>

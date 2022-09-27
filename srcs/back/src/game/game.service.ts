@@ -1,60 +1,43 @@
 import { Injectable, Global } from '@nestjs/common';
-import { Game } from './entities/game.entity';
+import { Game } from './interfaces/game.entity';
 import { Socket, Server } from 'socket.io';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { FRAME_RATE, GRID_SIZE, INITIAL_VELOCITY, GameState } from './entities';
-
+import { FRAME_RATE, GRID_SIZE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W } from './interfaces';
+import { Ball, Player } from "./classes";
 
 
 @Injectable()
 export class GameService {
-    clientRooms = {};
-    state = {};
+    private clientRooms = {};
+    private state = {};
 
     createGameState() {
         return {
-            ball: {
-                pos: {
-                    x: (640 / 2) - (10 / 2),
-                    y: (480 / 2) - (10 / 2),
-                },
-                dir: {
-                    x: 0,
-                    y: 0,
-                },
-                rad: 10,
-                speed: 5,
-            },
-            player: [{
-                paddle: {
-                    x: 2,
-                    y: (480 / 2) - 50,
-                    w: 10,
-                    h: 100,
-                },
-                vel: 0,
-                id: null,
-              }, {
-                paddle: {
-                    x: 640 - 2,
-                    y: (480 / 2) - 50,
-                    w: 10,
-                    h: 100,
-                },
-                vel: 0,
-                id: null,
-              }]
+            ball: new Ball,
+            players: [
+                new Player,
+                new Player,
+            ]
         }
     }
 
     initGame() {
         const state = this.createGameState();
-        this.randomDir(state.ball.dir);
+        this.setPlayerPos(state.players);
+        this.randomDir(state.ball);
         return state;
     }
 
     reinitGameState() {
         this.initGame();
+    }
+
+    setPlayerPos(players) {
+        let playerOne = players[0];
+        playerOne.posx = 2;
+
+        let playerTwo = players[1];
+        playerTwo.posx = CANVAS_WIDTH - DEFAULT_PADDLE_W - 2;
     }
 
     startGameInterval(roomName: string, server: Server) {
@@ -72,20 +55,20 @@ export class GameService {
         }, 1000 / FRAME_RATE);
     }
 
-    emitGameState(roomName: string, state: GameState, server: Server) {
+    emitGameState(roomName: string, state: any, server: Server) {
         server.sockets.in(roomName)
             .emit('gameState', JSON.stringify(state));
     }
 
     emitGameOver(roomName: string, winner, server: Server) {
         server.sockets.in(roomName)
-            .emit('gameOver', JSON.stringify({winner}));
+            .emit('gameOver', JSON.stringify({ winner }));
     }
 
 
     gameLoop(state) {
         if (!state) {
-            return ;
+            return;
         }
 
         let ball = state.ball;
@@ -94,60 +77,60 @@ export class GameService {
 
         this.wallCollision(ball);
 
-        let players = state.player;
-        
+        let players = state.players;
+
         this.paddleCollision(ball, players);
 
         this.paddleMovement(players)
 
-    /*    if ((ball.pos.x + ball.rad) >= 640) {
-            return (2); // Player 1 wins
-        }
-        if ((ball.pos.x - ball.rad) <= 0) {
-            return (1); // Player 2 wins
-        }*/
+        /*    if ((ball.pos.x + ball.rad) >= 640) {
+                return (2); // Player 1 wins
+            }
+            if ((ball.pos.x - ball.rad) <= 0) {
+                return (1); // Player 2 wins
+            }*/
 
-       /* let paddleOne = state.players[0];
-        if ((paddleOne.pos.y <= 0)) {
-            paddleOne.pos.y = 0;
-        } else if (paddleOne.pos.y + paddleOne.dim.h >= 480) {
-            paddleOne.pos.y = 480 - paddleOne.dim.h;
-        }*/
+        /* let paddleOne = state.players[0];
+         if ((paddleOne.pos.y <= 0)) {
+             paddleOne.pos.y = 0;
+         } else if (paddleOne.pos.y + paddleOne.dim.h >= 480) {
+             paddleOne.pos.y = 480 - paddleOne.dim.h;
+         }*/
 
         //return 0;
 
-        
-     /*   const playerOne = state.player[0];
-        const playerTwo = state.player[1];
 
-        playerOne.x += playerOne.vel;
-        playerOne.y += playerOne.vel;
+        /*   const playerOne = state.player[0];
+           const playerTwo = state.player[1];
+   
+           playerOne.x += playerOne.vel;
+           playerOne.y += playerOne.vel;
+   
+           playerTwo.x += playerTwo.vel;
+           playerTwo.y += playerTwo.vel;*/
 
-        playerTwo.x += playerTwo.vel;
-        playerTwo.y += playerTwo.vel;*/
-
-    /*    if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
-            console.log("1");
-            return (2); // player 2 wins (player 1 went out of the grid)
-        }
-
-        if (playerTwo.pos.x < 0 || playerTwo.pos.x >= GRID_SIZE || playerTwo.pos.y < 0 || playerTwo.pos.y >= GRID_SIZE) {
-            return (1); // player 1 wins (player 2 went out of the grid)
-        }
-
-        if (state.food.x === playerOne.pos.x && state.food.y === playerOne.pos.y) {
-            playerOne.snake.push({ ...playerOne.pos });
-            playerOne.pos.x += playerOne.vel.x;
-            playerOne.pos.y += playerOne.vel.y;
-            this.randomFood(state);
-        }
-
-        if (state.food.x === playerTwo.pos.x && state.food.y === playerTwo.pos.y) {
-            playerTwo.snake.push({ ...playerTwo.pos });
-            playerTwo.pos.x += playerTwo.vel.x;
-            playerTwo.pos.y += playerTwo.vel.y;
-            this.randomFood(state);
-        }*/
+        /*    if (playerOne.pos.x < 0 || playerOne.pos.x >= GRID_SIZE || playerOne.pos.y < 0 || playerOne.pos.y >= GRID_SIZE) {
+                console.log("1");
+                return (2); // player 2 wins (player 1 went out of the grid)
+            }
+    
+            if (playerTwo.pos.x < 0 || playerTwo.pos.x >= GRID_SIZE || playerTwo.pos.y < 0 || playerTwo.pos.y >= GRID_SIZE) {
+                return (1); // player 1 wins (player 2 went out of the grid)
+            }
+    
+            if (state.food.x === playerOne.pos.x && state.food.y === playerOne.pos.y) {
+                playerOne.snake.push({ ...playerOne.pos });
+                playerOne.pos.x += playerOne.vel.x;
+                playerOne.pos.y += playerOne.vel.y;
+                this.randomFood(state);
+            }
+    
+            if (state.food.x === playerTwo.pos.x && state.food.y === playerTwo.pos.y) {
+                playerTwo.snake.push({ ...playerTwo.pos });
+                playerTwo.pos.x += playerTwo.vel.x;
+                playerTwo.pos.y += playerTwo.vel.y;
+                this.randomFood(state);
+            }*/
 
         /*if (playerOne.vel) {
             for (let cell of playerOne.snake) {
@@ -180,22 +163,22 @@ export class GameService {
     }
 
     ballMovement(ball) {
-        ball.pos.x += ball.dir.x * ball.speed;
-        ball.pos.y += ball.dir.y * ball.speed;
+        ball.posx += ball.dirx * ball.speed;
+        ball.posy += ball.diry * ball.speed;
     }
 
     wallCollision(ball) {
-        if ((ball.pos.y - ball.rad) <= 0 || (ball.pos.y + ball.rad) >= 480) {
-            ball.dir.y *= -1;
+        if ((ball.posy - ball.rad) <= 0 || (ball.posy + ball.rad) >= 480) {
+            ball.diry *= -1;
         }
 
-        if ((ball.pos.x - ball.rad) <= 0 || (ball.pos.x + ball.rad) >= 640) {
-            ball.dir.x *= -1;
+        if ((ball.posx - ball.rad) <= 0 || (ball.posx + ball.rad) >= 640) {
+            ball.dirx *= -1;
         }
     }
 
     paddleCollision(ball, players) {
-       
+
 
     }
 
@@ -203,46 +186,54 @@ export class GameService {
         let playerOne = players[0];
         //let playerTwo = players[1];
         // ATTENTION VITESSE DONNE ICI ARBITRAIRE
-        console.log(playerOne.vel);
-        if (playerOne.vel === 1) {
-            playerOne.paddle.y += 5;
-        } else if (playerOne.vel === -1) {
-            playerOne.paddle.y -= 5;
+        if (playerOne.speed === 1) {
+            playerOne.posy += 10;
+        } else if (playerOne.speed === -1) {
+            playerOne.posy -= 10;
         }
-        playerOne.vel = 0;
+       // playerOne.speed = 0;
+
+        let playerTwo = players[1];
+        //let playerTwo = players[1];
+        // ATTENTION VITESSE DONNE ICI ARBITRAIRE
+        if (playerTwo.speed === 1) {
+            playerTwo.posy += 10;
+        } else if (playerTwo.speed === -1) {
+            playerTwo.posy -= 10;
+        }
+        //playerTwo.vel = 0;
     }
 
-    randomDir(dir) {
+    randomDir(ball) {
 
-        while (Math.abs(dir.x) <= 0.2 || Math.abs(dir.x) >= 0.9)
-        {
+        while (Math.abs(ball.dirx) <= 0.2 || Math.abs(ball.dirx) >= 0.9) {
             const heading = this.randomNumberBetween(0, 2 * Math.PI);
-            dir.x = Math.cos(heading);
-            dir.y = Math.sin(heading);
+            ball.dirx = Math.cos(heading);
+            ball.diry = Math.sin(heading);
         }
-        dir.speed = INITIAL_VELOCITY;
+        ball.speed *= INITIAL_VELOCITY;
     }
 
     randomNumberBetween(min, max) {
         return Math.random() * (max - min) + min;
     }
 
-    handleKeydown(client: Socket, keyCode : any) {
+    handleKeydown(client: Socket, keyCode: any) {
         const roomName = this.clientRooms[client.id];
-        
+
         if (!roomName) {
-            return ;
+            return;
         }
 
         try {
             keyCode = parseInt(keyCode);
-        } catch(e) {
+        } catch (e) {
             console.error(e);
-            return ;
+            return;
         }
 
         let playerNumber;
-        if (this.state[roomName].player[0].id === client.id) {
+        if (this.state[roomName].players[0].id === client.id) {
             playerNumber = 0;
         } else {
             playerNumber = 1;
@@ -251,12 +242,12 @@ export class GameService {
         const vel = this.getUpdatedVelocity(keyCode);
 
         if (vel) {
-            this.state[roomName].player[playerNumber].vel = vel;
+            this.state[roomName].players[playerNumber].speed = vel;
         }
 
     }
-
-    getUpdatedVelocity(keyCode : number) {
+    
+    getUpdatedVelocity(keyCode: number) {
         switch (keyCode) {
             case 38: // down
                 return -1;
@@ -264,6 +255,37 @@ export class GameService {
                 return 1;
         }
     }
+
+    handleKeyup(client: Socket, keyCode: any) {
+
+        console.log("ON EST LA");
+        const roomName = this.clientRooms[client.id];
+
+        if (!roomName) {
+            return;
+        }
+
+        try {
+            keyCode = parseInt(keyCode);
+        } catch (e) {
+            console.error(e);
+            return;
+        }
+
+        if (keyCode !== 38 && keyCode !== 40) {
+            return;
+        }
+
+        let playerNumber;
+        if (this.state[roomName].players[0].id === client.id) {
+            playerNumber = 0;
+        } else {
+            playerNumber = 1;
+        }
+
+        this.state[roomName].players[playerNumber].speed = 0;
+    }
+
 
     handleNewGame(client: Socket, server: Server) {
         let roomName = this.makeid(5);
@@ -273,7 +295,7 @@ export class GameService {
         this.state[roomName] = this.initGame();
 
         client.join(roomName);
-        this.state[roomName].player[0].id = client.id;
+        this.state[roomName].players[0].id = client.id;
         client.emit('init', 1);
         //this.startGameInterval(roomName, server);
     }
@@ -296,41 +318,41 @@ export class GameService {
         if (room) {
             allUsers = await server.in(gameCode).fetchSockets();
         }
-        
+
         let numClients = 0;
         if (allUsers) {
             numClients = Object.keys(allUsers).length;
         }
-      
+
         // Personne waiting to play game donc personne a join
         if (numClients === 0) {
             client.emit('unknownGame');
-            return ;
+            return;
         } else if (numClients > 1) { // Trop de joueurs
             client.emit('tooManyPlayers');
-            return ;
+            return;
         }
-        
+
         this.clientRooms[client.id] = gameCode;
 
         client.join(gameCode);
-        this.state[gameCode].player[1].id = client.id;
+        this.state[gameCode].players[1].id = client.id;
         client.emit('init', 2);
 
         this.startGameInterval(gameCode, server);
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-        
+
 
         // Erreur a resoudre : quand deux joueurs jouent dans une room, l'erreur too many players OK.
         // Mais si le player 1 part, et que le troisieme joueur retente le truc avec le meme gameCode, CRASH
         // Pareil quand les deux joueurs sont partis.
 
-       const gameCode = this.clientRooms[client.id];
-        const room = await server.sockets.adapter.rooms.has(gameCode);
-        if (room) {
-            this.clientRooms[gameCode].splice();
-        }
+        /*  const gameCode = this.clientRooms[client.id];
+           const room = await server.sockets.adapter.rooms.has(gameCode);
+           if (room) {
+               this.clientRooms[gameCode].splice();
+           }*/
     }
 }
