@@ -2,18 +2,20 @@
 import UserHero from "@/components/UserHero.vue";
 import router from "@/router";
 import { ref } from "vue";
-
+import { useUserStore } from '../stores/user';
 
 // simule server timing
 function sleep(ms: number) {
   return new Promise(
     resolve => setTimeout(resolve, ms)
-  );
-}
+    );
+  }
+
+
+const userStore = useUserStore()
 
 // we be usefull with Oauth2
-const isLog: boolean = false
-if (!isLog)
+if (!userStore.connected)
   router.push('login')
 
 let inQueue = ref(false)

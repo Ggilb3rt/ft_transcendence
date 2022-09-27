@@ -6,6 +6,7 @@ export interface IUserStoreState {
     user: IUser
     loading: boolean
     error: any | null
+    connected: boolean
 }
 
 // const api = mande('http://localhost:3000/users')
@@ -17,7 +18,8 @@ export const useUserStore = defineStore({
         neededId: 1 as Number,
         user: {} as IUser,
         loading: false,
-        error: null
+        error: null,
+        connected: false
     }),
     getters: {
         // getUserNick: (state) => {
@@ -101,6 +103,7 @@ export const useUserStore = defineStore({
                 if (!this.user.invites)
                     this.user.invites = [4, 9, 8]
                 this.loading = false
+                this.connected = true
             }
         },
     },

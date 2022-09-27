@@ -4,6 +4,7 @@ import Dashboard from "../views/DashboardView.vue";
 import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
 import Chat2 from "../views/ChatView2.vue";
+import Login from "../views/LoginView.vue"
 
 
 type gameList = 'pong' | 'catPong'
@@ -17,6 +18,11 @@ const router = createRouter({
       path: "/:lobby?",
       name: "home",
       component: HomeView,
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: Login
     },
     {
       path: "/about",
