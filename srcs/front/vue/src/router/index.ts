@@ -3,6 +3,7 @@ import HomeView from "../views/HomeView.vue";
 import Dashboard from "../views/DashboardView.vue";
 import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
+import Chat2 from "../views/ChatView2.vue";
 
 
 type gameList = 'pong' | 'catPong'
@@ -29,6 +30,10 @@ const router = createRouter({
       path: "/chat",
       name: "chat",
       component: Chat,
+      children: [{
+        path: 'room/:id',
+        component: Chat
+      }]
     },
     {
       path: "/dashboard",
@@ -41,11 +46,11 @@ const router = createRouter({
       component: Game,
     },
     // {
-      // cf https://router.vuejs.org/guide/essentials/named-views.html
-    //   path: "/chat",
-    //   name: "chat",
+    //   // cf https://router.vuejs.org/guide/essentials/named-views.html
+    //   path: "/chat/room",
+    //   name: "chat2",
     //   components: {
-    //     default: chatView,
+    //     default: Chat,
     //     channelList,
     //     friendsList
     //   }

@@ -5,6 +5,7 @@ import { useUserStore } from '../stores/user';
 import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
+import UserInvite from './UserInvite.vue'
 import type { IUser } from '../../types';
 
 
@@ -89,7 +90,7 @@ function changeImg(e) {
 	<div class="heroCard">
 		<div class="userBasics">
 			<figure class="heroFigure">
-				<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+				<img class="heroAvatar" :src="userStore.getUserAvatar()" :alt="userStore.user.nickname + ' avatar'">
 				<input type="file" @change="changeImg( $event )" id="changeAvatar">
 			</figure>
 			<div>
@@ -107,6 +108,7 @@ function changeImg(e) {
 					</div>
 				</p>
 			</div>
+			<UserInvite></UserInvite>
 		</div>
 
 		<UserGameStats />
@@ -129,6 +131,7 @@ function changeImg(e) {
 .heroCard .userBasics {
 	display: flex;
 	flex-direction: column;
+	flex-wrap: wrap;
 	gap: 20px;
 }
 

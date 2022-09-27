@@ -10,4 +10,5 @@ export interface IUser {
     loses: number;
     friends: number[];
     blocks: number[];
+    invites: number[];
   }

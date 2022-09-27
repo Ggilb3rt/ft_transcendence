@@ -46,8 +46,9 @@
 				<a v-if="el.href" :href="el.href">
 					{{ el.name }}
 				</a>
-				<button v-else>{{ el.name }}</button>
-				<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
+				<button v-else>{{ el.name }}
+					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
+				</button>
 			</div>
 			<ul v-show="isOpen(index)" v-if="isFolder(index)">
 				<li v-for="child in el.children" :key="child">
@@ -62,8 +63,6 @@
 </template>
 
 <style scoped>
-
-
 .second_side_menu {
 	min-height: 100vh;
 	display: none;

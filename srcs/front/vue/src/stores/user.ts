@@ -36,9 +36,18 @@ export const useUserStore = defineStore({
             if (this.user)
                 this.user.nickname = newTag
         },
+        getUserAvatar() {
+            if (this.user.avatar_url)
+                return `/${this.user.avatar_url}`
+        },
         setUserAvatar(url:string) {
             if (this.user)
                 this.user.avatar_url = url
+        },
+        addFriend(id: number) {
+            if (id && (this.user.friends.find(el => el == id) == undefined)) {
+                this.user.friends.push(id)
+            }
         },
         getUserLevel(): string {
             switch (this.user.ranking) {
@@ -89,6 +98,8 @@ export const useUserStore = defineStore({
                     this.user.friends = [2, 3, 5]
                 if (!this.user.blocks)
                     this.user.blocks = [10, 23, 45, 7, 2]
+                if (!this.user.invites)
+                    this.user.invites = [4, 9, 8]
                 this.loading = false
             }
         },

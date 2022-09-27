@@ -174,21 +174,17 @@
 		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav>
 		
 		<!-- put it to a component ? -->
-		<div class="room">
-			<div class="chatRoom" id="room-view">
-				<div v-for="msg in channelMsgs" :key="msg.tag" class="message">
-					<figure>
-						<img :src="msg.img" :alt="msg.tag + ' avatar'">
-					</figure>
-					<p>
-						<span class="tag">{{ msg.tag }}</span> | 
-						<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ msg.date.getMinutes() }}</span>
-						<br>
-						<span>{{ msg.msg }}</span>
-					</p>
-				</div>
+		<div class="room" id="room-view">
+			<div class="chatRoom">
+				<p v-for="msg in channelMsgs" :key="msg.tag" class="message">
+					<img :src="msg.img" :alt="msg.tag + ' avatar'">
+					<span class="tag">{{ msg.tag }}  </span>
+					<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ msg.date.getMinutes() }}</span>
+					<br>
+					{{ msg.msg }}
+				</p>
 				<form @keyup.enter="submit">
-					<textarea v-model="msg"></textarea>
+					<input type="text" v-model="msg">
 					<input type="submit" class="send" @click="submit">
 				</form>
 			</div>
@@ -212,12 +208,13 @@
 	width: 100%;
 	height: calc(90vh - 126px);
 	overflow: hidden;
-	/* padding: 20px; */
+	padding: 20px;
 }
 
 .room:hover ::-webkit-scrollbar {
 	width: 5px;
 }
+
 .room .chatRoom {
 	width: 100%;
 	height: 99%;
@@ -226,51 +223,15 @@
 	scrollbar-width: thin;
 }
 
-.room .message .tag {
-	color: var(--global-c-blue);
-	font-size: .8em;
-}
-
-.room .message .time {
-	/* color: var(--color-background-soft); */
-	font-size: .8em;
-}
-
-.room .message:nth-child(2n) {
-	background: var(--color-background-mute);
-}
-.room .message {
-	padding: 10px 20px;
-	display: flex;
-	gap: 0px 20px;
-
+.room form {
+	position: fixed;
+	bottom : 50px;
 }
 .room .message img{
 	width: 50px;
 	height: 50px;
-	/* border-radius: 50px; */
+	border-radius: 50px;
 }
-
-.room form {
-	position: fixed;
-	bottom : 10px;
-	z-index: 9;
-	display: grid;
-	grid-template-columns: 4fr 1fr;
-}
-
-.room form textarea {
-	min-height: 50px;
-	max-height: 500px;
-	min-width: 80vw;
-	max-width: 80vw;
-}
-
-.room form input[type='submit'] {
-	width: 20vw;
-	height: 50px;
-}
-
 
 @media screen and (min-width: 768px) {
 	.vue_wrapper.chat {
@@ -282,22 +243,6 @@
 	.room {
 		flex-grow: 1;
 	}
-
-	.room form {
-		width: 70%;
-	}
-	.room form textarea {
-	min-height: 50px;
-	max-height: 500px;
-	min-width: 70%;
-	max-width: 70%;
-}
-
-	.room form input[type='submit'] {
-		width: 20%;
-		height: 50px;
-	}
-
 	.btn_side {
 		display: none;
 	}
