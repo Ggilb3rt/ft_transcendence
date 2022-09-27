@@ -2,11 +2,8 @@
 import TheWelcome from "@/components/TheWelcome.vue";
 import UserHero from "@/components/UserHero.vue";
 import router from "@/router";
+import { ref } from "vue";
 
-// we be usefull with Oauth2
-const isLog: boolean = false
-if (!isLog)
-  router.push('login')
 
 // simule server timing
 function sleep(ms: number) {
@@ -15,7 +12,18 @@ function sleep(ms: number) {
   );
 }
 
-async function findGame(game: string) {
+// we be usefull with Oauth2
+const isLog: boolean = false
+if (!isLog)
+  router.push('login')
+
+let inQueue = ref(false)
+
+async function findGame(event: Event, game: string) {
+  event.preventDefault();
+  if (inQueue.value)
+    return
+  inQueue.value = true
   const url = `http://localhost:3000/lobby/${game}`
   const data = Math.floor(Math.random() * 1000 + 1) // await fetch data and get game id
   const motivational = ["Recherche d'opposant", "nettoyage des raquettes", "reveil du chat", "préparation du terrain"]
@@ -46,19 +54,19 @@ async function findGame(game: string) {
     <nav>
       <ul class="gameList">
         <li>
-          <button id="pong" @click="findGame('pong')" class="pongLink">Pong<br>
+          <button id="pong" @click="findGame($event, 'pong')" class="pongLink">Pong<br>
             <img src="../assets/pongGame.png" alt="view of standard game pong" srcset="">
           </button>
         </li>
         <li>
-          <button id="catPong" @click="findGame('catPong')" class="pongLink">Pong<br>
+          <button id="catPong" @click="findGame($event, 'catPong')" class="pongLink">CatPong<br>
             <img src="../assets/pongCat.png" alt="view of special game Cat pong" srcset="">
           </button>
         </li>
         <li>
-          <a href="/lobby?=tong">Tong<br>
-            <img src="../assets/more.jpeg" alt="another pong game" srcset="">
-          </a>
+          <button id="tong" class="pongLink cant_click">Tong<br>
+            <img src="../assets/more.jpg" alt="another pong game" srcset="">
+          </button>
         </li>
       </ul>
     </nav>
@@ -82,36 +90,47 @@ async function findGame(game: string) {
     bottom: 0;
     background: red;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .gameList {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: 0;
 }
 
-.gameList li a {
-  display: block;
+.gameList li button {
+  background: var(--color-background);
+  border: none;
+  color: #fff;
+  text-align: left;
 }
-.gameList li a:hover, .gameList li a:active {
+.gameList li button:hover, .gameList li button:active {
   background: none;
 }
-.gameList li a:hover img, .gameList li a:active img {
+.gameList li button:hover img, .gameList li button:active img {
   transition: border .1s ease-in;
   border: 1px solid rgb(21, 216, 255);
 }
 
-.gameList li a img{
+.gameList li button img{
   width: 100%;
   max-height: 400px;
+  margin-top: 5px;
 }
 
-@media screen and screen and (min-width: 768px) {
+@media screen and (min-width: 768px) {
   .gameList {
     flex-direction: row;
     gap: 10px;
     justify-content: left;
+  }
+  .gameList li {
+    width: calc(100% / 3);
   }
   .gameList li a img{
     max-height: 200px;

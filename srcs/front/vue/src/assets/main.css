@@ -41,10 +41,26 @@ a, .blue {
 }
 
 button.cant_click {
-	opacity: .7;
+	opacity: .5;
 }
+/* button.cant_click:after {
+  display: block;
+  content: '';
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 10, 10, .3);
+} */
 button.cant_click:hover {
 	cursor: not-allowed;
+  opacity: .2;
+}
+.gameList li button.cant_click:hover img{
+  border: none;
 }
 
 
@@ -56,7 +72,7 @@ button.cant_click:hover {
 
 @media screen and (min-width: 768px) {
   .vue_wrapper {
-    min-height: 100vh;
+    min-height: 80vh;
     display: flex;
     align-items: center;
     flex-flow: column;

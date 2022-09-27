@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/user';
 import UserGameStats from './UserGameStats.vue'
@@ -40,6 +40,7 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 let editMode = ref(false)
 let nicknameEdit = ref("")
 const nameList = ["pouet", 'lol', "ggilbert"] // need to get it from server
+
 function filteredNames() {
 	return nameList.filter((name) => name.toLowerCase() === (nicknameEdit.value.toLowerCase()))
 }
@@ -61,7 +62,27 @@ function validNickChange(newNick: string) {
 	}
 }
 
+function removeSpecialChar(newNick: string) {
+	return newNick.replace(/([ `{})(\]\[="':;.,/\\])/g, "")
+}
 
+watch(nicknameEdit, () => {
+	nicknameEdit.value = removeSpecialChar(nicknameEdit.value)
+})
+
+
+
+let editImg = ref("")
+function changeImg(e) {
+	if (e) {
+		const img = e.target.files[0]
+		let formData = new FormData();
+		formData.append('file', this.file);
+		confirm("Change your avatar ?" + img)
+		// must send to server and wait his response with the server url
+		// userStore.setUserAvatar()
+	}
+}
 </script>
 
 <template>
@@ -69,21 +90,25 @@ function validNickChange(newNick: string) {
 		<div class="userBasics">
 			<figure class="heroFigure">
 				<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+				<input type="file" @change="changeImg( $event )" id="changeAvatar">
 			</figure>
-			<p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
-			<p class="heroTag">
-				<div v-if="editMode">
-					<span>@<input type="text" v-model="nicknameEdit" :placeholder="userStore.user.nickname"></span>
-					<button @click="editMode = !editMode">X</button>
-					<button @click="validNickChange(nicknameEdit)" :class="{cant_click: filteredNames().length}">Change</button>
-					<div v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</div>
-				</div>
-				<div v-else>
-					<a href="#">{{ userStore.getUserNick() }}</a>
-					<button @click="editMode = !editMode">Edit</button>
-				</div>
-			</p>
+			<div>
+				<p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
+				<p class="heroTag">
+					<div v-if="editMode">
+						<span>@<input type="text" v-model="nicknameEdit" :placeholder="userStore.user.nickname"></span>
+						<button @click="editMode = !editMode">X</button>
+						<button @click="validNickChange(nicknameEdit)" :class="{cant_click: filteredNames().length}">Change</button>
+						<div v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</div>
+					</div>
+					<div v-else>
+						<a href="#">{{ userStore.getUserNick() }}</a>
+						<button @click="editMode = !editMode">Edit</button>
+					</div>
+				</p>
+			</div>
 		</div>
+
 		<UserGameStats />
 
 		<UserMatchHistory></UserMatchHistory>
@@ -101,18 +126,29 @@ function validNickChange(newNick: string) {
   font-weight: 400;
 }
 
+.heroCard .userBasics {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
 .heroCard .heroAvatar {
 	max-width: 100%;
 	border-radius: 10px;
 }
 
 .heroCard .heroFigure {
-	max-width: 40%;
+	max-width: 60%;
 	border-radius: 10px;
 	overflow: hidden;
 }
+/* 
+.heroCard .heroFigure img:hover {
+	border: 1px solid rgb(21, 216, 255);
+} */
 
-.heroCard .heroFigure:after {
+.heroCard .heroFigure #changeAvatar {
+	cursor: pointer;
 	font-family: "Inder", sans-serif;
 	color: var(--global-c-blue);
 	background: rgba(255,255,255, 1);
@@ -127,13 +163,12 @@ function validNickChange(newNick: string) {
 	/* transform: translateY(100%); */
 	content: 'change avatar';
 	display: block;
-	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 }
 
-.heroCard .heroFigure:hover:after {
+.heroCard .heroFigure:hover #changeAvatar {
 	opacity: 1;
 }
 
@@ -152,6 +187,21 @@ function validNickChange(newNick: string) {
   max-height: 0px;
   transform: scaleY(0);
   transform-origin: top;
+}
+
+@media screen and (min-width: 400px) {
+	.heroCard .userBasics {
+		flex-direction: row;
+	}
+	.heroCard .heroFigure {
+		max-width: 40%;
+	}
+}
+
+@media screen and (min-width: 1024px) {
+	.heroCard .heroFigure {
+		max-width: 20%;
+	}
 }
 
 </style>

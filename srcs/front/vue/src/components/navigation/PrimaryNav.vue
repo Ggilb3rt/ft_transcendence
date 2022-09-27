@@ -34,11 +34,11 @@ window.addEventListener('resize', (e) => {
 			</div>
 			<span v-else>X</span>
 			</button>
-			<RouterLink to="/">Play</RouterLink>
-			<RouterLink to="/about">About</RouterLink>
-			<RouterLink to="/chat">Chat</RouterLink>
-			<RouterLink to="/game">Game</RouterLink>
-			<RouterLink to="/dashboard">
+			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
+			<RouterLink to="/about" @click="isActive = false">About</RouterLink>
+			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
+			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
+			<RouterLink to="/dashboard" @click="isActive = false">
 				<img v-if="userStore.user" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>
 			</RouterLink>
@@ -88,6 +88,7 @@ window.addEventListener('resize', (e) => {
 	background: none;
 	border: 3px solid #fff;
 	color: #fff;
+	align-self: flex-end;
 	/* transition: all .2s ease-in-out; */
 }
 .bar {

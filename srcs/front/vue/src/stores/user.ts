@@ -36,6 +36,10 @@ export const useUserStore = defineStore({
             if (this.user)
                 this.user.nickname = newTag
         },
+        setUserAvatar(url:string) {
+            if (this.user)
+                this.user.avatar_url = url
+        },
         getUserLevel(): string {
             switch (this.user.ranking) {
                 case 0:
