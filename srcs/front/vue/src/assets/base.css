@@ -113,6 +113,8 @@ ul {
 
 img {
   border-radius: var(--global-border-radius);
+  max-width: 100%;
+  display: block;
 }
 
 button:hover {

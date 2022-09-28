@@ -218,6 +218,11 @@
 .room:hover ::-webkit-scrollbar {
 	width: 5px;
 }
+
+.room:hover .chatRoom .message{
+	padding: 10px 15px 10px 20px;
+}
+
 .room .chatRoom {
 	width: 100%;
 	height: 99%;
@@ -243,11 +248,13 @@
 	padding: 10px 20px;
 	display: flex;
 	gap: 0px 20px;
+	word-break: break-all;
 
 }
+
 .room .message img{
-	width: 50px;
-	height: 50px;
+	max-width: 50px;
+	min-height: 50px;
 	/* border-radius: 50px; */
 }
 
