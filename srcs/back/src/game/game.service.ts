@@ -11,6 +11,8 @@ export class GameService {
     private clientRooms = {};
     private state = {};
 
+    x = 0;
+
     createGameState() {
         return {
             ball: new Ball,
@@ -29,8 +31,32 @@ export class GameService {
         return state;
     }
 
-    reinitGameState() {
-        return this.initGame();
+    reInitGameState(state) { 
+        
+        let newPlayer = new Player;
+        let newBall = new Ball;
+
+        state.ball.posx = newBall.posx;
+        state.ball.posy = newBall.posy;
+        state.ball.dirx = newBall.dirx;
+        state.ball.diry = newBall.diry;
+        state.ball.rad = newBall.rad;
+        state.ball.speed = newBall.speed;
+        state.ball.vel = newBall.vel;
+        this.randomDir(state.ball);
+
+        state.players[0].posx = newPlayer.posx;
+        state.players[0].posy = newPlayer.posy;
+        state.players[0].width = newPlayer.width;
+        state.players[0].height = newPlayer.height;
+        state.players[0].speed = newPlayer.speed;
+
+        state.players[1].posx = newPlayer.posx;
+        state.players[1].posy = newPlayer.posy;
+        state.players[1].width = newPlayer.width;
+        state.players[1].height = newPlayer.height;
+        state.players[1].speed = newPlayer.speed;
+        this.setPlayerPos(state.players);
     }
 
     setPlayerPos(players) {
@@ -46,11 +72,22 @@ export class GameService {
             const winner = this.gameLoop(this.state[roomName]);
 
             if (!winner) {
+                /*if (this.x === 0){
+                    console.log("first");
+                    console.log(this.state[roomName]);
+                    this.x += 1;
+                } else if (this.x === 2) {
+                    console.log("second");
+                    console.log(this.state[roomName]);
+                    this.x += 1;
+                }*/
                 this.emitGameState(roomName, this.state[roomName], server);
+
             } else {
                 this.emitGameOver(roomName, winner, server)
                 clearInterval(intervalId);
-                this.state[roomName] = null;
+                //this.reInitGameState(this.state[roomName]);
+                //this.state[roomName] = null;
             }
 
         }, 1000 / FRAME_RATE);
@@ -302,6 +339,8 @@ export class GameService {
         this.state[gameCode].players[1].id = client.id;
         client.emit('init', 2);
 
+        console.log("before " + this.state[gameCode].players[1].id);
+
         this.startGameInterval(gameCode, server);
     }
 
@@ -312,7 +351,6 @@ export class GameService {
         let allUsers;
         if (roomName) {
             allUsers = await server.in(roomName).fetchSockets();
-            console.log("hola");
             let sockets = [];
             allUsers.forEach(function(s) {
                 console.log(s.id);
@@ -326,10 +364,25 @@ export class GameService {
         Reflect.deleteProperty(this.clientRooms, client.id);
     }
 
-    handleReMatch(client: Socket, gameCode: string, server: Server) {
-        console.log("hello");
-        this.state[gameCode] = this.initGame();
-        console.log(this.state[gameCode]);
+    handleReMatch(client: Socket, gameCode: any, server: Server) {
+        
+     /*   const roomName = this.clientRooms[client.id];
+        if (roomName) {
+            console.log("room exists: " + roomName);
+            console.log("state1 " + this.state[roomName].players[1].id);
+            console.log("state2 " + this.state[roomName].players[0].id);
+            console.log("gamecode: " + gameCode);
+            console.log("state2 " + this.state[gameCode].players[0].id);
+        }*/
+
+        server.sockets.in(gameCode).emit("reMatch", JSON.stringify("rematch !!"));
+        this.x = 2;
+        console.log("hello" + gameCode);
+        console.log("client rooms " + this.clientRooms[client.id]);
+        console.log("state general " + this.state[gameCode].players[0].id + " " + this.state[gameCode].players[1].id);
+        //this.state[gameCode] = this.reInitGameState
+        this.reInitGameState(this.state[gameCode]);
+        //console.log(this.state[gameCode]);
         this.startGameInterval(gameCode, server);
     }
 }

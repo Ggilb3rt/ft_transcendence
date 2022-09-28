@@ -35,6 +35,7 @@ export default {
     this.socket.on("unknownGame", this.handleUnknownGame);
     this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
     this.socket.on("disconnected", this.handleDisconnected);
+    this.socket.on("reMatch", this.handleReMatch);
   },
   mounted() {
     this.context = this.$refs.canvas.getContext("2d");
@@ -118,7 +119,7 @@ export default {
         console.log("You lose !");
         //alert("You lost !");
       }
-      //this.gameActive = false;
+      this.gameActive = false;
     },
     handleGameCode(gameCode) {
       this.$refs.gameCodeDisplay.innerText = gameCode;
@@ -148,10 +149,6 @@ export default {
       this.$refs.initialScreen.style.display = "block";
       this.$refs.gameScreen.style.display = "none";
     },
-    resizeCanvas() {
-      this.width = this.$refs.container.offsetWitdht;
-      this.height = this.$refs.canvas.offsetHeight;
-    },
     handleDisconnected() {
         console.log("You have been disconnected");
         //this.socket.close();
@@ -159,8 +156,15 @@ export default {
         //this.socket.delete("http://localhost:3000"); // ?????
     },
     reMatch() {
-        console.log(this.gameCode);
+        if (this.gameActive) {
+            return ;
+        }
+        this.gameActive = true;
         this.socket.emit("reMatch", JSON.stringify(this.gameCode));
+    },
+    handleReMatch(msg){
+        msg = JSON.parse(msg);
+        console.log(msg);
     }
   },
 };

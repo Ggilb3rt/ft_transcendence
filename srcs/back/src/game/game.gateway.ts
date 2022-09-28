@@ -62,11 +62,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     @SubscribeMessage('reMatch')
-    handleReMatch(client: Socket, gameCode: string) {
+    handleReMatch(client: Socket, gameCode: any) {
         console.log("GAMECODE");
-        //let gameCode = JSON.parse(data); 
-        console.log(gameCode);
-        this.gameservice.handleReMatch(client, gameCode, this.server);
+        let code = JSON.parse(gameCode); 
+        this.gameservice.handleReMatch(client, code, this.server);
     }
    
 
