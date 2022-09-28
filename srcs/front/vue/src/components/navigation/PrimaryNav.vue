@@ -2,6 +2,7 @@
 import { RouterLink, RouterView } from "vue-router";
 import { ref } from "vue";
 import { useUserStore } from '../../stores/user';
+import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
 
 const userStore = useUserStore();
@@ -42,6 +43,7 @@ window.addEventListener('resize', (e) => {
 				<img v-if="userStore.user" :src="userStore.getUserAvatar()" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>
 			</RouterLink>
+			<ModalSearch></ModalSearch>
 		</nav>
 	</div>
 </template>
