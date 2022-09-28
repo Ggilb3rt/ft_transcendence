@@ -6,12 +6,12 @@ import { FRAME_RATE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W, CANVAS_HE
 import { Ball, Player } from "./classes";
 
 
+
+
 @Injectable()
 export class GameService {
     private clientRooms = {};
     private state = {};
-
-    x = 0;
 
     createGameState() {
         return {
@@ -50,12 +50,15 @@ export class GameService {
         state.players[0].width = newPlayer.width;
         state.players[0].height = newPlayer.height;
         state.players[0].speed = newPlayer.speed;
+        state.players[0].vel = newPlayer.vel;
+        
 
         state.players[1].posx = newPlayer.posx;
         state.players[1].posy = newPlayer.posy;
         state.players[1].width = newPlayer.width;
         state.players[1].height = newPlayer.height;
         state.players[1].speed = newPlayer.speed;
+        state.players[1].vel = newPlayer.vel;
         this.setPlayerPos(state.players);
     }
 
@@ -72,22 +75,11 @@ export class GameService {
             const winner = this.gameLoop(this.state[roomName]);
 
             if (!winner) {
-                /*if (this.x === 0){
-                    console.log("first");
-                    console.log(this.state[roomName]);
-                    this.x += 1;
-                } else if (this.x === 2) {
-                    console.log("second");
-                    console.log(this.state[roomName]);
-                    this.x += 1;
-                }*/
                 this.emitGameState(roomName, this.state[roomName], server);
 
             } else {
                 this.emitGameOver(roomName, winner, server)
                 clearInterval(intervalId);
-                //this.reInitGameState(this.state[roomName]);
-                //this.state[roomName] = null;
             }
 
         }, 1000 / FRAME_RATE);
@@ -114,15 +106,14 @@ export class GameService {
 
         let players = state.players;
         this.paddleMovement(players)
-        this.paddleCollision(ball, players);
+        //this.paddleCollision(ball, players);
 
         // attention erreur ici probablement
         if ((ball.posx + ball.rad) <= 0) {
             return (2); // Player 1 wins
+        } else if ((ball.posx - ball.rad) >= CANVAS_WIDTH) {
+            return (1); // Player 2 wins
         }
-          /*  if ((ball.pos.x - ball.rad) <= 0) {
-                return (1); // Player 2 wins
-            }*/
 
         return (0); // no winner
     }
@@ -133,56 +124,55 @@ export class GameService {
     }
 
     wallCollision(ball) {
-        if ((ball.posy - ball.rad) <= 0 || (ball.posy + ball.rad) >= 480) {
-            ball.diry *= -1;
-        }
+       // if ((ball.posy - ball.rad) <= 0 || (ball.posy + ball.rad) >= CANVAS_HEIGHT) {
+        //    ball.diry *= -1;
+       // }
 
-        if (/*(ball.posx - ball.rad) <= 0 || */(ball.posx + ball.rad) >= 640) {
-            ball.dirx *= -1;
-        }
+       if (ball.posy >= CANVAS_HEIGHT) {
+            ball.diry = -Math.abs(ball.diry);
+       }
+
+       if (ball.posy <= 0) {
+            ball.diry = Math.abs(ball.diry);
+       }
     }
+
 
     paddleCollision(ball, players) {
-        // https://stackoverflow.com/questions/17768301/top-of-paddle-collision-detection-pong
 
+     /*   let halfB = ball.rad / 2;
+
+        // Player one (left)
         let playerOne = players[0];
+        let halfW1 = playerOne.width / 2;
+        let halfH1 = playerOne.height / 2;
+        let centerx1 = playerOne.posx + halfW1;
+        let centery1 = playerOne.posy + halfH1;
 
-        if (ball.posx <= playerOne.posx + playerOne.width) {
-            var rad = ball.rad / 2;
-            var padding = 3;
+        
+        let dx1 = Math.abs(ball.posx - centerx1);
+        let dy1 = Math.abs(ball.posy - centery1);
+        
+        if (dx1 <= (ball.rad + halfW1) && dy1 <= (halfH1 + ball.rad)) {
+            ball.dirx *= -1;
+        }*/
 
-            if (ball.posx + padding >= playerOne.posx + playerOne.width
-                && ball.posy - rad >= playerOne.posy
-                && ball.posy + rad <= playerOne.posy + playerOne.height) {
+     /*   // Player two (right)
+        let playerTwo = players[1];
+        let halfW2 = playerOne.width / 2;
+        let halfH2 = playerOne.height / 2;
+        let centerx2 = halfW2 - ball.posx;
+        let centery2 = playerOne.posy - halfH2;
+   
+        let dx2 = Math.abs(centerx2 - ball.posx);
+        let dy2 = Math.abs(centery2 - ball.posy);
 
-                console.log("front connect");
-                ball.dirx *= -1;
-                console.log("TAPPE1");
+        if (dx2 <= (ball.rad + halfW2) && dy2 <= (halfH2 + ball.rad)) {
+            ball.dirx *= -1;
+        }*/
 
-            } else if (ball.posy - CANVAS_HEIGHT >= playerOne.posy
-                && ball.posy <= playerOne.posy
-                && ball.posx - rad >= playerOne.posx) {
+    }     
 
-                var x = ball.posx + rad;
-                var y = ball.posy + rad;
-                var px = playerOne.posx + playerOne.width;
-                var py = playerOne.posy;
-
-                if (ball.posy + CANVAS_HEIGHT > playerOne.posy) {
-                    py += playerOne.height;
-                }
-
-                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
-
-                if (dist <= rad && dist >= rad - padding) {
-                    var angle = Math.asin(x - px / y - py);
-                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
-                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
-                    console.log("TAPPEE2");
-                }
-            }
-        }
-    }
 
     paddleMovement(players) {
         let playerOne = players[0];
@@ -207,8 +197,9 @@ export class GameService {
     }
 
     randomDir(ball) {
-        while (Math.abs(ball.dirx) <= 0.2 || Math.abs(ball.dirx) >= 0.9) {
+        while (Math.abs(ball.dirx) <= 0.8 || Math.abs(ball.dirx) >= 0.9) {
             const heading = this.randomNumberBetween(0, 2 * Math.PI);
+            //console.log("dirx: " + Math.abs(ball.dirx));
             ball.dirx = Math.cos(heading);
             ball.diry = Math.sin(heading);
         }
@@ -339,8 +330,6 @@ export class GameService {
         this.state[gameCode].players[1].id = client.id;
         client.emit('init', 2);
 
-        console.log("before " + this.state[gameCode].players[1].id);
-
         this.startGameInterval(gameCode, server);
     }
 
@@ -365,24 +354,10 @@ export class GameService {
     }
 
     handleReMatch(client: Socket, gameCode: any, server: Server) {
-        
-     /*   const roomName = this.clientRooms[client.id];
-        if (roomName) {
-            console.log("room exists: " + roomName);
-            console.log("state1 " + this.state[roomName].players[1].id);
-            console.log("state2 " + this.state[roomName].players[0].id);
-            console.log("gamecode: " + gameCode);
-            console.log("state2 " + this.state[gameCode].players[0].id);
-        }*/
-
         server.sockets.in(gameCode).emit("reMatch", JSON.stringify("rematch !!"));
-        this.x = 2;
-        console.log("hello" + gameCode);
-        console.log("client rooms " + this.clientRooms[client.id]);
-        console.log("state general " + this.state[gameCode].players[0].id + " " + this.state[gameCode].players[1].id);
-        //this.state[gameCode] = this.reInitGameState
         this.reInitGameState(this.state[gameCode]);
-        //console.log(this.state[gameCode]);
         this.startGameInterval(gameCode, server);
     }
 }
+
+

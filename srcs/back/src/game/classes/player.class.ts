@@ -6,6 +6,7 @@ export class Player {
     width = DEFAULT_PADDLE_W;
     height = DEFAULT_PADDLE_H;
     speed = DEFAULT_PADDLE_SPEED;
+    vel = 0;
     up = false;
     down = false;
     id = null;

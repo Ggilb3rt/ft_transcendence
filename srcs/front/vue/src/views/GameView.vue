@@ -71,7 +71,8 @@ export default {
     },
     drawRect(x, y, w, h) {
       this.context.beginPath();
-      this.context.rect(x, y, w, h);
+      this.context.fillStyle = "white";
+      this.context.fillRect(x, y, w, h);
       this.context.closePath();
       this.context.fill();
     },
