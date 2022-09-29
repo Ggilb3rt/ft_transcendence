@@ -19,9 +19,7 @@ export default {
                general: false,
                typescript: false,
                nestjs: false,
-            },
-            
-
+            },        
         }
     },
     methods: {

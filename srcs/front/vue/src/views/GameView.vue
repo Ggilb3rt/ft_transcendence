@@ -18,7 +18,11 @@ export default {
       gameActive: false,
       context: {},
       gameCode: "",
-      /*gameState: {
+      score: {
+        playerOne: "0",
+        playerTwo: "0",
+      },
+    /*  gameState: {
         ball: Ball,
         playerOne: Player,
         playerTwo: Player,
@@ -49,6 +53,9 @@ export default {
       this.HEIGHT = this.$refs.canvas.height;
       this.$refs.initialScreen.style.display = "none";
       this.$refs.gameScreen.style.display = "block";
+      this.drawField();
+      this.drawScore();
+      this.drawBall(this.WIDTH / 2, this.HEIGHT / 2, BALL_SIZE, 0, 2 * Math.PI, BALL_COLOR );
       window.addEventListener("keydown", this.keydown);
       window.addEventListener("keyup", this.keyup);
       this.gameActive = true;
@@ -58,6 +65,21 @@ export default {
     },
     keyup(e) {
       if (this.gameActive) this.socket.emit("keyup", e.keyCode);
+    },
+    drawField() {
+      this.context.fillStyle = "black";
+      this.context.fillRect(0, 0, this.WIDTH, this.HEIGHT);
+      this.context.strokeStyle = "white";
+      this.context.beginPath();
+      this.context.moveTo(this.WIDTH / 2, 0);
+      this.context.lineTo(this.WIDTH / 2, this.HEIGHT);
+      this.context.stroke();
+    },
+    drawScore() {
+        this.context.font = "30px Arial";
+        //this.context.fillStyle = "white";
+        this.context.textAlign = "center";
+        this.context.strokeText(`${this.score.playerTwo}    ${this.score.playerOne}` , this.WIDTH / 2 , this.HEIGHT / 12);
     },
     drawBall(x, y, rad, sa, ea) {
       this.context.beginPath();
@@ -81,6 +103,8 @@ export default {
     },
     paintGame(state) {
       this.clearRect();
+      this.drawField();
+      this.drawScore();
       this.drawBall(
         state.ball.posx,
         state.ball.posy,
@@ -97,14 +121,19 @@ export default {
     },
     handleInit(number) {
       this.playerNumber = number;
+      console.log(this.playerNumber);
     },
     handleGameState(gameState) {
       if (!this.gameActive) {
         return;
       }
       gameState = JSON.parse(gameState);
-      
       this.gameCode = gameState.roomName;
+      this.score.playerOne = gameState.players[0].score;
+      this.score.playerTwo = gameState.players[1].score;
+      //console.log(gameState);
+      //console.log(this.playerNumber);
+      //this.score = gameState.score;
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
@@ -150,22 +179,22 @@ export default {
       this.$refs.gameScreen.style.display = "none";
     },
     handleDisconnected() {
-        console.log("You have been disconnected");
-        //this.socket.close();
-        //alert("You have been disconnected !");
-        //this.socket.delete("http://localhost:3000"); // ?????
+      console.log("You have been disconnected");
+      //this.socket.close();
+      //alert("You have been disconnected !");
+      //this.socket.delete("http://localhost:3000"); // ?????
     },
     reMatch() {
-        if (this.gameActive) {
-            return ;
-        }
-        this.socket.emit("reMatch", JSON.stringify(this.gameCode));
+      if (this.gameActive) {
+        return;
+      }
+      this.socket.emit("reMatch", JSON.stringify(this.gameCode));
     },
     handleReMatch(msg) {
-        this.gameActive = true;
-        msg = JSON.parse(msg);
-        console.log(msg);
-    }
+      this.gameActive = true;
+      msg = JSON.parse(msg);
+      console.log(msg);
+    },
   },
 };
 </script>

@@ -10,5 +10,6 @@ export class Player {
     up = false;
     down = false;
     id = null;
+    score = 0;
 }
   
