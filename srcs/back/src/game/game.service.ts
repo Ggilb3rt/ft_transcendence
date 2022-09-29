@@ -12,6 +12,7 @@ import { Ball, Player } from "./classes";
 export class GameService {
     private clientRooms = {};
     private state = {};
+    private intervalId;
 
     createGameState() {
         return {
@@ -28,6 +29,10 @@ export class GameService {
         const state = this.createGameState();
         this.setPlayerPos(state.players);
         this.randomDir(state.ball);
+        console.log("deb pos x: " + state.ball.posx);
+        console.log("deb pos y: " + state.ball.posy);
+        console.log("deb dir x: " + state.ball.dirx);
+        console.log("deb dir x: " + state.ball.dirx);
         return state;
     }
 
@@ -71,7 +76,7 @@ export class GameService {
     }
 
     startGameInterval(roomName: string, server: Server) {
-     /*   const intervalId = setInterval(() => {
+        this.intervalId = setInterval(() => {
             const winner = this.gameLoop(this.state[roomName]);
 
             if (!winner) {
@@ -79,19 +84,7 @@ export class GameService {
 
             } else {
                 this.emitGameOver(roomName, winner, server)
-                clearInterval(intervalId);
-            }
-
-        }, 1000 / FRAME_RATE);*/
-        const intervalId = setInterval(() => {
-            const winner = this.gameLoop(this.state[roomName]);
-
-            if (!winner) {
-                this.emitGameState(roomName, this.state[roomName], server);
-
-            } else {
-                this.emitGameOver(roomName, winner, server)
-                clearInterval(intervalId);
+                clearInterval(this.intervalId);
             }
 
         }, 1000 / FRAME_RATE);
@@ -123,7 +116,6 @@ export class GameService {
 
         if ((ball.posx + (ball.rad * 2)) <= 0) {
             ++state.players[0].score;
-            console.log("p1 score: " + state.players[0].score);
             if (state.players[0].score === 11) {
                 return (2); // Player 1 wins
             }
@@ -131,14 +123,11 @@ export class GameService {
 
         } else if ((ball.posx - (ball.rad * 2)) >= CANVAS_WIDTH) {
             ++state.players[1].score;
-            console.log("p2 score: " + state.players[1].score);
             if (state.players[0].score === 11) {
                 return (1); // Player 2 wins
             }
             this.reInitGameState(state);
         }
-        
-        //this.reInitGameState(state);
 
         return (0); // no winner
     }
@@ -148,21 +137,19 @@ export class GameService {
         ball.posy += ball.diry * ball.speed;
     }
 
+    lerp(a, b, t) {
+        return a + (b - a) * t;
+    }
+
     wallCollision(ball) {
-        //  if ((ball.posy - ball.rad) <= 0 || (ball.posy + ball.rad) >= CANVAS_HEIGHT) {
-        //     ball.diry *= -1;
-        //  }
-
-        /*if ((ball.posx - ball.rad) <= 0 || (ball.posx + ball.rad) >= CANVAS_WIDTH) {
-           ball.dirx *= -1;
-        }*/
-
         if (ball.posy >= CANVAS_HEIGHT) {
+            console.log('hehe');
             ball.diry = -Math.abs(ball.diry);
         }
 
         if (ball.posy <= 0) {
             ball.diry = Math.abs(ball.diry);
+            console.log('hoho');
         }
     }
 
@@ -188,7 +175,6 @@ export class GameService {
                 //&& ball.posy - rad <= p1.posy + p1.height) {
                 && ball.posy - rad >= p1.posy
                 && ball.posy + rad <= p1.posy + p1.height) {
-                console.log("front connect");
                 ball.dirx = -ball.dirx;
 
             } else if (ball.posy - CANVAS_HEIGHT >= p1.posy
@@ -233,8 +219,6 @@ export class GameService {
                 //&& ball.posy - rad <= p2.posy + p2.height) {
                 && ball.posy - rad >= p2.posy
                 && ball.posy + rad <= p2.posy + p2.height) {
-
-                console.log("front connect");
                 ball.dirx = -ball.dirx;
                 
             } else if (ball.posy - CANVAS_HEIGHT >= p2.posy
@@ -422,6 +406,7 @@ export class GameService {
 
     async handleDisconnect(client: Socket, server: Server) {
 
+        clearInterval(this.intervalId);
         const roomName = this.clientRooms[client.id];
 
         let allUsers;

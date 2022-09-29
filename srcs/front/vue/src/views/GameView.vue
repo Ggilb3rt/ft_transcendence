@@ -1,6 +1,6 @@
-<!-- eslint-disable prettier/prettier -->
 <script>
 import io from "socket.io-client";
+//import { reactive } from "vue";
 import { Ball, Player } from "@/components/game";
 
 const WIDTH = 0;
@@ -8,6 +8,15 @@ const HEIGHT = 0;
 
 const BALL_COLOR = "#c2c2c2";
 const BALL_SIZE = 10;
+
+/*const fps = 60;
+const frameInterval = 1000 / fps;
+const lasTime = new Date().getTime();*/
+
+/*const styleCanvas = {
+    width: "640",
+    height: "480"
+} */
 
 export default {
   name: "GamePong",
@@ -22,7 +31,11 @@ export default {
         playerOne: "0",
         playerTwo: "0",
       },
-    /*  gameState: {
+      canvasStyle : {
+        width: '640px',
+        height: '480px',
+      }
+      /*  gameState: {
         ball: Ball,
         playerOne: Player,
         playerTwo: Player,
@@ -49,13 +62,26 @@ export default {
   },
   methods: {
     init() {
+      /*this.WIDTH = this.$refs.canvas.style.width;
+      this.WIDTH = this.WIDTH.substring(0, this.WIDTH.length - 2);
+      console.log(this.WIDTH);
+      this.HEIGHT = this.$refs.canvas.style.height;
+      this.HEIGHT = this.HEIGHT.substring(0, this.HEIGHT.length - 2);
+      console.log(this.HEIGHT);*/
       this.WIDTH = this.$refs.canvas.width;
       this.HEIGHT = this.$refs.canvas.height;
       this.$refs.initialScreen.style.display = "none";
       this.$refs.gameScreen.style.display = "block";
       this.drawField();
       this.drawScore();
-      this.drawBall(this.WIDTH / 2, this.HEIGHT / 2, BALL_SIZE, 0, 2 * Math.PI, BALL_COLOR );
+      this.drawBall(
+        this.WIDTH / 2,
+        this.HEIGHT / 2,
+        BALL_SIZE,
+        0,
+        2 * Math.PI,
+        BALL_COLOR
+      );
       window.addEventListener("keydown", this.keydown);
       window.addEventListener("keyup", this.keyup);
       this.gameActive = true;
@@ -76,10 +102,14 @@ export default {
       this.context.stroke();
     },
     drawScore() {
-        this.context.font = "30px Arial";
-        //this.context.fillStyle = "white";
-        this.context.textAlign = "center";
-        this.context.strokeText(`${this.score.playerTwo}    ${this.score.playerOne}` , this.WIDTH / 2 , this.HEIGHT / 12);
+      this.context.font = "30px Arial";
+      //this.context.fillStyle = "white";
+      this.context.textAlign = "center";
+      this.context.strokeText(
+        `${this.score.playerTwo}    ${this.score.playerOne}`,
+        this.WIDTH / 2,
+        this.HEIGHT / 12
+      );
     },
     drawBall(x, y, rad, sa, ea) {
       this.context.beginPath();
@@ -102,26 +132,22 @@ export default {
       this.context.clearRect(0, 0, this.WIDTH, this.HEIGHT);
     },
     paintGame(state) {
-      this.clearRect();
-      this.drawField();
-      this.drawScore();
-      this.drawBall(
-        state.ball.posx,
-        state.ball.posy,
-        BALL_SIZE,
-        0,
-        2 * Math.PI,
-        BALL_COLOR
-      );
-      this.paintPaddle(state.players[0]);
-      this.paintPaddle(state.players[1]);
+      //const now = new Date().getTime();
+      //const elapsed = now - lasTime;
+      //if (elapsed > frameInterval) {
+        this.clearRect();
+        this.drawField();
+        this.drawScore();
+        this.drawBall(state.ball.posx, state.ball.posy, BALL_SIZE, 0, 2 * Math.PI, BALL_COLOR);
+        this.paintPaddle(state.players[0]);
+        this.paintPaddle(state.players[1]);
+      //}
     },
     paintPaddle(player) {
       this.drawRect(player.posx, player.posy, player.width, player.height);
     },
     handleInit(number) {
       this.playerNumber = number;
-      console.log(this.playerNumber);
     },
     handleGameState(gameState) {
       if (!this.gameActive) {
@@ -131,9 +157,6 @@ export default {
       this.gameCode = gameState.roomName;
       this.score.playerOne = gameState.players[0].score;
       this.score.playerTwo = gameState.players[1].score;
-      //console.log(gameState);
-      //console.log(this.playerNumber);
-      //this.score = gameState.score;
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
@@ -221,6 +244,7 @@ export default {
           <span id="gameCodeDisplay" ref="gameCodeDisplay"></span>
         </h1>
         <canvas id="canvas" ref="canvas" width="640" height="480"></canvas>
+        <!-- <canvas id="canvas" ref="canvas" :style="this.canvasStyle"></canvas> -->
         <button type="submit" @click.prevent="reMatch">Re-Match !</button>
       </div>
     </div>
