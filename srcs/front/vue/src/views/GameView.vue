@@ -81,7 +81,6 @@ export default {
     },
     paintGame(state) {
       this.clearRect();
-      //const ballx = state.ball.posx;
       this.drawBall(
         state.ball.posx,
         state.ball.posy,
@@ -160,10 +159,10 @@ export default {
         if (this.gameActive) {
             return ;
         }
-        this.gameActive = true;
         this.socket.emit("reMatch", JSON.stringify(this.gameCode));
     },
-    handleReMatch(msg){
+    handleReMatch(msg) {
+        this.gameActive = true;
         msg = JSON.parse(msg);
         console.log(msg);
     }

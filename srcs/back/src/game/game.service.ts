@@ -108,9 +108,9 @@ export class GameService {
         this.paddleMovement(players)
         this.paddleCollision(ball, players);
 
-        if ((ball.posx + ball.rad) <= 0) {
+        if ((ball.posx + (ball.rad * 2)) <= 0) {
             return (2); // Player 1 wins
-        } else if ((ball.posx - ball.rad) >= CANVAS_WIDTH) {
+        } else if ((ball.posx - (ball.rad * 2)) >= CANVAS_WIDTH) {
             return (1); // Player 2 wins
         }
 
