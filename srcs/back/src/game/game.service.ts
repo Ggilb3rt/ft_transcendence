@@ -31,8 +31,8 @@ export class GameService {
         return state;
     }
 
-    reInitGameState(state) { 
-        
+    reInitGameState(state) {
+
         let newPlayer = new Player;
         let newBall = new Ball;
 
@@ -51,7 +51,7 @@ export class GameService {
         state.players[0].height = newPlayer.height;
         state.players[0].speed = newPlayer.speed;
         state.players[0].vel = newPlayer.vel;
-        
+
 
         state.players[1].posx = newPlayer.posx;
         state.players[1].posy = newPlayer.posy;
@@ -106,9 +106,8 @@ export class GameService {
 
         let players = state.players;
         this.paddleMovement(players)
-        //this.paddleCollision(ball, players);
+        this.paddleCollision(ball, players);
 
-        // attention erreur ici probablement
         if ((ball.posx + ball.rad) <= 0) {
             return (2); // Player 1 wins
         } else if ((ball.posx - ball.rad) >= CANVAS_WIDTH) {
@@ -124,55 +123,109 @@ export class GameService {
     }
 
     wallCollision(ball) {
-       // if ((ball.posy - ball.rad) <= 0 || (ball.posy + ball.rad) >= CANVAS_HEIGHT) {
-        //    ball.diry *= -1;
-       // }
+        //  if ((ball.posy - ball.rad) <= 0 || (ball.posy + ball.rad) >= CANVAS_HEIGHT) {
+        //     ball.diry *= -1;
+        //  }
 
-       if (ball.posy >= CANVAS_HEIGHT) {
+        /*if ((ball.posx - ball.rad) <= 0 || (ball.posx + ball.rad) >= CANVAS_WIDTH) {
+           ball.dirx *= -1;
+        }*/
+
+        if (ball.posy >= CANVAS_HEIGHT) {
             ball.diry = -Math.abs(ball.diry);
-       }
+        }
 
-       if (ball.posy <= 0) {
+        if (ball.posy <= 0) {
             ball.diry = Math.abs(ball.diry);
-       }
+        }
     }
-
 
     paddleCollision(ball, players) {
 
-     /*   let halfB = ball.rad / 2;
+        var rad = ball.rad / 2;
+        var padding = 3;
+        var x, y, px, py;
 
-        // Player one (left)
-        let playerOne = players[0];
-        let halfW1 = playerOne.width / 2;
-        let halfH1 = playerOne.height / 2;
-        let centerx1 = playerOne.posx + halfW1;
-        let centery1 = playerOne.posy + halfH1;
+        let p1 = players[0];
 
+        if (p1.posy >= CANVAS_HEIGHT) {
+            p1.posy = CANVAS_HEIGHT;
+        } else if (p1.posy <= 0) {
+            p1.posy = 0;
+        }
+
+        if (ball.posx <= p1.posx + p1.width) {
+
+            if (ball.posx + padding >= p1.posx + p1.width
+                && ball.posy >= p1.posy
+                && ball.posy - rad <= p1.posy + p1.height) {
+
+                console.log("front connect");
+                ball.dirx = -ball.dirx;
+
+            } else if (ball.posy - CANVAS_HEIGHT >= p1.posy
+                && ball.posy <= p1.posy
+                && ball.posx - rad >= p1.posx) {
+
+                x = ball.posx + rad;
+                y = ball.posy + rad;
+
+                px = p1.posx + p1.width;
+                py = p1.posy;
+
+                if (ball.posy + CANVAS_HEIGHT > p1.posy) {
+                    py += p1.height;
+                }
+
+                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
+
+                if (dist <= rad && dist >= rad - padding) {
+                    var angle = Math.asin(x - px / y - py);
+                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
+                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
+                }
+            }
+        }
+
+        let p2 = players[1];
+
+        if (p2.posy >= CANVAS_HEIGHT) {
+            p2.posy = CANVAS_HEIGHT;
+        } else if (p2.posy <= 0) {
+            p2.posy = 0;
+        }
         
-        let dx1 = Math.abs(ball.posx - centerx1);
-        let dy1 = Math.abs(ball.posy - centery1);
-        
-        if (dx1 <= (ball.rad + halfW1) && dy1 <= (halfH1 + ball.rad)) {
-            ball.dirx *= -1;
-        }*/
+        if (ball.posx >= p2.posx) {
+            if (ball.posx - padding <= p2.posx
+                && ball.posy >= p2.posy
+                && ball.posy - rad <= p2.posy + p2.height) {
 
-     /*   // Player two (right)
-        let playerTwo = players[1];
-        let halfW2 = playerOne.width / 2;
-        let halfH2 = playerOne.height / 2;
-        let centerx2 = halfW2 - ball.posx;
-        let centery2 = playerOne.posy - halfH2;
-   
-        let dx2 = Math.abs(centerx2 - ball.posx);
-        let dy2 = Math.abs(centery2 - ball.posy);
+                console.log("front connect");
+                ball.dirx = -ball.dirx;
+                
+            } else if (ball.posy - CANVAS_HEIGHT >= p2.posy
+                && ball.posy <= p2.posy
+                && ball.posx - rad <= p2.posx + p2.width) {
 
-        if (dx2 <= (ball.rad + halfW2) && dy2 <= (halfH2 + ball.rad)) {
-            ball.dirx *= -1;
-        }*/
+                x = ball.posx + rad;
+                y = ball.posy + rad;
 
-    }     
+                px = p2.posx;
+                py = p2.posy;
+                if (ball.posy + CANVAS_HEIGHT > p2.posy) {
+                    py += p2.height;
+                }
 
+                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
+
+                if (dist <= rad && dist >= rad - padding) {
+                    var angle = Math.asin(x - px / y - py);
+                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
+                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
+                }
+            }
+        }
+    }
 
     paddleMovement(players) {
         let playerOne = players[0];
@@ -341,15 +394,15 @@ export class GameService {
         if (roomName) {
             allUsers = await server.in(roomName).fetchSockets();
             let sockets = [];
-            allUsers.forEach(function(s) {
+            allUsers.forEach(function (s) {
                 console.log(s.id);
                 s.emit('disconnected');
                 s.leave(roomName);
                 sockets.push(s.id);
             });
-            sockets.forEach( socket => Reflect.deleteProperty(this.clientRooms, socket));
+            sockets.forEach(socket => Reflect.deleteProperty(this.clientRooms, socket));
         }
-        
+
         Reflect.deleteProperty(this.clientRooms, client.id);
     }
 
