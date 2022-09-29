@@ -1,17 +1,35 @@
 import { defineStore } from "pinia"
-import type { IUser } from '../../types'
+import type { IUser, IOtherUserRestrict, IOtherUser } from '../../types'
 // import { mande } from 'mande'
 
 export interface IUserStoreState {
-    userList: IUser[]
-    user: IUser | null
+    userList: IOtherUserRestrict[]
+    user: IOtherUser | null
     loading: boolean
     error: any | null
 }
 
-const roger: IUser = {
-    id: 0,
-    two_factor_auth: true,
+// Datas to fetch from api
+const matchsHistory = [
+    {
+      opponent: 2,
+      win: true,
+      myScore: 7,
+      opponentScore: 3
+    },
+    {
+      opponent: 3,
+      win: false,
+      myScore: 3,
+      opponentScore: 5
+    }
+]
+
+// avec l'appel api je le ferai dans l'autre sens :
+// recuperer tous les users en IOtherUserRestrict (pour l'affichage des friends, match history, search etc)
+// si je vais sur le dashboard d'un autre user, je fais un autre fetch qui recupere les infos de IOtherUser en fonction de l'id
+const roger: IOtherUser = {
+    id: 1,
     first_name: "Roger",
     last_name: "Rabbit",
     nickname: "rogerrabbit",
@@ -20,12 +38,16 @@ const roger: IUser = {
     wins: 7,
     loses: 3,
     friends: [1],
-    blocks: [3, 5, 6, 7]
+    match_history: []
 };
+const rogerRestrict: IOtherUserRestrict = {
+    id: roger.id,
+    nickname: roger.nickname,
+    avatar_url: roger.avatar_url
+}
 
-const homer: IUser = {
-    id: 1,
-    two_factor_auth: false,
+const homer: IOtherUser = {
+    id: 2,
     first_name: "Homer",
     last_name: "Simpsons",
     nickname: "homer",
@@ -34,15 +56,42 @@ const homer: IUser = {
     wins: 1,
     loses: 3,
     friends: [0, 1, 2, 3, 4],
-    blocks: [3, 2]
+    match_history: matchsHistory
 };
+const homerRestrict: IOtherUserRestrict = {
+    id: homer.id,
+    nickname: homer.nickname,
+    avatar_url: homer.avatar_url
+}
+
+const marc: IOtherUser = {
+    id: 4,
+    first_name: "oh",
+    last_name: "hi",
+    nickname: "Mark",
+    avatar_url: "src/assets/avatars/mark.jpg",
+    ranking: 1,
+    wins: 1,
+    loses: 3,
+    friends: [0, 1, 2, 3, 4],
+    match_history: matchsHistory
+};
+const marcRestrict: IOtherUserRestrict = {
+    id: marc.id,
+    nickname: marc.nickname,
+    avatar_url: marc.avatar_url
+}
+
+
+// fin data qui doit etre fetch
+
 
 // const api = mande('http://localhost:3000/users')
 
 export const useUsersStore = defineStore({
     id: "users",
     state: (): IUserStoreState => ({
-        userList: [roger, homer],
+        userList: [rogerRestrict, homerRestrict, marcRestrict],
         user: homer,
         loading: false,
         error: null
@@ -57,9 +106,8 @@ export const useUsersStore = defineStore({
         getUserNick(user:IUser): string {
             return `@${user.nickname}`
         },
-        changeUserNick(newTag:string) {
-            if (this.user)
-                this.user.nickname = newTag
+        getUserHref(user:IOtherUserRestrict): string {
+            return '/' + user.id
         },
         getUserWinRate(user:IUser) {
             return (user.wins / user.loses).toPrecision(2)

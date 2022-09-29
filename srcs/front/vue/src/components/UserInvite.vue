@@ -2,9 +2,12 @@
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/user';
-import type { IUser } from '../../types';
+import { useUsersStore } from '../stores/users';
+import UserLink from './UserLink.vue';
+import type { IUser, IOtherUserRestrict } from '../../types';
 
 const userStore = useUserStore()
+const usersStore = useUsersStore()
 
 function resInvite(sayYes: boolean, id: number) {
 	if (sayYes) {
@@ -20,19 +23,32 @@ function resInvite(sayYes: boolean, id: number) {
 	})
 }
 
+function filterUsers(): IOtherUserRestrict[] {
+  return usersStore.userList.filter((user) => userStore.user.invites.find(el => el === user.id))
+}
+
 </script>
 
 <template>
 	<div class="invites" v-if="userStore.user.invites != undefined && userStore.user.invites.length > 0">
 		<h3>Some new friends</h3>
-		<p v-for="invite in userStore.user.invites">
-			<a href="#">@{{ invite }}</a> <!-- get other user nick -->
-			<button @click="resInvite(true, invite)">Accept</button>
-			<button @click="resInvite(false, invite)">Refuse</button>
-		</p>
+		<div v-for="invite in filterUsers()" class="new_friend">
+			<UserLink :other-user="invite" remove-img></UserLink>
+			<button @click="resInvite(true, invite.id)">Accept</button>
+			<button @click="resInvite(false, invite.id)">Refuse</button>
+		</div>
 	</div>
 </template>
 
 <style scoped>
+
+.new_friend {
+	display: flex;
+}
+
+.new_friend a {
+	padding-right: 5px;
+}
+
 
 </style>

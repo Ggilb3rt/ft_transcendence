@@ -5,6 +5,7 @@ import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
 import Chat2 from "../views/ChatView2.vue";
 import Login from "../views/LoginView.vue"
+import path from "path";
 
 
 type gameList = 'pong' | 'catPong'
@@ -45,6 +46,13 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: Dashboard,
+      children: [
+        {
+          path: ":id",
+          name: "dashOther",
+          component: Dashboard
+        }
+      ]
     },
     {
       path: "/game/:ourGames?/:id?",

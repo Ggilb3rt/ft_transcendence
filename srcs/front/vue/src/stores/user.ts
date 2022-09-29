@@ -12,6 +12,43 @@ export interface IUserStoreState {
 // const api = mande('http://localhost:3000/users')
 
 
+// Match history to change with api call
+const matchsHistory = [
+    {
+      opponent: 2,
+      win: true,
+      myScore: 7,
+      opponentScore: 3
+    },
+    {
+      opponent: 1,
+      win: false,
+      myScore: 3,
+      opponentScore: 5
+    },
+    {
+      opponent: 1,
+      win: false,
+      myScore: 1,
+      opponentScore: 7
+    },
+    {
+      opponent: 4,
+      win: true,
+      myScore: 7,
+      opponentScore: 0
+    },
+    {
+      opponent: 2,
+      win: false,
+      myScore: 2,
+      opponentScore: 7
+    }
+  ]
+
+
+
+
 export const useUserStore = defineStore({
     id: "user",
     state: () => ({
@@ -87,7 +124,10 @@ export const useUserStore = defineStore({
                 this.user = user
             } catch (error: any) {
                 this.error = error
+                console.log('getUser error : ' + this.error)
             } finally {
+                if (!this.user.nickname)
+                    this.user.nickname = 'Stanley'
                 if (!this.user.avatar_url)
                     this.user.avatar_url = "src/assets/avatars/default.jpg"
                 if (!this.user.wins)
@@ -97,11 +137,13 @@ export const useUserStore = defineStore({
                 if (!this.user.ranking)
                     this.user.ranking = Math.round(this.user.wins / this.user.loses)
                 if (!this.user.friends)
-                    this.user.friends = [2, 3, 5]
+                    this.user.friends = [1, 2, 3, 5]
                 if (!this.user.blocks)
-                    this.user.blocks = [10, 23, 45, 7, 2]
+                    this.user.blocks = [0, 10, 23, 45, 7, 2]
                 if (!this.user.invites)
-                    this.user.invites = [4, 9, 8]
+                    this.user.invites = [4, 1]
+                if (!this.user.match_history)
+                    this.user.match_history = matchsHistory
                 this.loading = false
                 this.connected = true
             }

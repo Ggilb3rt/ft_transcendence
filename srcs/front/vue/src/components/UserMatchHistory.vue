@@ -2,80 +2,58 @@
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '../stores/user'
-import type { IUser } from '../../types'
+import { useUsersStore } from '../stores/users'
+import type { IUser, IOtherUserRestrict } from '../../types'
+import UserLink from './UserLink.vue'
 
 
 
 const userStore = useUserStore()
+const usersStore = useUsersStore()
 // const { getUserNick } = useUserStore()
 // const { getUserNick } = storeToRefs(user) // make getUserNick has a ref ==> reactive
 let toggleMatch = ref(true);
 
-const matchsHistory = [
-  {
-    opponent: 2,
-    win: true,
-    myScore: 7,
-    opponentScore: 3
-  },
-  {
-    opponent: 3,
-    win: false,
-    myScore: 3,
-    opponentScore: 5
-  },
-  {
-    opponent: 3,
-    win: false,
-    myScore: 1,
-    opponentScore: 7
-  },
-  {
-    opponent: 3,
-    win: true,
-    myScore: 7,
-    opponentScore: 0
-  },
-  {
-    opponent: 3,
-    win: false,
-    myScore: 2,
-    opponentScore: 7
-  }
-]
+function findOpponent(opponent: number): IOtherUserRestrict | null {
+    console.log('opponent ' + opponent)
 
+    return null
+    // console.log(usersStore.userList.filter((user) => userStore.user.invites.find(el => el === opponent)))
+    // return usersStore.userList.filter((user) => userStore.user.invites.find(el => el === opponent))[0]
+}
 
 </script>
 
 <template>
-	<div>
-		<h1 @click="toggleMatch = !toggleMatch">Match History</h1>
-		<div class="matchHistory" :class="{hide: !toggleMatch }" v-if="matchsHistory != null">
-		<div v-for="match in matchsHistory" :key="match.opponent">
-			<div :class="{win: match.win, loose:!match.win}" class="matchResume">
-			<div class="me">
-				<img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
-				<p>{{userStore.getUserNick()}}</p>
-			</div>
-			<div class="score">
-				<p>
-				<span :class="{scoreLose: !match.win}">{{match.myScore}}</span> - 
-				<span :class="{scoreLose: match.win}">{{match.opponentScore}}</span>
-				</p>
-			</div>
-			<div class="opponent">
-				<img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
-				<p>@dark_sasuke</p>
-			</div>
-			</div>
-		</div>
-		</div>
-		<div v-else>
-			<p>No matchs here
-			<a href="/">Make your first game</a>
-			</p>
-		</div>
-	</div>
+    <div>
+        <h1 @click="toggleMatch = !toggleMatch">Match History</h1>
+        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="userStore.user.match_history != null">
+            <div v-for="match in userStore.user.match_history" :key="match.opponent">
+                <div :class="{win: match.win, loose:!match.win}" class="matchResume">
+                    <div class="me">
+                        <img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+                        <p>{{userStore.getUserNick()}}</p>
+                    </div>
+                    <div class="score">
+                        <p>
+                            <span :class="{scoreLose: !match.win}">{{match.myScore}}</span> - 
+                            <span :class="{scoreLose: match.win}">{{match.opponentScore}}</span>
+                        </p>
+                    </div>
+                    <div class="opponent">
+                        <UserLink :other-user="findOpponent(match.opponent)"></UserLink>
+                        <!-- <img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+                        <p>@dark_sasuke</p> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-else>
+            <p>No matchs here
+                <a href="/">Make your first game</a>
+            </p>
+        </div>
+    </div>
 </template>
 
 <style>
@@ -98,7 +76,7 @@ const matchsHistory = [
   border-radius: var(--global-border-radius);
 }
 
-.matchHistory .userAvatar {
+.matchHistory img {
   max-width: 40%;
 }
 

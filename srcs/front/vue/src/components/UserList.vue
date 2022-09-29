@@ -2,6 +2,8 @@
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { useUserStore } from '../stores/user'
+import { useUsersStore } from '@/stores/users'
+import UserLink from "./UserLink.vue";
 import type { IUser } from '../../types'
 
 const props = defineProps<{
@@ -11,10 +13,11 @@ const props = defineProps<{
 }>()
 
 const userStore = useUserStore()
+const usersStore = useUsersStore()
 let toggleList = ref(true)
 
 function removeFriend(user: IUser, friend: number) {
-  // find a way to remove only from one array
+  // find a way to remove only from one array (with a props sending the type of the list ?)
   if (userStore.user.friends && userStore.user.blocks) {
     userStore.user.friends.forEach( (id: number, index: number) => {
       if (id == friend)
@@ -47,8 +50,12 @@ function removeFriend(user: IUser, friend: number) {
   //     })
   //   }
   // })
-
 }
+
+function filterUsers() {
+  return usersStore.userList.filter((user) => props.list.find(el => el === user.id))
+}
+
 </script>
 
 <template>
@@ -56,10 +63,9 @@ function removeFriend(user: IUser, friend: number) {
 		<h1 @click="toggleList = !toggleList">{{ props.title }}</h1>
     <p v-if="props.list == null || props.list.length == 0">Nobody here</p>
     <div class="usersInList" :class="{hide: !toggleList }">
-      <div v-for="el in props.list" :key="el" class="userInList">
-        <img src="../assets/avatars/homer.jpeg" alt="default user">
-				<p><a href="#friendsLink">@user{{ el }}</a></p>
-        <button @click="removeFriend(user, el)">X</button>
+      <div v-for="el in filterUsers()" :key="el.id" class="userInList">
+        <UserLink :other-user="el"></UserLink>
+        <button @click="removeFriend(user, el.id)">X</button>
       </div>
     </div>
 	</div>

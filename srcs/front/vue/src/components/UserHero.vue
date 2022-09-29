@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/user';
+import { useUsersStore } from '@/stores/users';
 import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
@@ -10,6 +11,7 @@ import type { IUser } from '../../types';
 
 
 const userStore = useUserStore()
+const usersStore = useUsersStore()
 // const { getUserNick } = useUserStore()
 // const { getUserNick } = storeToRefs(user) // make getUserNick has a ref ==> reactive
 
@@ -40,7 +42,8 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 
 let editMode = ref(false)
 let nicknameEdit = ref("")
-const nameList = ["pouet", 'lol', "ggilbert"] // need to get it from server
+let nameList: string[] = [];
+usersStore.userList.forEach((el) => {nameList.push(el.nickname)}) // need to get it from server
 
 function filteredNames() {
 	return nameList.filter((name) => name.toLowerCase() === (nicknameEdit.value.toLowerCase()))
@@ -74,11 +77,11 @@ watch(nicknameEdit, () => {
 
 
 let editImg = ref("")
-function changeImg(e) {
+function changeImg(e: any) {
 	if (e) {
 		const img = e.target.files[0]
 		let formData = new FormData();
-		formData.append('file', this.file);
+		// formData.append('file', this.file);
 		confirm("Change your avatar ?" + img)
 		// must send to server and wait his response with the server url
 		// userStore.setUserAvatar()
@@ -97,7 +100,7 @@ function changeImg(e) {
 				<p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
 				<p class="heroTag">
 					<div v-if="editMode">
-						<span>@<input type="text" v-model="nicknameEdit" :placeholder="userStore.user.nickname"></span>
+						<span>@<input type="text" v-model="nicknameEdit" :placeholder="userStore.user.nickname" @keyup.esc="editMode = !editMode"></span>
 						<button @click="editMode = !editMode">X</button>
 						<button @click="validNickChange(nicknameEdit)" :class="{cant_click: filteredNames().length}">Change</button>
 						<div v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</div>
@@ -116,7 +119,12 @@ function changeImg(e) {
 		<UserMatchHistory></UserMatchHistory>
 
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends"></UserList>
-		<UserList title="Block" :user="userStore.user" :list="userStore.user.blocks" ></UserList>
+		<UserList title="Ban" :user="userStore.user" :list="userStore.user.blocks" ></UserList>
+		
+		<div class="security">
+			<h1>Security</h1>
+			<p>User double auth : <button>Enable</button></p>
+		</div>
 	</div>
 </template>
 
