@@ -24,4 +24,15 @@ export class UsersController {
         return (this.usersService.getUserById(parseInt(param.id)))
     }
 
+    @Get(':id/friends')
+    getFriends(@Param() params) {
+        return (this.usersService.getFriends(parseInt(params.id)));
+    }
+
+    @Post(':id/friends')
+    addFriend(@Param() params, @Body() body) {
+        console.log("\n\nBody == \n\n", body);
+        console.log("\n Params = \n", params);
+        return (this.usersService.addFriend(parseInt(params.id), body.friend));
+    }
 }
