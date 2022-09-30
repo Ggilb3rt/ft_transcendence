@@ -19,8 +19,9 @@ export class UsersController {
     }
 
     @Get(':id')
-    getOneUser(@Param() params) {
-        return (this.usersService.getUserById(parseInt(params.id)));
+    getOneUser(@Param() param) {
+        console.log("user id: " + param.id)
+        return (this.usersService.getUserById(parseInt(param.id)))
     }
 
     @Get(':id/friends')

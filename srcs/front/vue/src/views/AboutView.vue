@@ -1,40 +1,16 @@
 <script setup lang="ts">
   import { storeToRefs } from 'pinia';
-  import { useUserStore } from '@/stores/users';
+  import { ref } from 'vue'
+  import { useUsersStore } from '@/stores/users';
   import type { IUser } from '../../types';
   import { mande } from 'mande';
   
-  const userHomer = useUserStore()
+  const userHomer = useUsersStore()
   const { user, loading, error } = storeToRefs(userHomer) // is reactive
   const { getUsers } = userHomer // is not reactive
   const api = mande('http://localhost:3000/users');
   
   getUsers()
-  
-  // let userData: IUser = {
-  //   id: 0,
-  //   name: "",
-  //   tag: "",
-  //   isAdmin: false,
-  //   level: 0,
-  //   nbLoose: 0,
-  //   nbWin: 0,
-  //   avatar_url: ""
-  // }
-  // function postUser(userData: IUser) {
-  //   api.post(userData).then((userData) => {
-  //     userData = {
-  //       id: 0,
-  //       name: "",
-  //       tag: "",
-  //       isAdmin: false,
-  //       level: 0,
-  //       nbLoose: 0,
-  //       nbWin: 0,
-  //       avatar_url: ""
-  //     }
-  //   })
-  // }
 
   let userBDD = {
     first_name: "guillaume",
@@ -52,10 +28,11 @@
     }
     })
   }
-  </script>
+
+</script>
 
 <template>
-  <div class="about">
+  <div class="vue_wrapper about">
     <div class="load-error">
       <p v-if="loading">Loading contacts...</p>
       <p v-if="error">{{ error.message }}</p>
@@ -83,7 +60,7 @@
 </template>
 
 <style>
-@media (min-width: 1024px) {
+@media screen and (min-width: 1024px) {
   .about {
     min-height: 100vh;
     display: flex;

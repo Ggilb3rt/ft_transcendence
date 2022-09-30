@@ -8,6 +8,8 @@ import { LoginService } from './login/login.service';
 import { LoginController } from './login/login.controller';
 import { LoginModule } from './login/login.module';
 import { RegisterModule } from './register/register.module';
+import { GameModule } from './game/game.module';
+import { ChatGateway } from './chat/chat.gateway';
 import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
@@ -15,8 +17,8 @@ import { AuthService } from './auth/auth.service';
 
 
 @Module({
-  imports: [ UsersModule, LoginModule, RegisterModule, AuthModule ],
+  imports: [ UsersModule, LoginModule, RegisterModule, AuthModule, GameModule ],
   controllers: [AppController, UsersController, LoginController, AuthController],
-  providers: [AppService, UsersService, LoginService, AuthService],
+  providers: [AppService, UsersService, LoginService, AuthService, ChatGateway],
 })
 export class AppModule {}

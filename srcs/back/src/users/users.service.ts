@@ -115,7 +115,7 @@ class UsersService {
         const res = await prisma.users.create( {data: user })
         return (res);
       } catch (err) {
-        throw("Adding user failed\n");
+        console.log("err :", err);
       }
     }
 

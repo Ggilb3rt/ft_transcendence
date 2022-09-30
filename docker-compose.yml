@@ -16,7 +16,6 @@ services:
         build:
             context: ./srcs/back
             target: dev
-        container_name: pongBack
         env_file:
             - ./envs/postgres.env
             - ./envs/back.env
@@ -35,7 +34,6 @@ services:
         build:
             context: ./srcs/front
         image: front-vue
-        container_name: pongFront
         env_file: ./envs/front.env
         init: true
         volumes:

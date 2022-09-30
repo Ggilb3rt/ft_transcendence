@@ -1,6 +1,6 @@
 .PHONY: all re clean remove rm_volumes create_vol up ps down build images remove logs logs_wordpress logs_mariadb logs_nginx
 
-all: create_vol build up
+all: build up
 
 re: clean all
 
@@ -12,14 +12,14 @@ create_vol:
 	sudo chmod -R 775 $(PWD)/data
 
 build:
-	docker-compose -f ./srcs/docker-compose.yml build
+	docker-compose build
 
 # Use
 up:
-	docker-compose -f ./docker-compose.yml up
+	docker-compose up
 
 down:
-	docker-compose -f ./docker-compose.yml down
+	docker-compose down
 
 ps:
 	docker ps -a
@@ -45,27 +45,27 @@ remove: down
 clean: remove rm_volumes
 
 fclean: clean
-	-docker image rm wordpress
-	-docker image rm mariadb
-	-docker image rm nginx
+	-docker image rm ft_transcendence_back
+	-docker image rm front-vue
+	-docker image rm postgres:alpine
 
 # Debug
 go_front:
-	docker exec -ti pongFront bash
+	docker exec -ti ft_transcendence-front-1 bash
 go_back:
-	docker exec -ti pongBack bash
+	docker exec -ti ft_transcendence-back-1 bash
 go_bdd:
-	docker exec -ti pongBdd bash
+	docker exec -ti ft_transcendence-postgres-1 bash
 
 
 logs:
-	docker compose logs pongFront pongBack pongBdd
-logs_wordpress:
-	docker compose logs wordpress
-logs_mariadb:
-	docker compose logs mariadb
-logs_nginx:
-	docker compose logs nginx
+	docker-compose logs ft_transcendence-front-1 ft_transcendence-back-1 ft_transcendence-postgres-1
+logs_back:
+	docker-compose logs ft_transcendence-back-1
+logs_front:
+	docker-compose logs ft_transcendence-front-1
+logs_bdd:
+	docker-compose logs ft_transcendence-postgres-1
 
 outside_ip:
-	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' MyNginx
+	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ft_transcendence_back_1
