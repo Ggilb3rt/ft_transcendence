@@ -12,6 +12,9 @@ const props = defineProps({
 
 const usersStore = useUsersStore()
 
+// il serait sympa de mettre un focus sur le premier user de la liste
+// ==> ajout d'un @keypress.enter="..." sur le input
+// userFriendly++
 
 const showSearchUserModal = ref(false)
 const searchInput = ref(null)
@@ -45,7 +48,7 @@ function filteredNames() {
                     <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
                     <div class="list">
                         <ul>
-                            <li v-for="user in filteredNames()" :key="user.id">
+                            <li v-for="user in filteredNames()" :key="user.id" @click="showSearchUserModal = false">
                                 <UserLink :other-user="user"></UserLink>
                             </li>
                         </ul>
