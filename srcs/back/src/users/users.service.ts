@@ -219,7 +219,9 @@ class UsersService {
             nickname:true,
             first_name:true,
             last_name:true,
-            friends:true,
+            friends: {
+              select: {id:true}
+            },
             avatar_url:true,
             ranking:true,
             wins:true,
