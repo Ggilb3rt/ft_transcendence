@@ -8,6 +8,6 @@ export const CANVAS_HEIGHT = 480;
 export const BALL_SIZE = 5;
 export const DEFAULT_PADDLE_H = 100;
 export const DEFAULT_PADDLE_W = 5;
-export const BALL_SPEED = 15;
+export const BALL_SPEED = 5;
 export const DEFAULT_PADDLE_SPEED = 10;
 

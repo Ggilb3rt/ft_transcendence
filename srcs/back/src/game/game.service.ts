@@ -29,10 +29,10 @@ export class GameService {
         const state = this.createGameState();
         this.setPlayerPos(state.players);
         this.randomDir(state.ball);
-        console.log("deb pos x: " + state.ball.posx);
-        console.log("deb pos y: " + state.ball.posy);
-        console.log("deb dir x: " + state.ball.dirx);
-        console.log("deb dir x: " + state.ball.dirx);
+        //console.log("deb pos x: " + state.ball.posx);
+        //console.log("deb pos y: " + state.ball.posy);
+        //console.log("deb dir x: " + state.ball.dirx);
+        //console.log("deb dir x: " + state.ball.dirx);
         return state;
     }
 
@@ -56,6 +56,7 @@ export class GameService {
         state.players[0].height = newPlayer.height;
         state.players[0].speed = newPlayer.speed;
         state.players[0].vel = newPlayer.vel;
+        state.players[0].match_score = newPlayer.match_score;
 
 
         state.players[1].posx = newPlayer.posx;
@@ -64,6 +65,7 @@ export class GameService {
         state.players[1].height = newPlayer.height;
         state.players[1].speed = newPlayer.speed;
         state.players[1].vel = newPlayer.vel;
+        state.players[1].match_score = newPlayer.match_score;
         this.setPlayerPos(state.players);
     }
 
@@ -83,7 +85,7 @@ export class GameService {
                 this.emitGameState(roomName, this.state[roomName], server);
 
             } else {
-                this.emitGameOver(roomName, winner, server)
+                this.emitGameOver(roomName, winner, this.state[roomName], server);
                 clearInterval(this.intervalId);
             }
 
@@ -96,9 +98,9 @@ export class GameService {
             .emit('gameState', JSON.stringify(state));
     }
 
-    emitGameOver(roomName: string, winner, server: Server) {
+    emitGameOver(roomName: string, winner, state: any, server: Server) {
         server.sockets.in(roomName)
-            .emit('gameOver', JSON.stringify({ winner }));
+            .emit('gameOver', JSON.stringify({ winner, state}));
     }
 
     gameLoop(state) {
@@ -115,15 +117,31 @@ export class GameService {
         this.paddleCollision(ball, players);
 
         if ((ball.posx + (ball.rad * 2)) <= 0) {
-            ++state.players[0].score;
-            if (state.players[0].score === 11) {
+            ++state.players[0].match_score;
+            if (state.players[0].match_score === 1) {
+                let result = {
+                    playerOne: state.players[0].match_score,
+                    playerTwo: state.players[1].match_score,
+                    winner: 2
+                }
+                state.players[0].game_scores.push(result);
+                state.players[1].game_scores.push(result);
+                console.log(state.players[0].game_scores);
                 return (2); // Player 1 wins
             }
             this.reInitGameState(state);
 
         } else if ((ball.posx - (ball.rad * 2)) >= CANVAS_WIDTH) {
-            ++state.players[1].score;
-            if (state.players[0].score === 11) {
+            ++state.players[1].match_score;
+            if (state.players[1].match_score === 1) {
+                let result = {
+                    playerOne: state.players[0].match_score,
+                    playerTwo: state.players[1].match_score,
+                    winner: 1
+                }
+                state.players[0].game_scores.push(result);
+                state.players[1].game_scores.push(result);
+                console.log(state.players[0].game_scores);
                 return (1); // Player 2 wins
             }
             this.reInitGameState(state);
@@ -143,13 +161,11 @@ export class GameService {
 
     wallCollision(ball) {
         if (ball.posy >= CANVAS_HEIGHT) {
-            console.log('hehe');
             ball.diry = -Math.abs(ball.diry);
         }
 
         if (ball.posy <= 0) {
             ball.diry = Math.abs(ball.diry);
-            console.log('hoho');
         }
     }
 

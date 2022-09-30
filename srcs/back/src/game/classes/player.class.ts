@@ -10,6 +10,7 @@ export class Player {
     up = false;
     down = false;
     id = null;
-    score = 0;
+    game_scores = [];
+    match_score = 0;
 }
   

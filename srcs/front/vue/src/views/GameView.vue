@@ -31,10 +31,10 @@ export default {
         playerOne: "0",
         playerTwo: "0",
       },
-      canvasStyle : {
-        width: '640',
-        height: '480',
-      }
+      canvasStyle: {
+        width: "640",
+        height: "480",
+      },
       /*  gameState: {
         ball: Ball,
         playerOne: Player,
@@ -62,12 +62,6 @@ export default {
   },
   methods: {
     init() {
-      /*this.WIDTH = this.$refs.canvas.style.width;
-      this.WIDTH = this.WIDTH.substring(0, this.WIDTH.length - 2);
-      console.log(this.WIDTH);
-      this.HEIGHT = this.$refs.canvas.style.height;
-      this.HEIGHT = this.HEIGHT.substring(0, this.HEIGHT.length - 2);
-      console.log(this.HEIGHT);*/
       this.WIDTH = this.$refs.canvas.width;
       this.HEIGHT = this.$refs.canvas.height;
       this.$refs.initialScreen.style.display = "none";
@@ -135,12 +129,19 @@ export default {
       //const now = new Date().getTime();
       //const elapsed = now - lasTime;
       //if (elapsed > frameInterval) {
-        this.clearRect();
-        this.drawField();
-        this.drawScore();
-        this.drawBall(state.ball.posx, state.ball.posy, BALL_SIZE, 0, 2 * Math.PI, BALL_COLOR);
-        this.paintPaddle(state.players[0]);
-        this.paintPaddle(state.players[1]);
+      this.clearRect();
+      this.drawField();
+      this.drawScore();
+      this.drawBall(
+        state.ball.posx,
+        state.ball.posy,
+        BALL_SIZE,
+        0,
+        2 * Math.PI,
+        BALL_COLOR
+      );
+      this.paintPaddle(state.players[0]);
+      this.paintPaddle(state.players[1]);
       //}
     },
     paintPaddle(player) {
@@ -155,8 +156,8 @@ export default {
       }
       gameState = JSON.parse(gameState);
       this.gameCode = gameState.roomName;
-      this.score.playerOne = gameState.players[0].score;
-      this.score.playerTwo = gameState.players[1].score;
+      this.score.playerOne = gameState.players[0].match_score;
+      this.score.playerTwo = gameState.players[1].match_score;
       requestAnimationFrame(() => this.paintGame(gameState));
     },
     handleGameOver(data) {
@@ -164,6 +165,12 @@ export default {
         return;
       }
       data = JSON.parse(data);
+      this.score.playerOne = data.state.players[0].match_score;
+      this.score.playerTwo = data.state.players[1].match_score;
+      this.drawField();
+      this.drawScore();
+      this.paintPaddle(data.state.players[0]);
+      this.paintPaddle(data.state.players[1]);
       if (data.winner === this.playerNumber) {
         //alert("You win !");
         console.log("You win !");
@@ -243,8 +250,12 @@ export default {
           Your game code is:
           <span id="gameCodeDisplay" ref="gameCodeDisplay"></span>
         </h1>
-        <canvas id="canvas" ref="canvas" v-bind:width="canvasStyle.width" v-bind:height="canvasStyle.height"></canvas>
-        <!-- <canvas id="canvas" ref="canvas" :style="this.canvasStyle"></canvas> -->
+        <canvas
+          id="canvas"
+          ref="canvas"
+          v-bind:width="canvasStyle.width"
+          v-bind:height="canvasStyle.height"
+        ></canvas>
         <button type="submit" @click.prevent="reMatch">Re-Match !</button>
       </div>
     </div>
