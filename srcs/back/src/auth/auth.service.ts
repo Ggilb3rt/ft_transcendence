@@ -11,9 +11,8 @@ export class AuthService {
     constructor(private usersService: UsersService) {}
 
     authenticate() {
-        passport.authenticate('oauth2', {failureRedirect:"/login"})
         return ({
-            url: '/',
+            url: `${process.env.FRONT_URL}`,
             statusCode: 200
         })
     }
@@ -24,17 +23,19 @@ export class AuthService {
             tokenURL: process.env.BASE_URL_POST,
             clientID: process.env.AUTH_UID,
             clientSecret: process.env.AUTH_SECRET,
-            callbackURL: "http://localhost:5173"
+            callbackURL: process.env.FRONT_URL
         })
     }
 
-    verify(accessToken, refreshToken, user, cb) {
+    async verify(accessToken, refreshToken, user, cb) {
         try {
+            console.log("\nCOUCOUCOUCOU\n");
             if (accessToken || refreshToken) {
                 var ret = prisma.users.findFirst({
                     where: {nick_fourtytwo: user.nick_fourtytwo}
                 })
                 if (!user) {
+                    console.log("\n\naccessToken || refreshToken == \n", accessToken || refreshToken);
                     this.usersService.postOneUser(user)
                 }
             }
