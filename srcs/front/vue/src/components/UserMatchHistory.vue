@@ -17,9 +17,9 @@ let toggleMatch = ref(true);
 function findOpponent(opponent: number): IOtherUserRestrict | null {
     console.log('opponent ' + opponent)
 
-    return null
-    // console.log(usersStore.userList.filter((user) => userStore.user.invites.find(el => el === opponent)))
-    // return usersStore.userList.filter((user) => userStore.user.invites.find(el => el === opponent))[0]
+    // return null
+    console.log(usersStore.userList.filter((user) => userStore.user.invites.find(el => el === opponent)))
+    return usersStore.userList.filter((user) => userStore.user.invites.find(el => el === opponent))[0]
 }
 
 </script>

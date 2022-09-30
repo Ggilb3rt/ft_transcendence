@@ -24,8 +24,8 @@ function filteredNames() {
 </script>
 
 <template>
-    <button>
-        <i class="icon-search-button" @click="showSearchUserModal = true">
+    <button @click="showSearchUserModal = true">
+        <i class="icon-search-button">
             <IconCommunity />
         </i>
     </button>

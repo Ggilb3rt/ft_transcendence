@@ -126,8 +126,10 @@ export const useUserStore = defineStore({
                 this.error = error
                 console.log('getUser error : ' + this.error)
             } finally {
+                if (!this.user.first_name)
+                    this.user.first_name = 'Stanley'
                 if (!this.user.nickname)
-                    this.user.nickname = 'Stanley'
+                    this.user.nickname = 'stan'
                 if (!this.user.avatar_url)
                     this.user.avatar_url = "src/assets/avatars/default.jpg"
                 if (!this.user.wins)
