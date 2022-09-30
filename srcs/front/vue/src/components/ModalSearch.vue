@@ -129,12 +129,12 @@ function filteredNames() {
 
 
 @media screen and (min-width: 800px) {
-    .container {
+    .container-search {
         left: calc(50% - 70% / 2);
         width: 70%;
     }
 
-    .container input{
+    .container-search input{
         font-size: 2em;
     }
 }

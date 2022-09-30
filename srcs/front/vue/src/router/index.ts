@@ -46,13 +46,18 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: Dashboard,
-      children: [
-        {
-          path: ":id",
-          name: "dashOther",
-          component: Dashboard
-        }
-      ]
+      // children: [
+      //   {
+      //     path: ":id",
+      //     name: "dashOther",
+      //     component: Login  // create UserOtherHero component
+      //   }
+      // ]
+    },
+    {
+      path: "/dashboard/:id",
+      name: "dashOther",
+      component: Login // create UserOtherHero component
     },
     {
       path: "/game/:ourGames?/:id?",

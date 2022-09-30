@@ -126,6 +126,8 @@ export const useUserStore = defineStore({
                 this.error = error
                 console.log('getUser error : ' + this.error)
             } finally {
+                if (!this.user.id)
+                    this.user.id = 0
                 if (!this.user.first_name)
                     this.user.first_name = 'Stanley'
                 if (!this.user.nickname)

@@ -6,7 +6,7 @@ import UserHero from "@/components/UserHero.vue";
 <template>
   <div class="vue_wrapper dashboard">
     <h1>Dashboard</h1>
-    <UserHero />
+      <UserHero />
   </div>
 </template>
 

@@ -4,11 +4,11 @@ import { ref } from 'vue'
 import { useUserStore } from '../stores/user'
 import { useUsersStore } from '@/stores/users'
 import UserLink from "./UserLink.vue";
-import type { IUser } from '../../types'
+import type { IUser, IOtherUser } from '../../types'
 
 const props = defineProps<{
 	title: string,
-	user: IUser,
+	user: IUser | IOtherUser,
 	list: number[]
 }>()
 
@@ -16,7 +16,7 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 let toggleList = ref(true)
 
-function removeFriend(user: IUser, friend: number) {
+function removeFriend(user: IUser | IOtherUser, friend: number) {
   // find a way to remove only from one array (with a props sending the type of the list ?)
   if (userStore.user.friends && userStore.user.blocks) {
     userStore.user.friends.forEach( (id: number, index: number) => {
