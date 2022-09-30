@@ -33,7 +33,7 @@ function filteredNames() {
         <Transition name="modal">
             <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
                 <div class="search-mask" @click="showSearchUserModal = false"></div>    
-                <div class="container">
+                <div class="container-search">
                     <input 
                         type="search"
                         id="search-bar"
@@ -69,7 +69,7 @@ function filteredNames() {
     transition: opacity 0.3s ease;
 }
 
-.container {
+.container-search {
     position: fixed;
     top: 50px;
     left: calc(50% - 90% / 2);

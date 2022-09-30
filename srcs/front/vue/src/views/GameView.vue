@@ -32,8 +32,8 @@ export default {
         playerTwo: "0",
       },
       canvasStyle : {
-        width: '640px',
-        height: '480px',
+        width: '640',
+        height: '480',
       }
       /*  gameState: {
         ball: Ball,
@@ -243,7 +243,7 @@ export default {
           Your game code is:
           <span id="gameCodeDisplay" ref="gameCodeDisplay"></span>
         </h1>
-        <canvas id="canvas" ref="canvas" width="640" height="480"></canvas>
+        <canvas id="canvas" ref="canvas" v-bind:width="canvasStyle.width" v-bind:height="canvasStyle.height"></canvas>
         <!-- <canvas id="canvas" ref="canvas" :style="this.canvasStyle"></canvas> -->
         <button type="submit" @click.prevent="reMatch">Re-Match !</button>
       </div>
