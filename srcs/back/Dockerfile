@@ -13,11 +13,6 @@ RUN npm install @nestjs/websockets @nestjs/platform-socket.io
 FROM dev-installation AS dev
 
 COPY . .
-COPY security /app/
-
-RUN chmod -R 755 /app/security
-RUN openssl req -x509 -nodes -newkey rsa:2048 -keyout /app/security/keytmp.pem -out /app/security/cert.pem -subj "/C=FR/ST=PARIS/L=PARIS/O=42/OU=Stud/CN=localhost" -days 365
-RUN openssl rsa -in /app/security/keytmp.pem -out /app/security/key.pem
 
 
 CMD ["bash", "run.sh"]
