@@ -46,13 +46,6 @@ model channels {
   users_list users_list[]
 }
 
-model friends {
-  first_user  Int
-  second_user Int
-
-  @@id([first_user, second_user])
-}
-
 model match {
   id                                 Int    @id @default(autoincrement())
   player_left_id                     Int?
@@ -87,12 +80,15 @@ model users {
   first_name                                 String
   last_name                                  String
   nickname                                   String
-  avatar_url                                 String
+  nick_fourtytwo                             String             
+  avatar_url                                 String         
   ranking                                    Int?
   wins                                       Int?
   loses                                      Int?
   two_factor_auth                            Boolean?
   admins                                     admins[]
+  friends                                    users[] @relation("friends")
+  friendsRelation                            users[] @relation("friends")
   ban_channels_ban_channels_banned_idTousers ban_channels[] @relation("ban_channels_banned_idTousers")
   ban_channels_ban_channels_idTousers        ban_channels?  @relation("ban_channels_idTousers")
   ban_users_ban_users_banned_idTousers       ban_users[]    @relation("ban_users_banned_idTousers")
@@ -104,6 +100,13 @@ model users {
   muted                                      muted[]
   users_list                                 users_list[]
 }
+// model friends {
+//   id          Int @id @default(autoincrement())
+//   first_user  users? @relation("friend", fields: [first_id], references: [id])
+//   second_user users? @relation("friendRelation", fields: [second_id], references: [id])
+//   first_id    Int?
+//   second_id    Int?
+// }
 
 model users_list {
   id         Int       @id @default(autoincrement())
