@@ -66,6 +66,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         let code = JSON.parse(gameCode); 
         this.gameservice.handleReMatch(client, code, this.server);
     }
+
+    @SubscribeMessage('quitGame')
+    handleQuitGame(client: Socket, gameCode: any) {
+        let code = JSON.parse(gameCode);
+        this.gameservice.handleQuitGame(client, code, this.server);
+    }
    
 
 }

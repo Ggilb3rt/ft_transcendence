@@ -53,6 +53,7 @@ export default {
     this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
     this.socket.on("disconnected", this.handleDisconnected);
     this.socket.on("reMatch", this.handleReMatch);
+    this.socket.on("quitGame", this.handleQuitGame);
   },
   mounted() {
     this.context = this.$refs.canvas.getContext("2d");
@@ -197,7 +198,6 @@ export default {
     },
     joinGame() {
       const code = this.gameCode;
-      //this.gameCode = "";
       this.socket.emit("joinGame", code);
       this.init();
     },
@@ -210,13 +210,15 @@ export default {
     },
     handleDisconnected() {
       console.log("You have been disconnected");
+      this.gameActive = false;
+      this.reset();
       //this.socket.close();
       //alert("You have been disconnected !");
       //this.socket.delete("http://localhost:3000"); // ?????
     },
     reMatch() {
       if (this.gameActive) {
-        return;
+        return ;
       }
       this.socket.emit("reMatch", JSON.stringify(this.gameCode));
     },
@@ -225,6 +227,15 @@ export default {
       msg = JSON.parse(msg);
       console.log(msg);
     },
+    quitGame() {
+        this.socket.emit("quitGame", JSON.stringify(this.gameCode));
+    },
+    handleQuitGame(msg) {
+        this.gameActive = false;
+        this.reset();
+        msg = JSON.parse(msg);
+        console.log(msg);
+    }
   },
 };
 </script>
@@ -257,6 +268,7 @@ export default {
           v-bind:height="canvasStyle.height"
         ></canvas>
         <button type="submit" @click.prevent="reMatch">Re-Match !</button>
+        <button type="submit" @click.prevent="quitGame">Quit</button>
       </div>
     </div>
   </div>

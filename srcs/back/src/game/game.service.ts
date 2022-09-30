@@ -446,6 +446,27 @@ export class GameService {
         this.reInitGameState(this.state[gameCode]);
         this.startGameInterval(gameCode, server);
     }
+
+    async handleQuitGame(client: Socket, gameCode: any, server: Server) {
+        clearInterval(this.intervalId);
+        const roomName = this.clientRooms[client.id];
+
+        let allUsers;
+        if (roomName) {
+            allUsers = await server.in(roomName).fetchSockets();
+            let sockets = [];
+            allUsers.forEach(function (s) {
+                console.log(s.id);
+                s.emit('quitGame', JSON.stringify("Bye bye game..."));
+                s.leave(roomName);
+                sockets.push(s.id);
+            });
+            sockets.forEach(socket => Reflect.deleteProperty(this.clientRooms, socket));
+            Reflect.deleteProperty(this.clientRooms, client.id);
+        } else {
+            client.emit('quitGame', JSON.stringify("One player has left the game"));
+        }
+    }
 }
 
 
