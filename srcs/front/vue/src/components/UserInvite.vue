@@ -18,13 +18,13 @@ function resInvite(sayYes: boolean, id: number) {
 			// remove id from invite
 	}
 	userStore.user.invites.forEach((el, index) => {
-		if (el == id)
+		if (el.id == id)
 			userStore.user.invites.splice(index, 1)
 	})
 }
 
 function filterUsers(): IOtherUserRestrict[] {
-  return usersStore.userList.filter((user) => userStore.user.invites.find(el => el === user.id))
+  return usersStore.userList.filter((user) => userStore.user.invites.find(el => el.id === user.id))
 }
 
 </script>

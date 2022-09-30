@@ -141,11 +141,11 @@ export const useUserStore = defineStore({
                 if (!this.user.ranking)
                     this.user.ranking = Math.round(this.user.wins / this.user.loses)
                 if (!this.user.friends)
-                    this.user.friends = [1, 2, 3, 5]
+                    this.user.friends = [{id: 1}, {id: 2}, {id: 3}, {id: 5}]
                 if (!this.user.blocks)
-                    this.user.blocks = [0, 10, 23, 45, 7, 2]
+                    this.user.blocks = [{id: 0}, {id: 10}, {id: 23}, {id: 45}, {id: 7}, {id: 2}]
                 if (!this.user.invites)
-                    this.user.invites = [4, 1]
+                    this.user.invites = [{id: 4}, {id: 1}]
                 if (!this.user.match_history)
                     this.user.match_history = matchsHistory
                 this.loading = false

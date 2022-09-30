@@ -27,6 +27,7 @@ services:
             - postgres
         ports:
             - 3000:3000
+            - 5555:5555
         networks:
             - backend
             - frontend

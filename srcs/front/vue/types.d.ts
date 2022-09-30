@@ -8,9 +8,9 @@ export interface IUser {
     ranking: number;
     wins: number;
     loses: number;
-    friends: number[];
-    blocks: number[];
-    invites: number[];
+    friends: userRelation[];
+    blocks: userRelation[];
+    invites: userRelation[];
     match_history: IMatchHistory[]; 
   }
 
@@ -29,7 +29,7 @@ export interface IOtherUser {
     ranking: number;
     wins: number;
     loses: number;
-    friends: number[];
+    friends: userRelation[];
     match_history: IMatchHistory[]; 
 }
 
@@ -38,4 +38,8 @@ export interface IMatchHistory {
   win: boolean;
   myScore: number;
   opponentScore: number;
+}
+
+interface userRelation {
+  id: number
 }

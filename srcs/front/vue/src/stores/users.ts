@@ -28,6 +28,9 @@ const matchsHistory = [
 // avec l'appel api je le ferai dans l'autre sens :
 // recuperer tous les users en IOtherUserRestrict (pour l'affichage des friends, match history, search etc)
 // si je vais sur le dashboard d'un autre user, je fais un autre fetch qui recupere les infos de IOtherUser en fonction de l'id
+
+// dans un soucis d'optimisation on pourrai uniquement remplir UsersList avec les users dont 
+
 const roger: IOtherUser = {
     id: 1,
     first_name: "Roger",
@@ -141,7 +144,7 @@ export const useUsersStore = defineStore({
             this.userList = []
             this.loading = true
             try {
-                this.userList = await fetch('http://localhost:3000/users', {
+                this.userList = await fetch('http://localhost:3000/users/restric', {
                     method: "get",
                 })
                     .then((response) => response.json())
