@@ -12,6 +12,7 @@ class UsersService {
             id: id
           }
         })
+        return (user);
       } catch (err) {
         console.log("err: ", err)
       }

@@ -19,6 +19,15 @@
   --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+
+  /* Mines */
+  --global-c-blue: rgba(47, 128, 237, 1);
+  --global-c-blue-hover: rgba(47, 128, 237, 0.25);
+  --global-c-red: rgba(235, 87, 87, 1);
+  --global-c-red-hover: rgba(235, 87, 87, 0.25);
+
+  --global-border-radius: 5px;
+
 }
 
 /* semantic color variables for this project */
@@ -36,7 +45,7 @@
   --section-gap: 160px;
 }
 
-@media (prefers-color-scheme: dark) {
+@media screen and (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
     --color-background-soft: var(--vt-c-black-soft);
@@ -59,6 +68,30 @@
   font-weight: normal;
 }
 
+
+::-webkit-scrollbar {
+  width: 0px;
+  /* opacity: 0; */
+  transition: 1s width ease;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--color-background-soft);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--global-c-blue-hover);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+
+
 body {
   min-height: 100vh;
   color: var(--color-text);
@@ -71,4 +104,23 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+}
+
+img {
+  border-radius: var(--global-border-radius);
+  max-width: 100%;
+  /* display: block; */
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+button:active {
+    transform: scale(.95);
 }
