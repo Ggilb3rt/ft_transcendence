@@ -1,5 +1,8 @@
 import { ConsoleLogger, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
 import { PrismaClient } from '@prisma/client'
+import console from 'console';
+import { stringify } from 'querystring';
 
   const prisma = new PrismaClient();
 
@@ -103,18 +106,6 @@ class UsersService {
             }
           }
         })
-        console.log("string = ", JSON.stringify(user.ban_users_ban_users_idTousers));
-        // const newBans = Array.from(user.ban_users_ban_users_idTousers);
-        // newBans = user.ban_users_ban_users_idTousers
-        // console.log("fais moi rever: \n", newBans)
-        console.log("typeof", typeof(user.ban_users_ban_users_idTousers));
-
-        const newFriends = [];
-        user.friends.forEach((elem) => {
-          newFriends.push(elem.id);
-        })
-
-        user.friends = newFriends;
         return (user);
       } catch (err) {
         throw new HttpException('No User at this id', 404);
@@ -205,6 +196,31 @@ class UsersService {
       } catch (err) {
         console.log("err: ", err)
       }
+    }
+    
+    async changeNickname(id: number, nickname: string) {
+        var regex = /^([0-9]|[a-z])+([0-9a-z])$/i;
+        if (nickname.length >= 10) {
+          nickname = nickname.slice(0, 10);
+        }
+        if (!nickname.match(regex)) {
+          throw new HttpException("Only alphanumeric characters", 408)
+        }
+        const test = await prisma.users.findFirst({where:{nickname}})
+        if (test) {
+          throw new HttpException("nickname already taken", 405);
+        }
+        const secondTest = await prisma.users.findUnique({where:{id}})
+        if (!secondTest) {
+          throw new HttpException("User doesn't exists", 404)
+        }
+        const newUser = await prisma.users.update({
+          where:{id},
+          data:{
+            nickname
+          }
+        })
+        return (newUser);
     }
 
     async getOtherUser(id: number) {
