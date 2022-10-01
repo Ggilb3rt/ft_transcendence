@@ -54,4 +54,10 @@ export class UsersController {
     banUser(@Param() params, @Body() body) {
         return (this.usersService.banUser(parseInt(params.id), body.banned));
     }
+
+    @Post(':id/nick')
+    changeNickname(@Param() params, @Body() body) {
+        console.log("\ninside controller\n",params, body.nickname)
+        return (this.usersService.changeNickname(parseInt(params.id), body.nickname))
+    }
 }
