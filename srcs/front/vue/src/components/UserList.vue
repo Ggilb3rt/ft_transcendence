@@ -18,17 +18,17 @@ let toggleList = ref(true)
 
 function removeFriend(user: IUser | IOtherUser, friend: number) {
   // find a way to remove only from one array (with a props sending the type of the list ?)
-  if (userStore.user.friends && userStore.user.blocks) {
+  if (userStore.user.friends && userStore.user.ban_users_ban_users_idTousers) {
     userStore.user.friends.forEach( (id: number, index: number) => {
       if (id == friend)
         if (confirm(`Remove ${id} from your friends ?`))
           userStore.user.friends.splice(index, 1)
           // send info to back
     })
-    userStore.user.blocks.forEach( (id: number, index: number) => {
+    userStore.user.ban_users_ban_users_idTousers.forEach( (id: number, index: number) => {
       if (id == friend)
-        if (confirm(`Remove ${id} from your blocks ?`))
-          userStore.user.blocks.splice(index, 1)
+        if (confirm(`Remove ${id} from your ban_users_ban_users_idTousers ?`))
+          userStore.user.ban_users_ban_users_idTousers.splice(index, 1)
           // send info to back
     })
   }
@@ -43,10 +43,10 @@ function removeFriend(user: IUser | IOtherUser, friend: number) {
   //     })
   //   }
 	// if (el.id == user.id ) {
-  //     user.blocks.forEach( (id: number, index: number) => {
+  //     user.ban_users_ban_users_idTousers.forEach( (id: number, index: number) => {
   //       if (id == friend)
-  //         if (confirm(`Remove ${id} from your blocks ?`))
-  //           user.blocks.splice(index, 1)
+  //         if (confirm(`Remove ${id} from your ban_users_ban_users_idTousers ?`))
+  //           user.ban_users_ban_users_idTousers.splice(index, 1)
   //     })
   //   }
   // })

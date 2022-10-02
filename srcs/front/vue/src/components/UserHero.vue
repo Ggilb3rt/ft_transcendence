@@ -6,10 +6,13 @@ import { useUsersStore } from '@/stores/users';
 import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
-import UserInvite from './UserInvite.vue'
-import type { IUser } from '../../types';
 import UserBasics from './UserBasics.vue';
+import type { IUser } from '../../types';
 
+
+const props = defineProps<{
+	otherUser?: boolean
+}>()
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -38,20 +41,27 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 </script>
 
 <template>
-	<div class="heroCard">
+	<div class="heroCard" v-if="!otherUser">
 		<UserBasics></UserBasics>
 
-		<UserGameStats />
+		<UserGameStats
+			:user="userStore.user"
+			:user-level="userStore.getUserLevel()"
+			:user-win-rate="userStore.getWinRate"
+		/>
 
 		<UserMatchHistory></UserMatchHistory>
 
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends"></UserList>
-		<UserList title="Ban" :user="userStore.user" :list="userStore.user.blocks" ></UserList>
+		<UserList title="Ban" :user="userStore.user" :list="userStore.user.ban_users_ban_users_idTousers" ></UserList>
 		
 		<div class="security">
 			<h1>Security</h1>
 			<p>User double auth : <button>Enable</button></p>
 		</div>
+	</div>
+	<div v-else>
+		Other User
 	</div>
 </template>
 

@@ -1,9 +1,18 @@
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/user';
+// import { useUserStore } from '../stores/user';
+import type { IUser, IOtherUser} from '../../types'
 
-const userStore = useUserStore()
-const { getUserLevel } = useUserStore()
+
+const props = defineProps<{
+	user: IUser | IOtherUser,
+	userLevel: string,
+  userWinRate: string
+}>()
+
+console.log('props ', props)
+// const userStore = useUserStore()
+// const { getUserLevel } = useUserStore()
 
 </script>
 
@@ -13,11 +22,11 @@ const { getUserLevel } = useUserStore()
     <div class="heroGameStat">
       <div>
         <h3>Level</h3>
-        <p class="level statVal">{{ getUserLevel() }}</p>
+        <p class="level statVal">{{ props.userLevel }}</p>
       </div>
       <div>
         <h3>Win rate</h3>
-        <p class="winRate statVal">{{ userStore.getWinRate }}</p>
+        <p class="winRate statVal">{{ props.userWinRate }}</p>
       </div>
       <div>
         <h3>Last win</h3>

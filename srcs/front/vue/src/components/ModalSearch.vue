@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
 import { useUsersStore } from '../stores/users'
+import { useUserStore } from '../stores/user'
 import Modal from './Modal.vue'
 import IconCommunity from "./icons/IconCommunity.vue";
 import UserLink from "./UserLink.vue";
@@ -10,6 +11,7 @@ const props = defineProps({
     show: Boolean
 })
 
+const userStore = useUserStore()
 const usersStore = useUsersStore()
 
 // il serait sympa de mettre un focus sur le premier user de la liste
@@ -21,42 +23,44 @@ const searchInput = ref(null)
 
 let nicknameSearch = ref("")
 function filteredNames() {
-	return usersStore.userList.filter((user) => user.nickname.toLowerCase().includes(nicknameSearch.value.toLowerCase()))
+	return usersStore.userList.filter((user) => user.nickname.toLowerCase().includes(nicknameSearch.value.toLowerCase()) && user.id != userStore.user.id)
 }
 
 </script>
 
 <template>
-    <button @click="showSearchUserModal = true">
-        <i class="icon-search-button">
-            <IconCommunity />
-        </i>
-    </button>
-    <Teleport to="body">
-        <Transition name="modal">
-            <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
-                <div class="search-mask" @click="showSearchUserModal = false"></div>    
-                <div class="container-search">
-                    <input 
+    <div>
+        <button @click="showSearchUserModal = true">
+            <i class="icon-search-button">
+                <IconCommunity />
+            </i>
+        </button>
+        <Teleport to="body">
+            <Transition name="modal">
+                <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
+                    <div class="search-mask" @click="showSearchUserModal = false"></div>    
+                    <div class="container-search">
+                        <input 
                         type="search"
                         id="search-bar"
                         autofocus
                         placeholder="find a user"
                         autocomplete="off"
                         v-model="nicknameSearch"
-                    />
-                    <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
-                    <div class="list">
-                        <ul>
-                            <li v-for="user in filteredNames()" :key="user.id" @click="showSearchUserModal = false">
-                                <UserLink :other-user="user"></UserLink>
-                            </li>
-                        </ul>
+                        />
+                        <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
+                        <div class="list">
+                            <ul>
+                                <li v-for="user in filteredNames()" :key="user.id" @click="showSearchUserModal = false">
+                                    <UserLink :other-user="user"></UserLink>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Transition>
-    </Teleport>
+            </Transition>
+        </Teleport>
+    </div>
 </template>
 
 <style>

@@ -4,7 +4,7 @@ import type { IUser, IOtherUserRestrict, IOtherUser } from '../../types'
 
 export interface IUserStoreState {
     userList: IOtherUserRestrict[]
-    user: IOtherUser | null
+    user: IOtherUser
     loading: boolean
     error: any | null
 }
@@ -29,7 +29,8 @@ const matchsHistory = [
 // recuperer tous les users en IOtherUserRestrict (pour l'affichage des friends, match history, search etc)
 // si je vais sur le dashboard d'un autre user, je fais un autre fetch qui recupere les infos de IOtherUser en fonction de l'id
 
-// dans un soucis d'optimisation on pourrai uniquement remplir UsersList avec les users dont 
+// dans un soucis d'optimisation on pourrai uniquement remplir UsersList avec les users dont le user principal connait les relations
+// sinon cf virtualList from VueUse
 
 const roger: IOtherUser = {
     id: 1,
@@ -104,6 +105,7 @@ export const useUsersStore = defineStore({
         //     if (state.user)
         //         return `@${state.user.nickname}`
         // },
+
     },
     actions: {
         getUserNick(user:IUser): string {
@@ -112,11 +114,14 @@ export const useUsersStore = defineStore({
         getUserHref(user:IOtherUserRestrict): string {
             return '/' + user.id
         },
-        getUserWinRate(user:IUser) {
-            return (user.wins / user.loses).toPrecision(2)
+        getUserWinRate(): string {
+            if (this.user)
+                return (this.user.wins / this.user.loses).toPrecision(2)
+            return '0'
         },
-        getUserLevel(user:IUser): string {
-            switch (user.ranking) {
+        getUserLevel(): string {
+            if (this.user) {
+            switch (this.user.ranking) {
                 case 0:
                     return ("Pipou")
                     break
@@ -139,16 +144,46 @@ export const useUsersStore = defineStore({
                     return ("Prrrrt")
                     break
             }
+            }
+            return ("Error")
         },
         async getUsers() {
             this.userList = []
             this.loading = true
             try {
-                this.userList = await fetch('http://localhost:3000/users/restric', {
-                    method: "get",
-                })
-                    .then((response) => response.json())
+                await fetch('http://localhost:3000/users/restrict')
+                    .then((response) => {
+                        if (response.status >= 200 && response.status < 300) {
+                            return response.json()
+                          }
+                          throw new Error(response.statusText)
+                    })
+                    .then((data) => {
+                        this.userList = data
+                        this.error = null
+                    })
             } catch (error) {
+                this.error = error
+            } finally {
+                this.loading = false
+            }
+        },
+        async getOtherUser(id :number) {
+            this.loading = true
+            const url = `http://localhost:3000/users/${id}/other`
+            try {
+                await fetch(url)
+                    .then((response) => {
+                        if (response.status >= 200 && response.status < 300) {
+                            return response.json()
+                          }
+                          throw new Error(response.statusText)
+                    })
+                    .then((data) => {
+                        this.user = data
+                        this.error = null
+                    })
+            } catch (error: any) {
                 this.error = error
             } finally {
                 this.loading = false

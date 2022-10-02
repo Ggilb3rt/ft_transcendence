@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import type { IUser } from "../types"
 import { RouterLink, RouterView } from "vue-router";
-// import { useUsersStore } from './stores/users';
+import { useUsersStore } from './stores/users';
 import { useUserStore } from './stores/user';
 // import HelloWorld from "./components/HelloWorld.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
 
 
-// const users = useUsersStore()
 const user = useUserStore()
-const { getUser } = user
+const users = useUsersStore()
 
-// getUser(1);
+users.getUsers()
+
+
+// if user is connected put user store on localStorage and getUsers again
+
 
 </script>
 

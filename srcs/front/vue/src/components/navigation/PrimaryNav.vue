@@ -130,7 +130,7 @@ nav {
   text-align: center;
   /* margin-top: 2rem; */
   display: flex;
-  /* align-items: center; */
+  align-items: center;
   /* justify-content: center; */
 }
 

@@ -18,13 +18,13 @@ function resInvite(sayYes: boolean, id: number) {
 			// remove id from invite
 	}
 	userStore.user.invites.forEach((el, index) => {
-		if (el.id == id)
+		if (el == id)
 			userStore.user.invites.splice(index, 1)
 	})
 }
 
 function filterUsers(): IOtherUserRestrict[] {
-  return usersStore.userList.filter((user) => userStore.user.invites.find(el => el.id === user.id))
+  return usersStore.userList.filter((user) => userStore.user.invites.find(el => el === user.id))
 }
 
 </script>
@@ -32,7 +32,7 @@ function filterUsers(): IOtherUserRestrict[] {
 <template>
 	<div class="invites" v-if="userStore.user.invites != undefined && userStore.user.invites.length > 0">
 		<h3>Some new friends</h3>
-		<div v-for="invite in filterUsers()" class="new_friend">
+		<div v-for="invite in filterUsers()" :key="invite.id" class="new_friend">
 			<UserLink :other-user="invite" remove-img></UserLink>
 			<button @click="resInvite(true, invite.id)">Accept</button>
 			<button @click="resInvite(false, invite.id)">Refuse</button>

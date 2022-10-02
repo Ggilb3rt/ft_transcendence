@@ -5,6 +5,7 @@ import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
 import Chat2 from "../views/ChatView2.vue";
 import Login from "../views/LoginView.vue"
+import DashOther from "@/views/DashOtherView.vue";
 import path from "path";
 
 
@@ -57,7 +58,7 @@ const router = createRouter({
     {
       path: "/dashboard/:id",
       name: "dashOther",
-      component: Login // create UserOtherHero component
+      component: DashOther // create UserOtherHero component
     },
     {
       path: "/game/:ourGames?/:id?",

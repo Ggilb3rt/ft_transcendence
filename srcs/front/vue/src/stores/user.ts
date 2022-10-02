@@ -5,7 +5,7 @@ import type { IUser } from '../../types'
 export interface IUserStoreState {
     user: IUser
     loading: boolean
-    error: any | null
+    error: Error | null
     connected: boolean
 }
 
@@ -63,7 +63,7 @@ export const useUserStore = defineStore({
         //     if (state.user)
         //         return `@${state.user.nickname}`
         // },
-        getWinRate: (state) => {
+        getWinRate: (state): string => {
             return (state.user.wins / state.user.loses).toPrecision(2)
         }
     },
@@ -116,37 +116,46 @@ export const useUserStore = defineStore({
         async getUser(id: number) {
             this.loading = true
             try {
-                const user = await fetch(`http://localhost:3000/users/${id}`, {
-                    method: "get",
-                })
-                    .then((response) => response.json())
-                console.log(user)
-                this.user = user
+                await fetch(`http://localhost:3000/users/${id}`)
+                    .then((response) => {
+                        if (response.status >= 200 && response.status < 300) {
+                            return response.json()
+                          }
+                          throw new Error(response.statusText)
+                    })
+                    .then((data) => {
+                        if (data) {
+                            this.user.ban_users_ban_users_idTousers = this.user.ban_users_ban_users_idTousers
+                            this.user = data
+                            this.error = null
+                        }
+                    })
             } catch (error: any) {
                 this.error = error
-                console.log('getUser error : ' + this.error)
             } finally {
-                if (!this.user.id)
-                    this.user.id = 0
-                if (!this.user.first_name)
-                    this.user.first_name = 'Stanley'
-                if (!this.user.nickname)
-                    this.user.nickname = 'stan'
-                if (!this.user.avatar_url)
-                    this.user.avatar_url = "src/assets/avatars/default.jpg"
-                if (!this.user.wins)
-                    this.user.wins = 5
-                if (!this.user.loses)
-                    this.user.loses = 1
-                if (!this.user.ranking)
-                    this.user.ranking = Math.round(this.user.wins / this.user.loses)
-                if (!this.user.friends)
-                    this.user.friends = [{id: 1}, {id: 2}, {id: 3}, {id: 5}]
-                if (!this.user.blocks)
-                    this.user.blocks = [{id: 0}, {id: 10}, {id: 23}, {id: 45}, {id: 7}, {id: 2}]
-                if (!this.user.invites)
-                    this.user.invites = [{id: 4}, {id: 1}]
-                if (!this.user.match_history)
+                    // console.log(user)
+                    // this.user = user
+                    // if (!this.user.id)
+                //     this.user.id = 0
+                // if (!this.user.first_name)
+                //     this.user.first_name = 'Stanley'
+                // if (!this.user.nickname)
+                //     this.user.nickname = 'stan'
+                // if (!this.user.avatar_url)
+                //     this.user.avatar_url = "src/assets/avatars/default.jpg"
+                // if (!this.user.wins)
+                //     this.user.wins = 5
+                // if (!this.user.loses)
+                //     this.user.loses = 1
+                // if (!this.user.ranking)
+                //     this.user.ranking = Math.round(this.user.wins / this.user.loses)
+                // if (!this.user.friends)
+                //     this.user.friends = [1, 2, 3, 5]
+                // if (!this.user.ban_users_ban_users_idTousers)
+                //     this.user.ban_users_ban_users_idTousers = [0, 11, 22, 45, 7, 2]
+                if (!this.user.invites && !this.error)
+                    this.user.invites = [4, 1]
+                if (!this.user.match_history && !this.error)
                     this.user.match_history = matchsHistory
                 this.loading = false
                 this.connected = true

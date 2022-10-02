@@ -9,6 +9,20 @@ import { stringify } from 'querystring';
 
 /// !!!!!!!!!!!!!!!!!!!!! FINISH CHECKS ON FRIENDS AND BAN LISTS => KICK FRIEND ON BAN AND CHECK IF BAN ON FRIEND
 
+interface userRelation {
+  id: Number
+}
+
+function convertUserList(list:userRelation[]) {
+  const newList = []
+
+  for (const obj in list) {
+    newList.push(list[obj].id)
+  }
+  return newList
+}
+
+
 @Injectable()
 class UsersService {
 
@@ -106,6 +120,8 @@ class UsersService {
             }
           }
         })
+        user.friends = convertUserList(user.friends)
+        user.ban_users_ban_users_idTousers = convertUserList(user.ban_users_ban_users_idTousers)
         return (user);
       } catch (err) {
         throw new HttpException('No User at this id', 404);
@@ -245,6 +261,7 @@ class UsersService {
             match_match_player_left_idTousers:true
             }
       })
+        users.friends = convertUserList(users.friends)
         return (users);
       } catch (err) {
         console.log("err: ", err)

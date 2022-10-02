@@ -4,15 +4,17 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/user';
 import { useUsersStore } from '@/stores/users';
 import UserInvite from './UserInvite.vue'
+import { mande } from 'mande';
+
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-
+const api = mande(`http://localhost:3000/${userStore.user.id}/nick`);
 
 let editMode = ref(false)
 let nicknameEdit = ref("")
 let nameList: string[] = [];
-usersStore.userList.forEach((el) => {nameList.push(el.nickname)}) // need to get it from server
+usersStore.userList.forEach((el) => {nameList.push(el.nickname)})
 
 function filteredNames() {
 	return nameList.filter((name) => name === (nicknameEdit.value))
@@ -26,9 +28,19 @@ function freeNick(newNick: string): boolean {
 	return true
 }
 
-function validNickChange(newNick: string) {
+async function validNickChange(newNick: string) {
 	if (freeNick(newNick) && newNick.length > 0) {
 		// await server validation
+		// try {
+		// 	await api.post({
+		// 		nickname: newNick
+		// 	})
+		// 	.then((data) => {
+		// 		console.log('data from change nick', data)
+		// 	})
+		// } catch (error) {
+		// 	console.log('change nick err', error)
+		// }
 		userStore.setUserNick(newNick)
 		editMode.value = false
 	}
@@ -55,6 +67,37 @@ function changeImg(e: any) {
 		// userStore.setUserAvatar()
 	}
 }
+
+
+/* find on mozilla fetch page
+https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+
+const formData = new FormData();
+const fileField = document.querySelector('input[type="file"]');
+
+formData.append('username', 'abc123');
+formData.append('avatar', fileField.files[0]);
+
+fetch('https://example.com/profile/avatar', {
+  method: 'PUT',
+  body: formData
+})
+  .then((response) => response.json())
+  .then((result) => {
+    console.log('Success:', result);
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
+
+
+
+*/
+
+
+
+
 
 </script>
 
