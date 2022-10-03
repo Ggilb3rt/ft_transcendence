@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { IUser } from "../types"
 import { RouterLink, RouterView } from "vue-router";
+import router from "./router";
 import { useUsersStore } from './stores/users';
 import { useUserStore } from './stores/user';
 // import HelloWorld from "./components/HelloWorld.vue";
@@ -16,19 +17,20 @@ users.getUsers()
 
 // if user is connected put user store on localStorage and getUsers again
 
+console.log(router.currentRoute.value)
 
 </script>
 
 <template>
   <main>
-    <header>
+    <header v-if="router.currentRoute.value.path != '/login'">
       <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
       <PrimaryNav></PrimaryNav>
     </header>
 
     <RouterView />
 
-    <Footer></Footer>
+    <Footer v-if="router.currentRoute.value.path != '/login'"></Footer>
   </main>
 </template>
 

@@ -4,44 +4,53 @@ import { storeToRefs } from 'pinia';
 import { useUserStore } from '../stores/user';
 import { useUsersStore } from '@/stores/users';
 import UserInvite from './UserInvite.vue'
+import Loader from './navigation/loader.vue';
 import { mande } from 'mande';
+import { file } from '@babel/types';
 
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-const api = mande(`http://localhost:3000/${userStore.user.id}/nick`);
+const api = mande(`http://localhost:3000/users/${userStore.user.id}/nick`);
 
 let editMode = ref(false)
+const maxNickLength = 10
 let nicknameEdit = ref("")
-let nameList: string[] = [];
-usersStore.userList.forEach((el) => {nameList.push(el.nickname)})
+// let nameList: string[] = [];
+// usersStore.userList.forEach((el) => {nameList.push(el.nickname)})
+
+// function filteredNames() {
+// 	return nameList.filter((name) => name === (nicknameEdit.value))
+// }
 
 function filteredNames() {
-	return nameList.filter((name) => name === (nicknameEdit.value))
+  return usersStore.userList.filter((el) => el.nickname === nicknameEdit.value)
 }
 
 function freeNick(newNick: string): boolean {
-	for (let i = 0; i != nameList.length; i++) {
-		if (nameList[i] == newNick)
-			return false
-	}
-	return true
+  return filteredNames().length > 0 ? false : true
+  // for (let i = 0; i != nameList.length; i++) {
+	// 	if (nameList[i] == newNick)
+	// 		return false
+	// }
+	// return true
 }
 
 async function validNickChange(newNick: string) {
-	if (freeNick(newNick) && newNick.length > 0) {
+	if (freeNick(newNick) && (newNick.length > 0 && newNick.length <= maxNickLength)) {
 		// await server validation
-		// try {
-		// 	await api.post({
-		// 		nickname: newNick
-		// 	})
-		// 	.then((data) => {
-		// 		console.log('data from change nick', data)
-		// 	})
-		// } catch (error) {
-		// 	console.log('change nick err', error)
-		// }
+		try {
+			await api.post({
+				nickname: newNick
+			})
+			.then((data) => {
+				console.log('data from change nick', data)
+			})
+		} catch (error) {
+			console.log('change nick err', error)
+		}
 		userStore.setUserNick(newNick)
+    usersStore.changUserNick(userStore.user.id, newNick)
 		editMode.value = false
 	}
 }
@@ -57,14 +66,32 @@ watch(nicknameEdit, () => {
 
 
 let editImg = ref("")
+const validFileFormat = ["image/jpeg", "image/png", "image/gif", "image/svg+xml"]
 function changeImg(e: any) {
 	if (e) {
-		const img = e.target.files[0]
 		let formData = new FormData();
-		// formData.append('file', this.file);
+		const img = e.target.files[0]
+    // const fileField = document.getElementById("changeAvatar") // img == fileField.files[0] (cf console.log plus bas)
+
+
+    // check if file is img
+    
+
+    // formData.append('avatar', fileField.files[0]);
+		formData.append('avatar', img);
+
 		confirm("Change your avatar ?" + img)
+    // console.log(formData)
+    // console.log(img)
+    // console.log(fileField.files[0])
+
+
+    for (const [key, value] of formData) {
+      console.log(key, value)
+    }
 		// must send to server and wait his response with the server url
-		// userStore.setUserAvatar()
+      // update stores with new avatar_url
+      // userStore.setUserAvatar()
 	}
 }
 
@@ -110,6 +137,7 @@ fetch('https://example.com/profile/avatar', {
         <div>
             <p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
             <p class="heroTag">
+                <Loader></Loader>
                 <div v-if="editMode">
                     <span>
                         @<input
@@ -121,8 +149,9 @@ fetch('https://example.com/profile/avatar', {
                             >
                     </span>
                     <button @click="editMode = !editMode">X</button>
-                    <button @click="validNickChange(nicknameEdit)" :class="{cant_click: filteredNames().length}">Change</button>
+                    <button @click="validNickChange(nicknameEdit)" :class="{cant_click: (filteredNames().length || nicknameEdit.length > maxNickLength)}">Change</button>
                     <div v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</div>
+                    <div v-if="nicknameEdit.length > maxNickLength">Too long</div>
                 </div>
                 <div v-else>
                     <a href="#">{{ userStore.getUserNick() }}</a>

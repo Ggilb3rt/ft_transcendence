@@ -53,7 +53,7 @@ fclean: clean
 go_front:
 	docker exec -ti ft_transcendence_front_1 bash
 go_back:
-	docker exec -ti ft_transcendence_back_1 bash
+	docker exec -ti ft_transcendence-back-1 bash
 go_bdd:
 	docker exec -ti ft_transcendence_postgres_1 bash
 

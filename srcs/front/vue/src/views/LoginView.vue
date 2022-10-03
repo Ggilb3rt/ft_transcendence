@@ -10,10 +10,10 @@ const user = useUserStore()
 const { getUser } = user
 const selectedUser = ref(1)
 
-function selectUser(e: Event) {
+async function selectUser(e: Event) {
     e.preventDefault()
     console.log(selectedUser)
-    getUser(selectedUser.value);
+    await getUser(selectedUser.value);
     router.push("/")
 }
 
@@ -26,7 +26,7 @@ function selectUser(e: Event) {
         <h1>Select your user with his id</h1>
         <form @keypress.enter="selectUser($event)">
             <input type="number" v-model="selectedUser">
-            <input type="submit" @click="selectUser($event)">
+            <input type="submit" @keypress.enter="selectUser($event)" @click="selectUser($event)">
         </form>
     </div>
 </template>

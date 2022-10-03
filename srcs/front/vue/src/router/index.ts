@@ -7,7 +7,8 @@ import Chat2 from "../views/ChatView2.vue";
 import Login from "../views/LoginView.vue"
 import DashOther from "@/views/DashOtherView.vue";
 import path from "path";
-
+import { useUsersStore } from "@/stores/users";
+import { useUserStore } from "@/stores/user";
 
 type gameList = 'pong' | 'catPong'
 
@@ -56,9 +57,14 @@ const router = createRouter({
       // ]
     },
     {
-      path: "/dashboard/:id",
+      path: "/user/:id",
       name: "dashOther",
-      component: DashOther // create UserOtherHero component
+      component: DashOther,
+      // beforeEnter: (to, from) => {
+      //   const usersStore = useUsersStore()
+
+      //   console.log(usersStore.user.first_name)
+      // }
     },
     {
       path: "/game/:ourGames?/:id?",
@@ -82,5 +88,26 @@ const router = createRouter({
     }
   ],
 });
+
+
+//! need to add a canAccess global guad naviguation with token
+router.beforeEach((to, from) => {
+  const userStore = useUserStore()
+
+  if (!userStore.connected && to.name != 'login')
+    return { name: 'login' }
+})
+
+
+router.beforeEach(async (to, from) => {
+  if (to.name == "dashOther") {
+    const usersStore = useUsersStore()
+
+    usersStore.getOtherUser(Number(to.params.id))
+    if (usersStore.error)
+      return false
+  }
+  return true
+})
 
 export default router;

@@ -108,6 +108,12 @@ export const useUsersStore = defineStore({
 
     },
     actions: {
+        changUserNick(id: number, newNick: string) {
+            this.userList.forEach((el) => {
+                if (el.id == id)
+                    el.nickname = newNick
+            })
+        },
         getUserNick(user:IUser): string {
             return `@${user.nickname}`
         },
@@ -148,7 +154,7 @@ export const useUsersStore = defineStore({
             return ("Error")
         },
         async getUsers() {
-            this.userList = []
+            // this.userList = []
             this.loading = true
             try {
                 await fetch('http://localhost:3000/users/restrict')

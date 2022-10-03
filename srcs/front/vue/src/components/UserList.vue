@@ -9,7 +9,8 @@ import type { IUser, IOtherUser } from '../../types'
 const props = defineProps<{
 	title: string,
 	user: IUser | IOtherUser,
-	list: number[]
+	list: number[],
+  canEdit?: boolean
 }>()
 
 const userStore = useUserStore()
@@ -65,7 +66,7 @@ function filterUsers() {
     <div class="usersInList" :class="{hide: !toggleList }">
       <div v-for="el in filterUsers()" :key="el.id" class="userInList">
         <UserLink :other-user="el"></UserLink>
-        <button @click="removeFriend(user, el.id)">X</button>
+        <button v-if="canEdit" @click="removeFriend(user, el.id)">X</button>
       </div>
     </div>
 	</div>

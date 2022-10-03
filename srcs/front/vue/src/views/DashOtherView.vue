@@ -7,7 +7,7 @@ import UserList from "@/components/UserList.vue";
 import UserBasicsOther from "@/components/UserBasicsOther.vue";
 import { useUsersStore } from "@/stores/users";
 import router from "@/router";
-
+import { onBeforeRouteUpdate } from "vue-router";
 
 const usersStore = useUsersStore()
 
@@ -18,22 +18,6 @@ const usersStore = useUsersStore()
   // usersStore.getOtherUser(Number(userId))
 // }
 
-watch(
-  () => router.currentRoute.value.params,
-  (toParams, previousParams) => {
-        console.log('goooooo ', toParams)
-        console.log('go ', previousParams)
-      if (toParams.id)
-        usersStore.getOtherUser(Number(toParams.id))
-
-        // react to route changes...
-      }
-)
-
-
-// watch(nicknameEdit, () => {
-// 	nicknameEdit.value = removeSpecialChar(nicknameEdit.value)
-// })
 
 </script>
 

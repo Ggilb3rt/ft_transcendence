@@ -77,7 +77,7 @@ export const useUserStore = defineStore({
         },
         getUserAvatar() {
             if (this.user.avatar_url)
-                return `/${this.user.avatar_url}`
+                return `${this.user.avatar_url}`
         },
         setUserAvatar(url:string) {
             if (this.user)
@@ -128,6 +128,7 @@ export const useUserStore = defineStore({
                             this.user.ban_users_ban_users_idTousers = this.user.ban_users_ban_users_idTousers
                             this.user = data
                             this.error = null
+                            this.connected = true
                         }
                     })
             } catch (error: any) {
@@ -158,7 +159,6 @@ export const useUserStore = defineStore({
                 if (!this.user.match_history && !this.error)
                     this.user.match_history = matchsHistory
                 this.loading = false
-                this.connected = true
             }
         },
     },
