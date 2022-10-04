@@ -16,12 +16,6 @@ const api = mande(`http://localhost:3000/users/${userStore.user.id}/nick`);
 let editMode = ref(false)
 const maxNickLength = 10
 let nicknameEdit = ref("")
-// let nameList: string[] = [];
-// usersStore.userList.forEach((el) => {nameList.push(el.nickname)})
-
-// function filteredNames() {
-// 	return nameList.filter((name) => name === (nicknameEdit.value))
-// }
 
 function filteredNames() {
   return usersStore.userList.filter((el) => el.nickname === nicknameEdit.value)
@@ -29,11 +23,6 @@ function filteredNames() {
 
 function freeNick(newNick: string): boolean {
   return filteredNames().length > 0 ? false : true
-  // for (let i = 0; i != nameList.length; i++) {
-	// 	if (nameList[i] == newNick)
-	// 		return false
-	// }
-	// return true
 }
 
 async function validNickChange(newNick: string) {
@@ -65,8 +54,8 @@ watch(nicknameEdit, () => {
 
 
 
-let editImg = ref("")
 let MIMEtypeError = ref(false)
+let sizeFileError = ref(false)
 
 function validMIMEtype(file: any): boolean {
   if (file === undefined)
@@ -83,6 +72,14 @@ function validMIMEtype(file: any): boolean {
   return false
 }
 
+function validFileSize(file: any): boolean {
+  const maxFilseSize = 3000000
+
+  if (file && file.size <= maxFilseSize)
+    return true
+  return false
+}
+
 function changeImg(e: any) {
 	if (e) {
 		let formData = new FormData();
@@ -95,6 +92,11 @@ function changeImg(e: any) {
     MIMEtypeError.value = false
     if (!validMIMEtype(img)) {
       MIMEtypeError.value = true
+      return
+    }
+    sizeFileError.value = false
+    if (!validFileSize(img)) {
+      sizeFileError.value = true
       return
     }
 
@@ -152,6 +154,7 @@ fetch('https://example.com/profile/avatar', {
             <img class="heroAvatar" :src="userStore.getUserAvatar()" :alt="userStore.user.nickname + ' avatar'">
             <input type="file" @change="changeImg( $event )" id="changeAvatar">
             <p v-if="MIMEtypeError" class="red">Invalid file format</p>
+            <p v-if="sizeFileError" class="red">File size must be &lt= 3Mo</p>
         </figure>
         <div>
             <p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
