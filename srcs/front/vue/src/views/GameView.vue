@@ -1,15 +1,172 @@
 <script>
 import GameComp from "@/components/GameComp.vue";
-export default {
-    components: {
-        GameComp
-    }
-}
+import io from "socket.io-client";
 
+export default {
+  name: "GamePong",
+  components: {
+    GameComp,
+  },
+  data() {
+    return {
+      socket: null,
+      playerNumber: 0,
+      gameActive: false,
+      startGame: false,
+      gameCode: "",
+      score: {
+        playerOne: "0",
+        playerTwo: "0",
+      },
+    };
+  },
+  created() {
+    this.socket = io("http://localhost:3000");
+
+    this.socket.on("init", this.handleInit);
+    //this.socket.on("gameState", this.handleGameState);
+    //this.socket.on("gameOver", this.handleGameOver);
+    this.socket.on("gameCode", this.handleGameCode);
+    this.socket.on("unknownGame", this.handleUnknownGame);
+    this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
+    this.socket.on("disconnected", this.handleDisconnected);
+    this.socket.on("reMatch", this.handleReMatch);
+    this.socket.on("quitGame", this.handleQuitGame);
+  },
+  //mounted() {
+  //},
+  unmounted() {
+    this.socket.close();
+  },
+  methods: {
+    init() {
+      console.log("init");
+      this.gameActive = true;
+    },
+    handleInit(number) {
+      console.log("handle init");
+      this.playerNumber = number;
+      if (this.playerNumber === 2) {
+        this.startGame = true;
+      }
+    },
+    handleGameState(gameState) {
+      console.log("handle game state");
+      if (!this.gameActive) {
+        return;
+      }
+      gameState = JSON.parse(gameState);
+      this.gameCode = gameState.roomName;
+      this.score.playerOne = gameState.players[0].match_score;
+      this.score.playerTwo = gameState.players[1].match_score;
+    },
+    handleGameOver(data) {
+      console.log("handle game over");
+      if (!this.gameActive) {
+        return;
+      }
+      data = JSON.parse(data);
+      this.score.playerOne = data.state.players[0].match_score;
+      this.score.playerTwo = data.state.players[1].match_score;
+
+      if (data.winner === this.playerNumber) {
+        //alert("You win !");
+        console.log("You win !");
+      } else {
+        console.log("You lose !");
+        //alert("You lost !");
+      }
+      this.gameActive = false;
+    },
+    handleGameCode(gameCode) {
+      console.log("handle game code");
+      this.$refs.gameCodeDisplay.innerText = gameCode;
+    },
+    handleUnknownGame() {
+      this.reset();
+      alert("Unknown game code");
+    },
+    handleTooManyPlayers() {
+      this.reset();
+      alert("This game is already in progress");
+    },
+    newGame() {
+      console.log("new game");
+      this.socket.emit("newGame");
+      this.init();
+    },
+    joinGame() {
+      console.log("join game");
+
+      const code = this.gameCode;
+      this.socket.emit("joinGame", code);
+      this.init();
+    },
+    reset() {
+      console.log("reset");
+      this.playerNumber = null;
+      this.gameCode = "";
+      this.$refs.gameCodeDisplay.innerText = "";
+    },
+    handleDisconnected() {
+      console.log("You have been disconnected");
+      this.gameActive = false;
+      this.reset();
+      //this.socket.close();
+      //alert("You have been disconnected !");
+      //this.socket.delete("http://localhost:3000"); // ?????
+    },
+    reMatch() {
+      if (this.gameActive) {
+        return;
+      }
+      this.socket.emit("reMatch", JSON.stringify(this.gameCode));
+    },
+    handleReMatch(msg) {
+      this.gameActive = true;
+      msg = JSON.parse(msg);
+      console.log(msg);
+    },
+    quitGame() {
+      this.socket.emit("quitGame", JSON.stringify(this.gameCode));
+    },
+    handleQuitGame(msg) {
+      this.gameActive = false;
+      this.reset();
+      msg = JSON.parse(msg);
+      console.log(msg);
+    },
+  },
+};
 </script>
 
 <template>
-  <GameComp />
+  <div v-show="!gameActive">
+    <h1>Multiplayer Pong</h1>
+    <button type="submit" @click.prevent="newGame">Create New Game</button>
+    <div>OR</div>
+    <div class="form-group">
+      <input v-model="gameCode" type="text" placeholder="Enter Game Code" />
+      <button type="submit" @click.prevent="joinGame">Join Game</button>
+    </div>
+  </div>
+
+  <div v-show="gameActive">
+    <h1>THE GAME</h1>
+    <h1>
+      Your game code is:
+      <span id="gameCodeDisplay" ref="gameCodeDisplay"></span>
+    </h1>
+    <GameComp
+      :socket="this.socket"
+      :playerNumber="this.playerNumber"
+      :startGame="this.startGame"
+      :gameCode="this.gameCode"
+      :score="this.score"
+    />
+    <button type="submit" @click.prevent="reMatch">Re-Match !</button>
+    <button type="submit" @click.prevent="quitGame">Quit</button>
+  </div>
 </template>
 
 <style></style>
