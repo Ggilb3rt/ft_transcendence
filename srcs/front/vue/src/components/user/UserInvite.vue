@@ -33,7 +33,7 @@ function filterUsers(): IOtherUserRestrict[] {
 	<div class="invites" v-if="userStore.user.invites != undefined && userStore.user.invites.length > 0">
 		<h3>Some new friends</h3>
 		<div v-for="invite in filterUsers()" :key="invite.id" class="new_friend">
-			<UserLink :other-user="invite" remove-img></UserLink>
+			<UserLink :other-user="invite" remove-img remove-status></UserLink>
 			<button @click="resInvite(true, invite.id)">Accept</button>
 			<button @click="resInvite(false, invite.id)">Refuse</button>
 		</div>

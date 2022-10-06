@@ -92,10 +92,12 @@ function filterUsers() {
   /* don't known if needed */
 }
 
+/* Need an update, cf dashboard when hover*/
 .listOfUsers .usersInList .userInList button {
 	position: absolute;
 	top: -5px;
 	right: -5px;
+  z-index: 16;
 	color: #fff;
 	background: var(--global-c-red);
 	border: 1px solid var(--global-c-red-hover);

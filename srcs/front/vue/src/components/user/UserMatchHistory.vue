@@ -42,7 +42,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
                         </p>
                     </div>
                     <div class="opponent">
-                        <UserLink :other-user="findOpponent(match.opponent)"></UserLink>
+                        <UserLink :other-user="findOpponent(match.opponent)" remove-status></UserLink>
                         <!-- <img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
                         <p>@dark_sasuke</p> -->
                     </div>
