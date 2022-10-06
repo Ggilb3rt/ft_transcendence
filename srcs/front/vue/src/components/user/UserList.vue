@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
-import { useUserStore } from '../stores/user'
+import { useUserStore } from '@/stores/user'
 import { useUsersStore } from '@/stores/users'
 import UserLink from "./UserLink.vue";
-import type { IUser, IOtherUser } from '../../types'
+import type { IUser, IOtherUser } from '@/types'
 
 const props = defineProps<{
 	title: string,
@@ -61,7 +61,12 @@ function filterUsers() {
 
 <template>
 	<div class="listOfUsers">
-		<h1 @click="toggleList = !toggleList">{{ props.title }}</h1>
+		<h1 
+      @click="toggleList = !toggleList"
+      :class="{
+            triangleUp: toggleList && props.list.length != 0,
+            triangleDown: !toggleList && props.list.length != 0}"
+    >{{ props.title }}</h1>
     <p v-if="props.list == null || props.list.length == 0">Nobody here</p>
     <div class="usersInList" :class="{hide: !toggleList }">
       <div v-for="el in filterUsers()" :key="el.id" class="userInList">

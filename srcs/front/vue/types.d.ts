@@ -1,3 +1,5 @@
+export type status = "available" | "disconnected" | "inGame"
+
 export interface IUser {
     id: number;
     two_factor_auth: boolean;

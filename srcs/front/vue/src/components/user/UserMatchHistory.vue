@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useUserStore } from '../stores/user'
-import { useUsersStore } from '../stores/users'
-import type { IUser, IOtherUserRestrict } from '../../types'
+import { useUserStore } from '@/stores/user'
+import { useUsersStore } from '@/stores/users'
+import type { IUser, IOtherUserRestrict } from '@/types'
 import UserLink from './UserLink.vue'
 
 
@@ -22,7 +22,12 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
 
 <template>
     <div>
-        <h1 @click="toggleMatch = !toggleMatch">Match History</h1>
+        <h1
+          @click="toggleMatch = !toggleMatch"
+          :class="{
+            triangleUp: toggleMatch && userStore.user.match_history != null,
+            triangleDown: !toggleMatch && userStore.user.match_history != null}"
+        >Match History</h1>
         <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="userStore.user.match_history != null">
             <div v-for="match in userStore.user.match_history" :key="match.opponent">
                 <div :class="{win: match.win, loose:!match.win}" class="matchResume">

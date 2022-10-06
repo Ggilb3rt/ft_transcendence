@@ -117,7 +117,9 @@ class UsersService {
             },
             ban_users_ban_users_idTousers: {
               select:{banned_id:true}
-            }
+            },
+            match_match_player_left_idTousers:true,
+            match_match_player_right_idTousers:true
           }
         })
         user.friends = convertUserList(user.friends)
@@ -258,7 +260,8 @@ class UsersService {
             ranking:true,
             wins:true,
             loses:true,
-            match_match_player_left_idTousers:true
+            match_match_player_left_idTousers:true,
+            match_match_player_right_idTousers:true
             }
       })
         users.friends = convertUserList(users.friends)

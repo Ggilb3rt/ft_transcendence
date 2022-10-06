@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/user';
-import { useUsersStore } from '../stores/users';
+import { useUserStore } from '@/stores/user';
+import { useUsersStore } from '@/stores/users';
 import UserLink from './UserLink.vue';
-import type { IUser, IOtherUserRestrict } from '../../types';
+import type { IUser, IOtherUserRestrict } from '@/types';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()

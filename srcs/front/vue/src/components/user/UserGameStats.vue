@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
 // import { useUserStore } from '../stores/user';
-import type { IUser, IOtherUser} from '../../types'
+import type { IUser, IOtherUser} from '@/types'
 
 
 const props = defineProps<{
@@ -47,7 +47,7 @@ console.log('props ', props)
 }
 .heroGameStat {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   font-family: "Inder", sans-serif;
   font-style: normal;
   font-weight: 400;
@@ -57,6 +57,13 @@ console.log('props ', props)
   font-size: 20px;
   line-height: 25px;
   color: #fff;
+}
+
+@media screen and (min-width: 400px) {
+	.heroGameStat {
+		flex-direction: row;
+    justify-content: space-between;
+	}
 }
 
 </style>

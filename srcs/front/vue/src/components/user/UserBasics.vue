@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/user';
+import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
 import UserInvite from './UserInvite.vue'
-import Loader from './navigation/loader.vue';
+import Loader from '../navigation/loader.vue';
 import { mande } from 'mande';
 import { file } from '@babel/types';
 

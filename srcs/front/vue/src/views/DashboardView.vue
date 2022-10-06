@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UserHero from "@/components/UserHero.vue";
+import UserHero from "@/components/user/UserHero.vue";
 
 </script>
 
