@@ -71,7 +71,7 @@ function filterUsers() {
     <div class="usersInList" :class="{hide: !toggleList }">
       <div v-for="el in filterUsers()" :key="el.id" class="userInList">
         <UserLink :other-user="el"></UserLink>
-        <button v-if="canEdit" @click="removeFriend(user, el.id)">X</button>
+        <button v-if="canEdit" @click="userStore.removeFriendOrBan(el.id)">X</button>
       </div>
     </div>
 	</div>

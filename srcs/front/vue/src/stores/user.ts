@@ -65,9 +65,10 @@ export const useUserStore = defineStore({
         // },
         getWinRate: (state): string => {
             return (state.user.wins / state.user.loses).toPrecision(2)
-        }
+        },
     },
     actions: {
+        // getters and setters
         getUserNick(): string {
             return `@${this.user.nickname}`
         },
@@ -82,11 +83,6 @@ export const useUserStore = defineStore({
         setUserAvatar(url:string) {
             if (this.user)
                 this.user.avatar_url = url
-        },
-        addFriend(id: number) {
-            if (id && (this.user.friends.find(el => el == id) == undefined)) {
-                this.user.friends.push(id)
-            }
         },
         getUserLevel(): string {
             switch (this.user.ranking) {
@@ -161,5 +157,42 @@ export const useUserStore = defineStore({
                 this.loading = false
             }
         },
+
+        // Manage Friends and Bans
+        isFriends(id: number): boolean {
+            if (this.user.friends)
+                return this.user.friends.includes(id)
+            return false
+        },
+        isBan(id: number): boolean {
+            if (this.user.ban_users_ban_users_idTousers)
+                return this.user.ban_users_ban_users_idTousers.includes(id)
+            return false
+        },
+        async addFriend(id: number) {
+            if (id && !(this.isFriends(id))) {
+                // send info to back and wait for res
+                this.user.friends.push(id)
+            }
+        },
+        async addBan(id: number) {
+            
+        },
+        async removeFriendOrBan(id: number) {
+            if (id && this.isFriends(id)) {
+                const index = this.user.friends.indexOf(id, 0)
+                if(confirm(`Remove ${id} from your friends ?`)) {
+                    // send info to back and wait for res
+                    this.user.friends.splice(index, 1)
+                }
+            }
+            if (id && this.isBan(id)) {
+                const index = this.user.ban_users_ban_users_idTousers.indexOf(id, 0)
+                if(confirm(`Remove ${id} from your bans ?`)) {
+                    // send info to back and wait for res
+                    this.user.ban_users_ban_users_idTousers.splice(index, 1)
+                }
+            }
+        }
     },
 })
