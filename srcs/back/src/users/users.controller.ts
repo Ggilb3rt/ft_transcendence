@@ -1,6 +1,9 @@
-import { Body, Controller, Get, Post, Param } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { CreateUserDto } from './createUserDto';
+import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
+const prisma = new PrismaClient();
 
 
 @Controller('users')
@@ -8,13 +11,12 @@ export class UsersController {
     constructor(private usersService: UsersService) {}
 
     @Post()
-    create(@Body('userBDD') user: Prisma.usersSelect) {
-        console.log("Body == ", user);
+    create(@Body('userBDD') user: CreateUserDto) {
        return (this.usersService.postOneUser(user));
     }
 
     @Get()
-    getAllUsers() {
+    async getAllUsers() {
        return (this.usersService.getAllUsers())
     }
 
@@ -23,41 +25,42 @@ export class UsersController {
        return (this.usersService.getUsersRestrict())
     }
     @Get(':id/other')
-    getOther(@Param() param) {
-       return (this.usersService.getOtherUser(parseInt(param.id)))
+    getOther(@Param('id', ParseIntPipe) id) {
+       return (this.usersService.getOtherUser(id))
     }
 
     @Get(':id')
-    getOneUser(@Param() param) {
-        console.log("user id: " + param.id)
-        return (this.usersService.getUserById(parseInt(param.id)))
+    getOneUser(@Param('id', ParseIntPipe) id) {
+        return (this.usersService.getUserById(id))
     }
 
     @Get(':id/friends')
-    getFriends(@Param() params) {
-        return (this.usersService.getFriends(parseInt(params.id)));
+    // @UseGuards(JwtAuthGuard)
+    getFriends(@Param('id', ParseIntPipe) id) {
+        return (this.usersService.getFriends(id));
     }
 
     @Post(':id/friends')
-    addFriend(@Param() params, @Body() body) {
-        console.log("\n\nBody == \n\n", body);
-        console.log("\n Params = \n", params);
-        return (this.usersService.addFriend(parseInt(params.id), body.friend));
+    @UseGuards(JwtAuthGuard)
+    addFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
+       return (this.usersService.addFriend(id, friend))
     }
 
     @Get(':id/ban')
-    getBanned(@Param() params) {
-        return (this.usersService.getBannedUsers(parseInt(params.id)));
+    @UseGuards(JwtAuthGuard)
+    getBanned(@Param('id', ParseIntPipe) id) {
+        return (this.usersService.getBannedUsers(id));
     }
 
     @Post(':id/ban')
-    banUser(@Param() params, @Body() body) {
-        return (this.usersService.banUser(parseInt(params.id), body.banned));
+    @UseGuards(JwtAuthGuard)
+    banUser(@Param('id', ParseIntPipe) id, @Body('banned', ParseIntPipe) banned) {
+        return (this.usersService.banUser(id, banned));
     }
 
     @Post(':id/nick')
-    changeNickname(@Param() params, @Body() body) {
-        console.log("\ninside controller\n",params, body.nickname)
-        return (this.usersService.changeNickname(parseInt(params.id), body.nickname))
+    @UseGuards(JwtAuthGuard)
+    changeNickname(@Param('id', ParseIntPipe) id, @Body('nickname') nick: string) {
+        return (this.usersService.changeNickname(id, nick))
     }
 }
