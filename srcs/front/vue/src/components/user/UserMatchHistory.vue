@@ -30,6 +30,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
         >Match History</h1>
         <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="userStore.user.match_history != null">
             <div v-for="match in userStore.user.match_history" :key="match.opponent">
+              <!-- {{ match.date.getDate()+"/"+(match.date.getMonth() + 1)+"/"+match.date.getFullYear()+" "+match.date.getHours()+":"+match.date.getMinutes()+":"+match.date.getSeconds() }} -->
                 <div :class="{win: match.win, loose:!match.win}" class="matchResume">
                     <div class="me">
                         <img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">

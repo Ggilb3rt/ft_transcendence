@@ -15,13 +15,15 @@ const matchsHistory = [
       opponent: 2,
       win: true,
       myScore: 7,
-      opponentScore: 3
+      opponentScore: 3,
+      date: new Date()
     },
     {
       opponent: 3,
       win: false,
       myScore: 3,
-      opponentScore: 5
+      opponentScore: 5,
+      date: new Date()
     }
 ]
 
@@ -192,6 +194,9 @@ export const useUsersStore = defineStore({
             } catch (error: any) {
                 this.error = error
             } finally {
+                if (!this.user.match_history && !this.error) {
+                    this.user.match_history = matchsHistory
+                }
                 this.loading = false
             }
         },

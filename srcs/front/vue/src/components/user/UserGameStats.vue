@@ -30,7 +30,7 @@ console.log('props ', props)
       </div>
       <div>
         <h3>Last win</h3>
-        <p class="lastWin statVal">7 - 3</p>
+        <p class="lastWin statVal" v-if="props.user.match_history">{{ props.user.match_history[0].myScore }} - {{ props.user.match_history[0].opponentScore}}</p>
       </div>
     </div>
     <hr>

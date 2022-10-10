@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import type { IUser } from '../../types'
+import type { IMatchHistory, IUser, IMatch } from '../../types'
 // import { mande } from 'mande'
 
 export interface IUserStoreState {
@@ -152,10 +152,78 @@ export const useUserStore = defineStore({
                 //     this.user.ban_users_ban_users_idTousers = [0, 11, 22, 45, 7, 2]
                 if (!this.user.invites && !this.error)
                     this.user.invites = [4, 1]
-                if (!this.user.match_history && !this.error)
-                    this.user.match_history = matchsHistory
+                if (!this.user.match_history && !this.error) {
+                    //this.user.match_history = matchsHistory
+                    
+                    this.user.match_history = new Array()
+                    if (this.user.match_match_player_left_idTousers) {
+                        this.user.match_match_player_left_idTousers.forEach(el => {
+                            const match : IMatchHistory = {
+                                opponent: el.player_right_id,
+                                myScore: el.score_left,
+                                opponentScore: el.score_right,
+                                win: (el.score_left > el.score_right),
+                                date: new Date()
+                            }
+                            this.user.match_history.push(match)
+                        })
+                        this.user.match_match_player_left_idTousers = null
+                    }
+                    if (this.user.match_match_player_right_idTousers) {
+                        this.user.match_match_player_right_idTousers.forEach(el => {
+                            const match : IMatchHistory = {
+                                opponent: el.player_left_id,
+                                myScore: el.score_right,
+                                opponentScore: el.score_left,
+                                win: (el.score_right > el.score_left),
+                                date: new Date()
+                            }
+                            this.user.match_history.push(match)
+                        })
+                        this.user.match_match_player_right_idTousers = null
+                    }
+                    
+                    // this.user.match_history = this.createMatch_history(this.user.match_match_player_left_idTousers, this.user.match_match_player_right_idTousers)
+                    // this.user.match_match_player_left_idTousers = null
+                    // this.user.match_match_player_right_idTousers = null
+                    // need to sort the match history array by date
+
+                }
                 this.loading = false
             }
+        },
+
+        //!!! need to make it async but don't want to return promise...
+        createMatch_history(leftMatchs: IMatch[] | null, rightMatchs: IMatch[] | null): IMatchHistory[] {
+            let matchs: IMatchHistory[] = new Array()
+
+            if (leftMatchs) {
+                leftMatchs.forEach(el => {
+                    const match : IMatchHistory = {
+                        opponent: el.player_right_id,
+                        myScore: el.score_left,
+                        opponentScore: el.score_right,
+                        win: (el.score_left > el.score_right),
+                        date: new Date()
+                    }
+                    this.user.match_history.push(match)
+                })
+                // leftMatchs = null
+            }
+            if (rightMatchs) {
+                rightMatchs.forEach(el => {
+                    const match : IMatchHistory = {
+                        opponent: el.player_left_id,
+                        myScore: el.score_right,
+                        opponentScore: el.score_left,
+                        win: (el.score_right > el.score_left),
+                        date: new Date()
+                    }
+                    this.user.match_history.push(match)
+                })
+                // rightMatchs = null
+            }
+            return matchs
         },
 
         // Manage Friends and Bans
@@ -169,14 +237,35 @@ export const useUserStore = defineStore({
                 return this.user.ban_users_ban_users_idTousers.includes(id)
             return false
         },
+        isInvite(id: number): boolean {
+            console.log("is in invite list", id)
+            if (this.user.invites)
+                return this.user.invites.includes(id)
+            return false
+        },
         async addFriend(id: number) {
             if (id && !(this.isFriends(id))) {
+                if (this.isBan(id))
+                    if (confirm("Remove from bans before add to friends"))
+                        this.removeFriendOrBan(id)
+                    else
+                        return
                 // send info to back and wait for res
+                if (this.isInvite(id))
+                    this.user.invites = this.user.invites.filter(item => item != id)
                 this.user.friends.push(id)
             }
         },
         async addBan(id: number) {
-            
+            if (id && !(this.isBan(id))) {
+                if (this.isFriends(id))
+                    if (confirm("Remove from friends before ban ?"))
+                        this.removeFriendOrBan(id)
+                    else
+                        return
+                // send info to back and wait for res
+                this.user.ban_users_ban_users_idTousers.push(id)
+            }
         },
         async removeFriendOrBan(id: number) {
             if (id && this.isFriends(id)) {
