@@ -21,6 +21,7 @@ export class AuthController {
 
     const { accessToken } = this.jwtAuthService.login(req.user);
     console.log("\n\naccess token == ", accessToken, "\n\n")
+    console.log("\n\nvalidate == ", this.jwtAuthService.validate(accessToken), "\n\n")
     res.cookie('jwt', accessToken, {
       httpOnly: true,
       sameSite: 'lax',

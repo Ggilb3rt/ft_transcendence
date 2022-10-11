@@ -23,18 +23,20 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
+      passReqToCallback: true
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(req, payload: JwtPayload) {
 
     console.log(payload);
   const {username} = payload;
   const id = payload.sub;
 
+  // console.log("req = ", req.params.id)
   const isGoodOne = await prisma.users.findFirst({where:{id}})
-  if (!isGoodOne)
-    throw new HttpException("User doesn't exists", HttpStatus.FORBIDDEN)
+  if (!isGoodOne || (req.params.id != id))
+    throw new HttpException("Invalid Token", HttpStatus.FORBIDDEN)
   return { id, username };
   }
 }
