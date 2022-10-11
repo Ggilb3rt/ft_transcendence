@@ -1,7 +1,6 @@
 import { ConsoleLogger, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { PrismaClient } from '@prisma/client'
-import console from 'console';
 import { stringify } from 'querystring';
 
   const prisma = new PrismaClient();

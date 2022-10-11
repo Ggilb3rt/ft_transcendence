@@ -8,6 +8,7 @@ import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
 import UserBasics from './UserBasics.vue';
 import type { IUser } from '@/types';
+import { mande } from 'mande';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -33,8 +34,21 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 
 */
 
-function change2FA() {
+async function change2FA() {
 	// send to server
+	try {
+		const api = mande(`http://localhost:3000/users/${userStore.user.id}/2FA`);
+		await api.post({
+			two_factor_auth: !userStore.user.two_factor_auth
+		})
+		.then((data) => {
+			console.log('data from change nick', data)
+		})
+	} catch (error: any) {
+		console.log('change nick err', error)
+		userStore.error = error
+		// return
+	}
 	userStore.user.two_factor_auth = !userStore.user.two_factor_auth
 }
 

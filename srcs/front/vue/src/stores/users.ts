@@ -117,9 +117,11 @@ export const useUsersStore = defineStore({
     },
     actions: {
         changUserNick(id: number, newNick: string) {
-            this.userList.forEach((el) => {
-                if (el.id == id)
+            this.userList.some((el) => {
+                if (el.id == id) {
                     el.nickname = newNick
+                    return
+                }
             })
         },
         getUserNick(user:IUser): string {
@@ -128,6 +130,14 @@ export const useUsersStore = defineStore({
         getUserHref(user:IOtherUserRestrict): string {
             return '/' + user.id
         },
+        changeUserAvatar(id: number, newAvatar: string) {
+            this.userList.some((el) => {
+                if (el.id == id) {
+                    el.avatar_url = newAvatar
+                    return
+                }
+            })
+        },
         getUserWinRate(): string {
             if (this.user)
                 return (this.user.wins / this.user.loses).toPrecision(2)
@@ -135,34 +145,33 @@ export const useUsersStore = defineStore({
         },
         getUserLevel(): string {
             if (this.user) {
-            switch (this.user.ranking) {
-                case 0:
-                    return ("Pipou")
-                    break
-                case 1:
-                    return ("Adept")
-                    break
-                case 2:
-                    return ("Pongger")
-                    break
-                case 3:
-                    return ("Your body is ready")
-                    break
-                case 4:
-                    return ("Master")
-                    break
-                case 5:
-                    return ("God")
-                    break
-                default:
-                    return ("Prrrrt")
-                    break
-            }
+                switch (this.user.ranking) {
+                    case 0:
+                        return ("Pipou")
+                        break
+                    case 1:
+                        return ("Adept")
+                        break
+                    case 2:
+                        return ("Pongger")
+                        break
+                    case 3:
+                        return ("Your body is ready")
+                        break
+                    case 4:
+                        return ("Master")
+                        break
+                    case 5:
+                        return ("God")
+                        break
+                    default:
+                        return ("Prrrrt")
+                        break
+                }
             }
             return ("Error")
         },
         async getUsers() {
-            // this.userList = []
             this.loading = true
             try {
                 await fetch('http://localhost:3000/users/restrict')
@@ -199,6 +208,7 @@ export const useUsersStore = defineStore({
                     })
             } catch (error: any) {
                 this.error = error
+                return
             } finally {
                 if (!this.user.match_history && !this.error) {
                     // this.user.match_history = matchsHistory

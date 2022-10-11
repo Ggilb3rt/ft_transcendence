@@ -11,32 +11,35 @@ import { file } from '@babel/types';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-const api = mande(`http://localhost:3000/users/${userStore.user.id}/nick`);
 
 let editMode = ref(false)
+
 const maxNickLength = 10
 let nicknameEdit = ref("")
 
 function filteredNames() {
-  return usersStore.userList.filter((el) => el.nickname === nicknameEdit.value)
+	return usersStore.userList.filter((el) => el.nickname === nicknameEdit.value)
 }
 
 function freeNick(newNick: string): boolean {
-  return filteredNames().length > 0 ? false : true
+	return filteredNames().length > 0 ? false : true
 }
 
 async function validNickChange(newNick: string) {
 	if (freeNick(newNick) && (newNick.length > 0 && newNick.length <= maxNickLength)) {
 		// await server validation
 		try {
+			const api = mande(`http://localhost:3000/users/${userStore.user.id}/nick`);
 			await api.post({
 				nickname: newNick
 			})
 			.then((data) => {
 				console.log('data from change nick', data)
 			})
-		} catch (error) {
+		} catch (error: any) {
 			console.log('change nick err', error)
+      userStore.error = error
+      return
 		}
 		userStore.setUserNick(newNick)
     usersStore.changUserNick(userStore.user.id, newNick)
@@ -53,7 +56,7 @@ watch(nicknameEdit, () => {
 })
 
 
-
+// Avatar Management
 let MIMEtypeError = ref(false)
 let sizeFileError = ref(false)
 
@@ -80,14 +83,14 @@ function validFileSize(file: any): boolean {
   return false
 }
 
-function changeImg(e: any) {
+async function changeImg(e: any) {
 	if (e) {
-		let formData = new FormData();
+		let newAvatar = new FormData()
 		const img = e.target.files[0]
     // const fileField = document.getElementById("changeAvatar") // img == fileField.files[0] (cf console.log plus bas)
 
-    // formData.append('avatar', fileField.files[0]);
-    formData.append('avatar', img);
+    // newAvatar.append('avatar', fileField.files[0]);
+    newAvatar.append('avatar', img)
     
     MIMEtypeError.value = false
     if (!validMIMEtype(img)) {
@@ -100,18 +103,36 @@ function changeImg(e: any) {
       return
     }
 
-		confirm("Change your avatar ?" + img)
-    // console.log(formData)
+    if (!confirm("Change your avatar ?" + img)) {
+      return
+    }
+    // console.log(newAvatar)
     // console.log(img)
-    // console.log(fileField.files[0])
+    // console.log(`fileField`, fileField.files[0])
 
 
-    for (const [key, value] of formData) {
+    for (const [key, value] of newAvatar) {
       console.log(key, value)
     }
 		// must send to server and wait his response with the server url
-      // update stores with new avatar_url
-      // userStore.setUserAvatar()
+    try {
+			const api = mande(`http://localhost:3000/users/${userStore.user.id}/avatar`);
+			await api.post({
+				avatar: newAvatar
+			})
+			.then((data) => {
+				console.log('data from change avatar ', data)
+        // need to put setUserAvatar(data) and changeUserAvatar(..) here
+			})
+		} catch (error: any) {
+			console.log('change avatar err', error)
+      userStore.error = error
+      // return
+		}
+    const servRes = "/src/assets/avatars/default.gif"
+    // update stores with new avatar_url
+    userStore.setUserAvatar(servRes)
+    usersStore.changeUserAvatar(userStore.user.id, servRes)
 	}
 }
 

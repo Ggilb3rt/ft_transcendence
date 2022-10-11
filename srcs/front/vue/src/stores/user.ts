@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import type { IMatchHistory, IUser, IMatch } from '../../types'
-// import { mande } from 'mande'
+import { mande } from 'mande'
 
 export interface IUserStoreState {
     user: IUser
@@ -70,7 +70,7 @@ export const useUserStore = defineStore({
     actions: {
         // getters and setters
         getUserNick(): string {
-            return `@${this.user.nickname}`
+            return `${this.user.nickname}`
         },
         setUserNick(newTag:string) {
             if (this.user)
@@ -83,7 +83,7 @@ export const useUserStore = defineStore({
         setUserAvatar(url:string) {
             if (this.user)
                 this.user.avatar_url = url
-        },
+        }, 
         getUserLevel(): string {
             switch (this.user.ranking) {
                 case 0:
@@ -131,25 +131,6 @@ export const useUserStore = defineStore({
                 this.error = error
             } finally {
                     // console.log(user)
-                    // this.user = user
-                    // if (!this.user.id)
-                //     this.user.id = 0
-                // if (!this.user.first_name)
-                //     this.user.first_name = 'Stanley'
-                // if (!this.user.nickname)
-                //     this.user.nickname = 'stan'
-                // if (!this.user.avatar_url)
-                //     this.user.avatar_url = "src/assets/avatars/default.jpg"
-                // if (!this.user.wins)
-                //     this.user.wins = 5
-                // if (!this.user.loses)
-                //     this.user.loses = 1
-                // if (!this.user.ranking)
-                //     this.user.ranking = Math.round(this.user.wins / this.user.loses)
-                // if (!this.user.friends)
-                //     this.user.friends = [1, 2, 3, 5]
-                // if (!this.user.ban_users_ban_users_idTousers)
-                //     this.user.ban_users_ban_users_idTousers = [0, 11, 22, 45, 7, 2]
                 if (!this.user.invites && !this.error)
                     this.user.invites = [4, 1]
                 if (!this.user.match_history && !this.error) {
@@ -251,6 +232,19 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+                try {
+                    await api.post({
+                        friend: id
+                    })
+                    .then((data) => {
+                        console.log('data add friend', data)
+                    })
+                } catch (error: any) {
+                    console.log('add friend err ', error)
+                    this.error = error
+                    return
+                }
                 if (this.isInvite(id))
                     this.user.invites = this.user.invites.filter(item => item != id)
                 this.user.friends.push(id)
@@ -264,6 +258,19 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/ban')
+                try {
+                    await api.post({
+                        banned: id
+                    })
+                    .then((data) => {
+                        console.log('data ban', data)
+                    })
+                } catch (error: any) {
+                    console.log('ban err ', error)
+                    this.error = error
+                    return
+                }
                 this.user.ban_users_ban_users_idTousers.push(id)
             }
         },
@@ -272,6 +279,19 @@ export const useUserStore = defineStore({
                 const index = this.user.friends.indexOf(id, 0)
                 if(confirm(`Remove ${id} from your friends ?`)) {
                     // send info to back and wait for res
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove')
+                    try {
+                        await api.post({
+                            friend: id
+                        })
+                        .then((data) => {
+                            console.log('remove friend ', data)
+                        })
+                    } catch (error: any) {
+                        console.log('remove friend err ', error)
+                        this.error = error
+                        return
+                    }
                     this.user.friends.splice(index, 1)
                 }
             }
@@ -279,6 +299,19 @@ export const useUserStore = defineStore({
                 const index = this.user.ban_users_ban_users_idTousers.indexOf(id, 0)
                 if(confirm(`Remove ${id} from your bans ?`)) {
                     // send info to back and wait for res
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove')
+                    try {
+                        await api.post({
+                            banned: id
+                        })
+                        .then((data) => {
+                            console.log('remove ban', data)
+                        })
+                    } catch (error: any) {
+                        console.log('remove ban err ', error)
+                        this.error = error
+                        return
+                    }
                     this.user.ban_users_ban_users_idTousers.splice(index, 1)
                 }
             }
