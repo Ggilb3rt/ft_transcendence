@@ -33,6 +33,11 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 
 */
 
+function change2FA() {
+	// send to server
+	userStore.user.two_factor_auth = !userStore.user.two_factor_auth
+}
+
 </script>
 
 <template>
@@ -45,14 +50,21 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 			:user-win-rate="userStore.getWinRate"
 		/>
 
-		<UserMatchHistory></UserMatchHistory>
-
+		<UserMatchHistory
+			:user="userStore.user"
+		/>
+		
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends" canEdit></UserList>
 		<UserList title="Ban" :user="userStore.user" :list="userStore.user.ban_users_ban_users_idTousers" canEdit></UserList>
 		
 		<div class="security">
 			<h1>Security</h1>
-			<p>User double auth : <button>Enable</button></p>
+			<p>User double auth :
+				<button @click="change2FA()">
+					<span v-if="userStore.user.two_factor_auth">Enable</span>
+					<span v-else>Disable</span>
+				</button>
+			</p>
 		</div>
 	</div>
 </template>

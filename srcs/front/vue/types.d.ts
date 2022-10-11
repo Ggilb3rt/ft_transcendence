@@ -34,7 +34,9 @@ export interface IOtherUser {
     wins: number;
     loses: number;
     friends: number[];
-    match_history: IMatchHistory[]; 
+    match_history: IMatchHistory[];
+    match_match_player_left_idTousers: IMatch[] | null;
+    match_match_player_right_idTousers: IMatch[] | null;
 }
 
 export interface IMatchHistory {

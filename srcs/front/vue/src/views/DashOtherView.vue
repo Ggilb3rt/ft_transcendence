@@ -33,7 +33,9 @@ const usersStore = useUsersStore()
         :user-win-rate="usersStore.getUserWinRate()"
       />
 
-      <UserMatchHistory></UserMatchHistory>
+      <UserMatchHistory
+        :user="usersStore.user" 
+      />
 
       <UserList title="Friends" :user="usersStore.user" :list="usersStore.user.friends"></UserList>
     </div>

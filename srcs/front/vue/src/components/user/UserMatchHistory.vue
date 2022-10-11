@@ -3,19 +3,21 @@ import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import { useUsersStore } from '@/stores/users'
-import type { IUser, IOtherUserRestrict } from '@/types'
+import type { IUser, IOtherUserRestrict, IOtherUser } from '../../../types'
 import UserLink from './UserLink.vue'
 
+const props = defineProps<{
+  user: IUser | IOtherUser
+}>()
 
-
-const userStore = useUserStore()
+// const userStore = useUserStore()
 const usersStore = useUsersStore()
 // const { getUserNick } = useUserStore()
 // const { getUserNick } = storeToRefs(user) // make getUserNick has a ref ==> reactive
 let toggleMatch = ref(true);
 
 function findOpponent(opponent: number): IOtherUserRestrict | null {
-    return usersStore.userList.filter((leuser) => userStore.user.match_history.find(el => leuser.id === opponent))[0]
+    return usersStore.userList.filter((leuser) => props.user.match_history.find(el => leuser.id === opponent))[0]
 }
 
 </script>
@@ -25,16 +27,16 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
         <h1
           @click="toggleMatch = !toggleMatch"
           :class="{
-            triangleUp: toggleMatch && userStore.user.match_history != null,
-            triangleDown: !toggleMatch && userStore.user.match_history != null}"
+            triangleUp: toggleMatch && user.match_history != null,
+            triangleDown: !toggleMatch && user.match_history != null}"
         >Match History</h1>
-        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="userStore.user.match_history != null">
-            <div v-for="match in userStore.user.match_history" :key="match.opponent">
+        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null">
+            <div v-for="match in user.match_history" :key="match.opponent">
               <!-- {{ match.date.getDate()+"/"+(match.date.getMonth() + 1)+"/"+match.date.getFullYear()+" "+match.date.getHours()+":"+match.date.getMinutes()+":"+match.date.getSeconds() }} -->
                 <div :class="{win: match.win, loose:!match.win}" class="matchResume">
                     <div class="me">
-                        <img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
-                        <p>{{userStore.getUserNick()}}</p>
+                        <img class="userAvatar" :src="user.avatar_url" :alt="user.nickname + ' avatar'">
+                        <p>{{ user.nickname }}</p>
                     </div>
                     <div class="score">
                         <p>
@@ -44,7 +46,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
                     </div>
                     <div class="opponent">
                         <UserLink :other-user="findOpponent(match.opponent)" remove-status></UserLink>
-                        <!-- <img class="userAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
+                        <!-- <img class="userAvatar" :src="user.avatar_url" :alt="user.nickname + ' avatar'">
                         <p>@dark_sasuke</p> -->
                     </div>
                 </div>

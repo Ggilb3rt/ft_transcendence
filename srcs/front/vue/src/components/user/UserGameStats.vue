@@ -10,7 +10,6 @@ const props = defineProps<{
   userWinRate: string
 }>()
 
-console.log('props ', props)
 // const userStore = useUserStore()
 // const { getUserLevel } = useUserStore()
 
@@ -29,7 +28,7 @@ console.log('props ', props)
         <p class="winRate statVal">{{ props.userWinRate }}</p>
       </div>
       <div>
-        <h3>Last win</h3>
+        <h3>Last battle</h3>
         <p class="lastWin statVal" v-if="props.user.match_history">{{ props.user.match_history[0].myScore }} - {{ props.user.match_history[0].opponentScore}}</p>
       </div>
     </div>
