@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { IUser } from "../types"
+import { onBeforeMount, ref, onUpdated, onBeforeUpdate } from "vue"
+import type { IUser, status } from "../types"
 import { RouterLink, RouterView } from "vue-router";
 import router from "./router";
 import { useUsersStore } from './stores/users';
@@ -7,12 +8,50 @@ import { useUserStore } from './stores/user';
 // import HelloWorld from "./components/HelloWorld.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
+import { io } from "socket.io-client"
 
 
 const user = useUserStore()
 const users = useUsersStore()
 
 users.getUsers()
+
+
+
+// Socket Status
+
+interface IStatus {
+    socketId: string;
+    userId: number;
+    userStatus: status;
+}
+
+let alreadyConnect: boolean = false
+let socket = io("http://localhost:3000", {autoConnect: false});
+const statusList = ref<IStatus[]>([])
+
+onBeforeUpdate(() => {
+  if (user.connected && socket.disconnected && !alreadyConnect) {
+    socket.connect()
+  }
+  if (socket.connected && !alreadyConnect) {
+    socket.emit("connectionStatus", [user.user.id], (res: any) => {
+      statusList.value = res
+      console.log("connectionStatus", statusList.value)
+    })
+    
+    socket.on("newConnection", (res: IStatus) => {
+      statusList.value.push(res)
+      console.log("update connection", statusList.value)
+    })
+    socket.on("newDisconnection", (res: any) => {
+      console.log(res)
+      statusList.value.splice(statusList.value.findIndex((el: IStatus) => el.socketId == res.socketId), 1)
+      console.log("update disconnection", statusList.value)
+    })
+    alreadyConnect = true
+  }
+})
 
 
 // if user is connected put user store on localStorage and getUsers again

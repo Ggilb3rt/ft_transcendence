@@ -36,6 +36,7 @@ window.addEventListener('resize', (e) => {
 			<span v-else>X</span>
 			</button>
 			<RouterLink to="/about" @click="isActive = false">AddUser</RouterLink>
+			<RouterLink to="/login" @click="isActive = false">Login</RouterLink>
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
 			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
