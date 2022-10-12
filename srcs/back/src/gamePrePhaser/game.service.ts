@@ -29,11 +29,44 @@ export class GameService {
         const state = this.createGameState();
         this.setPlayerPos(state.players);
         this.randomDir(state.ball);
+        //console.log("deb pos x: " + state.ball.posx);
+        //console.log("deb pos y: " + state.ball.posy);
+        //console.log("deb dir x: " + state.ball.dirx);
+        //console.log("deb dir x: " + state.ball.dirx);
         return state;
     }
 
     reInitGameState(state) {
 
+        let newPlayer = new Player;
+        let newBall = new Ball;
+
+        state.ball.posx = newBall.posx;
+        state.ball.posy = newBall.posy;
+        state.ball.dirx = newBall.dirx;
+        state.ball.diry = newBall.diry;
+        state.ball.rad = newBall.rad;
+        state.ball.speed = newBall.speed;
+        state.ball.vel = newBall.vel;
+        this.randomDir(state.ball);
+
+        state.players[0].posx = newPlayer.posx;
+        state.players[0].posy = newPlayer.posy;
+        state.players[0].width = newPlayer.width;
+        state.players[0].height = newPlayer.height;
+        state.players[0].speed = newPlayer.speed;
+        state.players[0].vel = newPlayer.vel;
+        state.players[0].match_score = newPlayer.match_score;
+
+
+        state.players[1].posx = newPlayer.posx;
+        state.players[1].posy = newPlayer.posy;
+        state.players[1].width = newPlayer.width;
+        state.players[1].height = newPlayer.height;
+        state.players[1].speed = newPlayer.speed;
+        state.players[1].vel = newPlayer.vel;
+        state.players[1].match_score = newPlayer.match_score;
+        this.setPlayerPos(state.players);
     }
 
     setPlayerPos(players) {
@@ -44,6 +77,21 @@ export class GameService {
         playerTwo.posx = CANVAS_WIDTH - playerTwo.width;
     }
 
+    startGameInterval(roomName: string, server: Server) {
+        this.intervalId = setInterval(() => {
+            const winner = this.gameLoop(this.state[roomName]);
+
+            if (!winner) {
+                this.emitGameState(roomName, this.state[roomName], server);
+
+            } else {
+                this.emitGameOver(roomName, winner, this.state[roomName], server);
+                clearInterval(this.intervalId);
+            }
+
+        }, 1000 / FRAME_RATE);
+       
+    }
 
     emitGameState(roomName: string, state: any, server: Server) {
         server.sockets.in(roomName)
@@ -249,7 +297,7 @@ export class GameService {
         return Math.random() * (max - min) + min;
     }
 
-    /*handleKeydown(client: Socket, keyCode: any) {
+    handleKeydown(client: Socket, keyCode: any) {
         const roomName = this.clientRooms[client.id];
 
         if (!roomName) {
@@ -313,7 +361,7 @@ export class GameService {
         }
 
         this.state[roomName].players[playerNumber].vel = 0;
-    }*/
+    }
 
 
     handleNewGame(client: Socket, server: Server) {
@@ -369,7 +417,7 @@ export class GameService {
         this.state[gameCode].players[1].id = client.id;
         client.emit('init', 2);
 
-       // this.startGameInterval(gameCode, server);
+        this.startGameInterval(gameCode, server);
     }
 
     async handleDisconnect(client: Socket, server: Server) {
@@ -396,7 +444,7 @@ export class GameService {
     handleReMatch(client: Socket, gameCode: any, server: Server) {
         server.sockets.in(gameCode).emit("reMatch", JSON.stringify("rematch !!"));
         this.reInitGameState(this.state[gameCode]);
-      //  this.startGameInterval(gameCode, server);
+        this.startGameInterval(gameCode, server);
     }
 
     async handleQuitGame(client: Socket, gameCode: any, server: Server) {
@@ -418,12 +466,6 @@ export class GameService {
         } else {
             client.emit('quitGame', JSON.stringify("One player has left the game"));
         }
-    }
-
-    handleMove(client: Socket, pos: any, server: Server) {
-        console.log("player moved");
-        console.log(pos);
-        client.broadcast.emit("move", pos);
     }
 }
 

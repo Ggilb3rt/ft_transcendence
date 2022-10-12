@@ -54,16 +54,20 @@ function launch(containerId) {
 let ball;
 let playerOne;
 let playerTwo;
+//let player;
+//let opponent;
 let isGameStarted = false;
 let cursors;
-let keys = {};
-let playerOneVictoryText;
-let playerTwoVictoryText;
+//let keys = {};
+//let playerOneVictoryText;
+//let playerTwoVictoryText;
+let resultText;
 const paddleSpeed = 350;
 
 function preload() {
   this.load.image("ball", ballImage);
   this.load.image("paddle", paddleImage);
+  this.load.image("opponentPaddle", paddleImage);
 }
 
 function create() {
@@ -76,6 +80,23 @@ function create() {
   ball.setBounce(1, 1);
 
   playerOne = this.physics.add.sprite(
+    ball.body.width / 2 + 1,
+    this.physics.world.bounds.height / 2,
+    "paddle"
+  );
+  playerOne.setCollideWorldBounds(true);
+  playerOne.setImmovable(true);
+
+  playerTwo = this.physics.add.sprite(
+    this.physics.world.bounds.width - (ball.body.width / 2 + 1),
+    this.physics.world.bounds.height / 2,
+    "opponentPaddle"
+  );
+  playerTwo.setCollideWorldBounds(true);
+  playerTwo.setImmovable(true);
+
+  cursors = this.input.keyboard.createCursorKeys();
+  /*  playerOne = this.physics.add.sprite(
     this.physics.world.bounds.width - (ball.body.width / 2 + 1),
     this.physics.world.bounds.height / 2,
     "paddle"
@@ -101,7 +122,7 @@ function create() {
   playerOneVictoryText = this.add.text(
     this.physics.world.bounds.width / 2,
     this.physics.world.bounds.height / 2,
-    "Player 1 wins !"
+    "Player wins !"
   );
   playerOneVictoryText.setVisible(false);
   playerOneVictoryText.setOrigin(0.5);
@@ -112,7 +133,18 @@ function create() {
     "Player 2 wins !"
   );
   playerTwoVictoryText.setVisible(false);
-  playerTwoVictoryText.setOrigin(0.5);
+  playerTwoVictoryText.setOrigin(0.5);*/
+
+  props.socket.on("move", ({ playerNumber, x, y }) => {
+    console.log("player number = " + playerNumber);
+    if (playerNumber === 2) {
+      playerTwo.x = x;
+      playerTwo.y = y;
+    } else if (playerNumber === 1) {
+      playerOne.x = x;
+      playerOne.y = y;
+    }
+  });
 }
 
 function update() {
@@ -124,7 +156,7 @@ function update() {
     isGameStarted = true;
   }
 
-  if (ball.body.x > playerOne.body.x) {
+  /*  if (ball.body.x > playerOne.body.x) {
     playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
     ball.setVelocityY(0);
@@ -137,6 +169,7 @@ function update() {
 
   playerOne.body.setVelocityY(0);
   if (cursors.up.isDown) {
+    props.socket.emit();
     playerOne.body.setVelocityY(-paddleSpeed);
   } else if (cursors.down.isDown) {
     playerOne.body.setVelocityY(paddleSpeed);
@@ -146,16 +179,66 @@ function update() {
     playerTwo.body.setVelocityY(-paddleSpeed);
   } else if (keys.s.isDown) {
     playerTwo.body.setVelocityY(paddleSpeed);
+  }*/
+
+  /* player.body.setVelocityY(0);
+  if (cursors.up.isDown) {
+    player.body.setVelocityY(-paddleSpeed);
+  } else if (cursors.down.isDown) {
+    player.body.setVelocityY(paddleSpeed);
+  }*/
+
+  if (props.playerNumber === 1) {
+    if (movePlayer(cursors, playerOne)) {
+      props.socket.emit("move", {
+        playerNumber: props.playerNumber,
+        x: playerOne.x,
+        y: playerOne.y,
+      });
+    }
+  } 
+  if (props.playerNumber === 2) {
+    if (movePlayer(cursors, playerTwo)) {
+      props.socket.emit("move", {
+        playerNumber: props.playerNumber,
+        x: playerTwo.x,
+        y: playerTwo.y,
+      });
+    }
   }
+  /*  if (movePlayer(cursors, playerTwo)) {
+    props.socket.emit("move", {
+      playerNumber: props.playerNumber,
+      x: playerTwo.x,
+      y: playerTwo.y,
+    });
+  }*/
+
   if (ball.body.velocity.y > paddleSpeed) {
     ball.body.velocity.y = paddleSpeed;
   } else if (ball.body.velocity.y < -paddleSpeed) {
     ball.body.velocity.y = -paddleSpeed;
   }
 }
+
+function movePlayer(cursors, player) {
+  let playerMoved = false;
+  player.body.setVelocityY(0);
+  if (cursors.up.isDown) {
+    player.body.setVelocityY(-paddleSpeed);
+    playerMoved = true;
+  } else if (cursors.down.isDown) {
+    player.body.setVelocityY(paddleSpeed);
+    playerMoved = true;
+  }
+  return playerMoved;
+}
+
+//function movePlayer() {}
 </script>
 
 <template>
+  <h1>{{ props.playerNumber }}</h1>
   <Suspense>
     <div :id="containerId" />
 

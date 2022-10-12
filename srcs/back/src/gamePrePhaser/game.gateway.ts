@@ -51,7 +51,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameservice.handleJoinGame(client, gameCode, this.server);
     }
 
-    /*@SubscribeMessage('keydown')
+    @SubscribeMessage('keydown')
     handleKeydown(client: Socket, keyCode: string) {
         this.gameservice.handleKeydown(client, keyCode);
     }
@@ -59,11 +59,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @SubscribeMessage('keyup')
     handleKeyUp(client: Socket, keyCode: string) {
         this.gameservice.handleKeyup(client, keyCode);
-    }*/
-
-    @SubscribeMessage('move')
-    handleMove(client: Socket, pos: any) {
-        this.gameservice.handleMove(client, pos, this.server);
     }
 
     @SubscribeMessage('reMatch')
@@ -76,11 +71,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleQuitGame(client: Socket, gameCode: any) {
         let code = JSON.parse(gameCode);
         this.gameservice.handleQuitGame(client, code, this.server);
-    }
-
-    @SubscribeMessage('testingz')
-    handleTestingz(client: Socket, keyCode: string) {
-        console.log("testingz");
     }
    
 
