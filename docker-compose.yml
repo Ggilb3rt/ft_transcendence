@@ -6,7 +6,7 @@ services:
         ports:
             - 5432:5432
         env_file:
-            - ./envs/postgres.env
+            - ./.envs/postgres.env
         restart: unless-stopped
         volumes:
             - postgres_persistence:/var/lib/postgresql/data
@@ -17,11 +17,10 @@ services:
             context: ./srcs/back
             target: dev
         env_file:
-            - ./envs/postgres.env
-            - ./envs/back.env
+            - ./.envs/postgres.env
+            - ./.envs/back.env
         restart: unless-stopped
         volumes:
-        # for hot-reloading using Nodemon
             - ./srcs/back/src:/app/src
         depends_on:
             - postgres
@@ -35,7 +34,7 @@ services:
         build:
             context: ./srcs/front
         image: front-vue
-        env_file: ./envs/front.env
+        env_file: ./.envs/front.env
         init: true
         volumes:
             - ./srcs/front/vue:/appFront

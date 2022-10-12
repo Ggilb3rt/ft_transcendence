@@ -75,6 +75,7 @@ Temporary Items
 
 # Ignore code-workspaces
 *.code-workspace
+.envs
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,visualstudiocode
 

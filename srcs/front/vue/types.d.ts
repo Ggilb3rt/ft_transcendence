@@ -1,3 +1,5 @@
+export type status = "available" | "disconnected" | "inGame"
+
 export interface IUser {
     id: number;
     two_factor_auth: boolean;
@@ -11,7 +13,9 @@ export interface IUser {
     friends: number[];
     ban_users_ban_users_idTousers: number[];
     invites: number[];
-    match_history: IMatchHistory[]; 
+    match_history: IMatchHistory[];
+    match_match_player_left_idTousers: IMatch[] | null;
+    match_match_player_right_idTousers: IMatch[] | null;
   }
 
 export interface IOtherUserRestrict {
@@ -30,7 +34,9 @@ export interface IOtherUser {
     wins: number;
     loses: number;
     friends: number[];
-    match_history: IMatchHistory[]; 
+    match_history: IMatchHistory[];
+    match_match_player_left_idTousers: IMatch[] | null;
+    match_match_player_right_idTousers: IMatch[] | null;
 }
 
 export interface IMatchHistory {
@@ -38,6 +44,16 @@ export interface IMatchHistory {
   win: boolean;
   myScore: number;
   opponentScore: number;
+  date: Date;
+}
+
+export interface IMatch {
+  id: number;
+  player_left_id: number;
+  player_right_id: number;
+  score_left: number;
+  score_right: number;
+  date: Date;
 }
 
 // interface userRelation {

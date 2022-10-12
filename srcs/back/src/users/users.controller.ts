@@ -1,9 +1,7 @@
 import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { PrismaClient, Prisma } from '@prisma/client';
 import { CreateUserDto } from './createUserDto';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
-const prisma = new PrismaClient();
 
 
 @Controller('users')
@@ -30,7 +28,8 @@ export class UsersController {
     }
 
     @Get(':id')
-    getOneUser(@Param('id', ParseIntPipe) id) {
+    @UseGuards(JwtAuthGuard)
+    async getOneUser(@Param('id', ParseIntPipe) id) {
         return (this.usersService.getUserById(id))
     }
 
@@ -40,20 +39,45 @@ export class UsersController {
         return (this.usersService.getFriends(id));
     }
 
+    @Get(':id/pending')
+    // @UseGuards(JwtAuthGuard)
+    getPending(@Param('id', ParseIntPipe) id) {
+        return (this.usersService.getPending(id));
+    }
+
+    @Post(':id/pending')
+    // @UseGuards(JwtAuthGuard)
+    acceptPending(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
+       return (this.usersService.acceptFriend(id, friend))
+    }
+
     @Post(':id/friends')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     addFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
+        console.log("je suis laaa")
        return (this.usersService.addFriend(id, friend))
     }
 
+    @Post(':id/friends/remove')
+    // @UseGuards(JwtAuthGuard)
+    removeFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
+       return (this.usersService.removeFriend(id, friend))
+    }
+
     @Get(':id/ban')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     getBanned(@Param('id', ParseIntPipe) id) {
         return (this.usersService.getBannedUsers(id));
     }
 
+    @Get(':id/banned')
+    // @UseGuards(JwtAuthGuard)
+    getBannedMe(@Param('id', ParseIntPipe) id) {
+        return (this.usersService.getBannedMe(id));
+    }
+
     @Post(':id/ban')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     banUser(@Param('id', ParseIntPipe) id, @Body('banned', ParseIntPipe) banned) {
         return (this.usersService.banUser(id, banned));
     }

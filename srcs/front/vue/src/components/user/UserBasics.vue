@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/user';
+import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
 import UserInvite from './UserInvite.vue'
-import Loader from './navigation/loader.vue';
+import Loader from '../navigation/loader.vue';
 import { mande } from 'mande';
 import { file } from '@babel/types';
 
@@ -16,12 +16,6 @@ const api = mande(`http://localhost:3000/users/${userStore.user.id}/nick`);
 let editMode = ref(false)
 const maxNickLength = 10
 let nicknameEdit = ref("")
-// let nameList: string[] = [];
-// usersStore.userList.forEach((el) => {nameList.push(el.nickname)})
-
-// function filteredNames() {
-// 	return nameList.filter((name) => name === (nicknameEdit.value))
-// }
 
 function filteredNames() {
   return usersStore.userList.filter((el) => el.nickname === nicknameEdit.value)
@@ -29,11 +23,6 @@ function filteredNames() {
 
 function freeNick(newNick: string): boolean {
   return filteredNames().length > 0 ? false : true
-  // for (let i = 0; i != nameList.length; i++) {
-	// 	if (nameList[i] == newNick)
-	// 		return false
-	// }
-	// return true
 }
 
 async function validNickChange(newNick: string) {
@@ -65,20 +54,51 @@ watch(nicknameEdit, () => {
 
 
 
-let editImg = ref("")
-const validFileFormat = ["image/jpeg", "image/png", "image/gif", "image/svg+xml"]
+let MIMEtypeError = ref(false)
+let sizeFileError = ref(false)
+
+function validMIMEtype(file: any): boolean {
+  if (file === undefined)
+    return false
+  const validMIMEtype = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp", "image/avif", "image/apng"]
+  const fileMIME = file.type
+
+  if (fileMIME.split('/')[0] != "image")
+    return false
+  for (const key in validMIMEtype) {
+    if (validMIMEtype[key] == fileMIME)
+      return true
+  }
+  return false
+}
+
+function validFileSize(file: any): boolean {
+  const maxFilseSize = 3000000
+
+  if (file && file.size <= maxFilseSize)
+    return true
+  return false
+}
+
 function changeImg(e: any) {
 	if (e) {
 		let formData = new FormData();
 		const img = e.target.files[0]
     // const fileField = document.getElementById("changeAvatar") // img == fileField.files[0] (cf console.log plus bas)
 
-
-    // check if file is img
-    
-
     // formData.append('avatar', fileField.files[0]);
-		formData.append('avatar', img);
+    formData.append('avatar', img);
+    
+    MIMEtypeError.value = false
+    if (!validMIMEtype(img)) {
+      MIMEtypeError.value = true
+      return
+    }
+    sizeFileError.value = false
+    if (!validFileSize(img)) {
+      sizeFileError.value = true
+      return
+    }
 
 		confirm("Change your avatar ?" + img)
     // console.log(formData)
@@ -97,7 +117,7 @@ function changeImg(e: any) {
 
 
 /* find on mozilla fetch page
-https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#uploading_a_file
 
 const formData = new FormData();
 const fileField = document.querySelector('input[type="file"]');
@@ -133,10 +153,12 @@ fetch('https://example.com/profile/avatar', {
         <figure class="heroFigure">
             <img class="heroAvatar" :src="userStore.getUserAvatar()" :alt="userStore.user.nickname + ' avatar'">
             <input type="file" @change="changeImg( $event )" id="changeAvatar">
+            <p v-if="MIMEtypeError" class="red">Invalid file format</p>
+            <p v-if="sizeFileError" class="red">File size must be &lt= 3Mo</p>
         </figure>
         <div>
             <p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
-            <p class="heroTag">
+            <div class="heroTag">
                 <Loader></Loader>
                 <div v-if="editMode">
                     <span>
@@ -150,14 +172,14 @@ fetch('https://example.com/profile/avatar', {
                     </span>
                     <button @click="editMode = !editMode">X</button>
                     <button @click="validNickChange(nicknameEdit)" :class="{cant_click: (filteredNames().length || nicknameEdit.length > maxNickLength)}">Change</button>
-                    <div v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</div>
-                    <div v-if="nicknameEdit.length > maxNickLength">Too long</div>
+                    <p v-if="filteredNames().length && nicknameEdit.length">Can't choose this nick</p>
+                    <p v-if="nicknameEdit.length > maxNickLength">Too long</p>
                 </div>
-                <div v-else>
+                <p v-else>
                     <a href="#">{{ userStore.getUserNick() }}</a>
                     <button @click="editMode = !editMode">Edit</button>
-                </div>
-            </p>
+                </p>
+              </div>
         </div>
         <UserInvite></UserInvite>
     </div>

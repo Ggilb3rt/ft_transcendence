@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/user';
-import { useUsersStore } from '../stores/users';
+import { useUserStore } from '@/stores/user';
+import { useUsersStore } from '@/stores/users';
 import UserLink from './UserLink.vue';
-import type { IUser, IOtherUserRestrict } from '../../types';
+import type { IUser, IOtherUserRestrict } from '@/types';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -33,7 +33,7 @@ function filterUsers(): IOtherUserRestrict[] {
 	<div class="invites" v-if="userStore.user.invites != undefined && userStore.user.invites.length > 0">
 		<h3>Some new friends</h3>
 		<div v-for="invite in filterUsers()" :key="invite.id" class="new_friend">
-			<UserLink :other-user="invite" remove-img></UserLink>
+			<UserLink :other-user="invite" remove-img remove-status></UserLink>
 			<button @click="resInvite(true, invite.id)">Accept</button>
 			<button @click="resInvite(false, invite.id)">Refuse</button>
 		</div>

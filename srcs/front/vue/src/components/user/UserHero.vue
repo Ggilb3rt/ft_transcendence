@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useUserStore } from '../stores/user';
+import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
 import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
 import UserBasics from './UserBasics.vue';
-import type { IUser } from '../../types';
-
-
-const props = defineProps<{
-	otherUser?: boolean
-}>()
+import type { IUser } from '@/types';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -38,10 +33,15 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 
 */
 
+function change2FA() {
+	// send to server
+	userStore.user.two_factor_auth = !userStore.user.two_factor_auth
+}
+
 </script>
 
 <template>
-	<div class="heroCard" v-if="!otherUser">
+	<div class="heroCard">
 		<UserBasics></UserBasics>
 
 		<UserGameStats
@@ -50,18 +50,22 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 			:user-win-rate="userStore.getWinRate"
 		/>
 
-		<UserMatchHistory></UserMatchHistory>
-
+		<UserMatchHistory
+			:user="userStore.user"
+		/>
+		
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends" canEdit></UserList>
 		<UserList title="Ban" :user="userStore.user" :list="userStore.user.ban_users_ban_users_idTousers" canEdit></UserList>
 		
 		<div class="security">
 			<h1>Security</h1>
-			<p>User double auth : <button>Enable</button></p>
+			<p>User double auth :
+				<button @click="change2FA()">
+					<span v-if="userStore.user.two_factor_auth">Enable</span>
+					<span v-else>Disable</span>
+				</button>
+			</p>
 		</div>
-	</div>
-	<div v-else>
-		Other User
 	</div>
 </template>
 

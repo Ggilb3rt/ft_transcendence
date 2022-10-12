@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import { storeToRefs } from 'pinia';
 // import { useUserStore } from '../stores/user';
-import type { IUser, IOtherUser} from '../../types'
+import type { IUser, IOtherUser} from '@/types'
 
 
 const props = defineProps<{
@@ -10,7 +10,6 @@ const props = defineProps<{
   userWinRate: string
 }>()
 
-console.log('props ', props)
 // const userStore = useUserStore()
 // const { getUserLevel } = useUserStore()
 
@@ -29,8 +28,8 @@ console.log('props ', props)
         <p class="winRate statVal">{{ props.userWinRate }}</p>
       </div>
       <div>
-        <h3>Last win</h3>
-        <p class="lastWin statVal">7 - 3</p>
+        <h3>Last battle</h3>
+        <p class="lastWin statVal" v-if="props.user.match_history">{{ props.user.match_history[0].myScore }} - {{ props.user.match_history[0].opponentScore}}</p>
       </div>
     </div>
     <hr>
@@ -47,7 +46,7 @@ console.log('props ', props)
 }
 .heroGameStat {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   font-family: "Inder", sans-serif;
   font-style: normal;
   font-weight: 400;
@@ -57,6 +56,13 @@ console.log('props ', props)
   font-size: 20px;
   line-height: 25px;
   color: #fff;
+}
+
+@media screen and (min-width: 400px) {
+	.heroGameStat {
+		flex-direction: row;
+    justify-content: space-between;
+	}
 }
 
 </style>

@@ -4,7 +4,7 @@ import { useUsersStore } from '../stores/users'
 import { useUserStore } from '../stores/user'
 import Modal from './Modal.vue'
 import IconCommunity from "./icons/IconCommunity.vue";
-import UserLink from "./UserLink.vue";
+import UserLink from "./user/UserLink.vue";
 
 
 const props = defineProps({

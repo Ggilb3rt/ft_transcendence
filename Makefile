@@ -29,11 +29,11 @@ images:
 
 # Remove
 rm_volumes:
-	if [ -d "$(PWD)/data" ]; then \
-		sudo chown -R $(USER) $(PWD)/data \
-		&& sudo chmod -R 775 $(PWD)/data \
-		&& rm -rf $(PWD)/data; \
-	fi
+	# if [ -d "$(PWD)/data" ]; then \
+	# 	sudo chown -R $(USER) $(PWD)/data \
+	# 	&& sudo chmod -R 775 $(PWD)/data \
+	# 	&& rm -rf $(PWD)/data; \
+	# fi
 	-docker volume rm ft_transcendence_postgres_persistence
 	-docker volume prune -f
 

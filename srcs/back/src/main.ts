@@ -13,6 +13,7 @@ config();
 
 async function bootstrap() {
   
+  try {
   if (module.hot) {
     module.hot.accept();
     module.hot.dispose(() => app.close());
@@ -21,5 +22,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
   await app.listen(3000);
+  } catch(err) {
+    console.log(err);
+  }
 }
 bootstrap();
