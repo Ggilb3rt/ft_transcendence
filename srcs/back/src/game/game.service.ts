@@ -55,6 +55,11 @@ export class GameService {
             .emit('gameOver', JSON.stringify({ winner, state}));
     }
 
+    handleMoveBall(client: Socket, data: any, server: Server) {
+        server.sockets.in(data.gameCode)
+            .emit('moveBall', data);
+    }
+
     gameLoop(state) {
         if (!state) {
             return;

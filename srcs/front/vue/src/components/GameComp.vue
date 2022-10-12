@@ -7,7 +7,6 @@ import paddleImage from "@/assets/game/paddle.png";
 const props = defineProps({
   socket: Object,
   playerNumber: Number,
-  startGame: Boolean,
   gameCode: String,
   score: {
     playerOne: String,
@@ -54,15 +53,12 @@ function launch(containerId) {
 let ball;
 let playerOne;
 let playerTwo;
-//let player;
-//let opponent;
 let isGameStarted = false;
 let cursors;
-//let keys = {};
-//let playerOneVictoryText;
-//let playerTwoVictoryText;
-let resultText;
+let playerOneVictoryText;
+let playerTwoVictoryText;
 const paddleSpeed = 350;
+
 
 function preload() {
   this.load.image("ball", ballImage);
@@ -96,25 +92,6 @@ function create() {
   playerTwo.setImmovable(true);
 
   cursors = this.input.keyboard.createCursorKeys();
-  /*  playerOne = this.physics.add.sprite(
-    this.physics.world.bounds.width - (ball.body.width / 2 + 1),
-    this.physics.world.bounds.height / 2,
-    "paddle"
-  );
-  playerOne.setCollideWorldBounds(true);
-  playerOne.setImmovable(true);
-
-  cursors = this.input.keyboard.createCursorKeys();
-  keys.w = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-  keys.s = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-
-  playerTwo = this.physics.add.sprite(
-    ball.body.width / 2 + 1,
-    this.physics.world.bounds.height / 2,
-    "paddle"
-  );
-  playerTwo.setCollideWorldBounds(true);
-  playerTwo.setImmovable(true);
 
   this.physics.add.collider(ball, playerOne);
   this.physics.add.collider(ball, playerTwo);
@@ -122,7 +99,7 @@ function create() {
   playerOneVictoryText = this.add.text(
     this.physics.world.bounds.width / 2,
     this.physics.world.bounds.height / 2,
-    "Player wins !"
+    "Player 1 wins !"
   );
   playerOneVictoryText.setVisible(false);
   playerOneVictoryText.setOrigin(0.5);
@@ -133,10 +110,9 @@ function create() {
     "Player 2 wins !"
   );
   playerTwoVictoryText.setVisible(false);
-  playerTwoVictoryText.setOrigin(0.5);*/
+  playerTwoVictoryText.setOrigin(0.5);
 
   props.socket.on("move", ({ playerNumber, x, y }) => {
-    console.log("player number = " + playerNumber);
     if (playerNumber === 2) {
       playerTwo.x = x;
       playerTwo.y = y;
@@ -145,48 +121,62 @@ function create() {
       playerOne.y = y;
     }
   });
+
+  props.socket.on('moveBall', ({x, y, vx, vy})=> {
+    console.log("new ball pos");
+    //ball.body.x = x + vx;
+    //ball.body.y = y + vy;
+    //ball.setVelocityX(vx);
+    //ball.setVelocityY(vy);
+  })
+
+}
+
+function randomNumberBetween(min, max) {
+  return Math.random() * (max - min) + min;
 }
 
 function update() {
+    let initialVelocityX;
+    let initialVelocityY;
   if (!isGameStarted) {
-    const initialVelocityX = Math.random() * 150 + 100;
-    const initialVelocityY = Math.random() * 150 + 100;
-    ball.setVelocityX(initialVelocityX);
-    ball.setVelocityY(initialVelocityY);
+  /*  let initialVelocityX;
+    let initialVelocityY;
+    while (
+      Math.abs(initialVelocityX) <= 0.4 ||
+      Math.abs(initialVelocityX) >= 0.9
+    ) {
+      const heading = randomNumberBetween(0, 2 * Math.PI);
+      initialVelocityX = Math.cos(heading);
+      initialVelocityY = Math.sin(heading);
+    }*/
+     initialVelocityX = Math.random() * 150 + 200;
+     initialVelocityY = Math.random() * 150 + 200;
+    ball.setVelocityX(-initialVelocityX);
+    ball.setVelocityY(-initialVelocityY);
     isGameStarted = true;
   }
 
-  /*  if (ball.body.x > playerOne.body.x) {
+  //if (props.playerNumber === 2) {
+    props.socket.emit('moveBall', {gameCode: props.gameCode, x: ball.body.x, y: ball.body.y, vx: initialVelocityX, vy: initialVelocityY})
+  //}
+
+  
+ 
+/*  if (ball.body.x < playerOne.body.x) {
+    ball.setImmovable(true);
     playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
     ball.setVelocityY(0);
   }
-  if (ball.body.x < playerTwo.body.x) {
+  if (ball.body.x > playerTwo.body.x) {
+    ball.setImmovable(true);
     playerOneVictoryText.setVisible(true);
     ball.setVelocityX(0);
     ball.setVelocityY(0);
-  }
-
-  playerOne.body.setVelocityY(0);
-  if (cursors.up.isDown) {
-    props.socket.emit();
-    playerOne.body.setVelocityY(-paddleSpeed);
-  } else if (cursors.down.isDown) {
-    playerOne.body.setVelocityY(paddleSpeed);
-  }
-  playerTwo.body.setVelocityY(0);
-  if (keys.w.isDown) {
-    playerTwo.body.setVelocityY(-paddleSpeed);
-  } else if (keys.s.isDown) {
-    playerTwo.body.setVelocityY(paddleSpeed);
   }*/
 
-  /* player.body.setVelocityY(0);
-  if (cursors.up.isDown) {
-    player.body.setVelocityY(-paddleSpeed);
-  } else if (cursors.down.isDown) {
-    player.body.setVelocityY(paddleSpeed);
-  }*/
+  //props.socket.emit("ballMovement", {x: ball.x, y: ball.y});
 
   if (props.playerNumber === 1) {
     if (movePlayer(cursors, playerOne)) {
@@ -196,7 +186,7 @@ function update() {
         y: playerOne.y,
       });
     }
-  } 
+  }
   if (props.playerNumber === 2) {
     if (movePlayer(cursors, playerTwo)) {
       props.socket.emit("move", {
@@ -206,13 +196,6 @@ function update() {
       });
     }
   }
-  /*  if (movePlayer(cursors, playerTwo)) {
-    props.socket.emit("move", {
-      playerNumber: props.playerNumber,
-      x: playerTwo.x,
-      y: playerTwo.y,
-    });
-  }*/
 
   if (ball.body.velocity.y > paddleSpeed) {
     ball.body.velocity.y = paddleSpeed;
@@ -234,7 +217,6 @@ function movePlayer(cursors, player) {
   return playerMoved;
 }
 
-//function movePlayer() {}
 </script>
 
 <template>

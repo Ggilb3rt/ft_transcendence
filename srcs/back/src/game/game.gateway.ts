@@ -82,6 +82,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleTestingz(client: Socket, keyCode: string) {
         console.log("testingz");
     }
+
+    @SubscribeMessage('moveBall') 
+    handleMoveBall(client: Socket, data: any) {
+        this.gameservice.handleMoveBall(client, data, this.server);
+    }
    
 
 }
