@@ -58,15 +58,15 @@ export class GameService {
     handleMoveBall(client: Socket, data: any, server: Server) {
         const InitialVelocityX: number = Math.random() * 150 + 200;
         const InitialVelocityY: number = Math.random() * 150 + 200;
-        //console.log(data);
-        //console.log(data.gameCode);
-        //console.log(this.clientRooms);
-        //const roomName = this.clientRooms[client.id];
-        //console.log(roomName);
-        //let code = JSON.stringify(data.gameCode);
-        //console.log(code);
         server.sockets.in(data.gameCode)
             .emit('moveBall', {vx: InitialVelocityX, vy: InitialVelocityY});
+    }
+
+    handleBallMovement(client: Socket, data: any, server: Server) {
+        const posx = data.x;
+        const posy = data.y;
+
+        server.sockets.in(data.gameCode).emit('ballMovement', {x: posx, y: posy});
     }
 
     gameLoop(state) {
@@ -436,8 +436,8 @@ export class GameService {
     }
 
     handleMove(client: Socket, pos: any, server: Server) {
-        console.log("player moved");
-        console.log(pos);
+       // console.log("player moved");
+        //console.log(pos);
         client.broadcast.emit("move", pos);
     }
 }

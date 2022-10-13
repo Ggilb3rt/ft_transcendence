@@ -21,7 +21,7 @@ import { Logger } from '@nestjs/common';
 })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
     
-    constructor(private readonly gameservice: GameService) {}
+    constructor(private readonly gameService: GameService) {}
 
     private logger: Logger = new Logger('GameGateway');
 
@@ -34,7 +34,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        this.gameservice.handleDisconnect(client, this.server);
+        this.gameService.handleDisconnect(client, this.server);
     }
 
     handleConnection(client: Socket, ...args: any[]) {
@@ -43,12 +43,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('newGame')
     handleNewGame(client: Socket) {
-        this.gameservice.handleNewGame(client, this.server);
+        this.gameService.handleNewGame(client, this.server);
     }
 
     @SubscribeMessage('joinGame')
     handleJoinGame(client: Socket, gameCode: string) {
-        this.gameservice.handleJoinGame(client, gameCode, this.server);
+        this.gameService.handleJoinGame(client, gameCode, this.server);
     }
 
     /*@SubscribeMessage('keydown')
@@ -63,19 +63,19 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('move')
     handleMove(client: Socket, pos: any) {
-        this.gameservice.handleMove(client, pos, this.server);
+        this.gameService.handleMove(client, pos, this.server);
     }
 
     @SubscribeMessage('reMatch')
     handleReMatch(client: Socket, gameCode: any) {
         let code = JSON.parse(gameCode); 
-        this.gameservice.handleReMatch(client, code, this.server);
+        this.gameService.handleReMatch(client, code, this.server);
     }
 
     @SubscribeMessage('quitGame')
     handleQuitGame(client: Socket, gameCode: any) {
         let code = JSON.parse(gameCode);
-        this.gameservice.handleQuitGame(client, code, this.server);
+        this.gameService.handleQuitGame(client, code, this.server);
     }
 
     @SubscribeMessage('testingz')
@@ -85,8 +85,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('moveBall') 
     handleMoveBall(client: Socket, data: any) {
-        console.log('move ball');
-        this.gameservice.handleMoveBall(client, data, this.server);
+        
+        
+        //console.log('move ball');
+        this.gameService.handleMoveBall(client, data, this.server);
+    }
+
+    @SubscribeMessage('ballMovement')
+    handleBallMovement(client: Socket, data: any) {
+        this.gameService.handleBallMovement(client, data, this.server);
     }
    
 

@@ -81,8 +81,6 @@ function create() {
   ball.setCollideWorldBounds(true);
   ball.setBounce(1, 1);
 
-  console.log(ball);
-
   playerOne = this.physics.add.sprite(
     ball.body.width / 2 + 1,
     this.physics.world.bounds.height / 2,
@@ -121,30 +119,39 @@ function create() {
   playerTwoVictoryText.setOrigin(0.5);
 
   props.socket.on("move", ({ playerNumber, x, y }) => {
-    if (props.playerNumber !== 2) {
+   // if (props.playerNumber !== 2) {
       if (playerNumber === 2) {
         playerTwo.x = x;
         playerTwo.y = y;
-      }
-    } else if (props.playerNumber !== 1) {
-      if (playerNumber === 1) {
+     // }
+    } /*else if (props.playerNumber !== 1) {*/
+      else if (playerNumber === 1) {
         playerOne.x = x;
         playerOne.y = y;
       }
-    }
-  });
+    //}
+  }); 
 
   props.socket.on('moveBall', ({vx, vy})=> {
-    console.log('moveBall');
-
     ball.setVelocityX(-vx);
     ball.setVelocityY(-vy);
-  // console.log("new ball pos");
-  //ball.body.x = x + vx;
-  //ball.body.y = y + vy;
-  //ball.setVelocityX(vx);
-  //ball.setVelocityY(vy);
-  })
+  });
+
+  let n = 0;
+  props.socket.on('ballMovement', ({x, y}) => {
+    if (n === 0) {
+        console.log("ballmov");
+        n++
+    }
+  //  if (props.playerNumber === 2) {
+   //     if (n === 1) {
+   //         console.log("player2")
+  //          n++;
+  //      }
+        ball.body.x = x;
+        ball.body.y = y;
+   // }
+  });
 }
 
 function randomNumberBetween(min, max) {
@@ -152,30 +159,10 @@ function randomNumberBetween(min, max) {
 }
 
 function update() {
-  let initialVelocityX;
-  let initialVelocityY;
   if (!isGameStarted) {
-    /*  let initialVelocityX;
-    let initialVelocityY;
-    while (
-      Math.abs(initialVelocityX) <= 0.4 ||
-      Math.abs(initialVelocityX) >= 0.9
-    ) {
-      const heading = randomNumberBetween(0, 2 * Math.PI);
-      initialVelocityX = Math.cos(heading);
-      initialVelocityY = Math.sin(heading);
-    }*/
     props.socket.emit('moveBall', {gameCode: props.gameCode});
-    //initialVelocityX = Math.random() * 150 + 200;
-  //  initialVelocityY = Math.random() * 150 + 200;
-  //  ball.setVelocityX(-initialVelocityX);
-   // ball.setVelocityY(-initialVelocityY);
     isGameStarted = true;
   }
-
-  //if (props.playerNumber === 2) {
-  //props.socket.emit('moveBall', {gameCode: props.gameCode, x: ball.body.x, y: ball.body.y, vx: initialVelocityX, vy: initialVelocityY})
-  //}
 
   /*  if (ball.body.x < playerOne.body.x) {
     ball.setImmovable(true);
@@ -190,7 +177,9 @@ function update() {
     ball.setVelocityY(0);
   }*/
 
-  //props.socket.emit("ballMovement", {x: ball.x, y: ball.y});
+  //if (props.playerNumber === 1) {
+    props.socket.emit("ballMovement", {gameCode: props.gameCode, x: ball.body.x, y: ball.body.y});
+  //}
 
   if (props.playerNumber === 1) {
     if (movePlayer(cursors, playerOne)) {
@@ -211,11 +200,11 @@ function update() {
     }
   }
 
-  if (ball.body.velocity.y > paddleSpeed) {
-    ball.body.velocity.y = paddleSpeed;
-  } else if (ball.body.velocity.y < -paddleSpeed) {
-    ball.body.velocity.y = -paddleSpeed;
-  }
+  //if (ball.body.velocity.y > paddleSpeed) {
+  //  ball.body.velocity.y = paddleSpeed;
+  //} else if (ball.body.velocity.y < -paddleSpeed) {
+  //  ball.body.velocity.y = -paddleSpeed;
+ // }
 }
 
 function movePlayer(cursors, player) {
