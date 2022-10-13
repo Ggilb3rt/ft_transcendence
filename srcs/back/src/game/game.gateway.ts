@@ -67,9 +67,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     @SubscribeMessage('reMatch')
-    handleReMatch(client: Socket, gameCode: any) {
-        let code = JSON.parse(gameCode); 
-        this.gameService.handleReMatch(client, code, this.server);
+    handleReMatch(client: Socket, data: any) {
+        //let code = JSON.parse(gameCode); 
+        //this.gameService.handleReMatch(client, code, this.server);
+        this.gameService.handleReMatch(client, data.gameCode, this.server);
     }
 
     @SubscribeMessage('quitGame')
@@ -85,8 +86,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('moveBall') 
     handleMoveBall(client: Socket, data: any) {
-        
-        
         //console.log('move ball');
         this.gameService.handleMoveBall(client, data, this.server);
     }

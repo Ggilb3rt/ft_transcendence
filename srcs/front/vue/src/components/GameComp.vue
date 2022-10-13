@@ -7,8 +7,9 @@ import paddleImage from "@/assets/game/paddle.png";
 const props = defineProps({
   socket: Object,
   playerNumber: Number,
-  gameCode: String,
+  gameActive: Boolean,
   startGame: Boolean,
+  gameCode: String,
   score: {
     playerOne: String,
     playerTwo: String,
@@ -119,52 +120,44 @@ function create() {
   playerTwoVictoryText.setOrigin(0.5);
 
   props.socket.on("move", ({ playerNumber, x, y }) => {
-   // if (props.playerNumber !== 2) {
-      if (playerNumber === 2) {
-        playerTwo.x = x;
-        playerTwo.y = y;
-     // }
-    } /*else if (props.playerNumber !== 1) {*/
-      else if (playerNumber === 1) {
-        playerOne.x = x;
-        playerOne.y = y;
-      }
-    //}
-  }); 
+    if (playerNumber === 2) {
+      playerTwo.x = x;
+      playerTwo.y = y;
+    } else if (playerNumber === 1) {
+      playerOne.x = x;
+      playerOne.y = y;
+    }
+  });
 
-  props.socket.on('moveBall', ({vx, vy})=> {
+  props.socket.on("moveBall", ({ vx, vy }) => {
     ball.setVelocityX(-vx);
     ball.setVelocityY(-vy);
   });
 
-  let n = 0;
-  props.socket.on('ballMovement', ({x, y}) => {
-    if (n === 0) {
-        console.log("ballmov");
-        n++
-    }
-  //  if (props.playerNumber === 2) {
-   //     if (n === 1) {
-   //         console.log("player2")
-  //          n++;
-  //      }
-        ball.body.x = x;
-        ball.body.y = y;
-   // }
+  props.socket.on("ballMovement", ({ x, y }) => {
+    ball.body.x = x;
+    ball.body.y = y;
   });
-}
 
-function randomNumberBetween(min, max) {
-  return Math.random() * (max - min) + min;
+  props.socket.on("reMatch", () => {
+    console.log("REMATCH");
+    ball.x = this.physics.world.bounds.width / 2;
+    ball.y = this.physics.world.bounds.height / 2;
+    playerOne.x = ball.body.width / 2 + 1;
+    playerOne.y = this.physics.world.bounds.height / 2;
+    playerTwo.x = this.physics.world.bounds.width - (ball.body.width / 2 + 1);
+    playerTwo.y = this.physics.world.bounds.height / 2;
+    isGameStarted = false;
+  });
 }
 
 function update() {
   if (!isGameStarted) {
-    props.socket.emit('moveBall', {gameCode: props.gameCode});
+    props.socket.emit("moveBall", { gameCode: props.gameCode });
     isGameStarted = true;
   }
 
-  /*  if (ball.body.x < playerOne.body.x) {
+  if (ball.body.x < playerOne.body.x) {
     ball.setImmovable(true);
     playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
@@ -175,11 +168,13 @@ function update() {
     playerOneVictoryText.setVisible(true);
     ball.setVelocityX(0);
     ball.setVelocityY(0);
-  }*/
+  }
 
-  //if (props.playerNumber === 1) {
-    props.socket.emit("ballMovement", {gameCode: props.gameCode, x: ball.body.x, y: ball.body.y});
-  //}
+  props.socket.emit("ballMovement", {
+    gameCode: props.gameCode,
+    x: ball.body.x,
+    y: ball.body.y,
+  });
 
   if (props.playerNumber === 1) {
     if (movePlayer(cursors, playerOne)) {
@@ -200,11 +195,11 @@ function update() {
     }
   }
 
-  //if (ball.body.velocity.y > paddleSpeed) {
-  //  ball.body.velocity.y = paddleSpeed;
-  //} else if (ball.body.velocity.y < -paddleSpeed) {
-  //  ball.body.velocity.y = -paddleSpeed;
- // }
+  if (ball.body.velocity.y > paddleSpeed) {
+    ball.body.velocity.y = paddleSpeed;
+  } else if (ball.body.velocity.y < -paddleSpeed) {
+    ball.body.velocity.y = -paddleSpeed;
+  }
 }
 
 function movePlayer(cursors, player) {
@@ -222,8 +217,10 @@ function movePlayer(cursors, player) {
 </script>
 
 <template>
-  <h1>{{ props.playerNumber }}</h1>
-  <h1>{{ this.startGame }}</h1>
+  <h1>Player number : {{ props.playerNumber }}</h1>
+  <h1>Start Game : {{ this.startGame }}</h1>
+  <h1>Game Active : {{ this.gameActive }}</h1>
+  <h1>Game Code : {{ this.gameCode }}</h1>
   <Suspense>
     <div :id="containerId" />
 

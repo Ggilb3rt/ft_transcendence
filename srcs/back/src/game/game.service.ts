@@ -56,8 +56,8 @@ export class GameService {
     }
 
     handleMoveBall(client: Socket, data: any, server: Server) {
-        const InitialVelocityX: number = Math.random() * 150 + 200;
-        const InitialVelocityY: number = Math.random() * 150 + 200;
+        const InitialVelocityX: number = Math.random() * 150 + 300;
+        const InitialVelocityY: number = Math.random() * 150 + 300;
         server.sockets.in(data.gameCode)
             .emit('moveBall', {vx: InitialVelocityX, vy: InitialVelocityY});
     }
@@ -409,8 +409,10 @@ export class GameService {
     }
 
     handleReMatch(client: Socket, gameCode: any, server: Server) {
-        server.sockets.in(gameCode).emit("reMatch", JSON.stringify("rematch !!"));
-        this.reInitGameState(this.state[gameCode]);
+        console.log(gameCode);
+        console.log(this.clientRooms);
+        server.sockets.in(gameCode).emit("reMatch", {text: "rematch !!"});
+        //this.reInitGameState(this.state[gameCode]);
       //  this.startGameInterval(gameCode, server);
     }
 
@@ -436,8 +438,6 @@ export class GameService {
     }
 
     handleMove(client: Socket, pos: any, server: Server) {
-       // console.log("player moved");
-        //console.log(pos);
         client.broadcast.emit("move", pos);
     }
 }

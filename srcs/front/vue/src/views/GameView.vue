@@ -11,7 +11,7 @@ export default {
     return {
       socket: null,
       playerNumber: 0,
-      totalPlayers: 0,
+      //totalPlayers: 0,
       gameActive: false,
       startGame: false,
       gameCode: "",
@@ -31,7 +31,7 @@ export default {
     this.socket.on("unknownGame", this.handleUnknownGame);
     this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
     this.socket.on("disconnected", this.handleDisconnected);
-    this.socket.on("reMatch", this.handleReMatch);
+    //this.socket.on("reMatch", this.handleReMatch);
     this.socket.on("quitGame", this.handleQuitGame);
     this.socket.on("totalPlayers", this.handleTotalPlayers);
   },
@@ -54,10 +54,10 @@ export default {
       }
     },
     handleTotalPlayers(number) {
-        this.totalPlayers = number;
-        if (this.totalPlayers === 2) {
-            this.startGame = true;
-        }
+      this.totalPlayers = number;
+      if (this.totalPlayers === 2) {
+        this.startGame = true;
+      }
     },
     handleGameState(gameState) {
       console.log("handle game state");
@@ -79,16 +79,15 @@ export default {
       this.score.playerTwo = data.state.players[1].match_score;
 
       if (data.winner === this.playerNumber) {
-        //alert("You win !");
         console.log("You win !");
       } else {
         console.log("You lose !");
-        //alert("You lost !");
       }
       this.gameActive = false;
     },
     handleGameCode(gameCode) {
       console.log("handle game code");
+      this.gameCode = gameCode;
       this.$refs.gameCodeDisplay.innerText = gameCode;
     },
     handleUnknownGame() {
@@ -109,6 +108,7 @@ export default {
 
       const code = this.gameCode;
       this.socket.emit("joinGame", code);
+      this.gameActive = true;
       this.init();
     },
     reset() {
@@ -126,10 +126,10 @@ export default {
       //this.socket.delete("http://localhost:3000"); // ?????
     },
     reMatch() {
-      if (this.gameActive) {
-        return;
-      }
-      this.socket.emit("reMatch", JSON.stringify(this.gameCode));
+      console.log("rematch asked");
+      console.log(this.gameCode);
+      //this.socket.emit("reMatch", JSON.stringify(this.gameCode));
+      this.socket.emit("reMatch", { gameCode: this.gameCode });
     },
     handleReMatch(msg) {
       this.gameActive = true;
