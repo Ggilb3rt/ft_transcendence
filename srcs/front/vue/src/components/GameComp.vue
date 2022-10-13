@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, onUpdated, ref } from "vue";
 import Phaser from "phaser";
 import ballImage from "@/assets/game/ball.png";
 import paddleImage from "@/assets/game/paddle.png";
@@ -8,6 +8,7 @@ const props = defineProps({
   socket: Object,
   playerNumber: Number,
   gameCode: String,
+  startGame: Boolean,
   score: {
     playerOne: String,
     playerTwo: String,
@@ -17,13 +18,19 @@ const props = defineProps({
 let gameInstance = null;
 const containerId = "game-container";
 
-onMounted(() => {
-  gameInstance = launch(containerId);
-});
+const exemple = ref(0);
+const forceRerender = () => {
+  exemple.value += 1;
+};
 
-onUnmounted(() => {
-  gameInstance.destroy(false);
-});
+onUpdated(() => {
+  if (props.startGame) {
+    gameInstance = launch(containerId);
+  }
+}),
+  onUnmounted(() => {
+    gameInstance.destroy(false);
+  });
 
 function launch(containerId) {
   return new Phaser.Game({
@@ -59,7 +66,6 @@ let playerOneVictoryText;
 let playerTwoVictoryText;
 const paddleSpeed = 350;
 
-
 function preload() {
   this.load.image("ball", ballImage);
   this.load.image("paddle", paddleImage);
@@ -74,6 +80,8 @@ function create() {
   );
   ball.setCollideWorldBounds(true);
   ball.setBounce(1, 1);
+
+  console.log(ball);
 
   playerOne = this.physics.add.sprite(
     ball.body.width / 2 + 1,
@@ -113,23 +121,30 @@ function create() {
   playerTwoVictoryText.setOrigin(0.5);
 
   props.socket.on("move", ({ playerNumber, x, y }) => {
-    if (playerNumber === 2) {
-      playerTwo.x = x;
-      playerTwo.y = y;
-    } else if (playerNumber === 1) {
-      playerOne.x = x;
-      playerOne.y = y;
+    if (props.playerNumber !== 2) {
+      if (playerNumber === 2) {
+        playerTwo.x = x;
+        playerTwo.y = y;
+      }
+    } else if (props.playerNumber !== 1) {
+      if (playerNumber === 1) {
+        playerOne.x = x;
+        playerOne.y = y;
+      }
     }
   });
 
-  props.socket.on('moveBall', ({x, y, vx, vy})=> {
-    console.log("new ball pos");
-    //ball.body.x = x + vx;
-    //ball.body.y = y + vy;
-    //ball.setVelocityX(vx);
-    //ball.setVelocityY(vy);
-  })
+  props.socket.on('moveBall', ({vx, vy})=> {
+    console.log('moveBall');
 
+    ball.setVelocityX(-vx);
+    ball.setVelocityY(-vy);
+  // console.log("new ball pos");
+  //ball.body.x = x + vx;
+  //ball.body.y = y + vy;
+  //ball.setVelocityX(vx);
+  //ball.setVelocityY(vy);
+  })
 }
 
 function randomNumberBetween(min, max) {
@@ -137,10 +152,10 @@ function randomNumberBetween(min, max) {
 }
 
 function update() {
-    let initialVelocityX;
-    let initialVelocityY;
+  let initialVelocityX;
+  let initialVelocityY;
   if (!isGameStarted) {
-  /*  let initialVelocityX;
+    /*  let initialVelocityX;
     let initialVelocityY;
     while (
       Math.abs(initialVelocityX) <= 0.4 ||
@@ -150,20 +165,19 @@ function update() {
       initialVelocityX = Math.cos(heading);
       initialVelocityY = Math.sin(heading);
     }*/
-     initialVelocityX = Math.random() * 150 + 200;
-     initialVelocityY = Math.random() * 150 + 200;
-    ball.setVelocityX(-initialVelocityX);
-    ball.setVelocityY(-initialVelocityY);
+    props.socket.emit('moveBall', {gameCode: props.gameCode});
+    //initialVelocityX = Math.random() * 150 + 200;
+  //  initialVelocityY = Math.random() * 150 + 200;
+  //  ball.setVelocityX(-initialVelocityX);
+   // ball.setVelocityY(-initialVelocityY);
     isGameStarted = true;
   }
 
   //if (props.playerNumber === 2) {
-    props.socket.emit('moveBall', {gameCode: props.gameCode, x: ball.body.x, y: ball.body.y, vx: initialVelocityX, vy: initialVelocityY})
+  //props.socket.emit('moveBall', {gameCode: props.gameCode, x: ball.body.x, y: ball.body.y, vx: initialVelocityX, vy: initialVelocityY})
   //}
 
-  
- 
-/*  if (ball.body.x < playerOne.body.x) {
+  /*  if (ball.body.x < playerOne.body.x) {
     ball.setImmovable(true);
     playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
@@ -216,11 +230,11 @@ function movePlayer(cursors, player) {
   }
   return playerMoved;
 }
-
 </script>
 
 <template>
   <h1>{{ props.playerNumber }}</h1>
+  <h1>{{ this.startGame }}</h1>
   <Suspense>
     <div :id="containerId" />
 

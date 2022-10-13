@@ -11,6 +11,7 @@ export default {
     return {
       socket: null,
       playerNumber: 0,
+      totalPlayers: 0,
       gameActive: false,
       startGame: false,
       gameCode: "",
@@ -32,6 +33,7 @@ export default {
     this.socket.on("disconnected", this.handleDisconnected);
     this.socket.on("reMatch", this.handleReMatch);
     this.socket.on("quitGame", this.handleQuitGame);
+    this.socket.on("totalPlayers", this.handleTotalPlayers);
   },
   //mounted() {
   //},
@@ -47,8 +49,15 @@ export default {
       console.log("handle init");
       this.playerNumber = number;
       if (this.playerNumber === 2) {
+        this.totalPlayers = 2;
         this.startGame = true;
       }
+    },
+    handleTotalPlayers(number) {
+        this.totalPlayers = number;
+        if (this.totalPlayers === 2) {
+            this.startGame = true;
+        }
     },
     handleGameState(gameState) {
       console.log("handle game state");
