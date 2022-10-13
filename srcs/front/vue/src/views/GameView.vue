@@ -169,6 +169,7 @@ export default {
     <GameComp
       :socket="this.socket"
       :playerNumber="this.playerNumber"
+      :gameActive="this.gameActive"
       :startGame="this.startGame"
       :gameCode="this.gameCode"
       :score="this.score"

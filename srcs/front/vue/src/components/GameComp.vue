@@ -19,19 +19,15 @@ const props = defineProps({
 let gameInstance = null;
 const containerId = "game-container";
 
-const exemple = ref(0);
-const forceRerender = () => {
-  exemple.value += 1;
-};
-
 onUpdated(() => {
   if (props.startGame) {
     gameInstance = launch(containerId);
   }
-}),
-  onUnmounted(() => {
-    gameInstance.destroy(false);
-  });
+});
+
+onUnmounted(() => {
+  gameInstance.destroy(true, false);
+});
 
 function launch(containerId) {
   return new Phaser.Game({
@@ -103,6 +99,21 @@ function create() {
   this.physics.add.collider(ball, playerOne);
   this.physics.add.collider(ball, playerTwo);
 
+  /*  let n = 0;
+  this.physics.add.collider(ball, playerOne, function () {
+    if (n === 0) {
+      console.log("collision");
+      n++;
+    }
+    props.socket.emit("collision", {
+      gameCode: props.gameCode,
+      x: ball.x,
+      y: ball.y,
+      vx: ball.body.velocity.x,
+      vy: ball.body.velocity.y,
+    });
+  });*/
+
   playerOneVictoryText = this.add.text(
     this.physics.world.bounds.width / 2,
     this.physics.world.bounds.height / 2,
@@ -141,14 +152,49 @@ function create() {
 
   props.socket.on("reMatch", () => {
     console.log("REMATCH");
-    ball.x = this.physics.world.bounds.width / 2;
-    ball.y = this.physics.world.bounds.height / 2;
-    playerOne.x = ball.body.width / 2 + 1;
-    playerOne.y = this.physics.world.bounds.height / 2;
-    playerTwo.x = this.physics.world.bounds.width - (ball.body.width / 2 + 1);
-    playerTwo.y = this.physics.world.bounds.height / 2;
+    ball.destroy();
+    playerOne.destroy();
+    playerTwo.destroy();
+    ball = this.physics.add.sprite(
+      this.physics.world.bounds.width / 2,
+      this.physics.world.bounds.height / 2,
+      "ball"
+    );
+    ball.setCollideWorldBounds(true);
+    ball.setBounce(1, 1);
+
+    playerOne = this.physics.add.sprite(
+      ball.body.width / 2 + 1,
+      this.physics.world.bounds.height / 2,
+      "paddle"
+    );
+    playerOne.setCollideWorldBounds(true);
+    playerOne.setImmovable(true);
+
+    playerTwo = this.physics.add.sprite(
+      this.physics.world.bounds.width - (ball.body.width / 2 + 1),
+      this.physics.world.bounds.height / 2,
+      "opponentPaddle"
+    );
+    playerTwo.setCollideWorldBounds(true);
+    playerTwo.setImmovable(true);
+
+    cursors = this.input.keyboard.createCursorKeys();
+
+    this.physics.add.collider(ball, playerOne);
+    this.physics.add.collider(ball, playerTwo);
     isGameStarted = false;
   });
+
+  /*  props.socket.on("collisionResult", ({ x, y, vx, vy }) => {
+    console.log("collision received");
+    ball.x = x;
+    ball.y = y;
+    ball.body.velocity.x = vx;
+    ball.body.velocity.y = vy;
+    ball.body.bounce.set(1);
+    ball.body.boynce.set(1);
+  });*/
 }
 
 function update() {
@@ -157,7 +203,7 @@ function update() {
     isGameStarted = true;
   }
 
-  if (ball.body.x < playerOne.body.x) {
+ /* if (ball.body.x < playerOne.body.x) {
     ball.setImmovable(true);
     playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
@@ -168,7 +214,7 @@ function update() {
     playerOneVictoryText.setVisible(true);
     ball.setVelocityX(0);
     ball.setVelocityY(0);
-  }
+  }*/
 
   props.socket.emit("ballMovement", {
     gameCode: props.gameCode,
@@ -185,6 +231,7 @@ function update() {
       });
     }
   }
+
   if (props.playerNumber === 2) {
     if (movePlayer(cursors, playerTwo)) {
       props.socket.emit("move", {
@@ -214,6 +261,8 @@ function movePlayer(cursors, player) {
   }
   return playerMoved;
 }
+
+
 </script>
 
 <template>
@@ -221,13 +270,13 @@ function movePlayer(cursors, player) {
   <h1>Start Game : {{ this.startGame }}</h1>
   <h1>Game Active : {{ this.gameActive }}</h1>
   <h1>Game Code : {{ this.gameCode }}</h1>
-  <Suspense>
-    <div :id="containerId" />
+  <!-- <Suspense> -->
+  <div :id="containerId" />
 
-    <template #fallback>
+  <!-- <template #fallback>
       <div class="placeholder">Downloading...</div>
     </template>
-  </Suspense>
+  </Suspense>-->
 </template>
 
 <style></style>

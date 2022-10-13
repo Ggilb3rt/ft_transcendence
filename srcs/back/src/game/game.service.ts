@@ -56,8 +56,8 @@ export class GameService {
     }
 
     handleMoveBall(client: Socket, data: any, server: Server) {
-        const InitialVelocityX: number = Math.random() * 150 + 300;
-        const InitialVelocityY: number = Math.random() * 150 + 300;
+        const InitialVelocityX: number = Math.random() * 150 + 200;
+        const InitialVelocityY: number = Math.random() * 150 + 200;
         server.sockets.in(data.gameCode)
             .emit('moveBall', {vx: InitialVelocityX, vy: InitialVelocityY});
     }
@@ -134,6 +134,13 @@ export class GameService {
             ball.diry = Math.abs(ball.diry);
         }
     }
+
+    /*handleCollision(client: Socket, data: any, server: Server) {
+        //const x = data.vx * -1;
+        //const y = data.vy * -1;
+        server.sockets.in(data.gameCode)
+           .emit('collisionResult', {x: data.x, y: data.y, vx: data.vx, vy: data.vy});
+    }*/
 
     paddleCollision(ball, players) {
 
@@ -397,7 +404,7 @@ export class GameService {
             allUsers = await server.in(roomName).fetchSockets();
             let sockets = [];
             allUsers.forEach(function (s) {
-                console.log(s.id);
+                //console.log(s.id);
                 s.emit('disconnected');
                 s.leave(roomName);
                 sockets.push(s.id);
@@ -409,11 +416,7 @@ export class GameService {
     }
 
     handleReMatch(client: Socket, gameCode: any, server: Server) {
-        console.log(gameCode);
-        console.log(this.clientRooms);
         server.sockets.in(gameCode).emit("reMatch", {text: "rematch !!"});
-        //this.reInitGameState(this.state[gameCode]);
-      //  this.startGameInterval(gameCode, server);
     }
 
     async handleQuitGame(client: Socket, gameCode: any, server: Server) {

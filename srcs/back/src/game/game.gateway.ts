@@ -25,7 +25,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     private logger: Logger = new Logger('GameGateway');
 
-	// Reference to the socket.io server under the hood
 	@WebSocketServer() server : Server;
 
     afterInit(server: Server) {
@@ -51,16 +50,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleJoinGame(client, gameCode, this.server);
     }
 
-    /*@SubscribeMessage('keydown')
-    handleKeydown(client: Socket, keyCode: string) {
-        this.gameservice.handleKeydown(client, keyCode);
-    }
-
-    @SubscribeMessage('keyup')
-    handleKeyUp(client: Socket, keyCode: string) {
-        this.gameservice.handleKeyup(client, keyCode);
-    }*/
-
     @SubscribeMessage('move')
     handleMove(client: Socket, pos: any) {
         this.gameService.handleMove(client, pos, this.server);
@@ -68,8 +57,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage('reMatch')
     handleReMatch(client: Socket, data: any) {
-        //let code = JSON.parse(gameCode); 
-        //this.gameService.handleReMatch(client, code, this.server);
         this.gameService.handleReMatch(client, data.gameCode, this.server);
     }
 
@@ -79,14 +66,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleQuitGame(client, code, this.server);
     }
 
-    @SubscribeMessage('testingz')
-    handleTestingz(client: Socket, keyCode: string) {
-        console.log("testingz");
-    }
-
     @SubscribeMessage('moveBall') 
     handleMoveBall(client: Socket, data: any) {
-        //console.log('move ball');
         this.gameService.handleMoveBall(client, data, this.server);
     }
 
@@ -94,6 +75,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleBallMovement(client: Socket, data: any) {
         this.gameService.handleBallMovement(client, data, this.server);
     }
-   
+
+   /* @SubscribeMessage('collision')
+    handleCollision(client: Socket, data: any) {
+     console.log(data);
+        this.gameService.handleCollision(client, data, this.server);
+    }*/
 
 }
