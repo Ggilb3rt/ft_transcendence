@@ -32,7 +32,7 @@ export class UsersController {
     }
 
     @Get(':id')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     async getOneUser(@Param('id', ParseIntPipe) id) {
         return (this.usersService.getUserById(id))
     }

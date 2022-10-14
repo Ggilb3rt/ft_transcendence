@@ -121,7 +121,7 @@ export const useUserStore = defineStore({
                     })
                     .then((data) => {
                         if (data) {
-                            this.user.ban_users_ban_users_idTousers = this.user.ban_users_ban_users_idTousers
+                            this.user.bans = this.user.bans
                             this.user = data
                             this.error = null
                             this.connected = true
@@ -137,8 +137,8 @@ export const useUserStore = defineStore({
                     //this.user.match_history = matchsHistory
                     
                     this.user.match_history = new Array()
-                    if (this.user.match_match_player_left_idTousers) {
-                        this.user.match_match_player_left_idTousers.forEach(el => {
+                    if (this.user.matches) {
+                        this.user.matches.forEach(el => {
                             const match : IMatchHistory = {
                                 opponent: el.player_right_id,
                                 myScore: el.score_left,
@@ -148,22 +148,9 @@ export const useUserStore = defineStore({
                             }
                             this.user.match_history.push(match)
                         })
-                        this.user.match_match_player_left_idTousers = null
+                        this.user.matches = null
                     }
-                    if (this.user.match_match_player_right_idTousers) {
-                        this.user.match_match_player_right_idTousers.forEach(el => {
-                            const match : IMatchHistory = {
-                                opponent: el.player_left_id,
-                                myScore: el.score_right,
-                                opponentScore: el.score_left,
-                                win: (el.score_right > el.score_left),
-                                date: new Date()
-                            }
-                            this.user.match_history.push(match)
-                        })
-                        this.user.match_match_player_right_idTousers = null
-                    }
-                    
+
                     // this.user.match_history = this.createMatch_history(this.user.match_match_player_left_idTousers, this.user.match_match_player_right_idTousers)
                     // this.user.match_match_player_left_idTousers = null
                     // this.user.match_match_player_right_idTousers = null
@@ -174,39 +161,6 @@ export const useUserStore = defineStore({
             }
         },
 
-        //!!! need to make it async but don't want to return promise...
-        createMatch_history(leftMatchs: IMatch[] | null, rightMatchs: IMatch[] | null): IMatchHistory[] {
-            let matchs: IMatchHistory[] = new Array()
-
-            if (leftMatchs) {
-                leftMatchs.forEach(el => {
-                    const match : IMatchHistory = {
-                        opponent: el.player_right_id,
-                        myScore: el.score_left,
-                        opponentScore: el.score_right,
-                        win: (el.score_left > el.score_right),
-                        date: new Date()
-                    }
-                    this.user.match_history.push(match)
-                })
-                // leftMatchs = null
-            }
-            if (rightMatchs) {
-                rightMatchs.forEach(el => {
-                    const match : IMatchHistory = {
-                        opponent: el.player_left_id,
-                        myScore: el.score_right,
-                        opponentScore: el.score_left,
-                        win: (el.score_right > el.score_left),
-                        date: new Date()
-                    }
-                    this.user.match_history.push(match)
-                })
-                // rightMatchs = null
-            }
-            return matchs
-        },
-
         // Manage Friends and Bans
         isFriends(id: number): boolean {
             if (this.user.friends)
@@ -214,8 +168,8 @@ export const useUserStore = defineStore({
             return false
         },
         isBan(id: number): boolean {
-            if (this.user.ban_users_ban_users_idTousers)
-                return this.user.ban_users_ban_users_idTousers.includes(id)
+            if (this.user.bans)
+                return this.user.bans.includes(id)
             return false
         },
         isInvite(id: number): boolean {
@@ -271,7 +225,7 @@ export const useUserStore = defineStore({
                     this.error = error
                     return
                 }
-                this.user.ban_users_ban_users_idTousers.push(id)
+                this.user.bans.push(id)
             }
         },
         async removeFriendOrBan(id: number) {
@@ -296,7 +250,7 @@ export const useUserStore = defineStore({
                 }
             }
             if (id && this.isBan(id)) {
-                const index = this.user.ban_users_ban_users_idTousers.indexOf(id, 0)
+                const index = this.user.bans.indexOf(id, 0)
                 if(confirm(`Remove ${id} from your bans ?`)) {
                     // send info to back and wait for res
                     const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove')
@@ -312,7 +266,7 @@ export const useUserStore = defineStore({
                         this.error = error
                         return
                     }
-                    this.user.ban_users_ban_users_idTousers.splice(index, 1)
+                    this.user.bans.splice(index, 1)
                 }
             }
         }

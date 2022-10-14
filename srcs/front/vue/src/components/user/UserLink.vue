@@ -11,7 +11,8 @@ const props = defineProps<{
 
 const usersStore = useUsersStore()
 
-const userStatus: status = ref(usersStore.getUserStatus(props.otherUser.id))
+const userStatus: status = "available"
+// const userStatus: status = ref(usersStore.getUserStatus(props.otherUser.id))
 
 // il me faudrait plutôt un watch ici pour regarder le moindre changement sur le socket
 // watch()

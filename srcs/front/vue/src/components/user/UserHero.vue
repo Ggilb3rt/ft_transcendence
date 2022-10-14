@@ -69,7 +69,7 @@ async function change2FA() {
 		/>
 		
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends" canEdit></UserList>
-		<UserList title="Ban" :user="userStore.user" :list="userStore.user.ban_users_ban_users_idTousers" canEdit></UserList>
+		<UserList title="Ban" :user="userStore.user" :list="userStore.user.bans" canEdit></UserList>
 		
 		<div class="security">
 			<h1>Security</h1>
