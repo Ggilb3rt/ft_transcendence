@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './createUserDto';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
@@ -32,7 +32,7 @@ export class UsersController {
     }
 
     @Get(':id')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     async getOneUser(@Param('id', ParseIntPipe) id) {
         return (this.usersService.getUserById(id))
     }
@@ -55,6 +55,11 @@ export class UsersController {
        return (this.usersService.acceptFriend(id, friend))
     }
 
+    @Post(':id/2fa')
+    switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status) {
+        return (this.usersService.switch2fa(id, status))
+    }
+
     @Post(':id/friends')
     // @UseGuards(JwtAuthGuard)
     addFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
@@ -66,6 +71,12 @@ export class UsersController {
     // @UseGuards(JwtAuthGuard)
     removeFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
        return (this.usersService.removeFriend(id, friend))
+    }
+
+    @Post(':id/ban/remove')
+    // @UseGuards(JwtAuthGuard)
+    unBan(@Param('id', ParseIntPipe) id, @Body('ban', ParseIntPipe) ban) {
+       return (this.usersService.unBan(id, ban))
     }
 
     @Get(':id/ban')

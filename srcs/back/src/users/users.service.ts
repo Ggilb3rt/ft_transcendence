@@ -140,6 +140,10 @@ export class UsersService {
     await this.usersHelper.unFriend(friendship);
   }
 
+  async unBan(id:number, banned:number) {
+    const ban = await this.usersHelper.getBan(id, banned)
+    return await this.usersHelper.unBan(ban)
+  }
 
   //create an unresolved friendship: invitation
   async addFriend(id: number, friend: number) {
@@ -166,9 +170,9 @@ export class UsersService {
 
     if (ban && ban.banned_id == id) {
       throw new HttpException("Banned by this user", HttpStatus.FORBIDDEN)
-    } else if (ban && ban.user_id == id) {
-      this.usersHelper.unBan(ban)
-    }
+    }// else if (ban && ban.user_id == id) {
+    //   this.usersHelper.unBan(ban)
+    // }
     
     //create and return friendship
     const friendship = await prisma.friends.create({
@@ -294,5 +298,17 @@ export class UsersService {
     const ret = await this.usersHelper.changeAvatarUrl(id, dest);
     console.log(ret)
     return (dest);
+  }
+
+  async switch2fa(id: number, status: boolean) {
+    const user = await this.usersHelper.getUser(id);
+
+    const ret = await prisma.users.update({
+      where:{id},
+      data:{
+        two_factor_auth: status
+      }
+    })
+    return ret
   }
 }

@@ -17,7 +17,7 @@ const userStatus: status = "available"
         <div :class="userStatus" class="status-container" v-if="!removeStatus">
         </div>
             <img 
-            :src="otherUser.avatar_url" :alt="otherUser.nickname + ' avatar'"
+            src="http://localhost:3000/users/1/avatar" :alt="otherUser.nickname + ' avatar'"
             v-if="!removeImg"
             >
             <p>{{ otherUser.nickname }}</p>
