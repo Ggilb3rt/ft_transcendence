@@ -14,6 +14,7 @@ const props = defineProps({
     playerOne: String,
     playerTwo: String,
   },
+  quit: Boolean,
 });
 
 let gameInstance = null;
@@ -22,15 +23,23 @@ const containerId = "game-container";
 onUpdated(() => {
   if (props.startGame) {
     gameInstance = launch(containerId);
-  }
+    console.log("launching");
+    }
+    if (props.gameActive === false || props.startGame === false) {
+        console.log("1 " + gameInstance);
+        gameInstance = null;
+        console.log("2 " + gameInstance);
+    }
+  //gameInstance.destroy(true, true);
 });
 
 onUnmounted(() => {
   gameInstance.destroy(true, false);
+  console.log("DESTROY");
 });
 
-async function launch(containerId) {
-  return await new Phaser.Game({
+function launch(containerId) {
+  return new Phaser.Game({
     type: Phaser.AUTO,
     width: 800,
     height: 640,
@@ -62,6 +71,7 @@ let cursors;
 let playerOneVictoryText;
 let playerTwoVictoryText;
 const paddleSpeed = 350;
+let activeGame = false;
 
 function preload() {
   this.load.image("ball", ballImage);
@@ -99,21 +109,6 @@ function create() {
   this.physics.add.collider(ball, playerOne);
   this.physics.add.collider(ball, playerTwo);
 
-  /*  let n = 0;
-  this.physics.add.collider(ball, playerOne, function () {
-    if (n === 0) {
-      console.log("collision");
-      n++;
-    }
-    props.socket.emit("collision", {
-      gameCode: props.gameCode,
-      x: ball.x,
-      y: ball.y,
-      vx: ball.body.velocity.x,
-      vy: ball.body.velocity.y,
-    });
-  });*/
-
   playerOneVictoryText = this.add.text(
     this.physics.world.bounds.width / 2,
     this.physics.world.bounds.height / 2,
@@ -141,20 +136,24 @@ function create() {
     }
   });
 
-  /*props.socket.on("moveBall2", ({ vx, vy }) => {
-    console.log("vx = " + vx  + " &  vy = " + vy);
-    ball.setVelocityX(-vx);
-    ball.setVelocityY(-vy);
-  });*/
-
   props.socket.on("ballMovement2", ({ x, y }) => {
-    console.log('blabla');
-    ball.x = x;
-    ball.y = y;
+    ball.x = x + ball.body.width / 2 + 2;
+    ball.y = y + ball.body.height / 2 + 2;
+  });
+
+  props.socket.on("gameResult", ({ winner }) => {
+    if (winner === 1) {
+      playerOneVictoryText.setVisible(true);
+    } else {
+      playerTwoVictoryText.setVisible(true);
+    }
   });
 
   props.socket.on("reMatch", () => {
     console.log("REMATCH");
+    playerOneVictoryText.setVisible(false);
+    playerTwoVictoryText.setVisible(false);
+    // DESTROY OR DISABLE ?
     ball.destroy();
     playerOne.destroy();
     playerTwo.destroy();
@@ -164,7 +163,7 @@ function create() {
       "ball"
     );
     ball.setCollideWorldBounds(true);
-    ball.setBounce(0.5, 0.5);
+    ball.setBounce(1, 1);
 
     playerOne = this.physics.add.sprite(
       ball.body.width / 2 + 1,
@@ -186,51 +185,48 @@ function create() {
 
     this.physics.add.collider(ball, playerOne);
     this.physics.add.collider(ball, playerTwo);
+
+    playerOneVictoryText.setVisible(false);
+    playerTwoVictoryText.setVisible(false);
     isGameStarted = false;
   });
-
-  /*  props.socket.on("collisionResult", ({ x, y, vx, vy }) => {
-    console.log("collision received");
-    ball.x = x;
-    ball.y = y;
-    ball.body.velocity.x = vx;
-    ball.body.velocity.y = vy;
-    ball.body.bounce.set(1);
-    ball.body.boynce.set(1);
-  });*/
 }
 
 function update() {
-  if (!isGameStarted && props.playerNumber === 1) {
-    const InitialVelocityX = Math.random() * 150 + 200;
-    const InitialVelocityY = Math.random() * 150 + 200;
-    /*if (props.playerNumber === 1) {
-      props.socket.emit("moveBall", {
-        gameCode: props.gameCode,
-        InitialVelocityX,
-        InitialVelocityY,
-      });
-    }*/
+  if (
+    props.startGame &&
+    !isGameStarted &&
+    !activeGame &&
+    props.playerNumber === 1
+  ) {
+    //const InitialVelocityX = Math.random() * 150 + 200;
+    //const InitialVelocityY = Math.random() * 150 + 200;
+    const InitialVelocityX = 300;
+    const InitialVelocityY = 300;
     ball.setVelocityX(-InitialVelocityX);
     ball.setVelocityY(-InitialVelocityY);
     isGameStarted = true;
+    activeGame = true;
   }
 
-  /* if (ball.body.x < playerOne.body.x) {
+  if (ball.body.x < playerOne.body.x) {
     ball.setImmovable(true);
-    playerTwoVictoryText.setVisible(true);
+    props.socket.emit("gameResult", { gameCode: props.gameCode, winner: 2 });
+    //playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
     ball.setVelocityY(0);
+    activeGame = false;
   }
   if (ball.body.x > playerTwo.body.x) {
     ball.setImmovable(true);
-    playerOneVictoryText.setVisible(true);
+    //playerOneVictoryText.setVisible(true);
+    props.socket.emit("gameResult", { gameCode: props.gameCode, winner: 1 });
     ball.setVelocityX(0);
     ball.setVelocityY(0);
-  }*/
+    activeGame = false;
+  }
 
-  if (props.playerNumber === 1) {
-    console.log("hello");
+  if (props.playerNumber === 1 && activeGame) {
     props.socket.emit("ballMovement", {
       gameCode: props.gameCode,
       x: ball.body.x,
@@ -238,7 +234,7 @@ function update() {
     });
   }
 
-  if (props.playerNumber === 1) {
+  if (props.playerNumber === 1 && activeGame) {
     if (movePlayer(cursors, playerOne)) {
       props.socket.emit("move", {
         //gameCode: props.gameCode,
@@ -260,11 +256,11 @@ function update() {
     }
   }
 
-  /*if (ball.body.velocity.y > paddleSpeed) {
+  if (ball.body.velocity.y > paddleSpeed) {
     ball.body.velocity.y = paddleSpeed;
   } else if (ball.body.velocity.y < -paddleSpeed) {
     ball.body.velocity.y = -paddleSpeed;
-  }*/
+  }
 }
 
 function movePlayer(cursors, player) {
@@ -282,12 +278,12 @@ function movePlayer(cursors, player) {
 </script>
 
 <template>
-  <h1>Player number : {{ props.playerNumber }}</h1>
-  <h1>Start Game : {{ this.startGame }}</h1>
-  <h1>Game Active : {{ this.gameActive }}</h1>
-  <h1>Game Code : {{ this.gameCode }}</h1>
+  <p>Player number : {{ props.playerNumber }}</p>
+  <p>Start Game : {{ this.startGame }}</p>
+  <p>Game Active : {{ this.gameActive }}</p>
+  <p>Game Code : {{ this.gameCode }}</p>
   <!-- <Suspense> -->
-  <div :id="containerId" />
+  <div v-if="props.startGame" :id="containerId" />
 
   <!-- <template #fallback>
       <div class="placeholder">Downloading...</div>

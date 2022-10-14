@@ -70,9 +70,6 @@ export class GameService {
     }
 
     handleBallMovement(client: Socket, data: any, server: Server) {
-        //const posx = data.x;
-        //const posy = data.y;
-
         client.broadcast.emit('ballMovement2', {x: data.x, y: data.y});
         //server.sockets.in(data.gameCode).emit('ballMovement', {x: posx, y: posy});
     }
@@ -455,6 +452,12 @@ export class GameService {
         //server.sockets.in(pos.gameCode)
         //    .emit('move2', { playerNumber: pos.playerNumber, x: pos.x, y: pos.y});
     }
+
+    handleGameResult(client: Socket, data: any, server: Server) {
+        server.sockets.in(data.gameCode)
+            .emit('gameResult', { winner: data.winner });
+    }
 }
+
 
 

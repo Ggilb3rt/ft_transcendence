@@ -82,4 +82,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleCollision(client, data, this.server);
     }*/
 
+    @SubscribeMessage('gameResult') 
+    handleGameResult(client: Socket, data: any) {
+        this.gameService.handleGameResult(client, data, this.server);
+    }
 }
