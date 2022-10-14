@@ -150,7 +150,7 @@ export default {
 </script>
 
 <template>
-  <div v-show="!gameActive">
+  <!-- <div v-show="!gameActive"> -->
     <h1>Multiplayer Pong</h1>
     <button type="submit" @click.prevent="newGame">Create New Game</button>
     <div>OR</div>
@@ -158,9 +158,9 @@ export default {
       <input v-model="gameCode" type="text" placeholder="Enter Game Code" />
       <button type="submit" @click.prevent="joinGame">Join Game</button>
     </div>
-  </div>
+  <!-- </div> -->
 
-  <div v-show="gameActive">
+  <!-- <div v-show="gameActive"> -->
     <h1>THE GAME</h1>
     <h1>
       Your game code is:
@@ -176,7 +176,7 @@ export default {
     />
     <button type="submit" @click.prevent="reMatch">Re-Match !</button>
     <button type="submit" @click.prevent="quitGame">Quit</button>
-  </div>
+  <!-- </div> -->
 </template>
 
 <style></style>

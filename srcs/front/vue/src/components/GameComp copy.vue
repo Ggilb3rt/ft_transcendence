@@ -29,8 +29,8 @@ onUnmounted(() => {
   gameInstance.destroy(true, false);
 });
 
-async function launch(containerId) {
-  return await new Phaser.Game({
+function launch(containerId) {
+  return new Phaser.Game({
     type: Phaser.AUTO,
     width: 800,
     height: 640,
@@ -131,7 +131,6 @@ function create() {
   playerTwoVictoryText.setOrigin(0.5);
 
   props.socket.on("move2", ({ playerNumber, x, y }) => {
-    console.log("move");
     if (playerNumber === 2) {
       playerTwo.x = x;
       playerTwo.y = y;
@@ -141,16 +140,14 @@ function create() {
     }
   });
 
-  /*props.socket.on("moveBall2", ({ vx, vy }) => {
-    console.log("vx = " + vx  + " &  vy = " + vy);
+  props.socket.on("moveBall2", ({ vx, vy }) => {
     ball.setVelocityX(-vx);
     ball.setVelocityY(-vy);
-  });*/
+  });
 
-  props.socket.on("ballMovement2", ({ x, y }) => {
-    console.log('blabla');
-    ball.x = x;
-    ball.y = y;
+  props.socket.on("ballMovement", ({ x, y }) => {
+    ball.body.x = x;
+    ball.body.y = y;
   });
 
   props.socket.on("reMatch", () => {
@@ -201,22 +198,12 @@ function create() {
 }
 
 function update() {
-  if (!isGameStarted && props.playerNumber === 1) {
-    const InitialVelocityX = Math.random() * 150 + 200;
-    const InitialVelocityY = Math.random() * 150 + 200;
-    /*if (props.playerNumber === 1) {
-      props.socket.emit("moveBall", {
-        gameCode: props.gameCode,
-        InitialVelocityX,
-        InitialVelocityY,
-      });
-    }*/
-    ball.setVelocityX(-InitialVelocityX);
-    ball.setVelocityY(-InitialVelocityY);
+  if (!isGameStarted) {
+    props.socket.emit("moveBall", { gameCode: props.gameCode });
     isGameStarted = true;
   }
 
-  /* if (ball.body.x < playerOne.body.x) {
+ /* if (ball.body.x < playerOne.body.x) {
     ball.setImmovable(true);
     playerTwoVictoryText.setVisible(true);
     ball.setVelocityX(0);
@@ -229,19 +216,16 @@ function update() {
     ball.setVelocityY(0);
   }*/
 
-  if (props.playerNumber === 1) {
-    console.log("hello");
-    props.socket.emit("ballMovement", {
-      gameCode: props.gameCode,
-      x: ball.body.x,
-      y: ball.body.y,
-    });
-  }
+  props.socket.emit("ballMovement", {
+    gameCode: props.gameCode,
+    x: ball.body.x,
+    y: ball.body.y,
+  });
 
   if (props.playerNumber === 1) {
     if (movePlayer(cursors, playerOne)) {
       props.socket.emit("move", {
-        //gameCode: props.gameCode,
+        gameCode: this.gameCode,
         playerNumber: props.playerNumber,
         x: playerOne.x,
         y: playerOne.y,
@@ -252,7 +236,7 @@ function update() {
   if (props.playerNumber === 2) {
     if (movePlayer(cursors, playerTwo)) {
       props.socket.emit("move", {
-        //gameCode: props.gameCode,
+        gameCode: this.gameCode,
         playerNumber: props.playerNumber,
         x: playerTwo.x,
         y: playerTwo.y,
@@ -279,6 +263,8 @@ function movePlayer(cursors, player) {
   }
   return playerMoved;
 }
+
+
 </script>
 
 <template>

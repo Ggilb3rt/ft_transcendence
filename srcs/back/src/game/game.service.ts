@@ -2,7 +2,8 @@ import { Injectable, Global } from '@nestjs/common';
 import { Game } from './classes/game.class';
 import { Socket, Server } from 'socket.io';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { FRAME_RATE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W, CANVAS_HEIGHT, DEFAULT_PADDLE_H } from './constants';
+//import { FRAME_RATE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W, CANVAS_HEIGHT, DEFAULT_PADDLE_H } from './constants';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './constants';
 import { Ball, Player } from "./classes";
 
 
@@ -21,14 +22,14 @@ export class GameService {
                 new Player,
                 new Player,
             ],
-            roomName: String,
+            roomName: String
         }
     }
 
     initGame() {
         const state = this.createGameState();
-        this.setPlayerPos(state.players);
-        this.randomDir(state.ball);
+        this.setPlayerPos(state.ball, state.players);
+        //this.randomDir(state.ball);
         return state;
     }
 
@@ -36,12 +37,18 @@ export class GameService {
 
     }
 
-    setPlayerPos(players) {
-        let playerOne = players[0];
+    setPlayerPos(ball: Ball, players: Player[]) {
+       /* let playerOne = players[0];
         playerOne.posx = 0;
 
         let playerTwo = players[1];
-        playerTwo.posx = CANVAS_WIDTH - playerTwo.width;
+        playerTwo.posx = CANVAS_WIDTH - playerTwo.width;*/
+
+        let playerOne = players[0];
+        playerOne.x = 1;
+
+        let playerTwo = players[1];
+        playerTwo.x = CANVAS_WIDTH - 1;
     }
 
 
@@ -56,20 +63,21 @@ export class GameService {
     }
 
     handleMoveBall(client: Socket, data: any, server: Server) {
-        const InitialVelocityX: number = Math.random() * 150 + 200;
-        const InitialVelocityY: number = Math.random() * 150 + 200;
+       // const InitialVelocityX: number = Math.random() * 150 + 200;
+        //const InitialVelocityY: number = Math.random() * 150 + 200;
         server.sockets.in(data.gameCode)
-            .emit('moveBall', {vx: InitialVelocityX, vy: InitialVelocityY});
+            .emit('moveBall2', {vx: data.InitialVelocityX, vy: data.InitialVelocityY});
     }
 
     handleBallMovement(client: Socket, data: any, server: Server) {
-        const posx = data.x;
-        const posy = data.y;
+        //const posx = data.x;
+        //const posy = data.y;
 
-        server.sockets.in(data.gameCode).emit('ballMovement', {x: posx, y: posy});
+        client.broadcast.emit('ballMovement2', {x: data.x, y: data.y});
+        //server.sockets.in(data.gameCode).emit('ballMovement', {x: posx, y: posy});
     }
 
-    gameLoop(state) {
+    /*gameLoop(state) {
         if (!state) {
             return;
         }
@@ -133,7 +141,7 @@ export class GameService {
         if (ball.posy <= 0) {
             ball.diry = Math.abs(ball.diry);
         }
-    }
+    }*/
 
     /*handleCollision(client: Socket, data: any, server: Server) {
         //const x = data.vx * -1;
@@ -142,7 +150,7 @@ export class GameService {
            .emit('collisionResult', {x: data.x, y: data.y, vx: data.vx, vy: data.vy});
     }*/
 
-    paddleCollision(ball, players) {
+    /*paddleCollision(ball, players) {
 
         // https://stackoverflow.com/questions/17768301/top-of-paddle-collision-detection-pong
         var rad = ball.rad / 2;
@@ -264,7 +272,7 @@ export class GameService {
             ball.diry = Math.sin(heading);
         }
         ball.speed *= INITIAL_VELOCITY;
-    }
+    }*/
 
     randomNumberBetween(min, max) {
         return Math.random() * (max - min) + min;
@@ -441,7 +449,11 @@ export class GameService {
     }
 
     handleMove(client: Socket, pos: any, server: Server) {
-        client.broadcast.emit("move", pos);
+        client.broadcast.emit("move2", pos);
+        //console.log(pos.gameCode);
+        //console.log(this.clientRooms);
+        //server.sockets.in(pos.gameCode)
+        //    .emit('move2', { playerNumber: pos.playerNumber, x: pos.x, y: pos.y});
     }
 }
 

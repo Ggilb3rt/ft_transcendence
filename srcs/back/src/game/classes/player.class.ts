@@ -1,4 +1,4 @@
-import { CANVAS_HEIGHT, DEFAULT_PADDLE_H, DEFAULT_PADDLE_W, DEFAULT_PADDLE_SPEED } from "../constants";
+/*import { CANVAS_HEIGHT, DEFAULT_PADDLE_H, DEFAULT_PADDLE_W, DEFAULT_PADDLE_SPEED } from "../constants";
 
 export class Player {
     posx = 0;
@@ -9,6 +9,18 @@ export class Player {
     vel = 0;
     up = false;
     down = false;
+    id = null;
+    game_scores = [];
+    match_score = 0;
+}*/
+
+import { CANVAS_HEIGHT, DEFAULT_PADDLE_SPEED } from "../constants";
+
+
+export class Player {
+    x = 0;
+    y = CANVAS_HEIGHT / 2;
+    speed = DEFAULT_PADDLE_SPEED;
     id = null;
     game_scores = [];
     match_score = 0;
