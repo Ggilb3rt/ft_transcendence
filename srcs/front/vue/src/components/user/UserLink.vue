@@ -21,8 +21,9 @@ const userStatus: status = "available"
 
 <template>
     <router-link :to="{ name: 'dashOther', params: { id: otherUser.id }}" v-if="otherUser">
-        <div :class="userStatus" class="status-container" v-if="!removeStatus"></div>
-        <img 
+        <div :class="userStatus" class="status-container" v-if="!removeStatus">
+        </div>
+            <img 
             :src="otherUser.avatar_url" :alt="otherUser.nickname + ' avatar'"
             v-if="!removeImg"
         >

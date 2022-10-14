@@ -76,14 +76,6 @@ export const useUserStore = defineStore({
             if (this.user)
                 this.user.nickname = newTag
         },
-        getUserAvatar() {
-            if (this.user.avatar_url)
-                return `${this.user.avatar_url}`
-        },
-        setUserAvatar(url:string) {
-            if (this.user)
-                this.user.avatar_url = url
-        }, 
         getUserLevel(): string {
             switch (this.user.ranking) {
                 case 0:
@@ -121,8 +113,9 @@ export const useUserStore = defineStore({
                     })
                     .then((data) => {
                         if (data) {
-                            this.user.bans = this.user.bans
+                            // this.user.bans = this.user.bans
                             this.user = data
+                            this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
                             this.error = null
                             this.connected = true
                         }

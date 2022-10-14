@@ -87,11 +87,8 @@ async function changeImg(e: any) {
 	if (e) {
 		let newAvatar = new FormData()
 		const img = e.target.files[0]
-    // const fileField = document.getElementById("changeAvatar") // img == fileField.files[0] (cf console.log plus bas)
 
-    // newAvatar.append('avatar', fileField.files[0]);
-    newAvatar.append('avatar', img)
-    
+    newAvatar.append('file', img)
     MIMEtypeError.value = false
     if (!validMIMEtype(img)) {
       MIMEtypeError.value = true
@@ -106,33 +103,55 @@ async function changeImg(e: any) {
     if (!confirm("Change your avatar ?" + img)) {
       return
     }
-    // console.log(newAvatar)
-    // console.log(img)
-    // console.log(`fileField`, fileField.files[0])
 
-
-    for (const [key, value] of newAvatar) {
-      console.log(key, value)
-    }
-		// must send to server and wait his response with the server url
     try {
-			const api = mande(`http://localhost:3000/users/${userStore.user.id}/avatar`);
-			await api.post({
-				avatar: newAvatar
-			})
-			.then((data) => {
-				console.log('data from change avatar ', data)
-        // need to put setUserAvatar(data) and changeUserAvatar(..) here
-			})
-		} catch (error: any) {
-			console.log('change avatar err', error)
-      userStore.error = error
-      // return
-		}
-    const servRes = "/src/assets/avatars/default.gif"
+      await fetch(`http://localhost:3000/users/${userStore.user.id}/avatar`, {
+        method: 'POST',
+        headers: {
+          // Accept: 'multipart/form-data',
+          // 'Content-Type': 'multipart/form-data',
+        },
+        body: newAvatar,
+      })
+          .then((response) => {
+              if (response.status >= 200 && response.status < 300) {
+                  return response.json()
+                }
+                throw new Error(response.statusText)
+          })
+          .then((data) => {
+              if (data) {
+                  console.log("return data ", data)
+              }
+          })
+    } catch (error: any) {
+        userStore.error = error
+    }
+
+
+
+
+		// must send to server and wait his response with the server url
+    // try {
+		// 	const api = mande(`http://localhost:3000/users/${userStore.user.id}/avatar`);
+		// 	await api.post({
+		// 		file: newAvatar
+		// 	})
+		// 	.then((data) => {
+		// 		console.log('data from change avatar ', data)
+    //     // userStore.setUserAvatar(data)
+    //     // usersStore.changeUserAvatar(userStore.user.id, data)
+    //     // need to put setUserAvatar(data) and changeUserAvatar(..) here
+		// 	})
+		// } catch (error: any) {
+		// 	console.log('change avatar err', error)
+    //   userStore.error = error
+    //   // return
+		// }
+    // const servRes = "/src/assets/avatars/default.gif"
     // update stores with new avatar_url
-    userStore.setUserAvatar(servRes)
-    usersStore.changeUserAvatar(userStore.user.id, servRes)
+    // userStore.setUserAvatar(servRes)
+    // usersStore.changeUserAvatar(userStore.user.id, servRes)
 	}
 }
 
@@ -172,7 +191,7 @@ fetch('https://example.com/profile/avatar', {
 <template>
     <div class="userBasics">
         <figure class="heroFigure">
-            <img class="heroAvatar" :src="userStore.getUserAvatar()" :alt="userStore.user.nickname + ' avatar'">
+            <img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
             <input type="file" @change="changeImg( $event )" id="changeAvatar">
             <p v-if="MIMEtypeError" class="red">Invalid file format</p>
             <p v-if="sizeFileError" class="red">File size must be &lt= 3Mo</p>

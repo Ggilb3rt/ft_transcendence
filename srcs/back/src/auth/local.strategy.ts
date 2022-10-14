@@ -11,8 +11,8 @@ import { CreateUserDto } from "src/users/createUserDto";
 export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
     constructor(private usersService: UsersService){
         super({
-            authorizationURL: process.env.BASE_URL_GET,
-            tokenURL: process.env.BASE_URL_POST,
+            // authorizationURL: process.env.BASE_URL_GET,
+            // tokenURL: process.env.BASE_URL_POST,
             clientID: process.env.AUTH_UID, 
             clientSecret: process.env.AUTH_SECRET,
             callbackURL: "http://localhost:3000/auth/redirect"
@@ -38,7 +38,7 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
             ranking: null,
             wins: null,
             loses: null,
-            two_factor_auth: null
+            two_factor_auth: false
         }
 
         console.log("user == ", user);
