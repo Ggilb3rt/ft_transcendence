@@ -218,4 +218,14 @@ export class UsersHelper {
       
       return (matches)
     }
+
+    async changeAvatarUrl(id: number, dest: string) {
+      const user = await prisma.users.update({
+        where: {id},
+        data:{
+          avatar_url: dest
+        }
+      })
+      return (user)
+    }
 }

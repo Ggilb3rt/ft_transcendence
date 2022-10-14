@@ -1,7 +1,10 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { friends, match, PrismaClient, users } from '@prisma/client'
+import { HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { match, PrismaClient, users } from '@prisma/client'
 import { UsersHelper } from './usersHelpers';
 import { CreateUserDto } from './createUserDto';
+const path = require('path');
+const util = require('util');
+import { writeFile } from 'fs';
 
   const prisma = new PrismaClient();
 
@@ -272,5 +275,24 @@ export class UsersService {
   //Get match history for user
   async getMatches(id:number) {
     return await this.usersHelper.getMatches(id);
+  }
+
+  async getAvatar(id:number) {
+
+    const user = await this.usersHelper.getUser(id);
+    return user.avatar_url;
+  }
+
+  async changeAvatar(id:number, file: Express.Multer.File) {
+    
+    const user = await this.usersHelper.getUser(id);
+
+    const myWriteFile = util.promisify(writeFile)
+    const dest = path.join('/app/resources/', user.nickname)
+
+    await myWriteFile(dest, file.buffer, 'ascii')
+    const ret = await this.usersHelper.changeAvatarUrl(id, dest);
+    console.log(ret)
+    return (dest);
   }
 }

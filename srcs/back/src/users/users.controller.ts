@@ -1,7 +1,10 @@
-import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './createUserDto';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
+import { Express } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { createReadStream } from 'fs';
 
 
 @Controller('users')
@@ -22,6 +25,7 @@ export class UsersController {
     getUsersRestrict() {
        return (this.usersService.getUsersRestrict())
     }
+
     @Get(':id/other')
     getOther(@Param('id', ParseIntPipe) id) {
        return (this.usersService.getOtherUser(id))
@@ -83,8 +87,30 @@ export class UsersController {
     }
 
     @Post(':id/nick')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     changeNickname(@Param('id', ParseIntPipe) id, @Body('nickname') nick: string) {
         return (this.usersService.changeNickname(id, nick))
+    }
+
+    @Post(':id/avatar')
+    @UseInterceptors(FileInterceptor('file'))
+    uploadAvatar(@UploadedFile(
+        new ParseFilePipe({
+            validators: [
+                new MaxFileSizeValidator({ maxSize: 10000}),
+                new FileTypeValidator({fileType:'jpeg'})
+            ]
+        })
+    ) file: Express.Multer.File, @Param('id', ParseIntPipe) id)
+    {
+        return (this.usersService.changeAvatar(id, file));
+    }
+
+    @Get(':id/avatar')
+    @Header('Content-Type', 'image/jpeg')
+    @Header('Content-Disposition', 'attachment; filename="your_avatar.jpeg"')
+    async getAvatar(@Param('id', ParseIntPipe) id) {
+        const file = createReadStream(await this.usersService.getAvatar(id))
+        return new StreamableFile(file);
     }
 }
