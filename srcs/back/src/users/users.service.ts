@@ -1,89 +1,63 @@
-import { ConsoleLogger, HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
-import { PrismaClient } from '@prisma/client'
-import { stringify } from 'querystring';
+import { HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { match, PrismaClient, users } from '@prisma/client'
+import { UsersHelper } from './usersHelpers';
+import { CreateUserDto } from './createUserDto';
+const path = require('path');
+const util = require('util');
+import { writeFile } from 'fs';
 
   const prisma = new PrismaClient();
 
 
-/// !!!!!!!!!!!!!!!!!!!!! FINISH CHECKS ON FRIENDS AND BAN LISTS => KICK FRIEND ON BAN AND CHECK IF BAN ON FRIEND
-
-interface userRelation {
-  id: Number
-}
-
-function convertUserList(list:userRelation[]) {
-  const newList = []
-
-  for (const obj in list) {
-    newList.push(list[obj].id)
-  }
-  return newList
-}
-
-
 @Injectable()
-class UsersService {
+export class UsersService {
+  constructor(private usersHelper: UsersHelper) {}
 
+
+  // OPERATIONS AROUND USERS AND RELATIONS BETWEEN THEM
+
+  // ban user
   async banUser(id:number, banned:number) {
-    try{
+    this.usersHelper.checkSame(id, banned);
+    await this.usersHelper.getUser(id);
+    await this.usersHelper.getUser(banned);
+    if (await this.usersHelper.getBan(id, banned))
+      throw new HttpException("Already banned", HttpStatus.BAD_REQUEST)
 
-      const user = await prisma.users.findUnique({where:{id}});
-      const ban = await prisma.users.findUnique({where:{id:banned}});
-      const begin = new Date();
 
-      if ((user && ban) && user != ban) {
-       // if (await prisma.users.findUnique({where:{id},
-        //   select: {
-        //     friends: {
-        //       where:{
-        //         id:banned
-        //       }
-        //     }
-        //   }
-        // }))
-        await 
-          prisma.users.update({
-            where: {id},
-            data: {
-              ban_users_ban_users_idTousers: {
-                  create:{
-                    // user_id:id,
-                    banned_id: banned,
-                    ban_begin: begin
-                  }
-                }
-              },
-            },
-          )
+    const friendship = await this.usersHelper.getFriendship(id, banned);
+    const ban_begin = new Date();
 
-        return (ban);
-        }
-        throw("User and/or banned user doesn't exist");
-    } catch (err) {
-      console.log("err: ", err);
-      return (err)
+
+    if (friendship) {
+      this.usersHelper.unFriend(friendship);
     }
+    return await prisma.ban_users.create({
+      data:{
+        user_id:id,
+        banned_id:banned,
+        ban_begin
+      }
+    })
   }
   
-  async getBannedUsers(id: number) {
-    try {
-      const banned = await prisma.users.findUnique({
-        where: {id},
-        select: {
-          ban_users_ban_users_banned_idTousers: {
-            select: {
-              banned_id: true,
-            }
-          }
-        }
-      })
-      return (banned);
-    } catch (err) {
-      console.log("err: ", err);
-    }
+  //get []users_id who banned me
+  async getBannedMe(id: number) {
+    await this.usersHelper.getUser(id);
+
+    const bans = await this.usersHelper.getBanned(id)
+    return (this.usersHelper.formatBans(bans, id));
   }
 
+  //get []users_id whom i banned
+  async getBannedUsers(id: number) {
+      await this.usersHelper.getUser(id);
+
+      const bans = await this.usersHelper.getBans(id)
+      return (this.usersHelper.formatBans(bans, id));
+  }
+
+  //deprecated, get userbynick
   async getUserByNick(nick: string) {
     const res = await prisma.users.findMany({
       where:{
@@ -96,203 +70,229 @@ class UsersService {
         avatar_url: true,
         nickname: true
       }
-      
     })
     if (!res) {
-      throw("404");
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     return (res);
   }
+  
 
+  //get resolved friendships: both agreed
+  async getFriends(id: number) {
+
+    await this.usersHelper.getUser(id);
+
+    const friends = await this.usersHelper.getFriends(id);
+    const arr: number[] = this.usersHelper.formatFriends(friends, id)
+    return (arr)
+  }
+  
+
+  // main getter for users: every info front needs 
   async getUserById(id: number) {
-      try {
-        var user = await prisma.users.findFirst({
-          where: {
-            id: id
-          },
-          include:{
-            friends: {
-              select: {id:true}
-            },
-            ban_users_ban_users_idTousers: {
-              select:{banned_id:true}
-            },
-            match_match_player_left_idTousers:true,
-            match_match_player_right_idTousers:true
-          }
-        })
-        user.friends = convertUserList(user.friends)
-        user.ban_users_ban_users_idTousers = convertUserList(user.ban_users_ban_users_idTousers)
-        return (user);
-      } catch (err) {
-        throw new HttpException('No User at this id', 404);
-      }
+
+    const user = await this.usersHelper.getUser(id);
+
+    let userFormat: users & {
+      friends: number[],
+      bannedBy: number[],
+      bans: number[],
+      matches: match[]
     }
 
-    async getFriends(id: number) {
-      try {
-        const friends = await prisma.users.findUnique({
-          where:{id},
-          select: {
-            friends: {
-              select: {
-                id: true,
-                avatar_url: true,
-                nickname: true
-              }
-            }
-          }
-        });
-        return (friends)
-      } catch (err) {
-        throw new HttpException('No User at this id', 404);
-      }
+    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth} = user
+
+    const friends = await this.getFriends(id);
+    const bannedBy = await this.getBannedMe(id);
+    const bans = await this.getBannedUsers(id);
+    const matches = await this.getMatches(id);
+
+    userFormat = {
+      id,
+      nick_fourtytwo,
+      nickname,
+      first_name,
+      last_name,
+      avatar_url,
+      ranking,
+      wins,
+      loses,
+      two_factor_auth,
+      friends,
+      bannedBy,
+      bans,
+      matches
     }
 
-    async addFriend(id: number, friend: number) {
-      try {
-        if (id == friend) {
-          throw("Can't be friend with yourself");
-        }
-        const user = await prisma.users.findUnique({
-          where: {
-            id: id
-          } 
-        })
-        console.log ("id [", id, `] && friend [${Number(friend)}]`);
-        const user_friend = await prisma.users.findUnique({where:{id: friend}});
-        if (user && user_friend) {
-          await prisma.$transaction([
-          prisma.users.update({
-            where: {id},
-            data: {
-              friends: {
-                connect: {
-                  id: friend
-                }
-              },
-            },
-          }),
-          prisma.users.update({
-            where: {id: friend},
-            data: {
-              friends: {
-                connect: {
-                  id
-                }
-              }
-            }
-          })])
-        }
-        const result = await prisma.users.findUnique({where:{id},select:{friends:true}});
-        console.log("has it worked? ===> ", result);
-        return (user_friend);
-      } catch (err) {
-        console.log(err);
-      }
+    return (userFormat);
+  }
+
+
+  //remove one friend
+  async removeFriend(id:number, friend:number) {
+    
+    this.usersHelper.checkSame(id, friend);
+    const friendship = await this.usersHelper.getFriendship(id, friend)
+    if (!friendship) {
+      throw new HttpException("Is not your friend", HttpStatus.BAD_REQUEST)
+    }
+    await this.usersHelper.unFriend(friendship);
+  }
+
+
+  //create an unresolved friendship: invitation
+  async addFriend(id: number, friend: number) {
+
+    // check if ids are the same and if they are not already friends. If there is an invite pending for me, accept it
+    this.usersHelper.checkSame(id, friend);
+    const already_friend = await this.usersHelper.getFriendship(id, friend)
+    if (already_friend && already_friend.status == true) {
+      throw new HttpException("Already friends", HttpStatus.BAD_REQUEST)
+    } 
+    else if (already_friend && already_friend.friend_id == id) {
+      this.acceptFriend(id, friend)
+    } 
+    else if (already_friend && already_friend.user_id == id) {
+      throw new HttpException("You already sent invite", HttpStatus.CONFLICT)
     }
 
-    async getAllUsers() {
-      try {
-        const users = await prisma.users.findMany({include:{
-          friends: {select: {
-            id:true,
-            avatar_url:true,
-            nickname:true
-          }},
-          match_match_player_left_idTousers:true,
-          ban_users_ban_users_banned_idTousers:true,
-          ban_channels_ban_channels_banned_idTousers:true,
-          ban_users_ban_users_idTousers: {
-            select: {
-              banned_id: true
-            }
-          }
-        }})
-        return (users);
-      } catch (err) {
-        console.log("err: ", err)
-      }
+    // check if both users exists and if not banned,
+    // if banned by me, erase ban
+    await this.usersHelper.getUser(id);
+    await this.usersHelper.getUser(friend);
+    const ban = await this.usersHelper.getBan(id, friend) 
+  
+
+    if (ban && ban.banned_id == id) {
+      throw new HttpException("Banned by this user", HttpStatus.FORBIDDEN)
+    } else if (ban && ban.user_id == id) {
+      this.usersHelper.unBan(ban)
     }
     
-    async changeNickname(id: number, nickname: string) {
-        var regex = /^([0-9]|[a-z])+([0-9a-z])$/i;
-        if (nickname.length >= 10) {
-          nickname = nickname.slice(0, 10);
-        }
-        if (!nickname.match(regex)) {
-          throw new HttpException("Only alphanumeric characters", 408)
-        }
-        const test = await prisma.users.findFirst({where:{nickname}})
-        if (test) {
-          throw new HttpException("nickname already taken", 405);
-        }
-        const secondTest = await prisma.users.findUnique({where:{id}})
-        if (!secondTest) {
-          throw new HttpException("User doesn't exists", 404)
-        }
-        const newUser = await prisma.users.update({
-          where:{id},
-          data:{
-            nickname
-          }
-        })
-        return (newUser);
-    }
-
-    async getOtherUser(id: number) {
-      try {
-        const users = await prisma.users.findUnique(
-          {
-            where:{
-              id
-            },
-            select:{
-            id:true,
-            nickname:true,
-            first_name:true,
-            last_name:true,
-            friends: {
-              select: {id:true}
-            },
-            avatar_url:true,
-            ranking:true,
-            wins:true,
-            loses:true,
-            match_match_player_left_idTousers:true,
-            match_match_player_right_idTousers:true
-            }
-      })
-        users.friends = convertUserList(users.friends)
-        return (users);
-      } catch (err) {
-        console.log("err: ", err)
+    //create and return friendship
+    const friendship = await prisma.friends.create({
+      data: {
+        user_id: id,
+        friend_id: friend,
+        status: false
       }
-    }
+    })
+    return (friendship);
+  }
 
-    async getUsersRestrict() {
-     try {
-        const users = await prisma.users.findMany({select:{
+  //accept a friend invitation
+  async acceptFriend(id: number, friend: number) {
+    this.usersHelper.checkSame(id, friend);
+    const friendship = await this.usersHelper.getFriendship(id, friend)
+    if (friendship && friendship.status == false && friendship.friend_id == id) {
+      return await prisma.friends.update({
+        where: {
+          id: friendship.id,
+        },
+        data:{
+          status: true
+        }
+      })
+    }
+    return ("No pending invite")
+  }
+
+  //get pending friendships
+  async getPending(id: number) {
+    const invites = await this.usersHelper.getPending(id);
+    return (this.usersHelper.formatFriends(invites, id));
+  }
+
+
+  //get everything xcept relations
+  async getAllUsers() {
+      const users = await prisma.users.findMany();
+      return (users);
+  }
+  
+  //do i need to explain?
+  async changeNickname(id: number, nickname: string) {
+
+    this.usersHelper.testNickname(nickname);
+    await this.usersHelper.getUser(id);
+
+    return await prisma.users.update({
+      where:{id},
+      data:{
+        nickname
+      }
+    })
+
+  }
+
+  //another way to request partial user
+  async getOtherUser(id: number) {
+      const users = await prisma.users.findFirst(
+        {
+          where:{
+            id
+          },
+          select:{
           id:true,
           nickname:true,
-          avatar_url:true
-        }})
-        return (users);
-      } catch (err) {
-        console.log("err: ", err)
-      }
-    }
+          first_name:true,
+          last_name:true,
+          friends: {
+            select: {id:true}
+          },
+          avatar_url:true,
+          ranking:true,
+          wins:true,
+          loses:true,
+          match_match_player_left_idTousers:true,
+          match_match_player_right_idTousers:true
+          }
+        })
+      return (users);
+  }
 
-    async postOneUser(user) {
-      try {
-        console.log("user = ", user);
-        const res = await prisma.users.create( {data: user })
-        return (res);
-      } catch (err) {
-        console.log("err :", err);
-      }
-    }
+  //and another other way
+  async getUsersRestrict() {
+      const users = await prisma.users.findMany({select:{
+        id:true,
+        nickname:true,
+        avatar_url:true
+      }})
+      return (users);
+  }
 
+  //add a user in DB
+  async postOneUser(user: CreateUserDto) {
+    this.usersHelper.testNickname(user.nickname);
+    const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
+    if (existsAlready) {
+      throw new HttpException("42 account already binded to a user", HttpStatus.CONFLICT)
+    }
+    return await prisma.users.create( {data: user })
+  }
+
+  //Get match history for user
+  async getMatches(id:number) {
+    return await this.usersHelper.getMatches(id);
+  }
+
+  async getAvatar(id:number) {
+
+    const user = await this.usersHelper.getUser(id);
+    return user.avatar_url;
+  }
+
+  async changeAvatar(id:number, file: Express.Multer.File) {
+    
+    const user = await this.usersHelper.getUser(id);
+
+    const myWriteFile = util.promisify(writeFile)
+    const dest = path.join('/app/resources/', user.nickname)
+
+    await myWriteFile(dest, file.buffer, 'ascii')
+    const ret = await this.usersHelper.changeAvatarUrl(id, dest);
+    console.log(ret)
+    return (dest);
+  }
 }
-
-export {UsersService};

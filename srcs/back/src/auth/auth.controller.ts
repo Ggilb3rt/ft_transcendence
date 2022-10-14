@@ -1,15 +1,12 @@
-import { Controller, Query, Get, Redirect, UseGuards, Req, Res } from '@nestjs/common';
-var passport = require('passport');
-import OAuth2Strategy from 'passport-oauth2';
+import { Controller, Get, UseGuards, Req, Res} from '@nestjs/common';
 import { FourtyTwoGuard } from './auth.guard';
-import { AuthService } from './auth.service';
-import { FourtyTwoStrategy } from './local.strategy';
-
+import { Request, Response } from 'express';
+import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
 
 
 @Controller('auth')
 export class AuthController {
-    constructor (private authService: AuthService) {
+    constructor (private jwtAuthService: JwtAuthService) {
     }
 
   @Get()
@@ -21,21 +18,15 @@ export class AuthController {
   @Get('redirect')
   @UseGuards(FourtyTwoGuard)
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
-    // For now, we'll just show the user object
-    console.log('req == \n', req);
-    return req;
+
+    const { accessToken } = this.jwtAuthService.login(req.user);
+    console.log("\n\naccess token == ", accessToken, "\n\n")
+    console.log("\n\nvalidate == ", this.jwtAuthService.validate(accessToken), "\n\n")
+    res.cookie('jwt', accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    res.redirect('http://localhost:5173')
+    return req.user;
   }
-    // @Get()
-    // @UseGuards(FourtyTwoStrategy)
-    // async authRedirect {
-    
-    // }
-
-    // @Get('redirect')
-    // @UseGuards(FourtyTwoStrategy){
-
-    // }
-    // auth() {
-    //     return (this.authService.authenticate());
-    // }
 }

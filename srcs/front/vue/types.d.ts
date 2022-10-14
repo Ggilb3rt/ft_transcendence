@@ -53,6 +53,7 @@ export interface IMatch {
   player_right_id: number;
   score_left: number;
   score_right: number;
+  date: Date;
 }
 
 export interface ISocketStatus {

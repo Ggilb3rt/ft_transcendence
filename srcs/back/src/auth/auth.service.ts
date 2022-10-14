@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { UsersService } from 'src/users/users.service';
 import { PrismaClient } from '@prisma/client'
-var passport = require('passport');
 
 const prisma = new PrismaClient();
 
@@ -28,7 +27,6 @@ export class AuthService {
     }
 
     async verify(accessToken, refreshToken, user, cb) {
-        try {
             console.log("\nCOUCOUCOUCOU\n");
             if (accessToken || refreshToken) {
                 var ret = prisma.users.findFirst({
@@ -39,9 +37,6 @@ export class AuthService {
                     this.usersService.postOneUser(user)
                 }
             }
-        } catch (err) {
-            console.log("\nerror during auth:\n", err)
-        }
     }
 
     check (state: string): boolean {
