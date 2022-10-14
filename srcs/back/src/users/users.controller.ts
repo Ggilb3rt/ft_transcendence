@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe, Req } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './createUserDto';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
@@ -63,7 +63,6 @@ export class UsersController {
     @Post(':id/friends')
     // @UseGuards(JwtAuthGuard)
     addFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
-        console.log("je suis laaa")
        return (this.usersService.addFriend(id, friend))
     }
 
@@ -112,8 +111,9 @@ export class UsersController {
                 new FileTypeValidator({fileType:'jpeg'})
             ]
         })
-    ) file: Express.Multer.File, @Param('id', ParseIntPipe) id)
+    ) file: Express.Multer.File, @Param('id', ParseIntPipe) id, @Body() req)
     {
+        console.log("req == ", req.file)
         return (this.usersService.changeAvatar(id, file));
     }
 

@@ -22,6 +22,7 @@ services:
         restart: unless-stopped
         volumes:
             - ./srcs/back/src:/app/src
+            - ./srcs/back/resources:/app/resources
         depends_on:
             - postgres
         ports:
@@ -49,6 +50,7 @@ services:
 
 volumes:
     postgres_persistence:
+    resources:
     
 
 networks:

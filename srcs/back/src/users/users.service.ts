@@ -119,6 +119,7 @@ export class UsersService {
       wins,
       loses,
       two_factor_auth,
+      two_factor_secret,
       friends,
       bannedBy,
       bans,
@@ -292,7 +293,7 @@ export class UsersService {
     const user = await this.usersHelper.getUser(id);
 
     const myWriteFile = util.promisify(writeFile)
-    const dest = path.join('/app/resources/', user.nickname)
+    const dest = path.join('/app/resources/', user.id.toString() + '_id.jpeg')
 
     await myWriteFile(dest, file.buffer, 'ascii')
     const ret = await this.usersHelper.changeAvatarUrl(id, dest);
