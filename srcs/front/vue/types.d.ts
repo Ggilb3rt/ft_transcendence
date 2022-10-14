@@ -55,6 +55,8 @@ export interface IMatch {
   score_right: number;
 }
 
-// interface userRelation {
-//   id: number
-// }
+export interface ISocketStatus {
+  socketId: string;
+  userId: number;
+  userStatus: status;
+}

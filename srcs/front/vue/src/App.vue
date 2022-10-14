@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, onUpdated, onBeforeUpdate } from "vue"
-import type { IUser, status } from "../types"
+import { onBeforeMount, ref, onUpdated, onBeforeUpdate, watch } from "vue"
+import type { Ref } from "vue"
+import type { IUser, status, ISocketStatus } from "../types"
 import { RouterLink, RouterView } from "vue-router";
 import router from "./router";
 import { useUsersStore } from './stores/users';
@@ -20,15 +21,9 @@ users.getUsers()
 
 // Socket Status
 
-interface IStatus {
-    socketId: string;
-    userId: number;
-    userStatus: status;
-}
-
 let alreadyConnect: boolean = false
 let socket = io("http://localhost:3000", {autoConnect: false});
-const statusList = ref<IStatus[]>([])
+const statusList = ref<ISocketStatus[]>([])
 
 onBeforeUpdate(() => {
   if (user.connected && socket.disconnected && !alreadyConnect) {
@@ -40,17 +35,21 @@ onBeforeUpdate(() => {
       console.log("connectionStatus", statusList.value)
     })
     
-    socket.on("newConnection", (res: IStatus) => {
+    socket.on("newConnection", (res: ISocketStatus) => {
       statusList.value.push(res)
       console.log("update connection", statusList.value)
     })
     socket.on("newDisconnection", (res: any) => {
       console.log(res)
-      statusList.value.splice(statusList.value.findIndex((el: IStatus) => el.socketId == res.socketId), 1)
+      statusList.value.splice(statusList.value.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
       console.log("update disconnection", statusList.value)
     })
     alreadyConnect = true
   }
+
+  watch(statusList, (newStatusList: Ref) => {
+    users.setSocket(newStatusList)
+  })
 })
 
 

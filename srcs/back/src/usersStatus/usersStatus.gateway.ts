@@ -55,9 +55,10 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     handleConnection2(client: Socket, ...args: any[]) {
         const u: IStatus = {socketId: client.id, userStatus: "available", userId: args[0]}
         this.userArr.push(u)
-        console.log(this.userArr)   //! return only last connected not all the array...
+        console.log(this.userArr)
         this.logger.log(`client connection : ${client.id}`)
         this.server.sockets.emit('newConnection', u)
+        console.log("after emit connection ", this.userArr)
         return this.userArr
     }
 

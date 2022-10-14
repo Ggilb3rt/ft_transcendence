@@ -1,9 +1,12 @@
 import { defineStore } from "pinia"
-import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory } from '../../types'
+import type { Ref } from "vue"
+import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, status, ISocketStatus } from '../../types'
+import type { io, Socket } from "socket.io-client"
 // import { mande } from 'mande'
 
 export interface IUserStoreState {
     userList: IOtherUserRestrict[]
+    socketStatus?: Ref
     user: IOtherUser
     loading: boolean
     error: any | null
@@ -104,6 +107,7 @@ export const useUsersStore = defineStore({
     id: "users",
     state: (): IUserStoreState => ({
         userList: [rogerRestrict, homerRestrict, marcRestrict],
+        socketStatus: undefined,
         user: homer,
         loading: false,
         error: null
@@ -116,6 +120,22 @@ export const useUsersStore = defineStore({
 
     },
     actions: {
+        setSocket(socket: Ref) {    // change the name
+            this.socketStatus = socket
+            console.log("socket in store", this.socketStatus)
+        },
+        getUserStatus(id: number): status {
+            let ret: ISocketStatus | undefined = undefined;
+            
+            console.log("start socketStatus", this.socketStatus)
+            if (this.socketStatus)
+                ret = this.socketStatus.include((el: any) => {el.userId == id; console.log("ref el", el)})
+            console.log("return of socketStatus", ret)
+            if (ret == undefined)
+                return 'disconnected'
+            console.log("get userStatus ", ret)
+            return ret.userStatus
+        },
         changUserNick(id: number, newNick: string) {
             this.userList.some((el) => {
                 if (el.id == id) {
