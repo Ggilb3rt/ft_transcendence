@@ -12,15 +12,14 @@ export default {
       socket: null,
       playerNumber: 0,
       //totalPlayers: 0,
-      isGameStarted: false,
-      gameActive: false,
-      startGame: false,
+      gameActive: false, // Change le display (start new game ou play)
+      startGame: false, // Devient true quand deux joueurs dans la meme room ready to play
       quit: false,
       gameCode: "",
-      score: {
+    /*  score: {
         playerOne: "0",
         playerTwo: "0",
-      },
+      },*/
     };
   },
   created() {
@@ -37,18 +36,16 @@ export default {
     this.socket.on("quitGame", this.handleQuitGame);
     this.socket.on("totalPlayers", this.handleTotalPlayers);
   },
-  //mounted() {
-  //},
   unmounted() {
     this.socket.close();
   },
   methods: {
     init() {
-      //console.log("init");
+      console.log("init");
       this.gameActive = true;
     },
     handleInit(number) {
-      //console.log("handle init");
+      console.log("handle init");
       this.playerNumber = number;
       if (this.playerNumber === 2) {
         this.totalPlayers = 2;
@@ -146,6 +143,7 @@ export default {
     handleQuitGame(msg) {
       this.gameActive = false;
       this.startGame = false;
+      this.quit = true;
       this.reset();
       msg = JSON.parse(msg);
       console.log(msg);
@@ -174,13 +172,12 @@ export default {
     <GameComp
       :socket="this.socket"
       :playerNumber="this.playerNumber"
-      :gameActive="this.gameActive"
       :startGame="this.startGame"
-      :gameCode="this.gameCode"
       :score="this.score"
-      :isGameStarted="this.isGameStarted"
+      :gameCode="this.gameCode"
       :quit="this.quit"
-    />
+      />
+      <!-- :score="this.score" -->
     <!-- <button type="submit" @click.prevent="reMatch">Re-Match !</button> -->
     <button type="submit" @click.prevent="quitGame">Quit</button>
   </div> 

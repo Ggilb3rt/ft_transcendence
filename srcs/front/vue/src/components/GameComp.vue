@@ -7,8 +7,7 @@ import paddleImage from "@/assets/game/paddle.png";
 const props = defineProps({
   socket: Object,
   playerNumber: Number,
-  gameActive: Boolean,
-  startGame: Boolean,
+  startGame: Boolean, // true quand deux players, false quand quit
   gameCode: String,
   score: {
     playerOne: String,
@@ -25,7 +24,7 @@ onUpdated(() => {
     gameInstance = launch(containerId);
     console.log("launching");
   }
-  if (props.gameActive === false || props.startGame === false) {
+  if (props.startGame === false) {
     if (gameInstance) {
       console.log("DESTROY");
       gameInstance.destroy(true, false);
@@ -67,17 +66,21 @@ function launch(containerId) {
   });
 }
 
-let gameState = {
-    ball: {},
-    playerOne: {},
-    playerTwo: {},
-    isGameStarted: false,
-    cursors: {},
-    playerOneVictoryText: {},
-    playerTwoVictoryText: {},
-    paddleSpeed: 350,
-    activeGame: false
-}
+const gameState = {
+  ball: {},
+  playerOne: {},
+  playerTwo: {},
+  score = {
+    playerOne: 0,
+    playerTwo: 0,
+  },
+  isGameStarted: false, // Pour premier launch
+  cursors: {},
+  playerOneVictoryText: {},
+  playerTwoVictoryText: {},
+  paddleSpeed: 350,
+  activeGame: false, // Pour quand un joueur marque un point
+};
 
 function preload() {
   this.load.image("ball", ballImage);
@@ -102,6 +105,12 @@ function handleRematch(game) {
   });
 }
 
+function handleQuit(game) {
+  if (props.quit) {
+    gameState.isGameStarted = false;
+  }
+}
+
 function create() {
   createGameObjects(this);
   /* Event Listeners */
@@ -110,10 +119,16 @@ function create() {
   //handleGameScore()
   handleGameResult();
   //handleRematch(this);
+  handleQuit();
 }
 
 function update() {
-  if (props.startGame && !gameState.isGameStarted && !gameState.activeGame && props.playerNumber === 1) {
+  if (
+    props.startGame &&
+    !gameState.isGameStarted &&
+    !gameState.activeGame &&
+    props.playerNumber === 1
+  ) {
     console.log("launching ball");
 
     //const InitialVelocityX = Math.random() * 150 + 200;
@@ -132,7 +147,7 @@ function update() {
 }
 
 function createGameObjects(game) {
-    gameState.ball = game.physics.add.sprite(
+  gameState.ball = game.physics.add.sprite(
     game.physics.world.bounds.width / 2,
     game.physics.world.bounds.height / 2,
     "ball"
@@ -258,11 +273,11 @@ function movePlayers() {
 function handleMovePlayer() {
   props.socket.on("movePlayer", ({ playerNumber, x, y }) => {
     if (playerNumber === 2) {
-        gameState.playerTwo.x = x;
-        gameState.playerTwo.y = y;
+      gameState.playerTwo.x = x;
+      gameState.playerTwo.y = y;
     } else if (playerNumber === 1) {
-        gameState.playerOne.x = x;
-        gameState.playerOne.y = y;
+      gameState.playerOne.x = x;
+      gameState.playerOne.y = y;
     }
   });
 }
@@ -277,9 +292,9 @@ function handleMoveBall() {
 function handleGameResult() {
   props.socket.on("gameResult", ({ winner }) => {
     if (winner === 1) {
-        gameState.playerOneVictoryText.setVisible(true);
+      gameState.playerOneVictoryText.setVisible(true);
     } else {
-        gameState.playerTwoVictoryText.setVisible(true);
+      gameState.playerTwoVictoryText.setVisible(true);
     }
   });
 }
@@ -288,12 +303,11 @@ function handleGameResult() {
 <template>
   <p>Player number : {{ props.playerNumber }}</p>
   <p>Start Game : {{ this.startGame }}</p>
-  <p>Game Active : {{ this.gameActive }}</p>
   <p>Game Code : {{ this.gameCode }}</p>
   <Suspense>
-  <div v-if="props.startGame" :id="containerId" />
+    <div v-if="props.startGame" :id="containerId" />
 
-  <template #fallback>
+    <template #fallback>
       <div class="placeholder">Downloading...</div>
     </template>
   </Suspense>
