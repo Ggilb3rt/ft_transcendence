@@ -63,14 +63,7 @@ export class GameService {
     }
 
     handleMoveBall(client: Socket, data: any, server: Server) {
-       // const InitialVelocityX: number = Math.random() * 150 + 200;
-        //const InitialVelocityY: number = Math.random() * 150 + 200;
-        server.sockets.in(data.gameCode)
-            .emit('moveBall2', {vx: data.InitialVelocityX, vy: data.InitialVelocityY});
-    }
-
-    handleBallMovement(client: Socket, data: any, server: Server) {
-        client.broadcast.emit('ballMovement2', {x: data.x, y: data.y});
+        client.broadcast.emit('moveBall', {x: data.x, y: data.y});
         //server.sockets.in(data.gameCode).emit('ballMovement', {x: posx, y: posy});
     }
 
@@ -138,128 +131,16 @@ export class GameService {
         if (ball.posy <= 0) {
             ball.diry = Math.abs(ball.diry);
         }
-    }*/
+    }
 
-    /*handleCollision(client: Socket, data: any, server: Server) {
+    handleCollision(client: Socket, data: any, server: Server) {
         //const x = data.vx * -1;
         //const y = data.vy * -1;
         server.sockets.in(data.gameCode)
            .emit('collisionResult', {x: data.x, y: data.y, vx: data.vx, vy: data.vy});
-    }*/
-
-    /*paddleCollision(ball, players) {
-
-        // https://stackoverflow.com/questions/17768301/top-of-paddle-collision-detection-pong
-        var rad = ball.rad / 2;
-        var padding = 3;
-        var x, y, px, py;
-
-        let p1 = players[0];
-
-        if (p1.posy >= CANVAS_HEIGHT) {
-            p1.posy = CANVAS_HEIGHT;
-        } else if (p1.posy <= 0) {
-            p1.posy = 0;
-        }
-
-        if (ball.posx <= p1.posx + p1.width) {
-
-            if (ball.posx + padding >= p1.posx + p1.width
-                //&& ball.posy >= p1.posy
-                //&& ball.posy - rad <= p1.posy + p1.height) {
-                && ball.posy - rad >= p1.posy
-                && ball.posy + rad <= p1.posy + p1.height) {
-                ball.dirx = -ball.dirx;
-
-            } else if (ball.posy - CANVAS_HEIGHT >= p1.posy
-                && ball.posy <= p1.posy
-                && ball.posx - rad >= p1.posx) {
-
-                x = ball.posx + rad;
-                y = ball.posy + rad;
-
-                px = p1.posx + p1.width;
-                py = p1.posy;
-
-                if (ball.posy + CANVAS_HEIGHT > p1.posy) {
-                    py += p1.height;
-                }
-
-                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
-
-                if (dist <= rad && dist >= rad - padding) {
-                    var angle = Math.asin(x - px / y - py);
-                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
-                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
-                }
-            }
-        }
-
-        let p2 = players[1];
-
-        if (p2.posy >= CANVAS_HEIGHT) {
-            p2.posy = CANVAS_HEIGHT;
-        } else if (p2.posy <= 0) {
-            p2.posy = 0;
-        }
-
-        if (ball.posx + rad == p1.posx) {
-            ball.dirx *= -1;
-        }
-        
-        if (ball.posx >= p2.posx) {
-            if (ball.posx - padding <= p2.posx
-                //&& ball.posy >= p2.posy
-                //&& ball.posy - rad <= p2.posy + p2.height) {
-                && ball.posy - rad >= p2.posy
-                && ball.posy + rad <= p2.posy + p2.height) {
-                ball.dirx = -ball.dirx;
-                
-            } else if (ball.posy - CANVAS_HEIGHT >= p2.posy
-                && ball.posy <= p2.posy
-                && ball.posx - rad <= p2.posx + p2.width) {
-
-                x = ball.posx + rad;
-                y = ball.posy + rad;
-
-                px = p2.posx;
-                py = p2.posy;
-                if (ball.posy + CANVAS_HEIGHT > p2.posy) {
-                    py += p2.height;
-                }
-
-                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
-
-                if (dist <= rad && dist >= rad - padding) {
-                    var angle = Math.asin(x - px / y - py);
-                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
-                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
-                }
-            }
-        }
     }
 
-    paddleMovement(players) {
-        let playerOne = players[0];
-        if (playerOne.vel === 1) {
-            playerOne.posy += playerOne.speed * INITIAL_VELOCITY;
-        } else if (playerOne.vel === -1) {
-            playerOne.posy -= playerOne.speed * INITIAL_VELOCITY;
-        }
-
-        if (playerOne.posy <= 0) {
-            playerOne.posy = 0;
-        } else if (playerOne.posy + DEFAULT_PADDLE_H >= CANVAS_HEIGHT) {
-            playerOne.posy = CANVAS_HEIGHT - DEFAULT_PADDLE_H;
-        }
-
-        let playerTwo = players[1];
-        if (playerTwo.vel === 1) {
-            playerTwo.posy += playerTwo.speed * INITIAL_VELOCITY;
-        } else if (playerTwo.vel === -1) {
-            playerTwo.posy -= playerTwo.speed * INITIAL_VELOCITY;
-        }
-    }
+    
 
     randomDir(ball) {
         while (Math.abs(ball.dirx) <= 0.4 || Math.abs(ball.dirx) >= 0.9) {
@@ -269,78 +150,12 @@ export class GameService {
             ball.diry = Math.sin(heading);
         }
         ball.speed *= INITIAL_VELOCITY;
-    }*/
+    }
 
     randomNumberBetween(min, max) {
         return Math.random() * (max - min) + min;
-    }
-
-    /*handleKeydown(client: Socket, keyCode: any) {
-        const roomName = this.clientRooms[client.id];
-
-        if (!roomName) {
-            return;
-        }
-
-        try {
-            keyCode = parseInt(keyCode);
-        } catch (e) {
-            console.error(e);
-            return;
-        }
-
-        let playerNumber;
-        if (this.state[roomName].players[0].id === client.id) {
-            playerNumber = 0;
-        } else {
-            playerNumber = 1;
-        }
-
-        const vel = this.getUpdatedVelocity(keyCode);
-
-        if (vel) {
-            this.state[roomName].players[playerNumber].vel = vel;
-        }
-
-    }
-
-    getUpdatedVelocity(keyCode: number) {
-        switch (keyCode) {
-            case 38: // down
-                return -1;
-            case 40: // up
-                return 1;
-        }
-    }
-
-    handleKeyup(client: Socket, keyCode: any) {
-        const roomName = this.clientRooms[client.id];
-
-        if (!roomName) {
-            return;
-        }
-
-        try {
-            keyCode = parseInt(keyCode);
-        } catch (e) {
-            console.error(e);
-            return;
-        }
-
-        if (keyCode !== 38 && keyCode !== 40) {
-            return;
-        }
-
-        let playerNumber;
-        if (this.state[roomName].players[0].id === client.id) {
-            playerNumber = 0;
-        } else {
-            playerNumber = 1;
-        }
-
-        this.state[roomName].players[playerNumber].vel = 0;
     }*/
-
+   
 
     handleNewGame(client: Socket, server: Server) {
         let roomName = this.makeid(5);
@@ -445,8 +260,8 @@ export class GameService {
         }
     }
 
-    handleMove(client: Socket, pos: any, server: Server) {
-        client.broadcast.emit("move2", pos);
+    handleMovePlayer(client: Socket, pos: any, server: Server) {
+        client.broadcast.emit("movePlayer", pos);
         //console.log(pos.gameCode);
         //console.log(this.clientRooms);
         //server.sockets.in(pos.gameCode)

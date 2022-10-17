@@ -50,9 +50,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleJoinGame(client, gameCode, this.server);
     }
 
-    @SubscribeMessage('move')
-    handleMove(client: Socket, pos: any) {
-        this.gameService.handleMove(client, pos, this.server);
+    @SubscribeMessage('movePlayer')
+    handleMovePlayer(client: Socket, pos: any) {
+        this.gameService.handleMovePlayer(client, pos, this.server);
     }
 
     @SubscribeMessage('reMatch')
@@ -70,17 +70,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleMoveBall(client: Socket, data: any) {
         this.gameService.handleMoveBall(client, data, this.server);
     }
-
-    @SubscribeMessage('ballMovement')
-    handleBallMovement(client: Socket, data: any) {
-        this.gameService.handleBallMovement(client, data, this.server);
-    }
-
-   /* @SubscribeMessage('collision')
-    handleCollision(client: Socket, data: any) {
-     console.log(data);
-        this.gameService.handleCollision(client, data, this.server);
-    }*/
 
     @SubscribeMessage('gameResult') 
     handleGameResult(client: Socket, data: any) {

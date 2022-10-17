@@ -12,6 +12,7 @@ export default {
       socket: null,
       playerNumber: 0,
       //totalPlayers: 0,
+      isGameStarted: false,
       gameActive: false,
       startGame: false,
       quit: false,
@@ -43,11 +44,11 @@ export default {
   },
   methods: {
     init() {
-      console.log("init");
+      //console.log("init");
       this.gameActive = true;
     },
     handleInit(number) {
-      console.log("handle init");
+      //console.log("handle init");
       this.playerNumber = number;
       if (this.playerNumber === 2) {
         this.totalPlayers = 2;
@@ -87,7 +88,7 @@ export default {
       this.gameActive = false;
     },
     handleGameCode(gameCode) {
-      console.log("handle game code");
+      //console.log("handle game code");
       this.gameCode = gameCode;
       this.$refs.gameCodeDisplay.innerText = gameCode;
     },
@@ -102,12 +103,12 @@ export default {
       alert("This game is already in progress");
     },
     newGame() {
-      console.log("new game");
+      //console.log("new game");
       this.socket.emit("newGame");
       this.init();
     },
     joinGame() {
-      console.log("join game");
+      //console.log("join game");
 
       const code = this.gameCode;
       this.socket.emit("joinGame", code);
@@ -115,7 +116,7 @@ export default {
       this.init();
     },
     reset() {
-      console.log("reset");
+      //console.log("reset");
       this.playerNumber = null;
       this.gameCode = "";
       this.$refs.gameCodeDisplay.innerText = "";
@@ -130,7 +131,7 @@ export default {
     },
     reMatch() {
       console.log("rematch asked");
-      console.log(this.gameCode);
+      //console.log(this.gameCode);
       //this.socket.emit("reMatch", JSON.stringify(this.gameCode));
       this.socket.emit("reMatch", { gameCode: this.gameCode });
     },
@@ -177,9 +178,10 @@ export default {
       :startGame="this.startGame"
       :gameCode="this.gameCode"
       :score="this.score"
+      :isGameStarted="this.isGameStarted"
       :quit="this.quit"
     />
-    <button type="submit" @click.prevent="reMatch">Re-Match !</button>
+    <!-- <button type="submit" @click.prevent="reMatch">Re-Match !</button> -->
     <button type="submit" @click.prevent="quitGame">Quit</button>
   </div> 
 </template>
