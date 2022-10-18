@@ -87,7 +87,6 @@ const gameState = {
   paddleSpeed: 350,
   activeGame: false, // Pour quand un joueur marque un point
   endGame: false,
-  timer: 3000,
 };
 
 function preload() {
@@ -127,7 +126,8 @@ function update() {
     !gameState.endGame &&
     props.playerNumber === 1
   ) {
-    launchBall();
+    
+    launchBall(this);
   }
 
   checkPoints();
@@ -261,8 +261,12 @@ function handleQuit(game) {
   }
 }
 
-function launchBall() {
-  props.socket.emit("launchBall", { gameCode: props.gameCode });
+function launchBall(game) {
+    let timestamp = Date.now();
+
+    while ((Date.now()) <= timestamp + 1000)
+        ;
+    props.socket.emit("launchBall", { gameCode: props.gameCode });
 }
 
 function handleLaunchBall() {
@@ -288,7 +292,7 @@ function handleAddPoint(game) {
       gameState.ball.y = game.physics.world.bounds.height / 2;
       gameState.playerOne.y = game.physics.world.bounds.height / 2;
       gameState.playerTwo.y = game.physics.world.bounds.height / 2;
-      launchBall();
+      launchBall(game);
     }
   });
 }
@@ -352,8 +356,10 @@ function handleMovePlayer() {
 function handleMoveBall() {
   props.socket.on("moveBall", ({ x, y }) => {
     const b = gameState.ball;
-    b.x = x + b.body.width / 2 + 2;
-    b.y = y + b.body.height / 2 + 2;
+    if (b) {
+      b.x = x + b.body.width / 2 + 2;
+      b.y = y + b.body.height / 2 + 2;
+    }
   });
 }
 

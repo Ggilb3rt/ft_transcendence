@@ -41,9 +41,7 @@ export default {
   methods: {
     handleInit(number) {
       console.log("handle init");
-      //if (number === 1 || number === 2) {
         this.playerNumber = number;
-      //}
       if (this.playerNumber === 2) {
         this.totalPlayers = 2;
         this.startGame = true;
