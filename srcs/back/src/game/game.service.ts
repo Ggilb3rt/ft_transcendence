@@ -59,6 +59,12 @@ export class GameService {
 
     } 
 
+    handleInitGame(client: Socket, gameCode: any, server: Server) {
+        const state = this.state[gameCode];
+        server.sockets.in(gameCode).emit('initGame', {state});
+
+    }
+
     handleLaunchBall(client: Socket, gameCode: any, server: Server) {
         const state = this.state[gameCode];
         this.setBallState(state.ball);

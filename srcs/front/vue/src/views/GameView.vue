@@ -11,16 +11,10 @@ export default {
     return {
       socket: null,
       playerNumber: 0,
-      //totalPlayers: 0,
       gameActive: false, // Change le display (start new game ou play)
       startGame: false, // Devient true quand deux joueurs dans la meme room ready to play
       quit: false,
       gameCode: "",
-     /* score: {
-        playerOne: "0",
-        playerTwo: "0",
-      }, */
-      spectator: false
     };
   },
   created() {
@@ -29,7 +23,6 @@ export default {
     this.socket.on("init", this.handleInit);
     this.socket.on("gameCode", this.handleGameCode);
     this.socket.on("unknownGame", this.handleUnknownGame);
-    //this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
     this.socket.on("disconnected", this.handleDisconnected);
     //this.socket.on("reMatch", this.handleReMatch);
     this.socket.on("quitGame", this.handleQuitGame);
@@ -41,14 +34,12 @@ export default {
   methods: {
     handleInit(number) {
       console.log("handle init");
-        this.playerNumber = number;
+      this.playerNumber = number;
       if (this.playerNumber === 2) {
-        this.totalPlayers = 2;
         this.startGame = true;
       }
       if (this.playerNumber !== 1 && this.playerNumber !== 2) {
         this.startGame = true;
-        this.spectator = true;
       }
     },
     handleTotalPlayers(number) {
@@ -58,34 +49,24 @@ export default {
       }
     },
     handleGameCode(gameCode) {
-      //console.log("handle game code");
       this.gameCode = gameCode;
       this.$refs.gameCodeDisplay.innerText = gameCode;
     },
     handleUnknownGame() {
-        this.gameActive = false;
+      this.gameActive = false;
       this.reset();
       alert("Unknown game code");
     },
-    /*handleTooManyPlayers() {
-        this.gameActive = false;
-      this.reset();
-      alert("This game is already in progress");
-    },*/
     newGame() {
-      //console.log("new game");
       this.socket.emit("newGame");
       this.gameActive = true;
-      //this.init();
     },
     joinGame() {
       const code = this.gameCode;
       this.socket.emit("joinGame", code);
       this.gameActive = true;
-      //this.init();
     },
     reset() {
-      //console.log("reset");
       this.playerNumber = null;
       this.gameCode = "";
       this.$refs.gameCodeDisplay.innerText = "";
@@ -98,7 +79,7 @@ export default {
       //alert("You have been disconnected !");
       //this.socket.delete("http://localhost:3000"); // ?????
     },
-    reMatch() {
+    /*reMatch() {
       console.log("rematch asked");
       //console.log(this.gameCode);
       //this.socket.emit("reMatch", JSON.stringify(this.gameCode));
@@ -108,7 +89,7 @@ export default {
       this.gameActive = true;
       msg = JSON.parse(msg);
       console.log(msg);
-    },
+    },*/
     quitGame() {
       this.socket.emit("quitGame", JSON.stringify(this.gameCode));
     },
@@ -125,7 +106,7 @@ export default {
 </script>
 
 <template>
-   <div v-show="!gameActive"> 
+  <div v-show="!gameActive">
     <h1>Multiplayer Pong</h1>
     <button type="submit" @click.prevent="newGame">Create New Game</button>
     <div>OR</div>
@@ -133,9 +114,9 @@ export default {
       <input v-model="gameCode" type="text" placeholder="Enter Game Code" />
       <button type="submit" @click.prevent="joinGame">Join Game</button>
     </div>
-  </div> 
+  </div>
 
-  <div v-show="gameActive"> 
+  <div v-show="gameActive">
     <h1>THE GAME</h1>
     <h1>
       Your game code is:
@@ -146,14 +127,13 @@ export default {
       :playerNumber="this.playerNumber"
       :startGame="this.startGame"
       :gameCode="this.gameCode"
-      :spectator="this.spectator"
       :gameActive="this.gameActive"
       :quit="this.quit"
-      />
-      <!-- :score="this.score" -->
+    />
+    <!-- :score="this.score" -->
     <!-- <button type="submit" @click.prevent="reMatch">Re-Match !</button> -->
     <button type="submit" @click.prevent="quitGame">Quit</button>
-  </div> 
+  </div>
 </template>
 
 <style></style>

@@ -10,11 +10,6 @@ const props = defineProps({
   startGame: Boolean, // true quand deux players, false quand quit
   gameActive: Boolean,
   gameCode: String,
-  spectator: Boolean,
-  /*score: {
-    playerOne: String,
-    playerTwo: String,
-  },*/
   quit: Boolean,
 });
 
@@ -84,7 +79,7 @@ const gameState = {
   playerTwoScore: 0,
   playerOneVictoryText: {},
   playerTwoVictoryText: {},
-  paddleSpeed: 350,
+  paddleSpeed: 0,
   activeGame: false, // Pour quand un joueur marque un point
   endGame: false,
 };
@@ -99,6 +94,7 @@ function create() {
   createGameObjects(this);
   createScoreObjects(this);
   /* Event Listeners */
+  handleInitGame();
   handleLaunchBall();
   handleMovePlayer();
   handleMoveBall();
@@ -126,8 +122,8 @@ function update() {
     !gameState.endGame &&
     props.playerNumber === 1
   ) {
-    
-    launchBall(this);
+    //initGame(this);
+    props.socket.emit("initGame", { gameCode: props.gameCode });
   }
 
   checkPoints();
@@ -261,12 +257,20 @@ function handleQuit(game) {
   }
 }
 
-function launchBall(game) {
-    let timestamp = Date.now();
+function handleInitGame() {
+  props.socket.on("initGame", ({ state }) => {
+    gameState.paddleSpeed = state.players[0].speed;
+    if (props.playerNumber === 1) {
+        launchBall();
+    }
+  });
+}
 
-    while ((Date.now()) <= timestamp + 1000)
-        ;
-    props.socket.emit("launchBall", { gameCode: props.gameCode });
+function launchBall(game) {
+  const timestamp = Date.now();
+
+  while (Date.now() <= timestamp + 1000);
+  props.socket.emit("launchBall", { gameCode: props.gameCode });
 }
 
 function handleLaunchBall() {
@@ -282,18 +286,24 @@ function handleAddPoint(game) {
   props.socket.on("addPoint", ({ playerNumber }) => {
     if (playerNumber === 1) {
       ++gameState.playerOneScore;
-      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
+      gameState.playerOneScoreText.setText(
+        "Player 1: " + gameState.playerOneScore
+      );
     } else if (playerNumber === 2) {
       ++gameState.playerTwoScore;
-      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
+      gameState.playerTwoScoreText.setText(
+        "Player 2: " + gameState.playerTwoScore
+      );
     }
-    if (props.playerNumber === 1) {
+    //if (props.playerNumber === 1) {
       gameState.ball.x = game.physics.world.bounds.width / 2;
       gameState.ball.y = game.physics.world.bounds.height / 2;
       gameState.playerOne.y = game.physics.world.bounds.height / 2;
       gameState.playerTwo.y = game.physics.world.bounds.height / 2;
+    //if (props.playerNumber === 1) {
       launchBall(game);
-    }
+    //}
+    //}
   });
 }
 
@@ -343,6 +353,7 @@ function handleEndGame() {
 
 function handleMovePlayer() {
   props.socket.on("movePlayer", ({ playerNumber, x, y }) => {
+    console.log("coucou");
     if (playerNumber === 2) {
       gameState.playerTwo.x = x;
       gameState.playerTwo.y = y;
@@ -369,9 +380,17 @@ function handleGameResult() {
     gameState.endGame = true;
     gameState.activeGame = false;
     if (winner === 1) {
+      ++gameState.playerOneScore;
+      gameState.playerOneScoreText.setText(
+        "Player 1: " + gameState.playerOneScore
+      );
       gameState.playerOneVictoryText.setVisible(true);
       gameState.activeGame = false;
     } else {
+      ++gameState.playerTwoScore;
+      gameState.playerTwoScoreText.setText(
+        "Player 2: " + gameState.playerTwoScore
+      );
       gameState.playerTwoVictoryText.setVisible(true);
       gameState.activeGame = false;
     }

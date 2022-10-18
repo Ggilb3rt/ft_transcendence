@@ -51,6 +51,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleJoinGame(client, gameCode, this.server);
     }
 
+    @SubscribeMessage('initGame')
+    handleInitGame(client: Socket, data: any) {
+        this.gameService.handleInitGame(client, data.gameCode, this.server);
+    }
+
     @SubscribeMessage('launchBall')
     handleLaunchBall(client: Socket, data: any) {
         this.gameService.handleLaunchBall(client, data.gameCode, this.server);
