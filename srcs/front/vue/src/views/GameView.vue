@@ -16,21 +16,20 @@ export default {
       startGame: false, // Devient true quand deux joueurs dans la meme room ready to play
       quit: false,
       gameCode: "",
-    /*  score: {
+     /* score: {
         playerOne: "0",
         playerTwo: "0",
-      },*/
+      }, */
+      spectator: false
     };
   },
   created() {
     this.socket = io("http://localhost:3000");
 
     this.socket.on("init", this.handleInit);
-    //this.socket.on("gameState", this.handleGameState);
-    //this.socket.on("gameOver", this.handleGameOver);
     this.socket.on("gameCode", this.handleGameCode);
     this.socket.on("unknownGame", this.handleUnknownGame);
-    this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
+    //this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
     this.socket.on("disconnected", this.handleDisconnected);
     //this.socket.on("reMatch", this.handleReMatch);
     this.socket.on("quitGame", this.handleQuitGame);
@@ -40,16 +39,18 @@ export default {
     this.socket.close();
   },
   methods: {
-    init() {
-      console.log("init");
-      this.gameActive = true;
-    },
     handleInit(number) {
       console.log("handle init");
-      this.playerNumber = number;
+      //if (number === 1 || number === 2) {
+        this.playerNumber = number;
+      //}
       if (this.playerNumber === 2) {
         this.totalPlayers = 2;
         this.startGame = true;
+      }
+      if (this.playerNumber !== 1 && this.playerNumber !== 2) {
+        this.startGame = true;
+        this.spectator = true;
       }
     },
     handleTotalPlayers(number) {
@@ -57,32 +58,6 @@ export default {
       if (this.totalPlayers === 2) {
         this.startGame = true;
       }
-    },
-    handleGameState(gameState) {
-      console.log("handle game state");
-      if (!this.gameActive) {
-        return;
-      }
-      gameState = JSON.parse(gameState);
-      this.gameCode = gameState.roomName;
-      this.score.playerOne = gameState.players[0].match_score;
-      this.score.playerTwo = gameState.players[1].match_score;
-    },
-    handleGameOver(data) {
-      console.log("handle game over");
-      if (!this.gameActive) {
-        return;
-      }
-      data = JSON.parse(data);
-      this.score.playerOne = data.state.players[0].match_score;
-      this.score.playerTwo = data.state.players[1].match_score;
-
-      if (data.winner === this.playerNumber) {
-        console.log("You win !");
-      } else {
-        console.log("You lose !");
-      }
-      this.gameActive = false;
     },
     handleGameCode(gameCode) {
       //console.log("handle game code");
@@ -94,23 +69,22 @@ export default {
       this.reset();
       alert("Unknown game code");
     },
-    handleTooManyPlayers() {
+    /*handleTooManyPlayers() {
         this.gameActive = false;
       this.reset();
       alert("This game is already in progress");
-    },
+    },*/
     newGame() {
       //console.log("new game");
       this.socket.emit("newGame");
-      this.init();
+      this.gameActive = true;
+      //this.init();
     },
     joinGame() {
-      //console.log("join game");
-
       const code = this.gameCode;
       this.socket.emit("joinGame", code);
       this.gameActive = true;
-      this.init();
+      //this.init();
     },
     reset() {
       //console.log("reset");
@@ -173,8 +147,9 @@ export default {
       :socket="this.socket"
       :playerNumber="this.playerNumber"
       :startGame="this.startGame"
-      :score="this.score"
       :gameCode="this.gameCode"
+      :spectator="this.spectator"
+      :gameActive="this.gameActive"
       :quit="this.quit"
       />
       <!-- :score="this.score" -->

@@ -8,23 +8,29 @@ const props = defineProps({
   socket: Object,
   playerNumber: Number,
   startGame: Boolean, // true quand deux players, false quand quit
+  gameActive: Boolean,
   gameCode: String,
-  score: {
+  spectator: Boolean,
+  /*score: {
     playerOne: String,
     playerTwo: String,
-  },
+  },*/
   quit: Boolean,
 });
 
 let gameInstance = null;
 const containerId = "game-container";
 
+onMounted(() => {
+  gameInstance = launch(containerId);
+});
+
 onUpdated(() => {
-  if (props.startGame) {
-    gameInstance = launch(containerId);
-    console.log("launching");
-  }
-  if (props.startGame === false) {
+  //if (props.gameActive) {
+  //gameInstance = launch(containerId);
+  //console.log("launching");
+  //}
+  if (props.quit === true) {
     if (gameInstance) {
       console.log("DESTROY");
       gameInstance.destroy(true, false);
@@ -70,16 +76,18 @@ const gameState = {
   ball: {},
   playerOne: {},
   playerTwo: {},
-  score = {
-    playerOne: 0,
-    playerTwo: 0,
-  },
   isGameStarted: false, // Pour premier launch
   cursors: {},
+  playerOneScoreText: {},
+  playerTwoScoreText: {},
+  playerOneScore: 0,
+  playerTwoScore: 0,
   playerOneVictoryText: {},
   playerTwoVictoryText: {},
   paddleSpeed: 350,
   activeGame: false, // Pour quand un joueur marque un point
+  endGame: false,
+  timer: 3000,
 };
 
 function preload() {
@@ -88,65 +96,48 @@ function preload() {
   this.load.image("opponentPaddle", paddleImage);
 }
 
-function destroyGameObjects(game) {
-  gameState.playerOneVictoryText.destroy();
-  gameState.playerTwoVictoryText.destroy();
-  gameState.ball.destroy();
-  gameState.playerOne.destroy();
-  gameState.playerTwo.destroy();
-}
-
-function handleRematch(game) {
-  props.socket.on("reMatch", () => {
-    console.log("rematch handler");
-    destroyGameObjects(game);
-    createGameObjects(game);
-    gameState.isGameStarted = false;
-  });
-}
-
-function handleQuit(game) {
-  if (props.quit) {
-    gameState.isGameStarted = false;
-  }
-}
-
 function create() {
   createGameObjects(this);
+  createScoreObjects(this);
   /* Event Listeners */
+  handleLaunchBall();
   handleMovePlayer();
   handleMoveBall();
-  //handleGameScore()
+  handleAddPoint(this);
+  handleEndGame();
   handleGameResult();
   //handleRematch(this);
   handleQuit();
 }
 
 function update() {
+  //if (props.startGame) {
+  if (gameState.endGame) {
+    gameState.playerOne.body.setVelocityY(0);
+    gameState.playerTwo.body.setVelocityY(0);
+    gameState.ball.setVelocityX(0);
+    gameState.ball.setVelocityY(0);
+    gameState.ball.setImmovable(true);
+  }
+
   if (
     props.startGame &&
     !gameState.isGameStarted &&
     !gameState.activeGame &&
+    !gameState.endGame &&
     props.playerNumber === 1
   ) {
-    console.log("launching ball");
-
-    //const InitialVelocityX = Math.random() * 150 + 200;
-    //const InitialVelocityY = Math.random() * 150 + 200;
-    const InitialVelocityX = 300;
-    const InitialVelocityY = 300;
-    gameState.ball.setVelocityX(-InitialVelocityX);
-    gameState.ball.setVelocityY(-InitialVelocityY);
-    gameState.isGameStarted = true;
-    gameState.activeGame = true;
+    launchBall();
   }
 
   checkPoints();
   moveBall();
   movePlayers();
+  //}
 }
 
 function createGameObjects(game) {
+  // Create and add BALL
   gameState.ball = game.physics.add.sprite(
     game.physics.world.bounds.width / 2,
     game.physics.world.bounds.height / 2,
@@ -155,6 +146,7 @@ function createGameObjects(game) {
   gameState.ball.setCollideWorldBounds(true);
   gameState.ball.setBounce(1, 1);
 
+  // Create and add PLAYER 1
   gameState.playerOne = game.physics.add.sprite(
     gameState.ball.body.width / 2 + 1,
     game.physics.world.bounds.height / 2,
@@ -163,6 +155,7 @@ function createGameObjects(game) {
   gameState.playerOne.setCollideWorldBounds(true);
   gameState.playerOne.setImmovable(true);
 
+  // Create and add PLAYER 2
   gameState.playerTwo = game.physics.add.sprite(
     game.physics.world.bounds.width - (gameState.ball.body.width / 2 + 1),
     game.physics.world.bounds.height / 2,
@@ -171,26 +164,12 @@ function createGameObjects(game) {
   gameState.playerTwo.setCollideWorldBounds(true);
   gameState.playerTwo.setImmovable(true);
 
-  gameState.cursors = game.input.keyboard.createCursorKeys();
-
+  // Init collision between ball and paddles
   game.physics.add.collider(gameState.ball, gameState.playerOne);
   game.physics.add.collider(gameState.ball, gameState.playerTwo);
 
-  gameState.playerOneVictoryText = game.add.text(
-    game.physics.world.bounds.width / 2,
-    game.physics.world.bounds.height / 2,
-    "Player 1 wins !"
-  );
-  gameState.playerOneVictoryText.setVisible(false);
-  gameState.playerOneVictoryText.setOrigin(0.5);
-
-  gameState.playerTwoVictoryText = game.add.text(
-    game.physics.world.bounds.width / 2,
-    game.physics.world.bounds.height / 2,
-    "Player 2 wins !"
-  );
-  gameState.playerTwoVictoryText.setVisible(false);
-  gameState.playerTwoVictoryText.setOrigin(0.5);
+  // Init KEY EVENT listeners
+  gameState.cursors = game.input.keyboard.createCursorKeys();
 }
 
 function playerMoved(cursors, player) {
@@ -207,31 +186,20 @@ function playerMoved(cursors, player) {
 }
 
 function checkPoints() {
-  if (gameState.ball.body.x < gameState.playerOne.body.x) {
-    gameState.playerOne.body.setVelocityY(0);
-    gameState.playerTwo.body.setVelocityY(0);
-    gameState.ball.setImmovable(true);
-    props.socket.emit("gameResult", { gameCode: props.gameCode, winner: 2 });
-    //playerTwoVictoryText.setVisible(true);
-    gameState.ball.setVelocityX(0);
-    gameState.ball.setVelocityY(0);
-    gameState.activeGame = false;
-  }
-  if (gameState.ball.body.x > gameState.playerTwo.body.x) {
-    //console.log("winner 1");
-    gameState.playerOne.body.setVelocityY(0);
-    gameState.playerTwo.body.setVelocityY(0);
-    gameState.ball.setImmovable(true);
-    //playerOneVictoryText.setVisible(true);
-    props.socket.emit("gameResult", { gameCode: props.gameCode, winner: 1 });
-    gameState.ball.setVelocityX(0);
-    gameState.ball.setVelocityY(0);
-    gameState.activeGame = false;
+  if (props.playerNumber === 1) {
+    if (gameState.ball.body.x < gameState.playerOne.body.x) {
+      gameState.activeGame = false;
+      props.socket.emit("addPoint", { gameCode: props.gameCode, player: 2 });
+    }
+    if (gameState.ball.body.x > gameState.playerTwo.body.x) {
+      gameState.activeGame = false;
+      props.socket.emit("addPoint", { gameCode: props.gameCode, player: 1 });
+    }
   }
 }
 
 function moveBall() {
-  if (props.playerNumber === 1 && gameState.activeGame) {
+  if (props.playerNumber === 1 && gameState.activeGame && !gameState.endGame) {
     props.socket.emit("moveBall", {
       gameCode: props.gameCode,
       x: gameState.ball.body.x,
@@ -270,6 +238,105 @@ function movePlayers() {
   }
 }
 
+function destroyGameObjects(game) {
+  gameState.playerOneVictoryText.destroy();
+  gameState.playerTwoVictoryText.destroy();
+  gameState.ball.destroy();
+  gameState.playerOne.destroy();
+  gameState.playerTwo.destroy();
+}
+/*
+function handleRematch(game) {
+  props.socket.on("reMatch", () => {
+    console.log("rematch handler");
+    destroyGameObjects(game);
+    createGameObjects(game);
+    gameState.isGameStarted = false;
+  });
+}*/
+
+function handleQuit(game) {
+  if (props.quit) {
+    gameState.isGameStarted = false;
+  }
+}
+
+function launchBall() {
+  props.socket.emit("launchBall", { gameCode: props.gameCode });
+}
+
+function handleLaunchBall() {
+  props.socket.on("launchBall", ({ state }) => {
+    gameState.ball.setVelocityX(state.ball.initialVelocity.x);
+    gameState.ball.setVelocityY(state.ball.initialVelocity.y);
+    gameState.isGameStarted = true;
+    gameState.activeGame = true;
+  });
+}
+
+function handleAddPoint(game) {
+  props.socket.on("addPoint", ({ playerNumber }) => {
+    if (playerNumber === 1) {
+      ++gameState.playerOneScore;
+      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
+    } else if (playerNumber === 2) {
+      ++gameState.playerTwoScore;
+      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
+    }
+    if (props.playerNumber === 1) {
+      gameState.ball.x = game.physics.world.bounds.width / 2;
+      gameState.ball.y = game.physics.world.bounds.height / 2;
+      gameState.playerOne.y = game.physics.world.bounds.height / 2;
+      gameState.playerTwo.y = game.physics.world.bounds.height / 2;
+      launchBall();
+    }
+  });
+}
+
+function createScoreObjects(game) {
+  // Init SCORE TEXT player 1
+  gameState.playerOneScoreText = game.add.text(
+    100,
+    10,
+    "Player 1: " + gameState.playerOneScore
+  );
+  gameState.playerOneScoreText.setVisible(true);
+  gameState.playerOneScoreText.setOrigin(0.5);
+
+  // Init SCORE TEXT player 2
+  gameState.playerTwoScoreText = game.add.text(
+    game.physics.world.bounds.width - 100,
+    10,
+    "Player 2: " + gameState.playerTwoScore
+  );
+  gameState.playerTwoScoreText.setVisible(true);
+  gameState.playerTwoScoreText.setOrigin(0.5);
+
+  // Init VICTORY TEXT player 1
+  gameState.playerOneVictoryText = game.add.text(
+    game.physics.world.bounds.width / 2,
+    game.physics.world.bounds.height / 2,
+    "Player 1 wins !"
+  );
+  gameState.playerOneVictoryText.setVisible(false);
+  gameState.playerOneVictoryText.setOrigin(0.5);
+
+  // Init VICTORY TEXT player 2
+  gameState.playerTwoVictoryText = game.add.text(
+    game.physics.world.bounds.width / 2,
+    game.physics.world.bounds.height / 2,
+    "Player 2 wins !"
+  );
+  gameState.playerTwoVictoryText.setVisible(false);
+  gameState.playerTwoVictoryText.setOrigin(0.5);
+}
+
+function handleEndGame() {
+  props.socket.on("endGame", () => {
+    gameState.endGame = true;
+  });
+}
+
 function handleMovePlayer() {
   props.socket.on("movePlayer", ({ playerNumber, x, y }) => {
     if (playerNumber === 2) {
@@ -284,17 +351,23 @@ function handleMovePlayer() {
 
 function handleMoveBall() {
   props.socket.on("moveBall", ({ x, y }) => {
-    gameState.ball.x = x + gameState.ball.body.width / 2 + 2;
-    gameState.ball.y = y + gameState.ball.body.height / 2 + 2;
+    const b = gameState.ball;
+    b.x = x + b.body.width / 2 + 2;
+    b.y = y + b.body.height / 2 + 2;
   });
 }
 
 function handleGameResult() {
   props.socket.on("gameResult", ({ winner }) => {
+    console.log("END GAME WINNER: " + winner);
+    gameState.endGame = true;
+    gameState.activeGame = false;
     if (winner === 1) {
       gameState.playerOneVictoryText.setVisible(true);
+      gameState.activeGame = false;
     } else {
       gameState.playerTwoVictoryText.setVisible(true);
+      gameState.activeGame = false;
     }
   });
 }
@@ -304,13 +377,16 @@ function handleGameResult() {
   <p>Player number : {{ props.playerNumber }}</p>
   <p>Start Game : {{ this.startGame }}</p>
   <p>Game Code : {{ this.gameCode }}</p>
-  <Suspense>
-    <div v-if="props.startGame" :id="containerId" />
-
-    <template #fallback>
-      <div class="placeholder">Downloading...</div>
-    </template>
-  </Suspense>
+  <p>Spectator : {{ props.spectator }}</p>
+  <!-- <Suspense> -->
+  <!-- <div v-if="props.startGame" :id="containerId" /> -->
+  <div v-show="props.gameActive">
+    <div :id="containerId" />
+  </div>
+  <!-- <template #fallback>  -->
+  <!-- <div class="placeholder">Downloading...</div> -->
+  <!-- </template> -->
+  <!-- </Suspense> -->
 </template>
 
 <style></style>

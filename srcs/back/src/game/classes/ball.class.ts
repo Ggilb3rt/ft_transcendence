@@ -10,15 +10,16 @@ export class Ball {
     vel = 0;
 }*/
 
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../constants";
+//import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../constants";
 
 
 export class Ball {
-    x = CANVAS_WIDTH / 2;
-    y = CANVAS_HEIGHT / 2;
-    vel = {
+    //x = CANVAS_WIDTH / 2;
+    //y = CANVAS_HEIGHT / 2;
+    initialVelocity = {
         x: 0,
         y: 0,
-    }
+    };
+    level = "";
 }
   

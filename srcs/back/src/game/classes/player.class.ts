@@ -14,15 +14,14 @@ export class Player {
     match_score = 0;
 }*/
 
-import { CANVAS_HEIGHT, DEFAULT_PADDLE_SPEED } from "../constants";
+//import { CANVAS_HEIGHT, DEFAULT_PADDLE_SPEED } from "../constants";
 
 
 export class Player {
-    x = 0;
-    y = CANVAS_HEIGHT / 2;
-    speed = DEFAULT_PADDLE_SPEED;
+    speed = 0;
     id = null;
     game_scores = [];
     match_score = 0;
+    level = "";
 }
   

@@ -13,6 +13,7 @@ export const DEFAULT_PADDLE_SPEED = 10;*/
 
 export const CANVAS_WIDTH = 800;
 export const CANVAS_HEIGHT = 640;
+export const DEFAULT_BALL_SPEED = 150;
 export const DEFAULT_PADDLE_SPEED = 350;
 
 
