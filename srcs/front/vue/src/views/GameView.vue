@@ -1,7 +1,7 @@
 <script>
 import GameComp from "@/components/GameComp.vue";
 import io from "socket.io-client";
-
+ 
 export default {
   name: "GamePong",
   components: {
@@ -18,20 +18,27 @@ export default {
     };
   },
   created() {
-    this.socket = io("http://localhost:3000");
+    this.socket = io("http://localhost:3000/game");
 
     this.socket.on("init", this.handleInit);
+    this.socket.on("init2", this.handleInit2);
     this.socket.on("gameCode", this.handleGameCode);
     this.socket.on("unknownGame", this.handleUnknownGame);
     this.socket.on("disconnected", this.handleDisconnected);
     //this.socket.on("reMatch", this.handleReMatch);
     this.socket.on("quitGame", this.handleQuitGame);
     this.socket.on("totalPlayers", this.handleTotalPlayers);
+    this.socket.on("newGame2", this.handleNewGame2);
   },
   unmounted() {
     this.socket.close();
   },
   methods: {
+    handleInit2(data) {
+      console.log("handle init2");
+      this.playerNumber = data.playerNumber;
+      this.gameCode = data.gameCode;
+    },
     handleInit(number) {
       console.log("handle init");
       this.playerNumber = number;
@@ -101,6 +108,15 @@ export default {
       msg = JSON.parse(msg);
       console.log(msg);
     },
+    newGame2() {
+        this.socket.emit("newGame2");
+        this.gameActive = true;
+    },
+    handleNewGame2(data) {
+        console.log(data);
+        console.log("START GAME");
+        this.startGame = true;
+    }
   },
 };
 </script>
@@ -108,7 +124,8 @@ export default {
 <template>
   <div v-show="!gameActive">
     <h1>Multiplayer Pong</h1>
-    <button type="submit" @click.prevent="newGame">Create New Game</button>
+    <!-- <button type="submit" @click.prevent="newGame">Create New Game</button> -->
+    <button type="submit" @click.prevent="newGame2">Play</button>
     <div>OR</div>
     <div class="form-group">
       <input v-model="gameCode" type="text" placeholder="Enter Game Code" />

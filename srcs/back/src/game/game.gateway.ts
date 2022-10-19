@@ -12,13 +12,14 @@ import {
 import { GameService } from './game.service';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-
+ 
 
 //Options : port, 
 @WebSocketGateway({
     cors: {
         origin: '*'
-    }
+    },
+    namespace: 'game'
 })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 
@@ -39,11 +40,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
+        this.gameService.handleConnection(client, this.server);
     }
 
-    @SubscribeMessage('newGame')
+    /*@SubscribeMessage('newGame')
     handleNewGame(client: Socket) {
         this.gameService.handleNewGame(client, this.server);
+    }*/
+
+    @SubscribeMessage('newGame2')
+    handleNewGame2(client: Socket) {
+        this.gameService.handleNewGame2(client, this.server);
     }
 
     @SubscribeMessage('joinGame')
@@ -67,8 +74,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     @SubscribeMessage('movePlayer')
-    handleMovePlayer(client: Socket, pos: any) {
-        this.gameService.handleMovePlayer(client, pos, this.server);
+    handleMovePlayer(client: Socket, data: any) {
+        this.gameService.handleMovePlayer(client, data, this.server);
     }
 
     @SubscribeMessage('reMatch')

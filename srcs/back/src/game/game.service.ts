@@ -11,7 +11,100 @@ import { Ball, Player } from "./classes";
 export class GameService {
     private clientRooms = {};
     private state = {};
-    private intervalId;
+
+    private waitingRoomLevelOne = {
+        status: "empty",
+        playerOne: {
+            id: "",
+            socket: "",
+            roomId: "",
+        },
+        playerTwo: {
+            id: "",
+            socket: "",
+            roomId: ""
+        },
+        roomId: "",
+    };
+
+    private activeGames = {};
+
+    private players = {};
+
+
+    handleConnection(client: Socket, server: Server) {
+        this.players[client.id] = {
+            id: client.id,
+            socket: client,
+            roomId: "",
+        }
+        //console.log("players")
+        //console.log(this.players);
+    }
+
+    async handleNewGame2(client: Socket, server: Server) {
+
+        let player = this.players[client.id];
+        let waitingRoom = this.waitingRoomLevelOne;
+
+        // Waiting room is empty
+        if (waitingRoom.playerOne.id === "" && waitingRoom.playerTwo.id === "") {
+            let roomId = this.makeid(5);
+            waitingRoom.roomId = roomId;
+            waitingRoom.playerOne.id = player.id;
+            waitingRoom.playerOne.socket = player.socket;
+            waitingRoom.playerOne.roomId = roomId;
+        }
+        // Waiting room has 1 player
+        else if (waitingRoom.playerOne.id !== "" && waitingRoom.playerTwo.id === "") {
+            waitingRoom.playerTwo.id = player.id;
+            waitingRoom.playerTwo.socket = player.socket;
+            waitingRoom.playerTwo.roomId = waitingRoom.roomId;
+            // Waiting room has 2 players
+            if (waitingRoom.playerOne.id !== "" && waitingRoom.playerTwo.id !== "") {
+                this.activeGames[waitingRoom.roomId] = {
+                    playerOne: waitingRoom.playerOne,
+                    playerTwo: waitingRoom.playerTwo
+                }
+                this.initGame2(waitingRoom.roomId, server);
+
+                // Reset waiting Rooms
+                waitingRoom.playerOne.id = "";
+                waitingRoom.playerOne.socket = "";
+                waitingRoom.playerOne.roomId = "";
+                waitingRoom.playerTwo.id = "";
+                waitingRoom.playerTwo.socket = "";
+                waitingRoom.playerTwo.roomId = "";
+            }
+        }
+
+    }
+
+
+    initGame2(roomId: any, server: Server) {
+
+        let gameRoom = this.activeGames[roomId];
+        let playerOne = gameRoom.playerOne.socket;
+        let playerTwo = gameRoom.playerTwo.socket;
+
+        playerOne.join(roomId);
+        playerOne.emit("init2", { playerNumber: 1, gameCode: roomId });
+        playerTwo.join(roomId);
+        playerTwo.emit("init2", { playerNumber: 2, gameCode: roomId });
+
+        const state = this.createGameState();
+        state.players[0].id = gameRoom.playerOne.id;
+        state.players[1].id = gameRoom.playerTwo.id;
+        state.roomName = roomId;
+        this.setPlayerState(state.players);
+        gameRoom.state = state;
+        //server.to(roomId).emit("newGame2");
+        console.log(gameRoom);
+        console.log(gameRoom.state);
+        server.to(roomId).emit("newGame2", { state });
+
+    }
+
 
     createGameState() {
         return {
@@ -31,7 +124,7 @@ export class GameService {
     }
 
     reInitGameState(state) {
-        
+
     }
 
     randomNumberBetween(min, max) {
@@ -57,25 +150,30 @@ export class GameService {
         players[0].speed = DEFAULT_PADDLE_SPEED;
         players[1].speed = DEFAULT_PADDLE_SPEED;
 
-    } 
+    }
 
     handleInitGame(client: Socket, gameCode: any, server: Server) {
-        const state = this.state[gameCode];
-        server.sockets.in(gameCode).emit('initGame', {state});
+        const state = this.activeGames[gameCode].state;
+        console.log(state);
+        //server.sockets.in(gameCode).emit('initGame', { state });
+        server.to(gameCode).emit("initGame", { state });
 
     }
 
     handleLaunchBall(client: Socket, gameCode: any, server: Server) {
-        const state = this.state[gameCode];
+        //const state = this.state[gameCode];
+        const state = this.activeGames[gameCode].state;
         this.setBallState(state.ball);
-        client.emit('launchBall', {state} );
+        //client.emit('launchBall', { state });
+        server.to(gameCode).emit("launchBall", { state });
     }
 
     handleMoveBall(client: Socket, data: any, server: Server) {
-        client.broadcast.emit('moveBall', {x: data.x, y: data.y});
+        //client.broadcast.emit('moveBall', { x: data.x, y: data.y });
+        client.to(data.gameCode).emit("moveBall", { x: data.x,y: data.y });
     }
 
-    handleNewGame(client: Socket, server: Server) {
+   /* handleNewGame(client: Socket, server: Server) {
         let roomName = this.makeid(5);
         this.clientRooms[client.id] = roomName;
         client.emit('gameCode', roomName);
@@ -86,7 +184,9 @@ export class GameService {
         client.join(roomName);
         this.state[roomName].players[0].id = client.id;
         client.emit('init', 1);
-    }
+    }*/
+
+
 
     makeid(length: number) {
         var result = "";
@@ -141,9 +241,31 @@ export class GameService {
 
     async handleDisconnect(client: Socket, server: Server) {
 
-        clearInterval(this.intervalId);
-        const roomName = this.clientRooms[client.id];
+        let roomId = this.players[client.id].roomId;
+        console.log(roomId);
+        let waitingRoom = this.waitingRoomLevelOne;
 
+        //console.log("waitingRoom");
+        //console.log(waitingRoom.playerOne);
+        //console.log(waitingRoom.playerTwo);
+
+        if (waitingRoom.playerOne.id === client.id) {
+            waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
+            waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
+            waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
+        } else if (waitingRoom.playerTwo.id === client.id) {
+            waitingRoom.playerTwo.id = "";
+            waitingRoom.playerTwo.socket = "";
+            waitingRoom.playerTwo.roomId = "";
+        }
+        //console.log("waitingRoom");
+        //console.log(waitingRoom.playerOne);
+        //console.log(waitingRoom.playerTwo);
+
+        Reflect.deleteProperty(this.players, client.id);
+
+        /*const roomName = this.clientRooms[client.id];
+ 
         let allUsers;
         if (roomName) {
             allUsers = await server.in(roomName).fetchSockets();
@@ -155,16 +277,59 @@ export class GameService {
             });
             sockets.forEach(socket => Reflect.deleteProperty(this.clientRooms, socket));
         }
+ 
+        Reflect.deleteProperty(this.clientRooms, client.id);*/
+        /*   console.log("activeGames before disconnect");
+           console.log(this.activeGames);
+           let roomId = this.players[client.id].roomId;
+           
+           let waitingRoom = this.waitingRoomLevelOne;
+   
+           if (waitingRoom.status === "waiting") {
+               waitingRoom.status = "empty";
+               if (waitingRoom.players[0].id === client.id) {
+                   if (waitingRoom.players[1]) {
+                       waitingRoom.players[0] = [],
+                       waitingRoom.players[0] = waitingRoom.players[1];
+                       waitingRoom.players[1] = [];
+                   }
+               }
+               console.log("waiting room");
+               console.log(waitingRoom.players);
+           }
+           
+           let allUsers;
+           if (roomId) {
+               allUsers = await server.in(roomId).fetchSockets();
+               let sockets = [];
+               allUsers.forEach(function (s) {
+                   s.emit('disconnected');
+                   s.leave(roomId);
+                   sockets.push(s.id);
+               });
+               //sockets.forEach(socket => Reflect.deleteProperty(this.clientRooms, socket));
+           }
+           Reflect.deleteProperty(this.activeGames, roomId);
+           console.log("activeGames after disconnect");
+           console.log(this.activeGames);*/
 
-        Reflect.deleteProperty(this.clientRooms, client.id);
+        /* console.log("players before disconnect");
+         console.log(this.players);
+         for (const elem in this.players) {
+             if (this.players[elem].roomId === roomId) {
+                 Reflect.deleteProperty(this.players, elem);
+             }
+         }
+         console.log("players after disconnect");
+         console.log(this.players);*/
+
     }
 
     handleReMatch(client: Socket, gameCode: any, server: Server) {
-        server.sockets.in(gameCode).emit("reMatch", {text: "rematch !!"});
+        server.sockets.in(gameCode).emit("reMatch", { text: "rematch !!" });
     }
 
     async handleQuitGame(client: Socket, gameCode: any, server: Server) {
-        clearInterval(this.intervalId);
         const roomName = this.clientRooms[client.id];
 
         let allUsers;
@@ -183,16 +348,25 @@ export class GameService {
         }
     }
 
-    handleMovePlayer(client: Socket, pos: any, server: Server) {
-        client.broadcast.emit("movePlayer", pos);
+    handleMovePlayer(client: Socket, data: any, server: Server) {
+        //client.broadcast.emit("movePlayer", pos);
+        //console.log(this.activeGames[data.gameCode.state]);
+        client.to(data.gameCode).emit("movePlayer", {playerNumber: data.playerNumber, x: data.x, y: data.y});
     }
 
     handleAddPoint(client: Socket, gameCode: any, player: number, server: Server) {
-        ++this.state[gameCode].players[player - 1].match_score;
+        /*++this.state[gameCode].players[player - 1].match_score;
         if (this.state[gameCode].players[player - 1].match_score === 11) {
-                server.sockets.in(gameCode).emit('gameResult', { winner: player });
+            server.sockets.in(gameCode).emit('gameResult', { winner: player });
         } else {
-            server.sockets.in(gameCode).emit('addPoint', {playerNumber: player});
+            server.sockets.in(gameCode).emit('addPoint', { playerNumber: player });
+        }*/
+
+        ++this.activeGames[gameCode].state.players[player - 1].match_score;
+        if (this.activeGames[gameCode].state.players[player - 1].match_score === 11) {
+            server.to(gameCode).emit('gameResult', { winner: player });
+        } else {
+            server.to(gameCode).emit('addPoint', { playerNumber: player });
         }
     }
 
@@ -201,8 +375,8 @@ export class GameService {
             .emit('gameResult', { winner: data.winner });
     }
 
-   
+
 }
 
 
- 
+

@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, onUpdated, ref } from "vue";
 import Phaser from "phaser";
 import ballImage from "@/assets/game/ball.png";
 import paddleImage from "@/assets/game/paddle.png";
-
+ 
 const props = defineProps({
   socket: Object,
   playerNumber: Number,
@@ -123,6 +123,7 @@ function update() {
     props.playerNumber === 1
   ) {
     //initGame(this);
+    //console.log("ready to init");
     props.socket.emit("initGame", { gameCode: props.gameCode });
   }
 
@@ -208,7 +209,7 @@ function movePlayers() {
   if (props.playerNumber === 1 && gameState.activeGame) {
     if (playerMoved(gameState.cursors, gameState.playerOne)) {
       props.socket.emit("movePlayer", {
-        //gameCode: props.gameCode,
+        gameCode: props.gameCode,
         playerNumber: props.playerNumber,
         x: gameState.playerOne.x,
         y: gameState.playerOne.y,
@@ -219,7 +220,7 @@ function movePlayers() {
   if (props.playerNumber === 2) {
     if (playerMoved(gameState.cursors, gameState.playerTwo)) {
       props.socket.emit("movePlayer", {
-        //gameCode: props.gameCode,
+        gameCode: props.gameCode,
         playerNumber: props.playerNumber,
         x: gameState.playerTwo.x,
         y: gameState.playerTwo.y,
