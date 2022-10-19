@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, onUpdated, ref } from "vue";
 import Phaser from "phaser";
 import ballImage from "@/assets/game/ball.png";
 import paddleImage from "@/assets/game/paddle.png";
- 
+
 const props = defineProps({
   socket: Object,
   playerNumber: Number,
@@ -262,7 +262,7 @@ function handleInitGame() {
   props.socket.on("initGame", ({ state }) => {
     gameState.paddleSpeed = state.players[0].speed;
     if (props.playerNumber === 1) {
-        launchBall();
+      launchBall();
     }
   });
 }
@@ -276,8 +276,10 @@ function launchBall(game) {
 
 function handleLaunchBall() {
   props.socket.on("launchBall", ({ state }) => {
-    gameState.ball.setVelocityX(state.ball.initialVelocity.x);
-    gameState.ball.setVelocityY(state.ball.initialVelocity.y);
+    if (props.playerNumber === 1) {
+      gameState.ball.setVelocityX(state.ball.initialVelocity.x);
+      gameState.ball.setVelocityY(state.ball.initialVelocity.y);
+    }
     gameState.isGameStarted = true;
     gameState.activeGame = true;
   });
@@ -287,22 +289,18 @@ function handleAddPoint(game) {
   props.socket.on("addPoint", ({ playerNumber }) => {
     if (playerNumber === 1) {
       ++gameState.playerOneScore;
-      gameState.playerOneScoreText.setText(
-        "Player 1: " + gameState.playerOneScore
-      );
+      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
     } else if (playerNumber === 2) {
       ++gameState.playerTwoScore;
-      gameState.playerTwoScoreText.setText(
-        "Player 2: " + gameState.playerTwoScore
-      );
+      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
     }
     //if (props.playerNumber === 1) {
-      gameState.ball.x = game.physics.world.bounds.width / 2;
-      gameState.ball.y = game.physics.world.bounds.height / 2;
-      gameState.playerOne.y = game.physics.world.bounds.height / 2;
-      gameState.playerTwo.y = game.physics.world.bounds.height / 2;
+    gameState.ball.x = game.physics.world.bounds.width / 2;
+    gameState.ball.y = game.physics.world.bounds.height / 2;
+    gameState.playerOne.y = game.physics.world.bounds.height / 2;
+    gameState.playerTwo.y = game.physics.world.bounds.height / 2;
     //if (props.playerNumber === 1) {
-      launchBall(game);
+    launchBall(game);
     //}
     //}
   });
@@ -382,16 +380,12 @@ function handleGameResult() {
     gameState.activeGame = false;
     if (winner === 1) {
       ++gameState.playerOneScore;
-      gameState.playerOneScoreText.setText(
-        "Player 1: " + gameState.playerOneScore
-      );
+      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
       gameState.playerOneVictoryText.setVisible(true);
       gameState.activeGame = false;
     } else {
       ++gameState.playerTwoScore;
-      gameState.playerTwoScoreText.setText(
-        "Player 2: " + gameState.playerTwoScore
-      );
+      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
       gameState.playerTwoVictoryText.setVisible(true);
       gameState.activeGame = false;
     }
