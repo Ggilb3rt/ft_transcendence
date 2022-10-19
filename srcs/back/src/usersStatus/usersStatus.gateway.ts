@@ -20,7 +20,7 @@ interface IStatus {
 	cors: {
 		origin: '*'
 	},
-    // namespace: '/usersStatus',
+    // namespace: 'usersStatus',
 })
 export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
  
@@ -37,8 +37,11 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     handleDisconnect(client: Socket) {
         this.logger.log(`client disconnect : ${client.id}`)
         let uIndex = this.userArr.findIndex(el => el.socketId == client.id)
-        this.server.sockets.emit('newDisconnection', this.userArr[uIndex])
-        this.userArr.splice(uIndex, 1)
+        this.logger.log(uIndex)
+        if (uIndex != -1) {
+            this.server.sockets.emit('newStatusDisconnection', this.userArr[uIndex])
+            this.userArr.splice(uIndex, 1)
+        }
     }
 
     // handleConnection(client: Socket, ...args: any[]) {
@@ -46,20 +49,29 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     //     const u: IStatus = {socketId: client.id, userStatus: "available", userId: args[0]}
     //     this.userArr.push(u)
     //     this.logger.log(`client connection : ${client.id}`)
-    //     this.server.sockets.emit('newConnection', u)
+    //     this.server.sockets.emit('newStatusConnection', u)
     //     return this.userArr
     // }
 
 
     @SubscribeMessage('connectionStatus')
-    handleConnection2(client: Socket, ...args: any[]) {
-        const u: IStatus = {socketId: client.id, userStatus: "available", userId: args[0]}
+    handleConnection2(client: Socket, arg: number) {
+        const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
         this.userArr.push(u)
         console.log(this.userArr)
         this.logger.log(`client connection : ${client.id}`)
-        this.server.sockets.emit('newConnection', u)
+        this.server.sockets.emit('newStatusConnection', u)
         console.log("after emit connection ", this.userArr)
         return this.userArr
+    }
+
+
+    @SubscribeMessage('changeStatus')
+    handleChangeStatus(client: Socket, arg: TStatus) {
+        // dans userArr
+        //      trouver le bon socketId
+        //      update userStatus avec arg
+        //      emit('changeStatus', id+arg)
     }
 
     // @SubscribeMessage('findAllStatus')

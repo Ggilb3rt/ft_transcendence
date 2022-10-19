@@ -5,49 +5,9 @@ import { mande } from 'mande'
 export interface IUserStoreState {
     user: IUser
     loading: boolean
-    error: Error | null
+    error: Error | any | null
     connected: boolean
 }
-
-// const api = mande('http://localhost:3000/users')
-
-
-// Match history to change with api call
-const matchsHistory = [
-    {
-      opponent: 2,
-      win: true,
-      myScore: 7,
-      opponentScore: 3
-    },
-    {
-      opponent: 1,
-      win: false,
-      myScore: 3,
-      opponentScore: 5
-    },
-    {
-      opponent: 1,
-      win: false,
-      myScore: 1,
-      opponentScore: 7
-    },
-    {
-      opponent: 4,
-      win: true,
-      myScore: 7,
-      opponentScore: 0
-    },
-    {
-      opponent: 2,
-      win: false,
-      myScore: 2,
-      opponentScore: 7
-    }
-  ]
-
-
-
 
 export const useUserStore = defineStore({
     id: "user",
@@ -66,18 +26,8 @@ export const useUserStore = defineStore({
         getWinRate: (state): string => {
             return (state.user.wins / state.user.loses).toPrecision(2)
         },
-    },
-    actions: {
-        // getters and setters
-        getUserNick(): string {
-            return `${this.user.nickname}`
-        },
-        setUserNick(newTag:string) {
-            if (this.user)
-                this.user.nickname = newTag
-        },
-        getUserLevel(): string {
-            switch (this.user.ranking) {
+        getUserRank: (state): string => {
+            switch (state.user.ranking) {
                 case 0:
                     return ("Pipou")
                     break
@@ -101,6 +51,41 @@ export const useUserStore = defineStore({
                     break
             }
         },
+    },
+    actions: {
+        // getters and setters
+        getUserNick(): string {
+            return `${this.user.nickname}`
+        },
+        setUserNick(newTag:string) {
+            if (this.user)
+                this.user.nickname = newTag
+        },
+        // getUserLevel(): string {
+        //     switch (this.user.ranking) {
+        //         case 0:
+        //             return ("Pipou")
+        //             break
+        //         case 1:
+        //             return ("Adept")
+        //             break
+        //         case 2:
+        //             return ("Pongger")
+        //             break
+        //         case 3:
+        //             return ("Your body is ready")
+        //             break
+        //         case 4:
+        //             return ("Master")
+        //             break
+        //         case 5:
+        //             return ("God")
+        //             break
+        //         default:
+        //             return ("Prrrrt")
+        //             break
+        //     }
+        // },
         async getUser(id: number) {
             this.loading = true
             try {
@@ -124,8 +109,8 @@ export const useUserStore = defineStore({
                 this.error = error
             } finally {
                     // console.log(user)
-                if (!this.user.invites && !this.error)
-                    this.user.invites = [4, 1]
+                // if (!this.user.invites && !this.error)
+                //     this.user.invites = [4, 1]
                 if (!this.user.match_history && !this.error) {
                     //this.user.match_history = matchsHistory
                     
@@ -165,6 +150,11 @@ export const useUserStore = defineStore({
                 return this.user.bans.includes(id)
             return false
         },
+        isBanBy(id: number): boolean {
+            if (this.user.bannedBy)
+                return this.user.bannedBy.includes(id)
+            return false
+        },
         isInvite(id: number): boolean {
             console.log("is in invite list", id)
             if (this.user.invites)
@@ -188,7 +178,7 @@ export const useUserStore = defineStore({
                         console.log('data add friend', data)
                     })
                 } catch (error: any) {
-                    console.log('add friend err ', error)
+                    console.log('add friend err ', error.message)
                     this.error = error
                     return
                 }

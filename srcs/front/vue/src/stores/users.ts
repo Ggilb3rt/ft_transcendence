@@ -6,8 +6,8 @@ import type { io, Socket } from "socket.io-client"
 
 export interface IUserStoreState {
     userList: IOtherUserRestrict[]
-    socketStatus?: Ref
-    user: IOtherUser
+    socketStatus?: any[]
+    user: IOtherUser | null
     loading: boolean
     error: any | null
 }
@@ -106,9 +106,9 @@ const marcRestrict: IOtherUserRestrict = {
 export const useUsersStore = defineStore({
     id: "users",
     state: (): IUserStoreState => ({
-        userList: [rogerRestrict, homerRestrict, marcRestrict],
-        socketStatus: undefined,
-        user: homer,
+        userList: [],
+        socketStatus: [],
+        user: null,
         loading: false,
         error: null
     }),
@@ -117,55 +117,9 @@ export const useUsersStore = defineStore({
         //     if (state.user)
         //         return `@${state.user.nickname}`
         // },
-
-    },
-    actions: {
-        setSocket(socket: Ref) {    // change the name
-            this.socketStatus = socket
-            console.log("socket in store", this.socketStatus)
-        },
-        getUserStatus(id: number): status {
-            let ret: ISocketStatus | undefined = undefined;
-            
-            console.log("start socketStatus", this.socketStatus)
-            if (this.socketStatus)
-                ret = this.socketStatus.include((el: any) => {el.userId == id; console.log("ref el", el)})
-            console.log("return of socketStatus", ret)
-            if (ret == undefined)
-                return 'disconnected'
-            console.log("get userStatus ", ret)
-            return ret.userStatus
-        },
-        changUserNick(id: number, newNick: string) {
-            this.userList.some((el) => {
-                if (el.id == id) {
-                    el.nickname = newNick
-                    return
-                }
-            })
-        },
-        getUserNick(user:IUser): string {
-            return `@${user.nickname}`
-        },
-        getUserHref(user:IOtherUserRestrict): string {
-            return '/' + user.id
-        },
-        changeUserAvatar(id: number, newAvatar: string) {
-            this.userList.some((el) => {
-                if (el.id == id) {
-                    el.avatar_url = newAvatar
-                    return
-                }
-            })
-        },
-        getUserWinRate(): string {
-            if (this.user)
-                return (this.user.wins / this.user.loses).toPrecision(2)
-            return '0'
-        },
-        getUserLevel(): string {
-            if (this.user) {
-                switch (this.user.ranking) {
+        getUserRank: (state): string => {
+            if (state.user) {
+                switch (state.user.ranking) {
                     case 0:
                         return ("Pipou")
                         break
@@ -189,7 +143,54 @@ export const useUsersStore = defineStore({
                         break
                 }
             }
-            return ("Error")
+            return ("Prrrrt")
+        },
+
+    },
+    actions: {
+        setSocket(socket: any[]) {    // change the name
+            this.socketStatus = socket
+            console.log("socket in store", this.socketStatus)
+        },
+        // getUserStatus(id: number): status {
+        //     let ret: ISocketStatus | undefined = undefined;
+            
+        //     console.log("start socketStatus", this.socketStatus)
+        //     if (this.socketStatus) {
+        //         this.socketStatus.forEach((el: any) => {
+        //             console.log(`mon tableau de fou \n\t${el.userId[0]}\n\t${el.userStatus}`)
+        //         })
+        //         ret = this.socketStatus.includes((el: any) => {
+        //             el.userId[0] == id;
+        //             console.log("ref el", el)
+        //         })
+        //     }
+        //     console.log("return of socketStatus", ret)
+        //     if (ret == undefined)
+        //         return 'disconnected'
+        //     console.log("get userStatus ", ret)
+        //     return ret.userStatus
+        // },
+        changUserNick(id: number, newNick: string) {
+            this.userList.some((el) => {
+                if (el.id == id) {
+                    el.nickname = newNick
+                    return
+                }
+            })
+        },
+        changeUserAvatar(id: number, newAvatar: string) {
+            this.userList.some((el) => {
+                if (el.id == id) {
+                    el.avatar_url = newAvatar
+                    return
+                }
+            })
+        },
+        getUserWinRate(): string {
+            if (this.user)
+                return (this.user.wins / this.user.loses).toPrecision(2)
+            return '0'
         },
         async getUsers() {
             this.loading = true
@@ -203,6 +204,9 @@ export const useUsersStore = defineStore({
                     })
                     .then((data) => {
                         this.userList = data
+                        this.userList.forEach((el) => {
+                            el.avatar_url = `http://localhost:3000/users/${el.id}/avatar`
+                        })
                         this.error = null
                     })
             } catch (error) {
@@ -224,6 +228,7 @@ export const useUsersStore = defineStore({
                     })
                     .then((data) => {
                         this.user = data
+                        this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
                         this.error = null
                     })
             } catch (error: any) {

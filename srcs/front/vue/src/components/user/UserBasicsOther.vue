@@ -6,9 +6,9 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 
 
-async function sendInvite() {
-    console.log(`invitation from ${userStore.user.id} to ${usersStore.user.id}`)
-}
+// async function sendInvite() {
+//     console.log(`invitation from ${userStore.user.id} to ${usersStore.user.id}`)
+// }
 
 async function challenge() {
     // need to check if users are connected and available
@@ -19,7 +19,7 @@ async function challenge() {
 </script>
 
 <template>
-    <div class="userBasics">
+    <div class="userBasics" v-if="usersStore.user">
         <figure class="heroFigure">
             <img class="heroAvatar" :src="usersStore.user.avatar_url" :alt="usersStore.user.nickname + ' avatar'">
         </figure>
@@ -31,7 +31,7 @@ async function challenge() {
                 </div>
             </div>
         </div>
-        <div class="invite" v-if="userStore.user.id != usersStore.user.id">
+        <div class="invite" v-if="userStore.user.id != usersStore.user.id && !userStore.isBanBy(usersStore.user.id)">
             <button @click="userStore.addFriend(usersStore.user.id)" v-if="!userStore.isFriends(usersStore.user.id)">Be friends</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnFriend</button>
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>

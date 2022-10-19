@@ -12,6 +12,7 @@ export interface IUser {
     loses: number;
     friends: number[];
     bans: number[];
+    bannedBy: number[];
     invites: number[];
     match_history: IMatchHistory[];
     matches: IMatch[] | null;

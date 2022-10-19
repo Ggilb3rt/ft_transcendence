@@ -60,7 +60,7 @@ async function change2FA() {
 
 		<UserGameStats
 			:user="userStore.user"
-			:user-level="userStore.getUserLevel()"
+			:user-rank="userStore.getUserRank"
 			:user-win-rate="userStore.getWinRate"
 		/>
 

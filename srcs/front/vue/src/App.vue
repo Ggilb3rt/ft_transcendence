@@ -2,7 +2,7 @@
 import { onBeforeMount, ref, onUpdated, onBeforeUpdate, watch } from "vue"
 import type { Ref } from "vue"
 import type { IUser, status, ISocketStatus } from "../types"
-import { RouterLink, RouterView } from "vue-router";
+import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
 import { useUsersStore } from './stores/users';
 import { useUserStore } from './stores/user';
@@ -12,8 +12,9 @@ import Footer from "./components/Footer.vue";
 import { io } from "socket.io-client"
 
 
-const user = useUserStore()
+const userStore = useUserStore()
 const users = useUsersStore()
+const route = useRoute()
 
 users.getUsers()
 
@@ -21,41 +22,84 @@ users.getUsers()
 
 // Socket Status
 
-let alreadyConnect: boolean = false
+let alreadyConnect = ref<boolean>(false)
 let socket = io("http://localhost:3000", {autoConnect: false});
 const statusList = ref<ISocketStatus[]>([])
 
 onBeforeUpdate(() => {
-  if (user.connected && socket.disconnected && !alreadyConnect) {
+  if (userStore.connected && socket.disconnected && !alreadyConnect.value) {
     socket.connect()
   }
-  if (socket.connected && !alreadyConnect) {
-    socket.emit("connectionStatus", [user.user.id], (res: any) => {
+  if (socket.connected && !alreadyConnect.value) {
+    socket.emit("connectionStatus", userStore.user.id, (res: any) => {
       statusList.value = res
       console.log("connectionStatus", statusList.value)
     })
     
-    socket.on("newConnection", (res: ISocketStatus) => {
+    socket.on("newStatusConnection", (res: ISocketStatus) => {
       statusList.value.push(res)
       console.log("update connection", statusList.value)
     })
-    socket.on("newDisconnection", (res: any) => {
+    socket.on("newStatusDisconnection", (res: any) => {
       console.log(res)
       statusList.value.splice(statusList.value.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
       console.log("update disconnection", statusList.value)
     })
-    alreadyConnect = true
+    alreadyConnect.value = true
   }
 
-  watch(statusList, (newStatusList: Ref) => {
-    users.setSocket(newStatusList)
+watch(statusList, (newStatusList) => {
+    // console.log("watcher before setSocket\n", newStatusList[0].userStatus, oldStatusList)
+    if (users.socketStatus) {
+      users.setSocket(newStatusList)
+    }
   })
+})
+
+function getCurrentUserStatus(): status {
+  for (const key in statusList.value) {
+    if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
+      const el = statusList.value[key];
+      if (el.userId === userStore.user.id) {
+        return el.userStatus
+      }
+    }
+  }
+  return "disconnected"
+}
+
+function changeCurrentUserStatus(newStatus: status) {
+  for (const key in statusList.value) {
+    if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
+      const el = statusList.value[key];
+      console.log(el.userId, userStore.user.id)
+      if (el.userId === userStore.user.id) {
+        el.userStatus = newStatus
+        console.log("watch", el)
+        break
+      }
+    }
+  }
+}
+
+watch(route, (newRoute) => {
+  console.log(route.matched)
+  if (users.socketStatus) {
+    if (newRoute.name == "game") {
+      console.log(newRoute.name)
+      // change my status by 'inGame' and emit it
+      changeCurrentUserStatus("inGame")
+      console.log("should be inGame")
+    }
+    else {
+      if (getCurrentUserStatus() == "inGame")
+        changeCurrentUserStatus("available")
+    }
+  }
 })
 
 
 // if user is connected put user store on localStorage and getUsers again
-
-console.log(router.currentRoute.value)
 
 </script>
 
