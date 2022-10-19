@@ -101,7 +101,7 @@ export class UsersService {
       matches: match[]
     }
 
-    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth} = user
+    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, two_factor_secret} = user
 
     const friends = await this.getFriends(id);
     const bannedBy = await this.getBannedMe(id);
@@ -233,28 +233,27 @@ export class UsersService {
 
   //another way to request partial user
   async getOtherUser(id: number) {
-      const users = await prisma.users.findFirst(
-        {
-          where:{
-            id
-          },
-          select:{
-          id:true,
-          nickname:true,
-          first_name:true,
-          last_name:true,
-          friends: {
-            select: {id:true}
-          },
-          avatar_url:true,
-          ranking:true,
-          wins:true,
-          loses:true,
-          match_match_player_left_idTousers:true,
-          match_match_player_right_idTousers:true
-          }
-        })
-      return (users);
+
+    const user = await prisma.users.findFirst({where:{id}})
+
+    const {nickname, first_name, last_name, avatar_url, ranking, wins, loses} = user
+    const matches = await this.getMatches(id);
+    const friends = await this.getFriends(id);
+
+    const otherFormat = {
+      id,
+      nickname,
+      first_name,
+      last_name,
+      avatar_url,
+      ranking,
+      wins,
+      loses,
+      friends,
+      matches
+    }
+
+     return (otherFormat)
   }
 
   //and another other way
