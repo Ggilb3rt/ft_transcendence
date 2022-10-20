@@ -311,4 +311,12 @@ export class UsersService {
     })
     return ret
   }
+
+  async setSecret(id: number, secret: string) {
+    const user = await this.usersHelper.getUser(id);
+
+    await prisma.users.update({where:{id}, data:{
+      two_factor_secret: secret
+    }})
+  }
 }
