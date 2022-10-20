@@ -22,6 +22,10 @@ users.getUsers()
 
 // Socket Status
 
+// ici j'utilise une var en double que je watch ici pour update une copie dans le store. Je devrai le faire direct dans le store
+//!!!!!!!!!!!! factoriser dès que ca marche avec "inGame"
+// je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
+
 let alreadyConnect = ref<boolean>(false)
 let socket = io("http://localhost:3000", {autoConnect: false});
 const statusList = ref<ISocketStatus[]>([])
@@ -40,10 +44,16 @@ onBeforeUpdate(() => {
       statusList.value.push(res)
       console.log("update connection", statusList.value)
     })
-    socket.on("newStatusDisconnection", (res: any) => {
-      console.log(res)
+    socket.on("newStatusDisconnection", (res: ISocketStatus) => {
+      // console.log(res)
       statusList.value.splice(statusList.value.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
       console.log("update disconnection", statusList.value)
+    })
+    socket.on("newStatusChange", (res: ISocketStatus) => {
+      console.log("onCHangeStatus", res)
+      const changedIndex = statusList.value.findIndex((el) => el.socketId == res.socketId)
+      if (changedIndex != -1)
+        statusList.value[changedIndex].userStatus = res.userStatus
     })
     alreadyConnect.value = true
   }
@@ -75,6 +85,8 @@ function changeCurrentUserStatus(newStatus: status) {
       console.log(el.userId, userStore.user.id)
       if (el.userId === userStore.user.id) {
         el.userStatus = newStatus
+        if (socket.connected)
+          socket.emit("changeStatus", el)
         console.log("watch", el)
         break
       }
@@ -112,7 +124,7 @@ watch(route, (newRoute) => {
 
     <RouterView />
 
-    <Footer v-if="router.currentRoute.value.path != '/login'"></Footer>
+    <!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
   </main>
 </template>
 
