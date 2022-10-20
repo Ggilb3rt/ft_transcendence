@@ -6,7 +6,7 @@ import type { io, Socket } from "socket.io-client"
 
 export interface IUserStoreState {
     userList: IOtherUserRestrict[]
-    socketStatus?: any[]
+    socketStatus: ISocketStatus[]
     user: IOtherUser | null
     loading: boolean
     error: any | null
@@ -148,9 +148,16 @@ export const useUsersStore = defineStore({
 
     },
     actions: {
-        setSocket(socket: any[]) {    // change the name
+        setSocket(socket: ISocketStatus[]) {    // change the name
             this.socketStatus = socket
             console.log("socket in store", this.socketStatus)
+        },
+        socketIsAvailable(userId: number): boolean {
+            const findIndex = this.socketStatus.findIndex((el) => el.userId == userId)
+            if (findIndex != -1)
+                if (this.socketStatus[findIndex].userStatus == "available")
+                    return true
+            return false
         },
         // getUserStatus(id: number): status {
         //     let ret: ISocketStatus | undefined = undefined;

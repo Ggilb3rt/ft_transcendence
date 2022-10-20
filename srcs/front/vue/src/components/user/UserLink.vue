@@ -42,8 +42,8 @@ function filterStatus(id: number): status {
         // console.log("filter status ", ret)
         // if (ret.length > 0)
         //     return ret
-        return "disconnected"
     }
+    return "disconnected"
 }
 
 // watchEffect( () => {

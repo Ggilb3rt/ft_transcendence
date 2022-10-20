@@ -36,7 +36,7 @@ async function challenge() {
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnFriend</button>
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnBan</button>
-            <button @click="challenge()" v-if="!userStore.isBan(usersStore.user.id)">Challenge</button>
+            <button @click="challenge()" v-if="!userStore.isBan(usersStore.user.id) && usersStore.socketIsAvailable(usersStore.user.id)">Challenge</button>
         </div>
     </div>
 </template>
