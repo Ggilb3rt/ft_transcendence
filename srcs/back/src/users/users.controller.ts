@@ -1,15 +1,16 @@
-import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './createUserDto';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { Express } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream } from 'fs';
+import { AuthService } from 'src/auth/auth.service';
 
 
 @Controller('users')
 export class UsersController {
-    constructor(private usersService: UsersService) {}
+    constructor(private usersService: UsersService, private authService: AuthService) {}
 
     @Post()
     create(@Body('userBDD') user: CreateUserDto) {
@@ -56,9 +57,24 @@ export class UsersController {
     }
 
     @Post(':id/2fa')
-    switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status) {
+    switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status, @Body('code') code) {
+        const isCodeValid = this.authService.isCodeValid(code, id)
+        if (!isCodeValid) {
+            throw new UnauthorizedException('Wrong authentication code');
+        }
         return (this.usersService.switch2fa(id, status))
     }
+
+    @Post(':id/generate')
+    // @UseGuards(JwtAuthGuard)
+    async register(@Res() response, @Param('id', ParseIntPipe) id) {
+        console.log("jesuisla\n")
+      const { otpauthUrl } = await this.authService.generate2faSecret(id);
+   
+      return this.authService.pipeQrCodeStream(response, otpauthUrl);
+    }
+
+
 
     @Post(':id/friends')
     // @UseGuards(JwtAuthGuard)
