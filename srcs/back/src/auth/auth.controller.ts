@@ -4,11 +4,14 @@ import { Request, Response } from 'express';
 import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
 import { AuthService } from './auth.service';
 import { TwoFactorGuard } from './two-factor.guard';
+import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
+import { ExtractJwt } from 'passport-jwt';
+import { UsersService } from 'src/users/users.service';
 
 
 @Controller('auth')
 export class AuthController {
-    constructor (private authService: AuthService, private jwtAuthService: JwtAuthService) {
+    constructor (private authService: AuthService, private jwtAuthService: JwtAuthService, private usersService: UsersService) {
     }
 
     @Post(':id/2fa')
@@ -44,14 +47,18 @@ export class AuthController {
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
     console.log("\n\naccess token == ", accessToken, "\n\n")
     console.log("\n\nvalidate == ", this.jwtAuthService.validate(accessToken), "\n\n")
-    res.cookie('jwt', accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-    });
+    res.cookie('jwt', accessToken);
     if (two_factor_auth == false) {
-      res.redirect('http://localhost:5173')
-      return req.user;
+      return res.status(200).redirect('http://localhost:5173')
     }
-    res.send("Need 2fa")
+    return res.status(404).redirect('http://localhost:5173')
+  }
+
+  @Get('authenticate')
+  @UseGuards(JwtAuthGuard)
+  async verif() {
+    const token = ExtractJwt.fromAuthHeaderAsBearerToken()
+    const {id} = await this.jwtAuthService.validate(token).validate;
+    return (this.usersService.getUserById(id));
   }
 }

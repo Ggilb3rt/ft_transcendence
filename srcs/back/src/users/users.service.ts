@@ -227,7 +227,7 @@ export class UsersService {
   //do i need to explain?
   async changeNickname(id: number, nickname: string) {
 
-    this.usersHelper.testNickname(nickname);
+    await this.usersHelper.testNickname(nickname);
     await this.usersHelper.getUser(id);
 
     return await prisma.users.update({
@@ -276,7 +276,7 @@ export class UsersService {
 
   //add a user in DB
   async postOneUser(user: CreateUserDto) {
-    this.usersHelper.testNickname(user.nickname);
+    await this.usersHelper.testNickname(user.nickname);
     const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
     if (existsAlready) {
       throw new HttpException("42 account already binded to a user", HttpStatus.CONFLICT)

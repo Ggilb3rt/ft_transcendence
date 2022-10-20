@@ -91,7 +91,7 @@ model users {
   last_name                                  String
   nickname                                   String
   nick_fourtytwo                             String  @default("marvin@42")           
-  avatar_url                                 String  @default("/app/resources/default.jpg")       
+  avatar_url                                 String?  @default("/app/resources/default.jpg")       
   ranking                                    Int? @default(0)
   wins                                       Int? @default(0)
   loses                                      Int? @default(0)
