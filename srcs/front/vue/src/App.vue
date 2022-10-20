@@ -16,8 +16,55 @@ const userStore = useUserStore()
 const users = useUsersStore()
 const route = useRoute()
 
-users.getUsers()
 
+
+function getCookie(cname: string) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+
+// const lecookie = getCookie("jwt")
+// console.log(lecookie)
+// if (lecookie != "")
+//   userStore.connected = true
+
+
+async function testConnection() {
+  try {
+    await fetch(`http://localhost:3000/auth/authenticate`)
+    .then((response) => {
+      if (response.status >= 200 && response.status < 300) {
+        return response.json()
+      }
+      throw new Error(response.statusText)
+    })
+    .then((data) => {
+      if (data) {
+        userStore.user = data
+        userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
+        userStore.error = null
+        userStore.connected = true
+      }
+    })
+  } catch (error: any) {
+    userStore.error = error
+  }
+}
+
+
+testConnection()
 
 
 // Socket Status

@@ -17,6 +17,10 @@ async function selectUser(e: Event) {
     router.push("/")
 }
 
+async function connection42() {
+
+}
+
 </script>
 
 <template>
@@ -28,5 +32,10 @@ async function selectUser(e: Event) {
             <input type="number" v-model="selectedUser">
             <input type="submit" @keypress.enter="selectUser($event)" @click="selectUser($event)">
         </form>
+
+
+        <h1>Connection with 42</h1>
+        <a href="http://localhost:3000/auth" class="btn">Connection with 42</a>
+        <button @click="connection42()">Connection 42</button>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { ref, onMounted, onUpdated, watch } from "vue"
 import { useUsersStore } from '../stores/users'
 import { useUserStore } from '../stores/user'
 import Modal from './Modal.vue'
@@ -19,12 +19,28 @@ const usersStore = useUsersStore()
 // userFriendly++
 
 const showSearchUserModal = ref(false)
-const searchInput = ref(null)
+const searchInput = ref<HTMLElement | null>(null)
 
 let nicknameSearch = ref("")
 function filteredNames() {
 	return usersStore.userList.filter((user) => user.nickname.toLowerCase().includes(nicknameSearch.value.toLowerCase()) && user.id != userStore.user.id)
 }
+
+
+// Le focus sur l'input marche pas, d'l'a merde
+onUpdated(() => {
+    // console.log("modal search update", searchInput)
+    if (searchInput.value)
+            searchInput.value.focus()
+})
+
+watch(showSearchUserModal, (newVal) => {
+    if (newVal == true) {
+        // console.log("modal search watch", searchInput)
+        if (searchInput.value)
+            searchInput.value.focus()
+    }
+})
 
 </script>
 
@@ -42,8 +58,8 @@ function filteredNames() {
                     <div class="container-search">
                         <input 
                         type="search"
+                        ref="searchInput"
                         id="search-bar"
-                        autofocus
                         placeholder="find a user"
                         autocomplete="off"
                         v-model="nicknameSearch"

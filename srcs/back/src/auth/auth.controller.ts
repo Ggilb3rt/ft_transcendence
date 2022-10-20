@@ -5,11 +5,12 @@ import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { TwoFactorGuard } from './two-factor.guard';
+import { UsersService } from 'src/users/users.service';
 
 
 @Controller('auth')
 export class AuthController {
-    constructor (private authService: AuthService, private jwtAuthService: JwtAuthService) {
+    constructor (private authService: AuthService, private jwtAuthService: JwtAuthService, private usersService: UsersService) {
     }
 
     @Post(':id/2fa')
@@ -47,15 +48,22 @@ export class AuthController {
     console.log("\n\naccess token == ", accessToken, "\n\n")
     console.log("\n\nvalidate == ", this.jwtAuthService.validate(accessToken), "\n\n")
     res.cookie('jwt', accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
+      // httpOnly: true,
+      // sameSite: 'lax',
     });
     if (two_factor_auth == false) {
-      console.log('\nami here plsss\n');
+      console.log('\nami here plsss\n', req.user);
       res.redirect('http://localhost:5173')
       return req.user;
     }
     console.log('\nOR\n');
     res.send("Need 2fa")
+  }
+
+  @Get('authenticate')
+  @UseGuards(JwtAuthGuard)
+  async verif(token: string) {
+    const {id} = await this.jwtAuthService.validate(token).validate;
+    return (this.usersService.getUserById(id));
   }
 }
