@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { PrismaClient } from '@prisma/client'
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode'
-
-const prisma = new PrismaClient();
 
 @Injectable()
 export class AuthService {

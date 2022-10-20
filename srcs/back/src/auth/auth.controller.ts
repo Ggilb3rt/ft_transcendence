@@ -3,7 +3,6 @@ import { FourtyTwoGuard } from './auth.guard';
 import { Request, Response } from 'express';
 import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { TwoFactorGuard } from './two-factor.guard';
 
 
@@ -16,7 +15,6 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body() body, @Res() res: Response) {
-      console.log("mon token a marché")
       const {id, code, username} = body;
       const isCodeValid = this.authService.isCodeValid(code, id)
       if (!isCodeValid) {
@@ -51,11 +49,9 @@ export class AuthController {
       sameSite: 'lax',
     });
     if (two_factor_auth == false) {
-      console.log('\nami here plsss\n');
       res.redirect('http://localhost:5173')
       return req.user;
     }
-    console.log('\nOR\n');
     res.send("Need 2fa")
   }
 }
