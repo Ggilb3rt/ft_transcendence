@@ -51,8 +51,8 @@ export class UsersController {
 
     @Post(':id/pending')
     // @UseGuards(JwtAuthGuard)
-    acceptPending(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
-       return (this.usersService.acceptFriend(id, friend))
+    acceptPending(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend, @Body('valid', ParseBoolPipe) valid) {
+       return (this.usersService.acceptFriend(id, friend, valid))
     }
 
     @Post(':id/2fa')

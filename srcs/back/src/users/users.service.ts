@@ -98,7 +98,8 @@ export class UsersService {
       friends: number[],
       bannedBy: number[],
       bans: number[],
-      matches: match[]
+      matches: match[],
+      invites: number[]
     }
 
     const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, two_factor_secret} = user
@@ -107,6 +108,7 @@ export class UsersService {
     const bannedBy = await this.getBannedMe(id);
     const bans = await this.getBannedUsers(id);
     const matches = await this.getMatches(id);
+    const invites = await this.getPending(id);
 
     userFormat = {
       id,
@@ -123,7 +125,8 @@ export class UsersService {
       friends,
       bannedBy,
       bans,
-      matches
+      matches,
+      invites
     }
 
     return (userFormat);
@@ -156,7 +159,8 @@ export class UsersService {
       throw new HttpException("Already friends", HttpStatus.BAD_REQUEST)
     } 
     else if (already_friend && already_friend.friend_id == id) {
-      this.acceptFriend(id, friend)
+      this.acceptFriend(id, friend, true)
+      return
     } 
     else if (already_friend && already_friend.user_id == id) {
       throw new HttpException("You already sent invite", HttpStatus.CONFLICT)
@@ -187,9 +191,13 @@ export class UsersService {
   }
 
   //accept a friend invitation
-  async acceptFriend(id: number, friend: number) {
+  async acceptFriend(id: number, friend: number, valid: boolean) {
     this.usersHelper.checkSame(id, friend);
     const friendship = await this.usersHelper.getFriendship(id, friend)
+    if (!valid) {
+      await this.usersHelper.unFriend(friendship)
+      return
+    }
     if (friendship && friendship.status == false && friendship.friend_id == id) {
       return await prisma.friends.update({
         where: {

@@ -112,8 +112,6 @@ export const useUserStore = defineStore({
                 // if (!this.user.invites && !this.error)
                 //     this.user.invites = [4, 1]
                 if (!this.user.match_history && !this.error) {
-                    //this.user.match_history = matchsHistory
-                    
                     this.user.match_history = new Array()
                     if (this.user.matches) {
                         this.user.matches.forEach(el => {
@@ -128,12 +126,6 @@ export const useUserStore = defineStore({
                         })
                         this.user.matches = null
                     }
-
-                    // this.user.match_history = this.createMatch_history(this.user.match_match_player_left_idTousers, this.user.match_match_player_right_idTousers)
-                    // this.user.match_match_player_left_idTousers = null
-                    // this.user.match_match_player_right_idTousers = null
-                    // need to sort the match history array by date
-
                 }
                 this.loading = false
             }
@@ -161,6 +153,24 @@ export const useUserStore = defineStore({
                 return this.user.invites.includes(id)
             return false
         },
+        async refuseInvite(id: number) {
+            const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+                try {
+                    await api.post({
+                        friend: id,
+                        valid: false
+                    })
+                    .then((data) => {
+                        console.log('data refuse friend invite', data)
+                    })
+                } catch (error: any) {
+                    console.log('refuse friend invite err ', error.message)
+                    this.error = error
+                    return
+                }
+                if (this.isInvite(id))
+                    this.user.invites = this.user.invites.filter(item => item != id)
+        },
         async addFriend(id: number) {
             if (id && !(this.isFriends(id))) {
                 if (this.isBan(id))
@@ -172,7 +182,8 @@ export const useUserStore = defineStore({
                 const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
                 try {
                     await api.post({
-                        friend: id
+                        friend: id,
+                        valid: true
                     })
                     .then((data) => {
                         console.log('data add friend', data)
@@ -219,37 +230,38 @@ export const useUserStore = defineStore({
                     const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove')
                     try {
                         await api.post({
-                            friend: id
+                            friend: String(id)
                         })
                         .then((data) => {
                             console.log('remove friend ', data)
+                            this.user.friends.splice(index, 1)
                         })
                     } catch (error: any) {
                         console.log('remove friend err ', error)
                         this.error = error
                         return
                     }
-                    this.user.friends.splice(index, 1)
                 }
             }
             if (id && this.isBan(id)) {
-                const index = this.user.bans.indexOf(id, 0)
+                const indexBan = this.user.bans.indexOf(id, 0)
+                // const indexOtherFriend = 
                 if(confirm(`Remove ${id} from your bans ?`)) {
                     // send info to back and wait for res
                     const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove')
                     try {
                         await api.post({
-                            banned: id
+                            ban: String(id)
                         })
                         .then((data) => {
                             console.log('remove ban', data)
+                            this.user.bans.splice(indexBan, 1)
                         })
                     } catch (error: any) {
                         console.log('remove ban err ', error)
                         this.error = error
                         return
                     }
-                    this.user.bans.splice(index, 1)
                 }
             }
         }

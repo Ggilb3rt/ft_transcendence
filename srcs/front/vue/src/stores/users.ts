@@ -235,41 +235,32 @@ export const useUsersStore = defineStore({
                     })
                     .then((data) => {
                         this.user = data
-                        this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
+                        if (this.user)
+                            this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
                         this.error = null
                     })
             } catch (error: any) {
                 this.error = error
                 return
             } finally {
-                if (!this.user.match_history && !this.error) {
-                    // this.user.match_history = matchsHistory
-                    this.user.match_history = new Array()
-                    if (this.user.match_match_player_left_idTousers) {
-                        this.user.match_match_player_left_idTousers.forEach(el => {
-                            const match : IMatchHistory = {
-                                opponent: el.player_right_id,
-                                myScore: el.score_left,
-                                opponentScore: el.score_right,
-                                win: (el.score_left > el.score_right),
-                                date: new Date()
-                            }
-                            this.user.match_history.push(match)
-                        })
-                        this.user.match_match_player_left_idTousers = null
-                    }
-                    if (this.user.match_match_player_right_idTousers) {
-                        this.user.match_match_player_right_idTousers.forEach(el => {
-                            const match : IMatchHistory = {
-                                opponent: el.player_left_id,
-                                myScore: el.score_right,
-                                opponentScore: el.score_left,
-                                win: (el.score_right > el.score_left),
-                                date: new Date()
-                            }
-                            this.user.match_history.push(match)
-                        })
-                        this.user.match_match_player_right_idTousers = null
+                if (this.user) {
+                    if (!this.user.match_history && !this.error) {
+                        //this.user.match_history = matchsHistory
+                        
+                        this.user.match_history = new Array()
+                        if (this.user.matches) {
+                            this.user.matches.forEach(el => {
+                                const match : IMatchHistory = {
+                                    opponent: el.player_right_id,
+                                    myScore: el.score_left,
+                                    opponentScore: el.score_right,
+                                    win: (el.score_left > el.score_right),
+                                    date: new Date()
+                                }
+                                this.user.match_history.push(match)
+                            })
+                            this.user.matches = null
+                        }
                     }
                 }
                 this.loading = false
