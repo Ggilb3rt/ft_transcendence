@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UserHero from "@/components/UserHero.vue";
+import UserHero from "@/components/user/UserHero.vue";
 import router from "@/router";
 import { ref } from "vue";
 import { useUserStore } from '../stores/user';

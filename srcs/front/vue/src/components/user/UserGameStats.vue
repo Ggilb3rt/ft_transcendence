@@ -6,7 +6,7 @@ import type { IUser, IOtherUser} from '@/types'
 
 const props = defineProps<{
 	user: IUser | IOtherUser,
-	userLevel: string,
+  userRank: string,
   userWinRate: string
 }>()
 
@@ -21,7 +21,7 @@ const props = defineProps<{
     <div class="heroGameStat">
       <div>
         <h3>Level</h3>
-        <p class="level statVal">{{ props.userLevel }}</p>
+        <p class="level statVal">{{ props.userRank }}</p>
       </div>
       <div>
         <h3>Win rate</h3>

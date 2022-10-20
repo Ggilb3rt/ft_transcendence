@@ -1,10 +1,13 @@
 import { defineStore } from "pinia"
-import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory } from '../../types'
+import type { Ref } from "vue"
+import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, status, ISocketStatus } from '../../types'
+import type { io, Socket } from "socket.io-client"
 // import { mande } from 'mande'
 
 export interface IUserStoreState {
     userList: IOtherUserRestrict[]
-    user: IOtherUser
+    socketStatus: ISocketStatus[]
+    user: IOtherUser | null
     loading: boolean
     error: any | null
 }
@@ -103,8 +106,9 @@ const marcRestrict: IOtherUserRestrict = {
 export const useUsersStore = defineStore({
     id: "users",
     state: (): IUserStoreState => ({
-        userList: [rogerRestrict, homerRestrict, marcRestrict],
-        user: homer,
+        userList: [],
+        socketStatus: [],
+        user: null,
         loading: false,
         error: null
     }),
@@ -113,56 +117,89 @@ export const useUsersStore = defineStore({
         //     if (state.user)
         //         return `@${state.user.nickname}`
         // },
+        getUserRank: (state): string => {
+            if (state.user) {
+                switch (state.user.ranking) {
+                    case 0:
+                        return ("Pipou")
+                        break
+                    case 1:
+                        return ("Adept")
+                        break
+                    case 2:
+                        return ("Pongger")
+                        break
+                    case 3:
+                        return ("Your body is ready")
+                        break
+                    case 4:
+                        return ("Master")
+                        break
+                    case 5:
+                        return ("God")
+                        break
+                    default:
+                        return ("Prrrrt")
+                        break
+                }
+            }
+            return ("Prrrrt")
+        },
 
     },
     actions: {
+        setSocket(socket: ISocketStatus[]) {    // change the name
+            this.socketStatus = socket
+            console.log("socket in store", this.socketStatus)
+        },
+        socketIsAvailable(userId: number): boolean {
+            const findIndex = this.socketStatus.findIndex((el) => el.userId == userId)
+            if (findIndex != -1)
+                if (this.socketStatus[findIndex].userStatus == "available")
+                    return true
+            return false
+        },
+        // getUserStatus(id: number): status {
+        //     let ret: ISocketStatus | undefined = undefined;
+            
+        //     console.log("start socketStatus", this.socketStatus)
+        //     if (this.socketStatus) {
+        //         this.socketStatus.forEach((el: any) => {
+        //             console.log(`mon tableau de fou \n\t${el.userId[0]}\n\t${el.userStatus}`)
+        //         })
+        //         ret = this.socketStatus.includes((el: any) => {
+        //             el.userId[0] == id;
+        //             console.log("ref el", el)
+        //         })
+        //     }
+        //     console.log("return of socketStatus", ret)
+        //     if (ret == undefined)
+        //         return 'disconnected'
+        //     console.log("get userStatus ", ret)
+        //     return ret.userStatus
+        // },
         changUserNick(id: number, newNick: string) {
-            this.userList.forEach((el) => {
-                if (el.id == id)
+            this.userList.some((el) => {
+                if (el.id == id) {
                     el.nickname = newNick
+                    return
+                }
             })
         },
-        getUserNick(user:IUser): string {
-            return `@${user.nickname}`
-        },
-        getUserHref(user:IOtherUserRestrict): string {
-            return '/' + user.id
+        changeUserAvatar(id: number, newAvatar: string) {
+            this.userList.some((el) => {
+                if (el.id == id) {
+                    el.avatar_url = newAvatar
+                    return
+                }
+            })
         },
         getUserWinRate(): string {
             if (this.user)
                 return (this.user.wins / this.user.loses).toPrecision(2)
             return '0'
         },
-        getUserLevel(): string {
-            if (this.user) {
-            switch (this.user.ranking) {
-                case 0:
-                    return ("Pipou")
-                    break
-                case 1:
-                    return ("Adept")
-                    break
-                case 2:
-                    return ("Pongger")
-                    break
-                case 3:
-                    return ("Your body is ready")
-                    break
-                case 4:
-                    return ("Master")
-                    break
-                case 5:
-                    return ("God")
-                    break
-                default:
-                    return ("Prrrrt")
-                    break
-            }
-            }
-            return ("Error")
-        },
         async getUsers() {
-            // this.userList = []
             this.loading = true
             try {
                 await fetch('http://localhost:3000/users/restrict')
@@ -174,6 +211,9 @@ export const useUsersStore = defineStore({
                     })
                     .then((data) => {
                         this.userList = data
+                        this.userList.forEach((el) => {
+                            el.avatar_url = `http://localhost:3000/users/${el.id}/avatar`
+                        })
                         this.error = null
                     })
             } catch (error) {
@@ -195,39 +235,32 @@ export const useUsersStore = defineStore({
                     })
                     .then((data) => {
                         this.user = data
+                        if (this.user)
+                            this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
                         this.error = null
                     })
             } catch (error: any) {
                 this.error = error
+                return
             } finally {
-                if (!this.user.match_history && !this.error) {
-                    // this.user.match_history = matchsHistory
-                    this.user.match_history = new Array()
-                    if (this.user.match_match_player_left_idTousers) {
-                        this.user.match_match_player_left_idTousers.forEach(el => {
-                            const match : IMatchHistory = {
-                                opponent: el.player_right_id,
-                                myScore: el.score_left,
-                                opponentScore: el.score_right,
-                                win: (el.score_left > el.score_right),
-                                date: new Date()
-                            }
-                            this.user.match_history.push(match)
-                        })
-                        this.user.match_match_player_left_idTousers = null
-                    }
-                    if (this.user.match_match_player_right_idTousers) {
-                        this.user.match_match_player_right_idTousers.forEach(el => {
-                            const match : IMatchHistory = {
-                                opponent: el.player_left_id,
-                                myScore: el.score_right,
-                                opponentScore: el.score_left,
-                                win: (el.score_right > el.score_left),
-                                date: new Date()
-                            }
-                            this.user.match_history.push(match)
-                        })
-                        this.user.match_match_player_right_idTousers = null
+                if (this.user) {
+                    if (!this.user.match_history && !this.error) {
+                        //this.user.match_history = matchsHistory
+                        
+                        this.user.match_history = new Array()
+                        if (this.user.matches) {
+                            this.user.matches.forEach(el => {
+                                const match : IMatchHistory = {
+                                    opponent: el.player_right_id,
+                                    myScore: el.score_left,
+                                    opponentScore: el.score_right,
+                                    win: (el.score_left > el.score_right),
+                                    date: new Date()
+                                }
+                                this.user.match_history.push(match)
+                            })
+                            this.user.matches = null
+                        }
                     }
                 }
                 this.loading = false

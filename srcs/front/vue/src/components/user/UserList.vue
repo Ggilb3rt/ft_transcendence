@@ -17,42 +17,6 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 let toggleList = ref(true)
 
-function removeFriend(user: IUser | IOtherUser, friend: number) {
-  // find a way to remove only from one array (with a props sending the type of the list ?)
-  if (userStore.user.friends && userStore.user.ban_users_ban_users_idTousers) {
-    userStore.user.friends.forEach( (id: number, index: number) => {
-      if (id == friend)
-        if (confirm(`Remove ${id} from your friends ?`))
-          userStore.user.friends.splice(index, 1)
-          // send info to back
-    })
-    userStore.user.ban_users_ban_users_idTousers.forEach( (id: number, index: number) => {
-      if (id == friend)
-        if (confirm(`Remove ${id} from your ban_users_ban_users_idTousers ?`))
-          userStore.user.ban_users_ban_users_idTousers.splice(index, 1)
-          // send info to back
-    })
-  }
-  
-  // need changes when get just one user
-  // users.userList.forEach( (el) => {
-  //   if (el.id == user.id ) {
-  //     user.friends.forEach( (id: number, index: number) => {
-  //       if (id == friend)
-  //         if (confirm(`Remove ${id} from your friends ?`))
-  //           user.friends.splice(index, 1)
-  //     })
-  //   }
-	// if (el.id == user.id ) {
-  //     user.ban_users_ban_users_idTousers.forEach( (id: number, index: number) => {
-  //       if (id == friend)
-  //         if (confirm(`Remove ${id} from your ban_users_ban_users_idTousers ?`))
-  //           user.ban_users_ban_users_idTousers.splice(index, 1)
-  //     })
-  //   }
-  // })
-}
-
 function filterUsers() {
   return usersStore.userList.filter((user) => props.list.find(el => el === user.id))
 }

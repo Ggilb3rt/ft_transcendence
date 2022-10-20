@@ -1,53 +1,13 @@
 import { defineStore } from "pinia"
 import type { IMatchHistory, IUser, IMatch } from '../../types'
-// import { mande } from 'mande'
+import { mande } from 'mande'
 
 export interface IUserStoreState {
     user: IUser
     loading: boolean
-    error: Error | null
+    error: Error | any | null
     connected: boolean
 }
-
-// const api = mande('http://localhost:3000/users')
-
-
-// Match history to change with api call
-const matchsHistory = [
-    {
-      opponent: 2,
-      win: true,
-      myScore: 7,
-      opponentScore: 3
-    },
-    {
-      opponent: 1,
-      win: false,
-      myScore: 3,
-      opponentScore: 5
-    },
-    {
-      opponent: 1,
-      win: false,
-      myScore: 1,
-      opponentScore: 7
-    },
-    {
-      opponent: 4,
-      win: true,
-      myScore: 7,
-      opponentScore: 0
-    },
-    {
-      opponent: 2,
-      win: false,
-      myScore: 2,
-      opponentScore: 7
-    }
-  ]
-
-
-
 
 export const useUserStore = defineStore({
     id: "user",
@@ -66,26 +26,8 @@ export const useUserStore = defineStore({
         getWinRate: (state): string => {
             return (state.user.wins / state.user.loses).toPrecision(2)
         },
-    },
-    actions: {
-        // getters and setters
-        getUserNick(): string {
-            return `@${this.user.nickname}`
-        },
-        setUserNick(newTag:string) {
-            if (this.user)
-                this.user.nickname = newTag
-        },
-        getUserAvatar() {
-            if (this.user.avatar_url)
-                return `${this.user.avatar_url}`
-        },
-        setUserAvatar(url:string) {
-            if (this.user)
-                this.user.avatar_url = url
-        },
-        getUserLevel(): string {
-            switch (this.user.ranking) {
+        getUserRank: (state): string => {
+            switch (state.user.ranking) {
                 case 0:
                     return ("Pipou")
                     break
@@ -109,6 +51,41 @@ export const useUserStore = defineStore({
                     break
             }
         },
+    },
+    actions: {
+        // getters and setters
+        getUserNick(): string {
+            return `${this.user.nickname}`
+        },
+        setUserNick(newTag:string) {
+            if (this.user)
+                this.user.nickname = newTag
+        },
+        // getUserLevel(): string {
+        //     switch (this.user.ranking) {
+        //         case 0:
+        //             return ("Pipou")
+        //             break
+        //         case 1:
+        //             return ("Adept")
+        //             break
+        //         case 2:
+        //             return ("Pongger")
+        //             break
+        //         case 3:
+        //             return ("Your body is ready")
+        //             break
+        //         case 4:
+        //             return ("Master")
+        //             break
+        //         case 5:
+        //             return ("God")
+        //             break
+        //         default:
+        //             return ("Prrrrt")
+        //             break
+        //     }
+        // },
         async getUser(id: number) {
             this.loading = true
             try {
@@ -121,8 +98,9 @@ export const useUserStore = defineStore({
                     })
                     .then((data) => {
                         if (data) {
-                            this.user.ban_users_ban_users_idTousers = this.user.ban_users_ban_users_idTousers
+                            // this.user.bans = this.user.bans
                             this.user = data
+                            this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
                             this.error = null
                             this.connected = true
                         }
@@ -131,33 +109,12 @@ export const useUserStore = defineStore({
                 this.error = error
             } finally {
                     // console.log(user)
-                    // this.user = user
-                    // if (!this.user.id)
-                //     this.user.id = 0
-                // if (!this.user.first_name)
-                //     this.user.first_name = 'Stanley'
-                // if (!this.user.nickname)
-                //     this.user.nickname = 'stan'
-                // if (!this.user.avatar_url)
-                //     this.user.avatar_url = "src/assets/avatars/default.jpg"
-                // if (!this.user.wins)
-                //     this.user.wins = 5
-                // if (!this.user.loses)
-                //     this.user.loses = 1
-                // if (!this.user.ranking)
-                //     this.user.ranking = Math.round(this.user.wins / this.user.loses)
-                // if (!this.user.friends)
-                //     this.user.friends = [1, 2, 3, 5]
-                // if (!this.user.ban_users_ban_users_idTousers)
-                //     this.user.ban_users_ban_users_idTousers = [0, 11, 22, 45, 7, 2]
-                if (!this.user.invites && !this.error)
-                    this.user.invites = [4, 1]
+                // if (!this.user.invites && !this.error)
+                //     this.user.invites = [4, 1]
                 if (!this.user.match_history && !this.error) {
-                    //this.user.match_history = matchsHistory
-                    
                     this.user.match_history = new Array()
-                    if (this.user.match_match_player_left_idTousers) {
-                        this.user.match_match_player_left_idTousers.forEach(el => {
+                    if (this.user.matches) {
+                        this.user.matches.forEach(el => {
                             const match : IMatchHistory = {
                                 opponent: el.player_right_id,
                                 myScore: el.score_left,
@@ -167,63 +124,11 @@ export const useUserStore = defineStore({
                             }
                             this.user.match_history.push(match)
                         })
-                        this.user.match_match_player_left_idTousers = null
+                        this.user.matches = null
                     }
-                    if (this.user.match_match_player_right_idTousers) {
-                        this.user.match_match_player_right_idTousers.forEach(el => {
-                            const match : IMatchHistory = {
-                                opponent: el.player_left_id,
-                                myScore: el.score_right,
-                                opponentScore: el.score_left,
-                                win: (el.score_right > el.score_left),
-                                date: new Date()
-                            }
-                            this.user.match_history.push(match)
-                        })
-                        this.user.match_match_player_right_idTousers = null
-                    }
-                    
-                    // this.user.match_history = this.createMatch_history(this.user.match_match_player_left_idTousers, this.user.match_match_player_right_idTousers)
-                    // this.user.match_match_player_left_idTousers = null
-                    // this.user.match_match_player_right_idTousers = null
-                    // need to sort the match history array by date
-
                 }
                 this.loading = false
             }
-        },
-
-        //!!! need to make it async but don't want to return promise...
-        createMatch_history(leftMatchs: IMatch[] | null, rightMatchs: IMatch[] | null): IMatchHistory[] {
-            let matchs: IMatchHistory[] = new Array()
-
-            if (leftMatchs) {
-                leftMatchs.forEach(el => {
-                    const match : IMatchHistory = {
-                        opponent: el.player_right_id,
-                        myScore: el.score_left,
-                        opponentScore: el.score_right,
-                        win: (el.score_left > el.score_right),
-                        date: new Date()
-                    }
-                    this.user.match_history.push(match)
-                })
-                // leftMatchs = null
-            }
-            if (rightMatchs) {
-                rightMatchs.forEach(el => {
-                    const match : IMatchHistory = {
-                        opponent: el.player_left_id,
-                        myScore: el.score_right,
-                        opponentScore: el.score_left,
-                        win: (el.score_right > el.score_left),
-                        date: new Date()
-                    }
-                    this.user.match_history.push(match)
-                })
-                // rightMatchs = null
-            }
-            return matchs
         },
 
         // Manage Friends and Bans
@@ -233,8 +138,13 @@ export const useUserStore = defineStore({
             return false
         },
         isBan(id: number): boolean {
-            if (this.user.ban_users_ban_users_idTousers)
-                return this.user.ban_users_ban_users_idTousers.includes(id)
+            if (this.user.bans)
+                return this.user.bans.includes(id)
+            return false
+        },
+        isBanBy(id: number): boolean {
+            if (this.user.bannedBy)
+                return this.user.bannedBy.includes(id)
             return false
         },
         isInvite(id: number): boolean {
@@ -242,6 +152,24 @@ export const useUserStore = defineStore({
             if (this.user.invites)
                 return this.user.invites.includes(id)
             return false
+        },
+        async refuseInvite(id: number) {
+            const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+                try {
+                    await api.post({
+                        friend: id,
+                        valid: false
+                    })
+                    .then((data) => {
+                        console.log('data refuse friend invite', data)
+                    })
+                } catch (error: any) {
+                    console.log('refuse friend invite err ', error.message)
+                    this.error = error
+                    return
+                }
+                if (this.isInvite(id))
+                    this.user.invites = this.user.invites.filter(item => item != id)
         },
         async addFriend(id: number) {
             if (id && !(this.isFriends(id))) {
@@ -251,6 +179,20 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+                try {
+                    await api.post({
+                        friend: id,
+                        valid: true
+                    })
+                    .then((data) => {
+                        console.log('data add friend', data)
+                    })
+                } catch (error: any) {
+                    console.log('add friend err ', error.message)
+                    this.error = error
+                    return
+                }
                 if (this.isInvite(id))
                     this.user.invites = this.user.invites.filter(item => item != id)
                 this.user.friends.push(id)
@@ -264,7 +206,20 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
-                this.user.ban_users_ban_users_idTousers.push(id)
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/ban')
+                try {
+                    await api.post({
+                        banned: id
+                    })
+                    .then((data) => {
+                        console.log('data ban', data)
+                    })
+                } catch (error: any) {
+                    console.log('ban err ', error)
+                    this.error = error
+                    return
+                }
+                this.user.bans.push(id)
             }
         },
         async removeFriendOrBan(id: number) {
@@ -272,14 +227,41 @@ export const useUserStore = defineStore({
                 const index = this.user.friends.indexOf(id, 0)
                 if(confirm(`Remove ${id} from your friends ?`)) {
                     // send info to back and wait for res
-                    this.user.friends.splice(index, 1)
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove')
+                    try {
+                        await api.post({
+                            friend: String(id)
+                        })
+                        .then((data) => {
+                            console.log('remove friend ', data)
+                            this.user.friends.splice(index, 1)
+                        })
+                    } catch (error: any) {
+                        console.log('remove friend err ', error)
+                        this.error = error
+                        return
+                    }
                 }
             }
             if (id && this.isBan(id)) {
-                const index = this.user.ban_users_ban_users_idTousers.indexOf(id, 0)
+                const indexBan = this.user.bans.indexOf(id, 0)
+                // const indexOtherFriend = 
                 if(confirm(`Remove ${id} from your bans ?`)) {
                     // send info to back and wait for res
-                    this.user.ban_users_ban_users_idTousers.splice(index, 1)
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove')
+                    try {
+                        await api.post({
+                            ban: String(id)
+                        })
+                        .then((data) => {
+                            console.log('remove ban', data)
+                            this.user.bans.splice(indexBan, 1)
+                        })
+                    } catch (error: any) {
+                        console.log('remove ban err ', error)
+                        this.error = error
+                        return
+                    }
                 }
             }
         }

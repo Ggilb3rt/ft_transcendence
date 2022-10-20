@@ -17,6 +17,9 @@ function resInvite(sayYes: boolean, id: number) {
 			// create relation with id
 			// remove id from invite
 	}
+	else {
+		userStore.refuseInvite(id)
+	}
 	userStore.user.invites.forEach((el, index) => {
 		if (el == id)
 			userStore.user.invites.splice(index, 1)

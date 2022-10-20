@@ -97,7 +97,7 @@ cf type status
   background: var(--global-c-red);
 }
 .inGame::after {
-  background: var(--global-c-blue-hover);
+  background: orange; /* vomi */
 }
 
 

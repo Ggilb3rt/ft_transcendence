@@ -14,6 +14,13 @@ type gameList = 'pong' | 'catPong'
 
 const ourGames: gameList = 'pong';
 
+function goToDisconnect() {
+  const userStore = useUserStore()
+
+  if (userStore.connected)
+    return ( {name: "home"} )
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -25,7 +32,8 @@ const router = createRouter({
     {
       path: "/login",
       name: "login",
-      component: Login
+      component: Login,
+      beforeEnter: [goToDisconnect]
     },
     {
       path: "/about",

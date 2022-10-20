@@ -11,11 +11,11 @@ export interface IUser {
     wins: number;
     loses: number;
     friends: number[];
-    ban_users_ban_users_idTousers: number[];
+    bans: number[];
+    bannedBy: number[];
     invites: number[];
     match_history: IMatchHistory[];
-    match_match_player_left_idTousers: IMatch[] | null;
-    match_match_player_right_idTousers: IMatch[] | null;
+    matches: IMatch[] | null;
   }
 
 export interface IOtherUserRestrict {
@@ -35,8 +35,7 @@ export interface IOtherUser {
     loses: number;
     friends: number[];
     match_history: IMatchHistory[];
-    match_match_player_left_idTousers: IMatch[] | null;
-    match_match_player_right_idTousers: IMatch[] | null;
+    matches: IMatch[] | null;
 }
 
 export interface IMatchHistory {
@@ -44,7 +43,7 @@ export interface IMatchHistory {
   win: boolean;
   myScore: number;
   opponentScore: number;
-  date: Date;
+  date: Date | null;
 }
 
 export interface IMatch {
@@ -56,6 +55,8 @@ export interface IMatch {
   date: Date;
 }
 
-// interface userRelation {
-//   id: number
-// }
+export interface ISocketStatus {
+  socketId: string;
+  userId: number;
+  userStatus: status;
+}

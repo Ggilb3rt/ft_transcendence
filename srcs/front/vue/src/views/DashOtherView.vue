@@ -6,6 +6,7 @@ import UserMatchHistory from "@/components/user/UserMatchHistory.vue";
 import UserList from "@/components/user/UserList.vue";
 import UserBasicsOther from "@/components/user/UserBasicsOther.vue";
 import { useUsersStore } from "@/stores/users";
+import Loader from "@/components/navigation/Loader.vue"
 import router from "@/router";
 import { onBeforeRouteUpdate } from "vue-router";
 
@@ -22,14 +23,14 @@ const usersStore = useUsersStore()
 </script>
 
 <template>
-  <div class="vue_wrapper dashboard">
+  <div class="vue_wrapper dashboard" v-if="usersStore.user && !usersStore.loading">
     <h1>Player</h1>
     <div class="heroCard">
       <UserBasicsOther></UserBasicsOther>
 
       <UserGameStats
         :user="usersStore.user"
-        :user-level="usersStore.getUserLevel()"
+        :user-rank="usersStore.getUserRank"
         :user-win-rate="usersStore.getUserWinRate()"
       />
 
@@ -39,6 +40,13 @@ const usersStore = useUsersStore()
 
       <UserList title="Friends" :user="usersStore.user" :list="usersStore.user.friends"></UserList>
     </div>
+  </div>
+  <div v-else-if="usersStore.loading" class="vue_wrapper dashboard">
+    <Loader></Loader>
+  </div>
+  <div v-else class="vue_wrapper dashboard">
+    <h1>Nobody here, <router-link to="/">let's pong !</router-link></h1>
+    <p v-if="usersStore.error">{{ usersStore.error }}</p>
   </div>
 </template>
 

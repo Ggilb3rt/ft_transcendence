@@ -35,7 +35,7 @@ function convertUserList(list:userRelation[]) {
 
 @Injectable()
 export class UsersHelper {
-    formatFriends(friends, id) {
+    formatFriends(friends, id): number[] {
         var arr: number[] = [];
         friends.forEach((friend) => {
           if (friend.friend_id == id) {
@@ -172,12 +172,14 @@ export class UsersHelper {
     }
 
     async getPending(id: number) {
-      return await prisma.friends.findMany({
+      const friends = await prisma.friends.findMany({
         where: {
           friend_id:id,
           status: false
         }
       })
+      console.log("friends == ", friends)
+      return (friends)
     }
 
     async getFriends(id:number) {

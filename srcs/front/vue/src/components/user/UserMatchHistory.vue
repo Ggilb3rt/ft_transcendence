@@ -54,7 +54,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
         </div>
         <div v-else>
             <p>No matchs here
-                <a href="/">Make your first game</a>
+                <router-link to="/">Make your first game</router-link>
             </p>
         </div>
     </div>
