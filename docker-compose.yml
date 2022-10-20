@@ -50,6 +50,7 @@ services:
 
 volumes:
     postgres_persistence:
+    resources:
     
 
 networks:
