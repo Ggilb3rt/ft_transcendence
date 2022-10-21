@@ -17,14 +17,20 @@ let gameInstance = null;
 const containerId = "game-container";
 
 onMounted(() => {
+  console.log("launch Mounted");
   gameInstance = launch(containerId);
 });
 
 onUpdated(() => {
-  //if (props.gameActive) {
-  //gameInstance = launch(containerId);
-  //console.log("launching");
-  //}
+  if (props.gameActive && !gameInstance) {
+    console.log("launch Update");
+    gameState.isGameStarted = false;
+    gameState.activeGame = false;
+    gameState.endGame = false;
+    (gameState.playerOneScore = 0),
+      (gameState.playerTwoScore = 0),
+      (gameInstance = launch(containerId));
+  }
   if (props.quit === true) {
     if (gameInstance) {
       console.log("DESTROY");
@@ -49,7 +55,7 @@ function launch(containerId) {
     height: 640,
     parent: containerId,
     scale: {
-      // mode: Phaser.Scale.RESIZE,
+      //mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
@@ -80,6 +86,10 @@ const gameState = {
   playerOneVictoryText: {},
   playerTwoVictoryText: {},
   paddleSpeed: 0,
+  ballWidth: 0,
+  ballHeight: 0,
+  worldWidth: 0,
+  worldHeight: 0,
   activeGame: false, // Pour quand un joueur marque un point
   endGame: false,
 };
@@ -106,7 +116,6 @@ function create() {
 }
 
 function update() {
-  //if (props.startGame) {
   if (gameState.endGame) {
     gameState.playerOne.body.setVelocityY(0);
     gameState.playerTwo.body.setVelocityY(0);
@@ -122,18 +131,20 @@ function update() {
     !gameState.endGame &&
     props.playerNumber === 1
   ) {
-    //initGame(this);
-    //console.log("ready to init");
+    console.log("ready to init");
+    gameState.isGameStarted = true;
     props.socket.emit("initGame", { gameCode: props.gameCode });
   }
 
   checkPoints();
   moveBall();
   movePlayers();
-  //}
 }
 
 function createGameObjects(game) {
+  gameState.worldWidth = game.physics.world.bounds.width;
+  gameState.worldHeight = game.physics.world.bounds.height;
+
   // Create and add BALL
   gameState.ball = game.physics.add.sprite(
     game.physics.world.bounds.width / 2,
@@ -142,6 +153,8 @@ function createGameObjects(game) {
   );
   gameState.ball.setCollideWorldBounds(true);
   gameState.ball.setBounce(1, 1);
+  gameState.ballWidth = gameState.ball.body.width;
+  gameState.ballHeight = gameState.ball.body.height;
 
   // Create and add PLAYER 1
   gameState.playerOne = game.physics.add.sprite(
@@ -260,6 +273,7 @@ function handleQuit(game) {
 
 function handleInitGame() {
   props.socket.on("initGame", ({ state }) => {
+    console.log(state);
     gameState.paddleSpeed = state.players[0].speed;
     if (props.playerNumber === 1) {
       launchBall();
@@ -280,7 +294,6 @@ function handleLaunchBall() {
       gameState.ball.setVelocityX(state.ball.initialVelocity.x);
       gameState.ball.setVelocityY(state.ball.initialVelocity.y);
     }
-    gameState.isGameStarted = true;
     gameState.activeGame = true;
   });
 }
@@ -294,14 +307,14 @@ function handleAddPoint(game) {
       ++gameState.playerTwoScore;
       gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
     }
-    //if (props.playerNumber === 1) {
-    gameState.ball.x = game.physics.world.bounds.width / 2;
-    gameState.ball.y = game.physics.world.bounds.height / 2;
-    gameState.playerOne.y = game.physics.world.bounds.height / 2;
-    gameState.playerTwo.y = game.physics.world.bounds.height / 2;
-    //if (props.playerNumber === 1) {
+    //f (props.playerNumber === 1) {
+    gameState.ball.x = gameState.worldWidth / 2;
+    gameState.ball.y = gameState.worldHeight / 2;
+    gameState.playerOne.y = gameState.worldHeight / 2;
+    gameState.playerTwo.y = gameState.worldHeight / 2;
+    //}//if (props.playerNumber === 1) {
     launchBall(game);
-    //}
+    // }
     //}
   });
 }
@@ -367,8 +380,10 @@ function handleMoveBall() {
   props.socket.on("moveBall", ({ x, y }) => {
     const b = gameState.ball;
     if (b) {
-      b.x = x + b.body.width / 2 + 2;
-      b.y = y + b.body.height / 2 + 2;
+      //b.x = x + b.body.width / 2 + 2;
+      //b.y = y + b.body.height / 2 + 2;
+      b.x = x + gameState.ballWidth / 2 + 2;
+      b.y = y + gameState.ballHeight / 2 + 2;
     }
   });
 }

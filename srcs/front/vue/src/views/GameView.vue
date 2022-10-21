@@ -21,33 +21,22 @@ export default {
     this.socket = io("http://localhost:3000/game");
 
     this.socket.on("init", this.handleInit);
-    this.socket.on("init2", this.handleInit2);
     this.socket.on("gameCode", this.handleGameCode);
     this.socket.on("unknownGame", this.handleUnknownGame);
     this.socket.on("disconnected", this.handleDisconnected);
     //this.socket.on("reMatch", this.handleReMatch);
     this.socket.on("quitGame", this.handleQuitGame);
     this.socket.on("totalPlayers", this.handleTotalPlayers);
-    this.socket.on("newGame2", this.handleNewGame2);
+    this.socket.on("newGame", this.handleNewGame);
   },
   unmounted() {
     this.socket.close();
   },
   methods: {
-    handleInit2(data) {
+    handleInit(data) {
       console.log("handle init2");
       this.playerNumber = data.playerNumber;
       this.gameCode = data.gameCode;
-    },
-    handleInit(number) {
-      console.log("handle init");
-      this.playerNumber = number;
-      if (this.playerNumber === 2) {
-        this.startGame = true;
-      }
-      if (this.playerNumber !== 1 && this.playerNumber !== 2) {
-        this.startGame = true;
-      }
     },
     handleTotalPlayers(number) {
       this.totalPlayers = number;
@@ -63,10 +52,6 @@ export default {
       this.gameActive = false;
       this.reset();
       alert("Unknown game code");
-    },
-    newGame() {
-      this.socket.emit("newGame");
-      this.gameActive = true;
     },
     joinGame() {
       const code = this.gameCode;
@@ -108,15 +93,16 @@ export default {
       msg = JSON.parse(msg);
       console.log(msg);
     },
-    newGame2() {
-        this.socket.emit("newGame2");
+    newGame() {
+        this.quit = false;
+        this.socket.emit("newGame");
         this.gameActive = true;
     },
-    handleNewGame2(data) {
-        console.log(data);
+    handleNewGame() {
+        //console.log(data);
         console.log("START GAME");
         this.startGame = true;
-    }
+    },
   },
 };
 </script>
@@ -125,7 +111,7 @@ export default {
   <div v-show="!gameActive">
     <h1>Multiplayer Pong</h1>
     <!-- <button type="submit" @click.prevent="newGame">Create New Game</button> -->
-    <button type="submit" @click.prevent="newGame2">Play</button>
+    <button type="submit" @click.prevent="newGame">Play</button>
     <div>OR</div>
     <div class="form-group">
       <input v-model="gameCode" type="text" placeholder="Enter Game Code" />
