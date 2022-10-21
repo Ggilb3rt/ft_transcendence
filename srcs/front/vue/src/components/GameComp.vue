@@ -54,15 +54,14 @@ onUnmounted(() => {
 function launch(containerId) {
   return new Phaser.Game({
     type: Phaser.AUTO,
-    //width: 1600,
-    //height: 1280,
-    width: 800,
-    height: 640,
-    parent: containerId,
-    //backgroundColor: "#2dab2d",
+	width: 800,
+	height: 640,
+	parent: containerId,
     scale: {
-      //mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
+		//width: '100%',
+		//height: '100%',
+    	//mode: Phaser.Scale.FIT,
+       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
       default: "arcade",
@@ -495,11 +494,12 @@ function handleGameResult() {
   <p>Spectator : {{ props.spectator }}</p>
   <!-- <Suspense> -->
   <!-- <div v-if="props.startGame" :id="containerId" /> -->
-  <!-- <div v-show="props.gameActive"> -->
-  <div :id="containerId" />
+  <div v-show="props.gameActive">
+  	<div :id="containerId"></div>
   <!-- </div> -->
   <!-- <template #fallback>  -->
-  <!-- <div class="placeholder">Downloading...</div> -->
+  	<!-- <div class="placeholder" v-else>Downloading...</div> -->
+  </div>
   <!-- </template> -->
   <!-- </Suspense> -->
 </template>

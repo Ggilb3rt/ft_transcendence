@@ -71,7 +71,6 @@ export class GameService {
             level: 0,
             spectator: false,
         }
-
     }
 
     async handleNewGame(client: Socket, level: any, server: Server) {

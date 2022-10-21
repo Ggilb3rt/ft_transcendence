@@ -77,11 +77,9 @@ export default {
       this.quit = true;
       this.playerNumber = null;
       this.gameCode = "";
+	  console.log("innertext");
+	  console.log(this.$refs.gameCodeDisplay.innerText);
       this.$refs.gameCodeDisplay.innerText = "";
-      //this.reset();
-      this.socket.close();
-      //alert("You have been disconnected !");
-      this.socket.delete("http://localhost:3000/game"); // ?????
     },
     quitGame() {
       this.socket.emit("quitGame", {
@@ -97,6 +95,8 @@ export default {
       this.quit = true;
       this.playerNumber = null;
       this.gameCode = "";
+	  console.log("innertext");
+	  console.log(this.$refs.gameCodeDisplay.innerText);
       this.$refs.gameCodeDisplay.innerText = "";
       console.log(msg);
     },
