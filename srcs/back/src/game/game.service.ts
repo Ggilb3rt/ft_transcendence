@@ -201,7 +201,6 @@ export class GameService {
 
         }
         server.to(gameCode).emit("initGame", { state });
-
     }
 
     handleLaunchBall(client: Socket, gameCode: any, server: Server) {
@@ -246,6 +245,7 @@ export class GameService {
         let level = this.players[client.id].level;
 
         if (this.players[client.id].spectator = true) {
+            console.log("spectator disconnected");
             client.emit('disconnected');
             client.leave(roomId);
             Reflect.deleteProperty(this.players, client.id);
@@ -352,7 +352,7 @@ export class GameService {
     }
 
     handleMovePlayer(client: Socket, data: any, server: Server) {
-        client.to(data.gameCode).emit("movePlayer", { playerNumber: data.playerNumber, x: data.x, y: data.y });
+        client.to(data.gameCode).emit("movePlayer", { playerNumber: data.playerNumber, y: data.y });
     }
 
     handleAddPoint(client: Socket, gameCode: any, player: number, server: Server) {

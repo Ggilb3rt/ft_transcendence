@@ -85,6 +85,7 @@ const gameState = {
   playerTwo: {},
   isGameStarted: false, // Pour premier launch
   cursors: {},
+  drag: false,
   playerOneScoreText: {},
   playerTwoScoreText: {},
   playerOneScore: 0,
@@ -177,6 +178,7 @@ function createGameObjects(game) {
   );
   gameState.playerOne.setCollideWorldBounds(true);
   gameState.playerOne.setImmovable(true);
+  gameState.playerOne.setInteractive();
 
   // Create and add PLAYER 2
   gameState.playerTwo = game.physics.add.sprite(
@@ -186,6 +188,7 @@ function createGameObjects(game) {
   );
   gameState.playerTwo.setCollideWorldBounds(true);
   gameState.playerTwo.setImmovable(true);
+  gameState.playerTwo.setInteractive();
 
   // Init collision between ball and paddles
   game.physics.add.collider(gameState.ball, gameState.playerOne);
@@ -193,6 +196,56 @@ function createGameObjects(game) {
 
   // Init KEY EVENT listeners
   gameState.cursors = game.input.keyboard.createCursorKeys();
+
+  // Init CLICK EVENT listeners
+  gameState.playerOne.on("pointerdown", startDrag1, game);
+  gameState.playerTwo.on("pointerdown", startDrag2, game);
+}
+
+function startDrag1(pointer, target) {
+  this.input.off("pointerdown", startDrag1, this);
+  this.input.on("pointermove", doDrag1, this);
+  this.input.on("pointerup", stopDrag1, this);
+}
+
+function startDrag2(pointer, target) {
+  this.input.off("pointerdown", startDrag2, this);
+  this.input.on("pointermove", doDrag2, this);
+  this.input.on("pointerup", stopDrag2, this);
+}
+
+function doDrag1(pointer) {
+    if (props.playerNumber === 1 && gameState.activeGame) {
+        gameState.playerOne.y = pointer.y;
+    props.socket.emit("movePlayer", {
+      gameCode: props.gameCode,
+      playerNumber: props.playerNumber,
+      y: gameState.playerOne.y,
+    });
+  }
+}
+
+function doDrag2(pointer) {
+    if (props.playerNumber === 2 && gameState.activeGame) {
+       gameState.playerTwo.y = pointer.y;
+    props.socket.emit("movePlayer", {
+      gameCode: props.gameCode,
+      playerNumber: props.playerNumber,
+      y: gameState.playerTwo.y,
+    });
+  }
+}
+
+function stopDrag1(pointer) {
+  this.input.on("pointerdown", startDrag1, this);
+  this.input.off("pointermove", doDrag1, this);
+  this.input.off("pointerup", stopDrag1, this);
+}
+
+function stopDrag2(pointer) {
+  this.input.on("pointerdown", startDrag2, this);
+  this.input.off("pointermove", doDrag2, this);
+  this.input.off("pointerup", stopDrag2, this);
 }
 
 function playerMoved(cursors, player) {
@@ -237,7 +290,6 @@ function movePlayers() {
       props.socket.emit("movePlayer", {
         gameCode: props.gameCode,
         playerNumber: props.playerNumber,
-        x: gameState.playerOne.x,
         y: gameState.playerOne.y,
       });
     }
@@ -248,7 +300,6 @@ function movePlayers() {
       props.socket.emit("movePlayer", {
         gameCode: props.gameCode,
         playerNumber: props.playerNumber,
-        x: gameState.playerTwo.x,
         y: gameState.playerTwo.y,
       });
     }
@@ -391,13 +442,11 @@ function handleEndGame() {
 }
 
 function handleMovePlayer() {
-  props.socket.on("movePlayer", ({ playerNumber, x, y }) => {
+  props.socket.on("movePlayer", ({ playerNumber, y }) => {
     console.log("coucou");
     if (playerNumber === 2) {
-      gameState.playerTwo.x = x;
       gameState.playerTwo.y = y;
     } else if (playerNumber === 1) {
-      gameState.playerOne.x = x;
       gameState.playerOne.y = y;
     }
   });
