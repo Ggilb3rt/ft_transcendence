@@ -6,13 +6,13 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, DEFAULT_BALL_SPEED, DEFAULT_PADDLE_SPEED } from './constants';
 import { Ball, Player } from "./classes";
 
-
 @Injectable()
 export class GameService {
     private clientRooms = {};
     private state = {};
 
-    private waitingRoomLevelOne = {
+    private waitingRoom1 = {
+        level: 1,
         status: "empty",
         playerOne: {
             id: "",
@@ -27,23 +27,68 @@ export class GameService {
         roomId: "",
     };
 
+    private waitingRoom2 = {
+        level: 2,
+        status: "empty",
+        playerOne: {
+            id: "",
+            socket: "",
+            roomId: "",
+        },
+        playerTwo: {
+            id: "",
+            socket: "",
+            roomId: ""
+        },
+        roomId: "",
+    };
+
+    private waitingRoom3 = {
+        level: 3,
+        status: "empty",
+        playerOne: {
+            id: "",
+            socket: "",
+            roomId: "",
+        },
+        playerTwo: {
+            id: "",
+            socket: "",
+            roomId: ""
+        },
+        roomId: "",
+    };
+
+
     private activeGames = {};
-
     private players = {};
-
 
     handleConnection(client: Socket, server: Server) {
         this.players[client.id] = {
             id: client.id,
             socket: client,
             roomId: "",
+            level: 0,
+            spectator: false,
         }
 
     }
 
-    async handleNewGame(client: Socket, server: Server) {
+    async handleNewGame(client: Socket, level: any, server: Server) {
+
         let player = this.players[client.id];
-        let waitingRoom = this.waitingRoomLevelOne;
+        this.players[client.id].level = level;
+        let waitingRoom;
+        if (level === 1) {
+            console.log("level1");
+            waitingRoom = this.waitingRoom1;
+        } else if (level === 2) {
+            console.log("level2");
+            waitingRoom = this.waitingRoom2;
+        } else if (level === 3) {
+            console.log("level3");
+            waitingRoom = this.waitingRoom2;
+        }
 
         // Waiting room is empty
         if (waitingRoom.playerOne.id === "" && waitingRoom.playerTwo.id === "") {
@@ -67,7 +112,8 @@ export class GameService {
                 console.log("room complete");
                 this.activeGames[waitingRoom.roomId] = {
                     playerOne: waitingRoom.playerOne,
-                    playerTwo: waitingRoom.playerTwo
+                    playerTwo: waitingRoom.playerTwo,
+                    level: waitingRoom.level,
                 }
                 this.initGame(waitingRoom.roomId, server);
 
@@ -101,9 +147,6 @@ export class GameService {
         state.roomName = roomId;
         this.setPlayerState(state.players);
         gameRoom.state = state;
-
-        console.log(this.activeGames[roomId]);
-
         server.to(roomId).emit("newGame");
 
     }
@@ -147,22 +190,21 @@ export class GameService {
     }
 
     handleInitGame(client: Socket, gameCode: any, server: Server) {
-        console.log(this.activeGames[gameCode].playerOne);
         const state = this.activeGames[gameCode].state;
-        //client.emit("initGame", {state});
         server.to(gameCode).emit("initGame", { state });
 
     }
 
     handleLaunchBall(client: Socket, gameCode: any, server: Server) {
-        const state = this.activeGames[gameCode].state;
-        this.setBallState(state.ball);
-        //client.to(gameCode).emit("launchBall", {state});
-        server.to(gameCode).emit("launchBall", { state });
+        if (this.players[client.id].spectator === false) {
+            const state = this.activeGames[gameCode].state;
+            this.setBallState(state.ball);
+            server.to(gameCode).emit("launchBall", { state });
+        }
     }
 
     handleMoveBall(client: Socket, data: any, server: Server) {
-        client.to(data.gameCode).emit("moveBall", { x: data.x,y: data.y });
+        client.to(data.gameCode).emit("moveBall", { x: data.x, y: data.y });
     }
 
     makeid(length: number) {
@@ -176,65 +218,63 @@ export class GameService {
     }
 
     async handleJoinGame(client: Socket, gameCode: string, server: Server) {
-        // On parcours les rooms et on recupere celle dont le nom est gameCode
-        const room = await server.sockets.adapter.rooms.has(gameCode);
-
-        let allUsers;
-        if (room) {
-            allUsers = await server.in(gameCode).fetchSockets();
-        }
-
-        let numClients = 0;
-        if (allUsers) {
-            numClients = Object.keys(allUsers).length;
-        }
-
-        // Personne waiting to play game donc personne a join
-        if (numClients === 0) {
-            client.emit('unknownGame');
+        const room = gameCode;
+        if (!this.activeGames[room]) {
+            client.emit("unknownGame");
             return;
-        } else if (numClients > 1) { // Trop de joueurs
-            //client.emit('tooManyPlayers');
-            client.join(gameCode);
-            client.emit("init", { playerNumber: 3});
-            return;
-        }
-
-        //this.clientRooms[client.id] = gameCode;
-
-        //client.join(gameCode);
-        //this.state[gameCode].players[1].id = client.id;
-        ///client.emit('init', 2);
-        //client.broadcast.emit('totalPlayers', 2);
-        /*else if (numClients === 1) {
-            client.emit('init', 2);
-            this.clientRooms[client.id] = gameCode;
-            this.state[gameCode].players[1].id = client.id;
-            client.broadcast.emit('totalPlayers', 2);
         } else {
-            //this.clientRooms[client.id] = gameCode;
-            client.emit('init', 3);
+            client.emit("init", { playerNumber: 3 });
+            client.join(gameCode);
+            this.players[client.id].roomId = room;
+            this.players[client.id].spectator = true;
         }
-        client.join(gameCode);*/
+
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-        let roomId = this.players[client.id].roomId;
-        let waitingRoom = this.waitingRoomLevelOne;
 
-        if (waitingRoom.playerOne.id === client.id) {
-            waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
-            waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
-            waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
-        } else if (waitingRoom.playerTwo.id === client.id) {
-            waitingRoom.playerTwo.id = "";
-            waitingRoom.playerTwo.socket = "";
-            waitingRoom.playerTwo.roomId = "";
+        let roomId = this.players[client.id].roomId;
+        let level = this.players[client.id].level;
+
+        if (this.players[client.id].spectator = true) {
+            client.emit('disconnected');
+            client.leave(roomId);
+            Reflect.deleteProperty(this.players, client.id);
+            return;
         }
-        
+
+        console.log(level)
+        let waitingRoom;
+        if (level === 1) {
+            console.log("level1");
+            waitingRoom = this.waitingRoom1;
+        } else if (level === 2) {
+            console.log("level2");
+            waitingRoom = this.waitingRoom2;
+        } else if (level === 3) {
+            console.log("level3");
+            waitingRoom = this.waitingRoom2;
+        }
+
+        if (level !== 0) {
+            if (waitingRoom.playerOne.id === client.id) {
+                waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
+                waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
+                waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
+                waitingRoom.playerOne.level = waitingRoom.playerTwo.level;
+            } else if (waitingRoom.playerTwo.id === client.id) {
+                waitingRoom.playerTwo.id = "";
+                waitingRoom.playerTwo.socket = "";
+                waitingRoom.playerTwo.roomId = "";
+                waitingRoom.playerOne.level = 0;
+            }
+        }
+
         let allUsers;
         if (this.activeGames[roomId]) {
             allUsers = await server.in(roomId).fetchSockets();
+            console.log("ALL USERS");
+            console.log(allUsers);
             let sockets = [];
             allUsers.forEach(function (s) {
                 s.emit('disconnected');
@@ -246,51 +286,74 @@ export class GameService {
         Reflect.deleteProperty(this.players, client.id);
     }
 
+    async handleQuitGame(client: Socket, data: any, server: Server) {
 
-    //handleReMatch(client: Socket, gameCode: any, server: Server) {
-    //    server.sockets.in(gameCode).emit("reMatch", { text: "rematch !!" });
-    //}
+        let roomId = this.players[client.id].roomId;
+        let level = this.players[client.id].level;
 
-    async handleQuitGame(client: Socket, gameCode: any, server: Server) {
-        let roomId2 = this.players[client.id].roomId;
-        let waitingRoom = this.waitingRoomLevelOne;
-
-        if (waitingRoom.playerOne.id === client.id) {
-            waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
-            waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
-            waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
-        } else if (waitingRoom.playerTwo.id === client.id) {
-            waitingRoom.playerTwo.id = "";
-            waitingRoom.playerTwo.socket = "";
-            waitingRoom.playerTwo.roomId = "";
+        if (data.playerNumber === 3) {
+            client.leave(roomId);
+            this.players[client.id].roomId = "";
+            this.players[client.id].spectator = false;
+            client.emit('quitGame', JSON.stringify("One spectator has left the game"));
+            return;
         }
-        
+
+        let waitingRoom;
+        if (level === 1) {
+            console.log("level1");
+            waitingRoom = this.waitingRoom1;
+        } else if (level === 2) {
+            console.log("level2");
+            waitingRoom = this.waitingRoom2;
+        } else if (level === 3) {
+            console.log("level3");
+            waitingRoom = this.waitingRoom2;
+        }
+
+        if (level !== 0) {
+            if (waitingRoom.playerOne.id === client.id) {
+                waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
+                waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
+                waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
+                waitingRoom.playerOne.level = waitingRoom.playerTwo.level;
+            } else if (waitingRoom.playerTwo.id === client.id) {
+                waitingRoom.playerTwo.id = "";
+                waitingRoom.playerTwo.socket = "";
+                waitingRoom.playerTwo.roomId = "";
+                waitingRoom.playerOne.level = 0;
+            }
+        }
+
         let allUsers;
-        if (this.activeGames[roomId2]) {
-            allUsers = await server.in(roomId2).fetchSockets();
+        if (this.activeGames[roomId]) {
+            allUsers = await server.in(roomId).fetchSockets();
             let sockets = [];
             allUsers.forEach(function (s) {
                 s.emit('quitGame', JSON.stringify("One player has left the game"));
-                s.leave(roomId2);
+                s.leave(roomId);
                 sockets.push(s.id);
             })
-            Reflect.deleteProperty(this.activeGames, roomId2);
+            Reflect.deleteProperty(this.activeGames, roomId);
         } else {
             client.emit('quitGame', JSON.stringify("Bye bye game..."));
         }
         this.players[client.id].roomId = "";
+        this.players[client.id].level = 0;
     }
 
     handleMovePlayer(client: Socket, data: any, server: Server) {
-        client.to(data.gameCode).emit("movePlayer", {playerNumber: data.playerNumber, x: data.x, y: data.y});
+        client.to(data.gameCode).emit("movePlayer", { playerNumber: data.playerNumber, x: data.x, y: data.y });
     }
 
     handleAddPoint(client: Socket, gameCode: any, player: number, server: Server) {
-        ++this.activeGames[gameCode].state.players[player - 1].match_score;
-        if (this.activeGames[gameCode].state.players[player - 1].match_score === 11) {
-            server.to(gameCode).emit('gameResult', { winner: player });
-        } else {
-            server.to(gameCode).emit('addPoint', { playerNumber: player });
+        if (this.players[client.id].spectator === false) {
+            let score = ++this.activeGames[gameCode].state.players[player - 1].match_score;
+            if (score === 11) {
+                server.to(gameCode).emit('gameResult', { winner: player });
+            } else {
+                server.to(gameCode).emit('addPoint', { playerNumber: player, score });
+            }
         }
     }
 

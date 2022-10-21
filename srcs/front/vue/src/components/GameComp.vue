@@ -11,6 +11,8 @@ const props = defineProps({
   gameActive: Boolean,
   gameCode: String,
   quit: Boolean,
+  level: Number,
+  spectator: Boolean,
 });
 
 let gameInstance = null;
@@ -51,11 +53,14 @@ onUnmounted(() => {
 function launch(containerId) {
   return new Phaser.Game({
     type: Phaser.AUTO,
+    //width: 1600,
+    //height: 1280,
     width: 800,
     height: 640,
     parent: containerId,
+    //backgroundColor: "#2dab2d",
     scale: {
-      //mode: Phaser.Scale.RESIZE,
+      //mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
@@ -275,6 +280,8 @@ function handleInitGame() {
   props.socket.on("initGame", ({ state }) => {
     console.log(state);
     gameState.paddleSpeed = state.players[0].speed;
+    gameState.playerOneScore = state.players[0].match_score;
+    gameState.playerOneScore = state.players[1].match_score;
     if (props.playerNumber === 1) {
       launchBall();
     }
@@ -299,13 +306,17 @@ function handleLaunchBall() {
 }
 
 function handleAddPoint(game) {
-  props.socket.on("addPoint", ({ playerNumber }) => {
+  props.socket.on("addPoint", ({ playerNumber, score }) => {
     if (playerNumber === 1) {
-      ++gameState.playerOneScore;
-      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
+      gameState.playerOneScore = score;
+      gameState.playerOneScoreText.setText(
+        "Player 1: " + gameState.playerOneScore
+      );
     } else if (playerNumber === 2) {
-      ++gameState.playerTwoScore;
-      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
+      gameState.playerTwoScore = score;
+      gameState.playerTwoScoreText.setText(
+        "Player 2: " + gameState.playerTwoScore
+      );
     }
     //f (props.playerNumber === 1) {
     gameState.ball.x = gameState.worldWidth / 2;
@@ -395,12 +406,16 @@ function handleGameResult() {
     gameState.activeGame = false;
     if (winner === 1) {
       ++gameState.playerOneScore;
-      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
+      gameState.playerOneScoreText.setText(
+        "Player 1: " + gameState.playerOneScore
+      );
       gameState.playerOneVictoryText.setVisible(true);
       gameState.activeGame = false;
     } else {
       ++gameState.playerTwoScore;
-      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
+      gameState.playerTwoScoreText.setText(
+        "Player 2: " + gameState.playerTwoScore
+      );
       gameState.playerTwoVictoryText.setVisible(true);
       gameState.activeGame = false;
     }
@@ -412,12 +427,13 @@ function handleGameResult() {
   <p>Player number : {{ props.playerNumber }}</p>
   <p>Start Game : {{ this.startGame }}</p>
   <p>Game Code : {{ this.gameCode }}</p>
+  <p>Level : {{ this.level }}</p>
   <p>Spectator : {{ props.spectator }}</p>
   <!-- <Suspense> -->
   <!-- <div v-if="props.startGame" :id="containerId" /> -->
-  <div v-show="props.gameActive">
-    <div :id="containerId" />
-  </div>
+  <!-- <div v-show="props.gameActive"> -->
+  <div :id="containerId" />
+  <!-- </div> -->
   <!-- <template #fallback>  -->
   <!-- <div class="placeholder">Downloading...</div> -->
   <!-- </template> -->

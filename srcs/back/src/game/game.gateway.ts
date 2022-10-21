@@ -44,14 +44,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
     @SubscribeMessage('newGame')
-    handleNewGame(client: Socket) {
-        this.gameService.handleNewGame(client, this.server);
+    handleNewGame(client: Socket, data: any) {
+        this.gameService.handleNewGame(client, data.level, this.server);
     }
 
-    /*@SubscribeMessage('joinGame')
+    @SubscribeMessage('joinGame')
     handleJoinGame(client: Socket, gameCode: string) {
         this.gameService.handleJoinGame(client, gameCode, this.server);
-    }*/
+    }
 
     @SubscribeMessage('initGame')
     handleInitGame(client: Socket, data: any) {
@@ -73,15 +73,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleMovePlayer(client, data, this.server);
     }
 
-    /*@SubscribeMessage('reMatch')
-    handleReMatch(client: Socket, data: any) {
-        this.gameService.handleReMatch(client, data.gameCode, this.server);
-    }*/
-
     @SubscribeMessage('quitGame')
-    handleQuitGame(client: Socket, gameCode: any) {
-        let code = JSON.parse(gameCode);
-        this.gameService.handleQuitGame(client, code, this.server);
+    handleQuitGame(client: Socket, data: any) {
+        this.gameService.handleQuitGame(client, data, this.server);
     }
 
     @SubscribeMessage('addPoint')
