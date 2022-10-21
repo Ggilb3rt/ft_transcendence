@@ -443,7 +443,6 @@ function handleEndGame() {
 
 function handleMovePlayer() {
   props.socket.on("movePlayer", ({ playerNumber, y }) => {
-    console.log("coucou");
     if (playerNumber === 2) {
       gameState.playerTwo.y = y;
     } else if (playerNumber === 1) {

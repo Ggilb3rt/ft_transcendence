@@ -244,7 +244,7 @@ export class GameService {
         let roomId = this.players[client.id].roomId;
         let level = this.players[client.id].level;
 
-        if (this.players[client.id].spectator = true) {
+        if (this.players[client.id].spectator === true) {
             console.log("spectator disconnected");
             client.emit('disconnected');
             client.leave(roomId);
@@ -282,14 +282,13 @@ export class GameService {
         let allUsers;
         if (this.activeGames[roomId]) {
             allUsers = await server.in(roomId).fetchSockets();
-            console.log("ALL USERS");
-            console.log(allUsers);
             let sockets = [];
             allUsers.forEach(function (s) {
                 s.emit('disconnected');
                 s.leave(roomId);
                 sockets.push(s.id);
             })
+            console.log("CONNECTED " + sockets.length);
         }
         Reflect.deleteProperty(this.activeGames, roomId);
         Reflect.deleteProperty(this.players, client.id);

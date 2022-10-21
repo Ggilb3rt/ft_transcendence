@@ -57,7 +57,9 @@ export default {
     },
     handleUnknownGame() {
       this.gameActive = false;
-      this.reset();
+      //this.reset();
+      this.gameCode = "";
+      this.$refs.gameCodeDisplay.innerText = "";
       alert("Unknown game code");
     },
     joinGame() {
@@ -68,11 +70,18 @@ export default {
     },
     handleDisconnected() {
       console.log("You have been disconnected");
+      this.playerNumber = 0;
+      this.spectator = false;
       this.gameActive = false;
-      this.reset();
-      //this.socket.close();
+      this.startGame = false;
+      this.quit = true;
+      this.playerNumber = null;
+      this.gameCode = "";
+      this.$refs.gameCodeDisplay.innerText = "";
+      //this.reset();
+      this.socket.close();
       //alert("You have been disconnected !");
-      //this.socket.delete("http://localhost:3000"); // ?????
+      this.socket.delete("http://localhost:3000/game"); // ?????
     },
     quitGame() {
       this.socket.emit("quitGame", {
@@ -88,7 +97,7 @@ export default {
       this.quit = true;
       this.playerNumber = null;
       this.gameCode = "";
-      //this.$refs.gameCodeDisplay.innerText = "";
+      this.$refs.gameCodeDisplay.innerText = "";
       console.log(msg);
     },
     newGame(level) {
@@ -115,7 +124,7 @@ export default {
     <button type="submit" @click.prevent="newGame(3)">LEVEL 3</button>
     <div>OR</div>
     <div class="form-group">
-      <input v-model="gameCode" type="text" placeholder="Enter Game Code" />
+      <input ref="gameCodeDisplay" v-model="gameCode" type="text" placeholder="Enter Game Code" />
       <button type="submit" @click.prevent="joinGame">Join Game</button>
     </div>
   </div>
