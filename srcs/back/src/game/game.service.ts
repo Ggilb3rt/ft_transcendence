@@ -190,7 +190,16 @@ export class GameService {
     }
 
     handleInitGame(client: Socket, gameCode: any, server: Server) {
+        console.log(gameCode);
+        
         const state = this.activeGames[gameCode].state;
+        console.log(state);
+        
+        if (this.players[client.id].spectator === true) {
+            console.log("STATE SPECTATOR");
+            console.log(state);
+
+        }
         server.to(gameCode).emit("initGame", { state });
 
     }
@@ -223,7 +232,7 @@ export class GameService {
             client.emit("unknownGame");
             return;
         } else {
-            client.emit("init", { playerNumber: 3 });
+            client.emit("init", { playerNumber: 3, gameCode: room });
             client.join(gameCode);
             this.players[client.id].roomId = room;
             this.players[client.id].spectator = true;

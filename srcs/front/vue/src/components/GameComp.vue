@@ -29,6 +29,7 @@ onUpdated(() => {
     gameState.isGameStarted = false;
     gameState.activeGame = false;
     gameState.endGame = false;
+    gameState.upToDate = false;
     (gameState.playerOneScore = 0),
       (gameState.playerTwoScore = 0),
       (gameInstance = launch(containerId));
@@ -97,6 +98,7 @@ const gameState = {
   worldHeight: 0,
   activeGame: false, // Pour quand un joueur marque un point
   endGame: false,
+  upToDate: false,
 };
 
 function preload() {
@@ -139,6 +141,12 @@ function update() {
     console.log("ready to init");
     gameState.isGameStarted = true;
     props.socket.emit("initGame", { gameCode: props.gameCode });
+  }
+
+  if (props.playerNumber === 3 && gameState.upToDate === false) {
+    console.log("ready to updpate");
+    props.socket.emit("initGame", { gameCode: props.gameCode });
+    gameState.upToDate = true;
   }
 
   checkPoints();
@@ -281,9 +289,17 @@ function handleInitGame() {
     console.log(state);
     gameState.paddleSpeed = state.players[0].speed;
     gameState.playerOneScore = state.players[0].match_score;
-    gameState.playerOneScore = state.players[1].match_score;
+    gameState.playerTwoScore = state.players[1].match_score;
     if (props.playerNumber === 1) {
       launchBall();
+    }
+    if (props.playerNumber === 3) {
+      gameState.playerOneScoreText.setText(
+        "Player 1: " + gameState.playerOneScore
+      );
+      gameState.playerTwoScoreText.setText(
+        "Player 2: " + gameState.playerTwoScore
+      );
     }
   });
 }

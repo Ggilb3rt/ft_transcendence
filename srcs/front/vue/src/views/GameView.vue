@@ -40,6 +40,7 @@ export default {
       this.gameCode = data.gameCode;
       if (this.playerNumber > 2) {
         console.log("hello");
+        this.gameCode = data.gameCode;
         this.spectator = true;
         this.startGame = true;
       }
@@ -61,6 +62,7 @@ export default {
     },
     joinGame() {
       const code = this.gameCode;
+      this.quit = false;
       this.socket.emit("joinGame", code);
       this.gameActive = true;
     },
