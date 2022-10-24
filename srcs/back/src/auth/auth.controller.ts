@@ -1,11 +1,10 @@
-import { Controller, Get, UseGuards, Req, Res, Post, HttpCode, Body, UnauthorizedException, ConsoleLogger} from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, Post, HttpCode, Body, UnauthorizedException } from '@nestjs/common';
 import { FourtyTwoGuard } from './auth.guard';
 import { Request, Response } from 'express';
 import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
 import { AuthService } from './auth.service';
 import { TwoFactorGuard } from './two-factor.guard';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
-import { ExtractJwt } from 'passport-jwt';
 import { UsersService } from 'src/users/users.service';
 
 
@@ -24,14 +23,13 @@ export class AuthController {
         throw new UnauthorizedException('Wrong authentication code');
       }
       const { accessToken } = await this.jwtAuthService.login({id, username}, true)
-      console.log("\n\naccess token == ", accessToken, "\n\n")
-      console.log("\n\nvalidate == ", this.jwtAuthService.validate(accessToken), "\n\n")
+      const exp = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
       res.cookie('jwt', accessToken, {
         httpOnly: true,
         sameSite: 'lax',
+        expires: exp
       });
-      res.redirect('http://localhost:5173')
-      return req.user;
+      res.redirect(process.env.URL_LOGIN_SUCCESS)
     }
 
   @Get()
@@ -45,17 +43,14 @@ export class AuthController {
   async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
 
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
-    console.log("\n\naccess token == ", accessToken, "\n\n")
-    console.log("\n\nredirect validate == ", this.jwtAuthService.validate(accessToken), "\n\n")
     res.cookie('jwt', accessToken, {
-      // httpOnly: true,
+      httpOnly: true,
       sameSite: 'lax',
     });
     if (two_factor_auth == false) {
-      return res.status(200).redirect('http://localhost:5173')
-      // devrait return la meme chose que authenticate
+      return res.redirect(process.env.URL_LOGIN_SUCCESS)
     }
-    return res.status(404).redirect('http://localhost:5173')
+    return res.redirect(process.env.URL_LOGIN_2FA)
   }
 
   @Get('authenticate')
@@ -68,8 +63,10 @@ export class AuthController {
     // const token = ExtractJwt.fromAuthHeaderAsBearerToken()
     // console.log("le token dans le header est ", token)
     const {id} = await this.jwtAuthService.validate(token).validate;
+    if (!id) {
+      throw new UnauthorizedException({msg: "Invalid Token"})
+    }
     console.log("l'id qui est validate", id)
     return (this.usersService.getUserById(id));
   }
-
 }

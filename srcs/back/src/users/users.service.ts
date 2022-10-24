@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException} from '@nestjs/common';
 import { match, PrismaClient, users } from '@prisma/client'
 import { UsersHelper } from './usersHelpers';
 import { CreateUserDto } from './createUserDto';
@@ -94,6 +94,10 @@ export class UsersService {
 
     const user = await this.usersHelper.getUser(id);
 
+    if (!user) {
+      throw new NotFoundException({msg: "No user at this ID", status: false})
+    }
+    
     let userFormat: users & {
       friends: number[],
       bannedBy: number[],

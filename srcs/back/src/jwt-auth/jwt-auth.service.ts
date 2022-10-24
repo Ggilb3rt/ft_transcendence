@@ -19,7 +19,7 @@ export class JwtAuthService {
     const payload: JwtPayload = { username: user.username, id: user.id, isAuth };
     return {
       accessToken: this.jwtService.sign(payload),
-      two_factor_auth
+      two_factor_auth,
     };
   }
 
