@@ -33,7 +33,8 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
   const {username, id, isAuth} = payload;
 
   const user = await prisma.users.findFirst({where:{id}})
-  if (!user || (req.params.id != id))
+  console.log("params validade", req.params.id)
+  if (!user || (req.params.id != undefined && req.params.id != id))
     throw new HttpException("Invalid Token", HttpStatus.FORBIDDEN)
   if (!isAuth && user.two_factor_auth) {
     throw new UnauthorizedException("not 2fa secured")

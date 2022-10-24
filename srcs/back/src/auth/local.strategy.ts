@@ -35,12 +35,13 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
             last_name,
             nickname: nick_fourtytwo,
             avatar_url: undefined,
-            ranking: null,
-            wins: null,
-            loses: null,
+            ranking: 0,
+            wins: 0,
+            loses: 0,
             two_factor_auth: false
         }
 
+        console.log("validate accessToken == ", accessToken)
         console.log("user == ", user);
 
         const ret = await prisma.users.findFirst({

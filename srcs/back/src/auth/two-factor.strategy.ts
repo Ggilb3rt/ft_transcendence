@@ -11,7 +11,6 @@ const prisma = new PrismaClient();
 export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStrategy') {
   constructor() {
     const extractJwtFromCookie = () => {
-      console.log("inside strategy")
     };
 
     super({
@@ -21,11 +20,9 @@ export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStra
       passReqToCallback: true
     });
     extractJwtFromCookie();
-    console.log("\nau SECOURS\n")
   }
 
   async validate(req, payload: JwtPayload) {
-    console.log("\nau SECOURS\n")
 
   console.log(payload);
   const {username, id} = payload;

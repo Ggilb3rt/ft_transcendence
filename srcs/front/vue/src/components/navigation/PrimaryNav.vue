@@ -4,6 +4,8 @@ import { ref } from "vue";
 import { useUserStore } from '../../stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
+import IconSupport from "@/components/icons/IconSupport.vue"
+import router from "@/router/index"
 
 const userStore = useUserStore();
 let	isActive = ref(false);
@@ -13,6 +15,14 @@ let winWidth = ref(window.innerWidth)
 window.addEventListener('resize', (e) => {
 	winWidth.value = window.innerWidth
 });
+
+function disconnect() {
+	document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+	userStore.connected = false
+	userStore.twoFactorAuth = false
+	router.push("/login")
+
+}
 
 </script>
 
@@ -35,8 +45,8 @@ window.addEventListener('resize', (e) => {
 			</div>
 			<span v-else>X</span>
 			</button>
-			<RouterLink to="/about" @click="isActive = false">AddUser</RouterLink>
-			<RouterLink to="/login" @click="isActive = false">Login</RouterLink>
+			<!-- <RouterLink to="/about" @click="isActive = false">AddUser</RouterLink> -->
+			<!-- <RouterLink to="/login" @click="isActive = false">Login</RouterLink> -->
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
 			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
@@ -45,6 +55,7 @@ window.addEventListener('resize', (e) => {
 				<span v-else>Account</span>
 			</RouterLink>
 			<ModalSearch></ModalSearch>
+			<button @click="disconnect()" title="disconnect"><IconSupport /></button>
 		</nav>
 	</div>
 </template>

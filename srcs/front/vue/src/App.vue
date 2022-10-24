@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, onUpdated, onBeforeUpdate, watch } from "vue"
+import { ref, onUpdated, onBeforeUpdate, watch } from "vue"
 import type { Ref } from "vue"
 import type { IUser, status, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
@@ -35,15 +35,25 @@ function getCookie(cname: string) {
 }
 
 
-// const lecookie = getCookie("jwt")
-// console.log(lecookie)
+const lecookie = getCookie("jwt")
+console.log(lecookie)
 // if (lecookie != "")
 //   userStore.connected = true
 
 
+
 async function testConnection() {
   try {
-    await fetch(`http://localhost:3000/auth/authenticate`)
+    await fetch(`http://localhost:3000/auth/authenticate`, {
+      method: "GET",
+      headers: {
+        // Accept: 'application/json',
+        credentials: "include",
+        Authorization: "Bearer " + lecookie
+        // Cookie: document.cookie
+        //! au final les autres requettes integrent le cookie...
+      }
+    })
     .then((response) => {
       if (response.status >= 200 && response.status < 300) {
         return response.json()
@@ -56,6 +66,8 @@ async function testConnection() {
         userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
         userStore.error = null
         userStore.connected = true
+        users.getUsers()
+        router.push('/')
       }
     })
   } catch (error: any) {
@@ -63,8 +75,8 @@ async function testConnection() {
   }
 }
 
-
-testConnection()
+// if (lecookie && lecookie != "")
+  testConnection()
 
 
 // Socket Status

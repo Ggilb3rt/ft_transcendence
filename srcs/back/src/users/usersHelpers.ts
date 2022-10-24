@@ -166,6 +166,7 @@ export class UsersHelper {
           throw new HttpException("Only alphanumeric characters", HttpStatus.NOT_ACCEPTABLE)
         }
         const test = await prisma.users.findFirst({where:{nickname}})
+        console.log("test == ", test)
         if (test) {
           throw new HttpException("nickname already taken", HttpStatus.CONFLICT);
         }

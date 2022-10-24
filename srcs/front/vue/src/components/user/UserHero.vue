@@ -30,6 +30,7 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 |	btn de demande d'ami	||	liste des demandes en attentes	|
 |	btn bloquer				||	btn du mode édition				|
 |	0						||	btn 2FA							|
+-----------------------------------------------------------------
 
 
 */
@@ -37,19 +38,20 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 async function change2FA() {
 	// send to server
 	try {
-		const api = mande(`http://localhost:3000/users/${userStore.user.id}/2FA`);
+		const api = mande(`http://localhost:3000/users/${userStore.user.id}/2fa`);
 		await api.post({
-			two_factor_auth: !userStore.user.two_factor_auth
+			two_factor_auth: String(!userStore.user.two_factor_auth)
 		})
 		.then((data) => {
 			console.log('data from change nick', data)
+			userStore.change2FA()
+			userStore.twoFactorAuth = !userStore.twoFactorAuth
 		})
 	} catch (error: any) {
 		console.log('change nick err', error)
 		userStore.error = error
 		// return
 	}
-	userStore.user.two_factor_auth = !userStore.user.two_factor_auth
 }
 
 </script>

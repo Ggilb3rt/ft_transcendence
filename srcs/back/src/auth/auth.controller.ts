@@ -3,8 +3,9 @@ import { FourtyTwoGuard } from './auth.guard';
 import { Request, Response } from 'express';
 import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { TwoFactorGuard } from './two-factor.guard';
+import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
+import { ExtractJwt } from 'passport-jwt';
 import { UsersService } from 'src/users/users.service';
 
 
@@ -17,7 +18,6 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body() body, @Res() res: Response) {
-      console.log("mon token a marché")
       const {id, code, username} = body;
       const isCodeValid = this.authService.isCodeValid(code, id)
       if (!isCodeValid) {
@@ -46,24 +46,30 @@ export class AuthController {
 
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
     console.log("\n\naccess token == ", accessToken, "\n\n")
-    console.log("\n\nvalidate == ", this.jwtAuthService.validate(accessToken), "\n\n")
+    console.log("\n\nredirect validate == ", this.jwtAuthService.validate(accessToken), "\n\n")
     res.cookie('jwt', accessToken, {
       // httpOnly: true,
-      // sameSite: 'lax',
+      sameSite: 'lax',
     });
     if (two_factor_auth == false) {
-      console.log('\nami here plsss\n', req.user);
-      res.redirect('http://localhost:5173')
-      return req.user;
+      return res.status(200).redirect('http://localhost:5173')
+      // devrait return la meme chose que authenticate
     }
-    console.log('\nOR\n');
-    res.send("Need 2fa")
+    return res.status(404).redirect('http://localhost:5173')
   }
 
   @Get('authenticate')
   @UseGuards(JwtAuthGuard)
-  async verif(token: string) {
+  async verif(@Req() req) {
+    console.log(req.headers)
+    const token = req.headers['authorization'].slice(7)
+    // console.log(pouet)
+    // console.log("debut de verif de la route authenticate")
+    // const token = ExtractJwt.fromAuthHeaderAsBearerToken()
+    // console.log("le token dans le header est ", token)
     const {id} = await this.jwtAuthService.validate(token).validate;
+    console.log("l'id qui est validate", id)
     return (this.usersService.getUserById(id));
   }
+
 }

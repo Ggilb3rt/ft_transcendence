@@ -14,10 +14,6 @@ function sleep(ms: number) {
 
 const userStore = useUserStore()
 
-// we be usefull with Oauth2
-if (!userStore.connected)
-  router.push('login')
-
 let inQueue = ref(false)
 
 async function findGame(event: Event, game: string) {

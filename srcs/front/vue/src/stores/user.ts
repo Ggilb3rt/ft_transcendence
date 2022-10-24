@@ -7,6 +7,7 @@ export interface IUserStoreState {
     loading: boolean
     error: Error | any | null
     connected: boolean
+    twoFactorAuth: boolean
 }
 
 export const useUserStore = defineStore({
@@ -16,7 +17,8 @@ export const useUserStore = defineStore({
         user: {} as IUser,
         loading: false,
         error: null,
-        connected: false
+        connected: false,
+        twoFactorAuth: false,
     }),
     getters: {
         // getUserNick: (state) => {
@@ -61,31 +63,12 @@ export const useUserStore = defineStore({
             if (this.user)
                 this.user.nickname = newTag
         },
-        // getUserLevel(): string {
-        //     switch (this.user.ranking) {
-        //         case 0:
-        //             return ("Pipou")
-        //             break
-        //         case 1:
-        //             return ("Adept")
-        //             break
-        //         case 2:
-        //             return ("Pongger")
-        //             break
-        //         case 3:
-        //             return ("Your body is ready")
-        //             break
-        //         case 4:
-        //             return ("Master")
-        //             break
-        //         case 5:
-        //             return ("God")
-        //             break
-        //         default:
-        //             return ("Prrrrt")
-        //             break
-        //     }
-        // },
+        set2FA(value: boolean) {
+            this.twoFactorAuth = value
+        },
+        change2FA() {
+            this.twoFactorAuth = !this.twoFactorAuth
+        },
         async getUser(id: number) {
             this.loading = true
             try {

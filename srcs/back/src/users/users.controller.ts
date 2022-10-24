@@ -65,10 +65,9 @@ export class UsersController {
         return (this.usersService.switch2fa(id, status))
     }
 
-    @Post(':id/generate')
+    @Get(':id/generate')
     // @UseGuards(JwtAuthGuard)
     async register(@Res() response, @Param('id', ParseIntPipe) id) {
-        console.log("jesuisla\n")
       const { otpauthUrl } = await this.authService.generate2faSecret(id);
    
       return this.authService.pipeQrCodeStream(response, otpauthUrl);

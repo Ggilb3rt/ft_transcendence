@@ -6,11 +6,12 @@ import Chat from "../views/ChatView.vue";
 import Chat2 from "../views/ChatView2.vue";
 import Login from "../views/LoginView.vue"
 import DashOther from "@/views/DashOtherView.vue";
+import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
 import { useUserStore } from "@/stores/user";
 
-type gameList = 'pong' | 'catPong'
+type gameList = "pong" | "catPong"
 
 const ourGames: gameList = 'pong';
 
@@ -34,6 +35,11 @@ const router = createRouter({
       name: "login",
       component: Login,
       beforeEnter: [goToDisconnect]
+    },
+    {
+      path: "/2fa",
+      name: "2fa",
+      component: TwoFactorAuth
     },
     {
       path: "/about",
@@ -104,6 +110,8 @@ router.beforeEach((to, from) => {
 
   if (!userStore.connected && to.name != 'login')
     return { name: 'login' }
+  if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
+    return { name: "2fa" }
 })
 
 
