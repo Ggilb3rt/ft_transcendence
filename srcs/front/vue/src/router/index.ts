@@ -7,6 +7,7 @@ import Chat2 from "../views/ChatView2.vue";
 import Login from "../views/LoginView.vue"
 import DashOther from "@/views/DashOtherView.vue";
 import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
+import Success from "@/views/SuccessView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
 import { useUserStore } from "@/stores/user";
@@ -35,6 +36,11 @@ const router = createRouter({
       name: "login",
       component: Login,
       beforeEnter: [goToDisconnect]
+    },
+    {
+      path: "/success",
+      name: "success",
+      component: Success
     },
     {
       path: "/2fa",
@@ -108,9 +114,12 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   const userStore = useUserStore()
 
-  if (!userStore.connected && to.name != 'login')
+  if (to.name == 'success' ) {
+    console.log("success route")
+  }
+  else if (!userStore.connected && to.name != 'login')
     return { name: 'login' }
-  if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
+  else if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
     return { name: "2fa" }
 })
 
