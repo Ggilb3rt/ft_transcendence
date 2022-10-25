@@ -10,6 +10,7 @@ export class CreateUserDto {
     @IsNotEmpty()
     nickname: string;
 
+    @IsNotEmpty()
     nick_fourtytwo: string;
 
     avatar_url: string;

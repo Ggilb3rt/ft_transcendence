@@ -1,35 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { authenticator } from 'otplib';
-import { toFileStream } from 'qrcode'
+import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
 
 @Injectable()
 export class AuthService {
-    constructor(private usersService: UsersService) {}
+    constructor(private usersService: UsersService, private jwtAuthService: JwtAuthService) {}
 
-    async generate2faSecret(id: number) {
-        const user = await this.usersService.getUserById(id);
-        const secret = authenticator.generateSecret()
-        const otpauthUrl = authenticator.keyuri(user.nick_fourtytwo, "Transcendance", secret);
-
-
-        await this.usersService.setSecret(user.id, secret);
-        return {
-            secret,
-            otpauthUrl
+    async verify(token: string | null) {
+        if (!token) {
+            throw new UnauthorizedException({msg: "Missing token"})
+          }
+        const {id} = await this.jwtAuthService.validate(token).validate;
+        if (!id) {
+          throw new UnauthorizedException({msg: "Invalid Token"})
         }
-    }
-
-    async isCodeValid(code: string, id) {
-
-        const {two_factor_secret} = await this.usersService.getUserById(id)
-        return authenticator.verify({
-          token: code,
-          secret: two_factor_secret
-        })
-    }
-
-    async pipeQrCodeStream (stream: Response, otpauthUrl: string) {
-        return toFileStream(stream, otpauthUrl);
+        return (this.usersService.getUserById(id));
     }
 }

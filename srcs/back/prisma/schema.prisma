@@ -89,8 +89,8 @@ model users {
   id                                         Int            @id @default(autoincrement())
   first_name                                 String
   last_name                                  String
-  nickname                                   String
-  nick_fourtytwo                             String  @default("marvin@42")           
+  nickname                                   String   @unique
+  nick_fourtytwo                             String   @unique          
   avatar_url                                 String?  @default("/app/resources/default.jpg")       
   ranking                                    Int? @default(0)
   wins                                       Int? @default(0)

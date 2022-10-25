@@ -44,7 +44,7 @@ console.log(lecookie)
 
 async function testConnection() {
   try {
-    await fetch(`http://localhost:3000/auth/authenticate`, {
+    await fetch(`http://localhost:3000/auth/verify`, {
       method: "GET",
       // mode: "cors",
       credentials: "include",
