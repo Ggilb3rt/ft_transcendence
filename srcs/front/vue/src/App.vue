@@ -90,7 +90,7 @@ async function testConnection() {
 // je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
 
 let alreadyConnect = ref<boolean>(false)
-let socket = io("http://localhost:3000", {autoConnect: false});
+let socket = io("http://localhost:3000/usersStatus", {autoConnect: false});
 const statusList = ref<ISocketStatus[]>([])
 
 onBeforeUpdate(() => {

@@ -19,7 +19,7 @@ interface IStatus {
 	cors: {
 		origin: '*'
 	},
-    // namespace: 'usersStatus',
+    namespace: 'usersStatus',
 })
 export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
  
