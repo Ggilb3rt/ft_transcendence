@@ -29,7 +29,9 @@ const props = defineProps<{
       </div>
       <div>
         <h3>Last battle</h3>
-        <p class="lastWin statVal" v-if="props.user.match_history">{{ props.user.match_history[0].myScore }} - {{ props.user.match_history[0].opponentScore}}</p>
+        <p class="lastWin statVal" v-if="props.user.match_history && props.user.match_history.length > 0">
+          {{ props.user.match_history[0].myScore }} - {{ props.user.match_history[0].opponentScore}}
+        </p>
       </div>
     </div>
     <hr>

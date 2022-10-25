@@ -72,7 +72,7 @@ export const useUserStore = defineStore({
         async getUser(id: number) {
             this.loading = true
             try {
-                await fetch(`http://localhost:3000/users/${id}`)
+                await fetch(`http://localhost:3000/users/${id}`, {credentials: "include"})
                     .then((response) => {
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
@@ -137,7 +137,7 @@ export const useUserStore = defineStore({
             return false
         },
         async refuseInvite(id: number) {
-            const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+            const api = mande('http://localhost:3000/users/'+this.user.id+'/friends', {credentials: "include"})
                 try {
                     await api.post({
                         friend: id,
@@ -162,7 +162,7 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
-                const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/friends', {credentials: "include"})
                 try {
                     await api.post({
                         friend: id,
@@ -189,7 +189,7 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
-                const api = mande('http://localhost:3000/users/'+this.user.id+'/ban')
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/ban', {credentials: "include"})
                 try {
                     await api.post({
                         banned: id
@@ -210,7 +210,7 @@ export const useUserStore = defineStore({
                 const index = this.user.friends.indexOf(id, 0)
                 if(confirm(`Remove ${id} from your friends ?`)) {
                     // send info to back and wait for res
-                    const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove')
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove', {credentials: "include"})
                     try {
                         await api.post({
                             friend: String(id)
@@ -231,7 +231,7 @@ export const useUserStore = defineStore({
                 // const indexOtherFriend = 
                 if(confirm(`Remove ${id} from your bans ?`)) {
                     // send info to back and wait for res
-                    const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove')
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove', {credentials: "include"})
                     try {
                         await api.post({
                             ban: String(id)

@@ -10,7 +10,7 @@ const props = defineProps<{
   user: IUser | IOtherUser
 }>()
 
-// const userStore = useUserStore()
+const userStore = useUserStore()
 const usersStore = useUsersStore()
 // const { getUserNick } = useUserStore()
 // const { getUserNick } = storeToRefs(user) // make getUserNick has a ref ==> reactive
@@ -30,7 +30,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
             triangleUp: toggleMatch && user.match_history != null,
             triangleDown: !toggleMatch && user.match_history != null}"
         >Match History</h1>
-        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null && user.match_history.length != 0">
+        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null">
             <div v-for="match in user.match_history" :key="match.opponent">
               <!-- {{ match.date.getDate()+"/"+(match.date.getMonth() + 1)+"/"+match.date.getFullYear()+" "+match.date.getHours()+":"+match.date.getMinutes()+":"+match.date.getSeconds() }} -->
                 <div :class="{win: match.win, loose:!match.win}" class="matchResume">
@@ -54,7 +54,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
         </div>
         <div v-else>
             <p>No matchs here
-                <router-link to="/">Make your first game</router-link>
+                <router-link to="/" v-if="user.id == userStore.user.id">Make your first game</router-link>
             </p>
         </div>
     </div>

@@ -35,17 +35,35 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 
 */
 
+const twoFA_QR = ref("")
+
 async function change2FA() {
 	// send to server
 	try {
-		const api = mande(`http://localhost:3000/users/${userStore.user.id}/2fa`);
-		await api.post({
-			two_factor_auth: String(!userStore.user.two_factor_auth)
+		// const api = mande(`http://localhost:3000/users/${userStore.user.id}/2fa`, {credentials: "include"});
+
+		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
+			method: 'POST',
+			credentials: "include",
+			body: JSON.stringify({
+				status: !userStore.user.two_factor_auth,
+				code: ""
+			})
 		})
+		// await api.post({
+		// 	two_factor_auth: String(!userStore.user.two_factor_auth)
+		// })
 		.then((data) => {
 			console.log('data from change nick', data)
 			userStore.change2FA()
 			userStore.twoFactorAuth = !userStore.twoFactorAuth
+
+			/// Print qr code
+			const fileReader = new FileReader()
+			fileReader.onload = () => {
+				twoFA_QR.value = fileReader.result
+			}
+			fileReader.readAsDataURL(data)
 		})
 	} catch (error: any) {
 		console.log('change nick err', error)
@@ -79,6 +97,7 @@ async function change2FA() {
 				<button @click="change2FA()">
 					<span v-if="userStore.user.two_factor_auth">Enable</span>
 					<span v-else>Disable</span>
+					<img :src="twoFA_QR" alt="AuthQRcode" v-if="twoFA_QR != ''">
 				</button>
 			</p>
 		</div>

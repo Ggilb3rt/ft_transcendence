@@ -11,9 +11,17 @@ const usersStore = useUsersStore()
 // }
 
 async function challenge() {
-    // need to check if users are connected and available
-    console.log(`challenge from ${userStore.user.id} to ${usersStore.user.id}`)
-    // put invitation in a modal in the other side
+    if (usersStore.user && usersStore.socketIsAvailable(usersStore.user.id)) {
+        console.log(`challenge from ${userStore.user.id} to ${usersStore.user.id}`)
+        // put invitation in a modal in the other side
+    }
+}
+async function goSpectate() {
+    if (usersStore.user && !usersStore.socketIsAvailable(usersStore.user.id)) {
+        console.log("go to game with user ", usersStore.user.id)
+    // fetch gameId from back
+    // router.push(/game/${gameId})
+    }
 }
 
 </script>
@@ -36,7 +44,9 @@ async function challenge() {
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnFriend</button>
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnBan</button>
+            
             <button @click="challenge()" v-if="!userStore.isBan(usersStore.user.id) && usersStore.socketIsAvailable(usersStore.user.id)">Challenge</button>
+            <button @click="goSpectate()" v-else-if="!userStore.isBan(usersStore.user.id)">Spectate</button>
         </div>
     </div>
 </template>

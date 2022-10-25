@@ -19,6 +19,7 @@ services:
         env_file:
             - ./.envs/postgres.env
             - ./.envs/back.env
+            # - ./.envs/frontAndBack.env
         restart: unless-stopped
         volumes:
             - ./srcs/back/src:/app/src
@@ -35,7 +36,9 @@ services:
         build:
             context: ./srcs/front
         image: front-vue
-        env_file: ./.envs/front.env
+        env_file:
+            - ./.envs/front.env
+            # - ./.envs/frontAndBack.env
         init: true
         volumes:
             - ./srcs/front/vue:/appFront

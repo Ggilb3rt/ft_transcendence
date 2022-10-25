@@ -12,9 +12,11 @@ import { file } from '@babel/types';
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 
-let editMode = ref(false)
 
+// Nickname management
+// const maxNickLength = Number(process.env.MAX_NICK_LENGTH)
 const maxNickLength = 10
+let editMode = ref(false)
 let nicknameEdit = ref("")
 
 function filteredNames() {
@@ -76,6 +78,7 @@ function validMIMEtype(file: any): boolean {
 }
 
 function validFileSize(file: any): boolean {
+  // const maxFilseSize = Number(process.env.MAX_AVATAR_SIZE)
   const maxFilseSize = 3000000
 
   if (file && file.size <= maxFilseSize)
@@ -107,28 +110,28 @@ async function changeImg(e: any) {
     try {
       await fetch(`http://localhost:3000/users/${userStore.user.id}/avatar`, {
         method: 'POST',
-        headers: {
-          // Accept: 'multipart/form-data',
-          // 'Content-Type': 'multipart/form-data',
-        },
+        credentials: "include",
         body: newAvatar,
       })
           .then((response) => {
               if (response.status >= 200 && response.status < 300) {
-                  return response.json()
+                  return response
                 }
                 throw new Error(response.statusText)
           })
           .then((data) => {
               if (data) {
                   console.log("return data ", data)
+                  const fileReader = new FileReader()
+                  fileReader.readAsDataURL(img)
+                  fileReader.onload = () => userStore.user.avatar_url = fileReader.result
+                  usersStore.changeUserAvatar(userStore.user.id, data.url)
+                  
               }
           })
     } catch (error: any) {
-        userStore.error = error
+        userStore.error = "changeImg avatar " + error
     }
-
-
 
 
 		// must send to server and wait his response with the server url

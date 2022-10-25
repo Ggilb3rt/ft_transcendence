@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import { ref } from "vue";
-import { useUserStore } from '../../stores/user';
+import { useUserStore } from '@/stores/user';
+import type { IUserStoreState } from "@/stores/user"
+import { useUsersStore } from "@/stores/users";
+import type { IUsersStoreState } from "@/stores/users"
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
 import IconSupport from "@/components/icons/IconSupport.vue"
 import router from "@/router/index"
 
 const userStore = useUserStore();
+const usersStore = useUsersStore();
 let	isActive = ref(false);
 
 let winWidth = ref(window.innerWidth)
@@ -16,11 +20,19 @@ window.addEventListener('resize', (e) => {
 	winWidth.value = window.innerWidth
 });
 
-function disconnect() {
+// Disconnection, need to put it in component
+async function disconnect() {
 	document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
 	userStore.connected = false
 	userStore.twoFactorAuth = false
 	router.push("/login")
+}
+
+
+// Error, need to put it in component
+function removeError(store: IUserStoreState | IUsersStoreState) {
+	if (store.error)
+		store.error = null
 }
 
 </script>
@@ -57,10 +69,25 @@ function disconnect() {
 			<ModalSearch></ModalSearch>
 			<button @click="disconnect()" title="disconnect"><IconSupport /></button>
 		</nav>
+		<div class="error" v-if="userStore.error || usersStore.error">
+			<p v-if="userStore.error">UserStore err : {{ userStore.error }} <button @click="removeError(userStore)">X</button></p> 
+			<p v-if="usersStore.error">UsersStore err : {{ usersStore.error }} <button @click="removeError(usersStore)">X</button></p>
+		</div>
 	</div>
 </template>
 
 <style scoped>
+
+div.error {
+	position: absolute;
+	z-index: 5;
+	padding: 20px;
+	top: 0;
+	left: 0;
+	right: 0;
+	color: white;
+	background: #FF5555;
+}
 
 .side_menu {
 	position: fixed;

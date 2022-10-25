@@ -58,6 +58,7 @@ export class UsersController {
 
     @Post(':id/2fa')
     switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status, @Body('code') code) {
+        console.log("Le nouveau status de la 2FA ", status)
         const isCodeValid = this.authService.isCodeValid(code, id)
         if (!isCodeValid) {
             throw new UnauthorizedException('Wrong authentication code');

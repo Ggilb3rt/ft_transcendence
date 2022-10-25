@@ -4,7 +4,7 @@ import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, status, ISoc
 import type { io, Socket } from "socket.io-client"
 // import { mande } from 'mande'
 
-export interface IUserStoreState {
+export interface IUsersStoreState {
     userList: IOtherUserRestrict[]
     socketStatus: ISocketStatus[]
     user: IOtherUser | null
@@ -105,7 +105,7 @@ const marcRestrict: IOtherUserRestrict = {
 
 export const useUsersStore = defineStore({
     id: "users",
-    state: (): IUserStoreState => ({
+    state: (): IUsersStoreState => ({
         userList: [],
         socketStatus: [],
         user: null,
@@ -180,7 +180,7 @@ export const useUsersStore = defineStore({
         // },
         changUserNick(id: number, newNick: string) {
             this.userList.some((el) => {
-                if (el.id == id) {
+                if (el.id == id && el.nickname != newNick) {
                     el.nickname = newNick
                     return
                 }
@@ -202,7 +202,7 @@ export const useUsersStore = defineStore({
         async getUsers() {
             this.loading = true
             try {
-                await fetch('http://localhost:3000/users/restrict')
+                await fetch('http://localhost:3000/users/restrict', {credentials: "include"})
                     .then((response) => {
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
@@ -217,7 +217,7 @@ export const useUsersStore = defineStore({
                         this.error = null
                     })
             } catch (error) {
-                this.error = error
+                this.error = "getUsers " + error
             } finally {
                 this.loading = false
             }
@@ -226,7 +226,7 @@ export const useUsersStore = defineStore({
             this.loading = true
             const url = `http://localhost:3000/users/${id}/other`
             try {
-                await fetch(url)
+                await fetch(url, {credentials: "include"})
                     .then((response) => {
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
@@ -237,13 +237,12 @@ export const useUsersStore = defineStore({
                         this.user = data
                         if (this.user) {
                             this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
-                            if (this.user.match_history.length == 0)
-                                this.user.match_history = []
+                            this.changUserNick(this.user.id, this.user.nickname)
                         }
                         this.error = null
                     })
             } catch (error: any) {
-                this.error = error
+                this.error = "getOtherUser " + error
                 return
             } finally {
                 if (this.user) {
@@ -258,13 +257,15 @@ export const useUsersStore = defineStore({
                                     myScore: el.score_left,
                                     opponentScore: el.score_right,
                                     win: (el.score_left > el.score_right),
-                                    date: new Date()
+                                    date: (el.date ? el.date : new Date())
                                 }
-                                this.user.match_history.push(match)
+                                if (this.user)
+                                    this.user.match_history.push(match)
                             })
                             this.user.matches = null
                         }
                     }
+                    this.error = null
                 }
                 this.loading = false
             }
