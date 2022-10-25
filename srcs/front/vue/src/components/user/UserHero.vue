@@ -7,6 +7,7 @@ import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
 import UserBasics from './UserBasics.vue';
+import Modal from '../Modal.vue';
 import type { IUser } from '@/types';
 import { mande } from 'mande';
 
@@ -36,39 +37,93 @@ change p.heroName p.heroTag img.heroAvatar by input with data
 */
 
 const twoFA_QR = ref("")
+const showQr = ref(false)
+const disable2FACode = ref("")
 
-async function change2FA() {
+async function enable2FA() {
 	// send to server
 	try {
-		// const api = mande(`http://localhost:3000/users/${userStore.user.id}/2fa`, {credentials: "include"});
-
 		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
 			method: 'POST',
+			headers: {
+				// 'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			mode: "cors",
 			credentials: "include",
 			body: JSON.stringify({
 				status: !userStore.user.two_factor_auth,
-				code: ""
 			})
 		})
-		// await api.post({
-		// 	two_factor_auth: String(!userStore.user.two_factor_auth)
-		// })
-		.then((data) => {
-			console.log('data from change nick', data)
-			userStore.change2FA()
-			userStore.twoFactorAuth = !userStore.twoFactorAuth
+		.then((response) => {
+			if (response.status >= 200 && response.status < 300) {
+				console.log(response)
+				return response
+			}
+			throw new Error(response.statusText)
+		})
+		.then((data): Blob => {
+			console.log('data from change 2FA', data)
 
 			/// Print qr code
-			const fileReader = new FileReader()
-			fileReader.onload = () => {
-				twoFA_QR.value = fileReader.result
-			}
-			fileReader.readAsDataURL(data)
+			return data.blob()
+			// const fileReader = new FileReader()
+			// fileReader.onload = () => {
+			// 	const res = fileReader.result
+			// 	console.log(res)
+			// }
+			// fileReader.readAsDataURL(data.body)
+		})
+		.then((blob: Blob) => {
+			console.log("le blob de fin ", blob)
+			twoFA_QR.value = URL.createObjectURL(blob)
+			showQr.value = true
 		})
 	} catch (error: any) {
-		console.log('change nick err', error)
+		console.log('change 2FA err', error)
 		userStore.error = error
 		// return
+	} finally {
+		console.log("j'aimerai changer le store svp")
+		userStore.change2FA()
+		userStore.set2FA(!userStore.twoFactorAuth)
+	}
+}
+
+async function disable2FA() {
+	try {
+		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
+			method: 'POST',
+			headers: {
+				// 'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			mode: "cors",
+			credentials: "include",
+			body: JSON.stringify({
+				status: !userStore.user.two_factor_auth,
+				code: disable2FACode.value
+			})
+		})
+		.then((response) => {
+			if (response.status >= 200 && response.status < 300) {
+				console.log(response)
+				return response.json
+			}
+			throw new Error(response.statusText)
+		})
+		.then((data) => {
+			console.log('disable 2FA data ', data)
+
+		})
+	} catch (error: any) {
+		console.log('change 2FA err', error)
+		userStore.error = error
+		// return
+	} finally {
+		console.log("j'aimerai changer le store svp")
+		userStore.change2FA()
+		userStore.set2FA(!userStore.twoFactorAuth)
 	}
 }
 
@@ -93,13 +148,22 @@ async function change2FA() {
 		
 		<div class="security">
 			<h1>Security</h1>
-			<p>User double auth :
-				<button @click="change2FA()">
-					<span v-if="userStore.user.two_factor_auth">Enable</span>
-					<span v-else>Disable</span>
+			<p>Use two factor auth</p>
+			<div v-if="userStore.user.two_factor_auth">
+				<button @click="disable2FA()" >Enable</button>
+				<input type="text" v-model="disable2FACode">
+				{{ disable2FACode }}
+			</div>
+			<button @click="enable2FA()" v-else>Disable</button>
+			<modal :show="showQr" @click="showQr = false">
+				<template #header>
+					<h2>Scan with google authenticator</h2>
+				</template>
+				<template #body>
 					<img :src="twoFA_QR" alt="AuthQRcode" v-if="twoFA_QR != ''">
-				</button>
-			</p>
+				</template>
+			</modal>
+			
 		</div>
 	</div>
 </template>

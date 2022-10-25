@@ -1,10 +1,13 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException} from '@nestjs/common';
-import { match, PrismaClient, users } from '@prisma/client'
+import { friends, match, PrismaClient, users } from '@prisma/client'
 import { UsersHelper } from './usersHelpers';
 import { CreateUserDto } from './createUserDto';
 const path = require('path');
 const util = require('util');
 import { writeFile } from 'fs';
+import { otherFormat, userFront, userRestrict } from './types';
+import { authenticator } from 'otplib';
+import { toFileStream } from 'qrcode';
 
   const prisma = new PrismaClient();
 
@@ -42,7 +45,7 @@ export class UsersService {
   }
   
   //get []users_id who banned me
-  async getBannedMe(id: number) {
+  async getBannedMe(id: number): Promise<number[]> {
     await this.usersHelper.getUser(id);
 
     const bans = await this.usersHelper.getBanned(id)
@@ -50,7 +53,7 @@ export class UsersService {
   }
 
   //get []users_id whom i banned
-  async getBannedUsers(id: number) {
+  async getBannedUsers(id: number): Promise<number[]> {
       await this.usersHelper.getUser(id);
 
       const bans = await this.usersHelper.getBans(id)
@@ -58,12 +61,10 @@ export class UsersService {
   }
 
   //deprecated, get userbynick
-  async getUserByNick(nick: string) {
-    const res = await prisma.users.findMany({
+  async getUserByNick(nick: string): Promise<userRestrict> {
+    const res = await prisma.users.findUnique({
       where:{
-        nickname: {
-          startsWith: nick
-        }
+        nickname: nick
       },
       select:{
         id: true,
@@ -79,7 +80,7 @@ export class UsersService {
   
 
   //get resolved friendships: both agreed
-  async getFriends(id: number) {
+  async getFriends(id: number): Promise<number[]> {
 
     await this.usersHelper.getUser(id);
 
@@ -90,20 +91,12 @@ export class UsersService {
   
 
   // main getter for users: every info front needs 
-  async getUserById(id: number) {
+  async getUserById(id: number): Promise<userFront> {
 
     const user = await this.usersHelper.getUser(id);
 
     if (!user) {
       throw new NotFoundException({msg: "No user at this ID", status: false})
-    }
-    
-    let userFormat: users & {
-      friends: number[],
-      bannedBy: number[],
-      bans: number[],
-      matches: match[],
-      invites: number[]
     }
 
     const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, two_factor_secret} = user
@@ -114,7 +107,7 @@ export class UsersService {
     const matches = await this.getMatches(id);
     const invites = await this.getPending(id);
 
-    userFormat = {
+    const userFormat: userFront = {
       id,
       nick_fourtytwo,
       nickname,
@@ -150,11 +143,11 @@ export class UsersService {
 
   async unBan(id:number, banned:number) {
     const ban = await this.usersHelper.getBan(id, banned)
-    return await this.usersHelper.unBan(ban)
+    await this.usersHelper.unBan(ban)
   }
 
   //create an unresolved friendship: invitation
-  async addFriend(id: number, friend: number) {
+  async addFriend(id: number, friend: number): Promise<friends> {
 
     // check if ids are the same and if they are not already friends. If there is an invite pending for me, accept it
     this.usersHelper.checkSame(id, friend);
@@ -195,7 +188,7 @@ export class UsersService {
   }
 
   //accept a friend invitation
-  async acceptFriend(id: number, friend: number, valid: boolean) {
+  async acceptFriend(id: number, friend: number, valid: boolean): Promise<friends> {
     this.usersHelper.checkSame(id, friend);
     const friendship = await this.usersHelper.getFriendship(id, friend)
     if (!valid) {
@@ -212,24 +205,24 @@ export class UsersService {
         }
       })
     }
-    return ("No pending invite")
+    throw new NotFoundException("No pending invites")
   }
 
   //get pending friendships
-  async getPending(id: number) {
+  async getPending(id: number): Promise<number[]> {
     const invites = await this.usersHelper.getPending(id);
     return (this.usersHelper.formatFriends(invites, id));
   }
 
 
   //get everything xcept relations
-  async getAllUsers() {
+  async getAllUsers(): Promise<users[]> {
       const users = await prisma.users.findMany();
       return (users);
   }
   
   //do i need to explain?
-  async changeNickname(id: number, nickname: string) {
+  async changeNickname(id: number, nickname: string): Promise<users> {
 
     await this.usersHelper.testNickname(nickname);
     await this.usersHelper.getUser(id);
@@ -244,7 +237,7 @@ export class UsersService {
   }
 
   //another way to request partial user
-  async getOtherUser(id: number) {
+  async getOtherUser(id: number): Promise<otherFormat> {
 
     const user = await prisma.users.findFirst({where:{id}})
 
@@ -252,7 +245,7 @@ export class UsersService {
     const matches = await this.getMatches(id);
     const friends = await this.getFriends(id);
 
-    const otherFormat = {
+    const otherFormat: otherFormat = {
       id,
       nickname,
       first_name,
@@ -269,7 +262,7 @@ export class UsersService {
   }
 
   //and another other way
-  async getUsersRestrict() {
+  async getUsersRestrict(): Promise<userRestrict[]> {
       const users = await prisma.users.findMany({select:{
         id:true,
         nickname:true,
@@ -279,32 +272,33 @@ export class UsersService {
   }
 
   //add a user in DB
-  async postOneUser(user: CreateUserDto) {
+  async postOneUser(user: CreateUserDto): Promise<users> {
     await this.usersHelper.testNickname(user.nickname);
     const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
     if (existsAlready) {
       throw new HttpException("42 account already binded to a user", HttpStatus.CONFLICT)
     }
-    return await prisma.users.create( {data: user })
+    const ret = await prisma.users.create( {data: user })
+    return ret;
   }
 
   //Get match history for user
-  async getMatches(id:number) {
+  async getMatches(id:number): Promise<match[]>{
     return await this.usersHelper.getMatches(id);
   }
 
-  async getAvatar(id:number) {
+  async getAvatar(id:number): Promise<string> {
 
     const user = await this.usersHelper.getUser(id);
     return user.avatar_url;
   }
 
-  async changeAvatar(id:number, file: Express.Multer.File) {
+  async changeAvatar(id:number, file: Express.Multer.File): Promise<string> {
     
     const user = await this.usersHelper.getUser(id);
 
     const myWriteFile = util.promisify(writeFile)
-    const dest = path.join('/app/resources/', user.id.toString() + '_id.jpeg')
+    const dest: string = path.join('/app/resources/', user.id.toString(), '_id.jpeg')
 
     await myWriteFile(dest, file.buffer, 'ascii')
     const ret = await this.usersHelper.changeAvatarUrl(id, dest);
@@ -312,8 +306,35 @@ export class UsersService {
     return (dest);
   }
 
-  async switch2fa(id: number, status: boolean) {
-    const user = await this.usersHelper.getUser(id);
+
+  async isCodeValid(code: string, id: number) {
+
+    const {two_factor_secret} = await this.getUserById(id)
+    return await authenticator.verify({
+      token: code,
+      secret: two_factor_secret
+    })
+  }
+
+  async pipeQrCodeStream (stream: Response, otpauthUrl: string) {
+      return toFileStream(stream, otpauthUrl);
+  }
+
+  async generate2faSecret(id: number) {
+    const user = await this.getUserById(id);
+    const secret = authenticator.generateSecret()
+    const otpauthUrl = authenticator.keyuri(user.nick_fourtytwo, "Transcendance", secret);
+
+
+    await this.setSecret(user.id, secret);
+    return {
+        secret,
+        otpauthUrl
+    }
+}
+
+  async switch2fa(id: number, status: boolean, response) {
+    await this.usersHelper.getUser(id);
 
     const ret = await prisma.users.update({
       where:{id},
@@ -321,6 +342,10 @@ export class UsersService {
         two_factor_auth: status
       }
     })
+    if (ret.two_factor_auth == true) {
+      const { otpauthUrl } = await this.generate2faSecret(id);
+      return this.pipeQrCodeStream(response, otpauthUrl);
+    }
     return ret
   }
 

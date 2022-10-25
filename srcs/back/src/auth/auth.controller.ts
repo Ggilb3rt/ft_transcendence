@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { TwoFactorGuard } from './two-factor.guard';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
+import { users } from '@prisma/client';
 
 
 @Controller('auth')
@@ -18,13 +19,13 @@ export class AuthController {
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body() body, @Res() res: Response) {
       const {id, code, username} = body;
-      const isCodeValid = this.authService.isCodeValid(code, id)
+      const isCodeValid = this.usersService.isCodeValid(code, id)
       if (!isCodeValid) {
         throw new UnauthorizedException('Wrong authentication code');
       }
       const { accessToken } = await this.jwtAuthService.login({id, username}, true)
-      const exp = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
-      res.cookie("jwt", accessToken);
+      const expires = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
+      res.cookie("jwt", accessToken, {expires});
       res.redirect(process.env.URL_LOGIN_SUCCESS)
     }
 
@@ -39,32 +40,26 @@ export class AuthController {
   async googleAuthRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
 
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
-    
-    if (two_factor_auth == false) {
-      res.setHeader('Access-Control-Allow-Credentials', "true")
-      res.setHeader('Access-Control-Allow-Origin', "http://localhost:5173")
-      res.status(202)
-      .cookie('jwt', accessToken, {
-        httpOnly:true,
-        domain: "localhost"
+    res.cookie('jwt', accessToken, {
+      httpOnly:true,
     })
-      .redirect(process.env.URL_LOGIN_SUCCESS)
+    if (two_factor_auth == false) {
+      
+      return res.redirect(process.env.URL_LOGIN_SUCCESS)
     }
-    return res.redirect(process.env.URL_LOGIN_2FA)
+    else
+      return res.redirect(process.env.URL_LOGIN_2FA)
   }
 
-  @Get('authenticate')
+  @Get('verify')
   @UseGuards(JwtAuthGuard)
-  async verif(@Req() req) {
-    const token = req.cookies.jwt
-    // console.log(pouet)
-    // console.log("debut de verif de la route authenticate")
-    // const token = ExtractJwt.fromAuthHeaderAsBearerToken()
-    // console.log("le token dans le header est ", token)
-    const {id} = await this.jwtAuthService.validate(token).validate;
-    if (!id) {
-      throw new UnauthorizedException({msg: "Invalid Token"})
-    }
-    return (this.usersService.getUserById(id));
+  async verif(@Req() req): Promise<users> {
+    return (this.authService.verify(req.cookies.jwt))
+  }
+
+  @Get('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Res() res: Response) {
+    res.clearCookie('jwt')
   }
 }

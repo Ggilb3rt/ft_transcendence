@@ -19,11 +19,12 @@ interface IStatus {
 	cors: {
 		origin: '*'
 	},
-    // namespace: 'usersStatus',
+    namespace: 'usersStatus',
 })
 export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
  
     @WebSocketServer() server: Server;
+
 
     private logger: Logger = new Logger('usersStatusGateway');
     private userArr: IStatus[] = []
@@ -34,10 +35,12 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
 
     handleDisconnect(client: Socket) {
+        // const nsp = this.server.of('http://localhost:3000/usersStatus')
         this.logger.log(`client disconnect : ${client.id}`)
         let uIndex = this.userArr.findIndex(el => el.socketId == client.id)
         if (uIndex != -1) {
-            this.server.sockets.emit('newStatusDisconnection', this.userArr[uIndex])
+            // ('newStatusDisconnection', this.userArr[uIndex])
+
             this.userArr.splice(uIndex, 1)
         }
     }
@@ -54,19 +57,21 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     handleConnection2(client: Socket, arg: number) {
+        // const nsp = this.server.of("/usersStatus")
         const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
         this.userArr.push(u)
         this.logger.log(`client connection : ${client.id}`)
-        this.server.sockets.emit('newStatusConnection', u)
+        // nsp.emit('newStatusConnection', u)
         return this.userArr
     }
 
     @SubscribeMessage('changeStatus')
     handleChangeStatus(client: Socket, arg: IStatus) {
+        // const nsp = this.server.of("/usersStatus")
         const changedIndex = this.userArr.findIndex((el) => el.socketId == client.id)
         if (changedIndex != -1) {
+            // nsp.emit("newStatusChange", this.userArr[changedIndex])
             this.userArr[changedIndex].userStatus = arg.userStatus
-            this.server.sockets.emit("newStatusChange", this.userArr[changedIndex])
         }
     }
 

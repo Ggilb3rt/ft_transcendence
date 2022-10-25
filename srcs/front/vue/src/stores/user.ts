@@ -64,10 +64,12 @@ export const useUserStore = defineStore({
                 this.user.nickname = newTag
         },
         set2FA(value: boolean) {
+            console.log("in store set connection 2FA to ", value)
             this.twoFactorAuth = value
         },
         change2FA() {
-            this.twoFactorAuth = !this.twoFactorAuth
+            console.log("in store change user 2FA")
+            this.user.two_factor_auth = !this.user.two_factor_auth
         },
         async getUser(id: number) {
             this.loading = true
