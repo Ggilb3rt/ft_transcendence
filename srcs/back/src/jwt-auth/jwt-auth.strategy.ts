@@ -13,14 +13,16 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     const extractJwtFromCookie = (req) => {
       let token = null;
 
+      console.log("extractJwtfromCookie ", req.cookies)
       if (req && req.cookies) {
         token = req.cookies['jwt'];
+        console.log(token)
       }
       return token;
     };
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: extractJwtFromCookie,
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
       passReqToCallback: true

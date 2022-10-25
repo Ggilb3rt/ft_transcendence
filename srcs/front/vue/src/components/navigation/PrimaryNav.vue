@@ -21,7 +21,6 @@ function disconnect() {
 	userStore.connected = false
 	userStore.twoFactorAuth = false
 	router.push("/login")
-
 }
 
 </script>

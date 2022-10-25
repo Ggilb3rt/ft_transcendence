@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { config } from 'dotenv';
 import { AppModule } from './app.module';
+import * as cookieParser from 'cookie-parser'
 // const fs = require('fs');
 declare const module: any;
 
@@ -19,8 +20,14 @@ async function bootstrap() {
     module.hot.dispose(() => app.close());
   }
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      credentials: true,
+      origin: true
+    }
+  });
   app.enableCors();
+  app.use(cookieParser())
   await app.listen(3000);
   } catch(err) {
     console.log(err);

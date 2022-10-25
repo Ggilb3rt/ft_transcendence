@@ -18,7 +18,28 @@ async function selectUser(e: Event) {
 }
 
 async function connection42() {
+    try {
+    await fetch(`http://localhost:3000/auth/`, {
+      method: "GET",
+      headers: {
+        // Accept: 'application/json',
+        credentials: "include",
+        // Authorization: "Bearer " + lecookie,
+        // AccessControlAllowOrigin: "http://localhost"
 
+        // Cookie: document.cookie
+        //! au final les autres requettes integrent le cookie...
+      }
+    })
+    .then((response) => {
+      if (response.status >= 200 && response.status < 300) {
+        return response.json()
+      }
+      throw new Error(response.statusText)
+    })
+  } catch (error: any) {
+    console.log(error)
+  }
 }
 
 </script>

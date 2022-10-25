@@ -46,10 +46,14 @@ async function testConnection() {
   try {
     await fetch(`http://localhost:3000/auth/authenticate`, {
       method: "GET",
+      // mode: "cors",
+      credentials: "include",
       headers: {
         // Accept: 'application/json',
-        credentials: "include",
-        Authorization: "Bearer " + lecookie
+        // credentials: "include",
+        // Authorization: "Bearer " + lecookie,
+        // AccessControlAllowOrigin: "http://localhost"
+
         // Cookie: document.cookie
         //! au final les autres requettes integrent le cookie...
       }

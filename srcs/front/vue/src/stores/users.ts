@@ -235,8 +235,11 @@ export const useUsersStore = defineStore({
                     })
                     .then((data) => {
                         this.user = data
-                        if (this.user)
+                        if (this.user) {
                             this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
+                            if (this.user.match_history.length == 0)
+                                this.user.match_history = []
+                        }
                         this.error = null
                     })
             } catch (error: any) {

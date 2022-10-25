@@ -24,11 +24,7 @@ export class AuthController {
       }
       const { accessToken } = await this.jwtAuthService.login({id, username}, true)
       const exp = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
-      res.cookie('jwt', accessToken, {
-        httpOnly: true,
-        sameSite: 'lax',
-        expires: exp
-      });
+      res.cookie("jwt", accessToken);
       res.redirect(process.env.URL_LOGIN_SUCCESS)
     }
 
@@ -40,15 +36,19 @@ export class AuthController {
 
   @Get('redirect')
   @UseGuards(FourtyTwoGuard)
-  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+  async googleAuthRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
 
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
-    res.cookie('jwt', accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-    });
+    
     if (two_factor_auth == false) {
-      return res.redirect(process.env.URL_LOGIN_SUCCESS)
+      res.setHeader('Access-Control-Allow-Credentials', "true")
+      res.setHeader('Access-Control-Allow-Origin', "http://localhost:5173")
+      res.status(202)
+      .cookie('jwt', accessToken, {
+        httpOnly:true,
+        domain: "localhost"
+    })
+      .redirect(process.env.URL_LOGIN_SUCCESS)
     }
     return res.redirect(process.env.URL_LOGIN_2FA)
   }
@@ -56,8 +56,7 @@ export class AuthController {
   @Get('authenticate')
   @UseGuards(JwtAuthGuard)
   async verif(@Req() req) {
-    console.log(req.headers)
-    const token = req.headers['authorization'].slice(7)
+    const token = req.cookies.jwt
     // console.log(pouet)
     // console.log("debut de verif de la route authenticate")
     // const token = ExtractJwt.fromAuthHeaderAsBearerToken()
@@ -66,7 +65,6 @@ export class AuthController {
     if (!id) {
       throw new UnauthorizedException({msg: "Invalid Token"})
     }
-    console.log("l'id qui est validate", id)
     return (this.usersService.getUserById(id));
   }
 }

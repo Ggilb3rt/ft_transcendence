@@ -30,7 +30,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
             triangleUp: toggleMatch && user.match_history != null,
             triangleDown: !toggleMatch && user.match_history != null}"
         >Match History</h1>
-        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null">
+        <div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null && user.match_history.length != 0">
             <div v-for="match in user.match_history" :key="match.opponent">
               <!-- {{ match.date.getDate()+"/"+(match.date.getMonth() + 1)+"/"+match.date.getFullYear()+" "+match.date.getHours()+":"+match.date.getMinutes()+":"+match.date.getSeconds() }} -->
                 <div :class="{win: match.win, loose:!match.win}" class="matchResume">
