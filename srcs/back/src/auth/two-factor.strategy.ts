@@ -24,7 +24,7 @@ export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStra
 
   async validate(req, payload: JwtPayload) {
 
-  console.log(payload);
+//   console.log(payload);
   const {username, id} = payload;
 
   const user = await prisma.users.findFirst({where:{id}})

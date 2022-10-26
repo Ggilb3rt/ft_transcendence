@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUpdated, onBeforeUpdate, watch } from "vue"
+import { ref, onUpdated, onBeforeUpdate, watch, onMounted } from "vue"
 import type { Ref } from "vue"
 import type { IUser, status, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
@@ -44,6 +44,7 @@ console.log(lecookie)
 
 async function testConnection() {
   try {
+    socket.emit('testConnection')
     await fetch(`http://localhost:3000/auth/verify`, {
       method: "GET",
       // mode: "cors",
@@ -90,8 +91,19 @@ async function testConnection() {
 // je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
 
 let alreadyConnect = ref<boolean>(false)
-let socket = io("http://localhost:3000/usersStatus", {autoConnect: false});
+let socket
 const statusList = ref<ISocketStatus[]>([])
+
+onBeforeUpdate(() => {
+if (userStore.user.nickname === 'ptroger') {
+  console.log("jesuis ici ptroger")
+  socket = io("http://localhost:3000/usersStatus", {autoConnect: false});
+}
+else {
+  console.log("jesuis la test")
+  socket = io("http://localhost:3000/test", {autoConnect: false})
+}
+})
 
 onBeforeUpdate(() => {
   if (userStore.connected && socket.disconnected && !alreadyConnect.value) {

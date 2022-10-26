@@ -16,11 +16,11 @@ onBeforeMount(() => {
 onMounted(async () => {
 	// setup the stores
 	try {
-    await fetch(`http://localhost:3000/auth/authenticate`, {
+    await fetch(`http://localhost:3000/auth/verify`, {
       method: "GET",
+      credentials: "include",
       headers: {
         // Accept: 'application/json',
-        credentials: "include",
 		// AccessControlAllowOrigin: "http://localhost:3000"
         // Authorization: "Bearer "
         // Cookie: document.cookie

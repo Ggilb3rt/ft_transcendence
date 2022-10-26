@@ -310,10 +310,11 @@ export class UsersService {
   async isCodeValid(code: string, id: number) {
 
     const {two_factor_secret} = await this.getUserById(id)
-    return await authenticator.verify({
+    const verify = await authenticator.verify({
       token: code,
       secret: two_factor_secret
     })
+    return verify
   }
 
   async pipeQrCodeStream (stream: Response, otpauthUrl: string) {
