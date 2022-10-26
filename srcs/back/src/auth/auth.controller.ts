@@ -14,7 +14,7 @@ export class AuthController {
     constructor (private authService: AuthService, private jwtAuthService: JwtAuthService, private usersService: UsersService) {
     }
 
-    @Post(':id/2fa')
+    @Post('/2fa')
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body('code') code: string, @Res() res: Response) {
