@@ -9,7 +9,6 @@ import UserMatchHistory from './UserMatchHistory.vue'
 import UserBasics from './UserBasics.vue';
 import Modal from '../Modal.vue';
 import type { IUser } from '@/types';
-import { mande } from 'mande';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -64,15 +63,7 @@ async function enable2FA() {
 		})
 		.then((data): Blob => {
 			console.log('data from change 2FA', data)
-
-			/// Print qr code
 			return data.blob()
-			// const fileReader = new FileReader()
-			// fileReader.onload = () => {
-			// 	const res = fileReader.result
-			// 	console.log(res)
-			// }
-			// fileReader.readAsDataURL(data.body)
 		})
 		.then((blob: Blob) => {
 			console.log("le blob de fin ", blob)

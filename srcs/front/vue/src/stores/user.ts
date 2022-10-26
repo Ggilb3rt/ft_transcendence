@@ -1,6 +1,8 @@
 import { defineStore } from "pinia"
 import type { IMatchHistory, IUser, IMatch } from '../../types'
-import { mande } from 'mande'
+import { mande, defaults } from 'mande'
+
+defaults.credentials = "include"
 
 export interface IUserStoreState {
     user: IUser

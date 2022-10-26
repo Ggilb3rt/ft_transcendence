@@ -2,7 +2,6 @@ import { defineStore } from "pinia"
 import type { Ref } from "vue"
 import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, status, ISocketStatus } from '../../types'
 import type { io, Socket } from "socket.io-client"
-// import { mande } from 'mande'
 
 export interface IUsersStoreState {
     userList: IOtherUserRestrict[]
@@ -100,8 +99,6 @@ const marcRestrict: IOtherUserRestrict = {
 
 // fin data qui doit etre fetch
 
-
-// const api = mande('http://localhost:3000/users')
 
 export const useUsersStore = defineStore({
     id: "users",

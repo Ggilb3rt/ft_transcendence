@@ -6,7 +6,7 @@ export interface IUser {
     first_name: string;
     last_name: string;
     nickname: string;
-    avatar_url: string;
+    avatar_url: string | ArrayBuffer;
     ranking: number;
     wins: number;
     loses: number;

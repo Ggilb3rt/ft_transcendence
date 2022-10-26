@@ -298,8 +298,10 @@ export class UsersService {
     const user = await this.usersHelper.getUser(id);
 
     const myWriteFile = util.promisify(writeFile)
-    const dest: string = path.join('/app/resources/', user.id.toString(), '_id.jpeg')
+    console.log("change avatar ", user.id.toString())
+    const dest: string = path.join('/app/resources/', (user.id.toString() + '_id.jpeg'))
 
+    console.log("new dest ", dest)
     await myWriteFile(dest, file.buffer, 'ascii')
     const ret = await this.usersHelper.changeAvatarUrl(id, dest);
     console.log(ret)

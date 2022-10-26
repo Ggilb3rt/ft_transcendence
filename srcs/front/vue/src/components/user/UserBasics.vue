@@ -8,10 +8,8 @@ import Loader from '../navigation/loader.vue';
 import { mande } from 'mande';
 import { file } from '@babel/types';
 
-
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-
 
 // Nickname management
 // const maxNickLength = Number(process.env.MAX_NICK_LENGTH)
@@ -124,71 +122,18 @@ async function changeImg(e: any) {
                   console.log("return data ", data)
                   const fileReader = new FileReader()
                   fileReader.readAsDataURL(img)
-                  fileReader.onload = () => userStore.user.avatar_url = fileReader.result
+                  fileReader.onload = () => {
+                    if (fileReader.result)
+                      userStore.user.avatar_url = fileReader.result
+                  }
                   usersStore.changeUserAvatar(userStore.user.id, data.url)
-                  
               }
           })
     } catch (error: any) {
         userStore.error = "changeImg avatar " + error
     }
-
-
-		// must send to server and wait his response with the server url
-    // try {
-		// 	const api = mande(`http://localhost:3000/users/${userStore.user.id}/avatar`);
-		// 	await api.post({
-		// 		file: newAvatar
-		// 	})
-		// 	.then((data) => {
-		// 		console.log('data from change avatar ', data)
-    //     // userStore.setUserAvatar(data)
-    //     // usersStore.changeUserAvatar(userStore.user.id, data)
-    //     // need to put setUserAvatar(data) and changeUserAvatar(..) here
-		// 	})
-		// } catch (error: any) {
-		// 	console.log('change avatar err', error)
-    //   userStore.error = error
-    //   // return
-		// }
-    // const servRes = "/src/assets/avatars/default.gif"
-    // update stores with new avatar_url
-    // userStore.setUserAvatar(servRes)
-    // usersStore.changeUserAvatar(userStore.user.id, servRes)
-	}
 }
-
-
-/* find on mozilla fetch page
-https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#uploading_a_file
-
-const formData = new FormData();
-const fileField = document.querySelector('input[type="file"]');
-
-formData.append('username', 'abc123');
-formData.append('avatar', fileField.files[0]);
-
-fetch('https://example.com/profile/avatar', {
-  method: 'PUT',
-  body: formData
-})
-  .then((response) => response.json())
-  .then((result) => {
-    console.log('Success:', result);
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
-
-
-
-
-*/
-
-
-
-
-
+}
 </script>
 
 <template>
