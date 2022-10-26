@@ -13,9 +13,9 @@ async function submitCode() {
       await fetch(`http://localhost:3000/auth/2fa`, {
         method: 'POST',
         credentials: "include",
-        body: {
+        body: JSON.stringify({
 			code: code.value,
-		},
+		}),
       })
           .then((response) => {
               if (response.status >= 200 && response.status < 300) {
