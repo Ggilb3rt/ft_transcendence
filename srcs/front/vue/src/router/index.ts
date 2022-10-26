@@ -117,7 +117,7 @@ router.beforeEach((to, from) => {
   if (to.name == 'success' ) {
     console.log("success route")
   }
-  if (!userStore.connected && to.name != 'login' && to.name != "2fa")
+  else if (!userStore.connected && to.name != 'login' && to.name != "2fa")
     return { name: 'login' }
   else if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
     return { name: "2fa" }

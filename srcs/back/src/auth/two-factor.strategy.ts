@@ -10,27 +10,32 @@ const prisma = new PrismaClient();
 @Injectable()
 export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStrategy') {
   constructor() {
-    const extractJwtFromCookie = () => {
-    };
-
+    const extractJwtFromCookie = (req) => {
+        let token = null;
+  
+        console.log("extractJwtfromCookie ", req.cookies)
+        if (req && req.cookies) {
+          token = req.cookies['jwt'];
+          console.log(token)
+        }
+        return token;
+      };
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: extractJwtFromCookie,
       ignoreExpiration: false,
       secretOrKey: process.env.JWT_SECRET,
-      passReqToCallback: true
     });
-    extractJwtFromCookie();
   }
 
-  async validate(req, payload: JwtPayload) {
+  async validate( payload: JwtPayload) {
 
-//   console.log(payload);
+  console.log(payload);
   const {username, id} = payload;
 
   const user = await prisma.users.findFirst({where:{id}})
   console.log("user == ", user)
-  if (!user || (req.params.id != id))
-    throw new HttpException("Invalid Token", HttpStatus.FORBIDDEN)
+  if (!user)
+    throw new HttpException("Invalid Token Here", HttpStatus.FORBIDDEN)
   return { id, username };
   }
 }

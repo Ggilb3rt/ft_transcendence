@@ -18,8 +18,10 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body('code') code: string, @Res() res: Response) {
-      const {id, username} = this.jwtAuthService.validate(req.cookies.jwt).validate
-      const isCodeValid = this.usersService.isCodeValid(code, id)
+      console.log("req.body", req.body)
+      console.log()
+      const {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+      const isCodeValid = await this.usersService.isCodeValid(code, id)
       if (!isCodeValid) {
         throw new UnauthorizedException('Wrong authentication code');
       }
