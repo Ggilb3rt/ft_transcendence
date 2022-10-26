@@ -21,14 +21,14 @@ export default {
   },
   created() {
     this.socket = io("http://localhost:3000/game");
-
+    
     this.socket.on("init", this.handleInit);
     this.socket.on("gameCode", this.handleGameCode);
     this.socket.on("unknownGame", this.handleUnknownGame);
     this.socket.on("disconnected", this.handleDisconnected);
     this.socket.on("quitGame", this.handleQuitGame);
-    this.socket.on("totalPlayers", this.handleTotalPlayers);
     this.socket.on("newGame", this.handleNewGame);
+    this.socket.on("createNewGame", this.handleCreateNewGame);
   },
   unmounted() {
     this.socket.close();
@@ -45,12 +45,6 @@ export default {
         this.startGame = true;
       }
     },
-    handleTotalPlayers(number) {
-      this.totalPlayers = number;
-      if (this.totalPlayers === 2) {
-        this.startGame = true;
-      }
-    },
     handleGameCode(gameCode) {
       this.gameCode = gameCode;
       this.$refs.gameCodeDisplay.innerText = gameCode;
@@ -62,10 +56,10 @@ export default {
       this.$refs.gameCodeDisplay.innerText = "";
       alert("Unknown game code");
     },
-    joinGame() {
+    watchGame() {
       const code = this.gameCode;
       this.quit = false;
-      this.socket.emit("joinGame", code);
+      this.socket.emit("watchGame", code);
       this.gameActive = true;
     },
     handleDisconnected() {
@@ -79,9 +73,6 @@ export default {
       this.gameCode = "";
       this.$refs.gameCodeDisplay.innerText = "";
       //this.reset();
-      this.socket.close();
-      //alert("You have been disconnected !");
-      this.socket.delete("http://localhost:3000/game"); // ?????
     },
     quitGame() {
       this.socket.emit("quitGame", {
@@ -111,6 +102,23 @@ export default {
       console.log("START GAME");
       this.startGame = true;
     },
+    createNewGame(level) {
+      console.log("Creating new game level ", level);
+      this.level = level;
+      this.quit = false;
+      this.socket.emit("createNewGame", { level: level });
+      this.gameActive = true;
+    },
+    handleCreateNewGame(gameCode) {
+        this.gameCode = gameCode.gameCode;
+        console.log("handle create new room " + gameCode.gameCode);
+    },
+    joinGameInvite() {
+        console.log("Joining room invite");
+        this.socket.emit("joinGame", { gameCode: this.gameCode });
+        this.quit = false;
+        this.gameActive = true;
+    }
   },
 };
 </script>
@@ -122,7 +130,7 @@ export default {
     <button type="submit" @click.prevent="newGame(1)">LEVEL 1</button>
     <button type="submit" @click.prevent="newGame(2)">LEVEL 2</button>
     <button type="submit" @click.prevent="newGame(3)">LEVEL 3</button>
-    <div>OR</div>
+    <h2>OR WATCH SPECIFIC GAME</h2>
     <div class="form-group">
       <input
         ref="gameCodeDisplay"
@@ -130,7 +138,21 @@ export default {
         type="text"
         placeholder="Enter Game Code"
       />
-      <button type="submit" @click.prevent="joinGame">Join Game</button>
+      <button type="submit" @click.prevent="watchGame">Watch Game</button>
+    </div>
+    <h2>OR CREATE NEW GAME (BEFORE INVITE)</h2>
+    <button type="submit" @click.prevent="createNewGame(1)">LEVEL 1</button>
+    <button type="submit" @click.prevent="createNewGame(2)">LEVEL 2</button>
+    <button type="submit" @click.prevent="createNewGame(3)">LEVEL 3</button>
+    <h2>OR JOIN NEW GAME (AFTER INVITE)</h2>
+    <div class="form-group">
+      <input
+        ref="gameCodeDisplay"
+        v-model="gameCode"
+        type="text"
+        placeholder="Enter Game Code"
+      />
+      <button type="submit" @click.prevent="joinGameInvite">Join Game</button>
     </div>
   </div>
 
@@ -154,16 +176,15 @@ export default {
 
 <style>
 #game {
-    width: 50vw;
-    height: 100vh;
-    place-items: center;
-
+  width: 50vw;
+  height: 100vh;
+  place-items: center;
 }
 
-@media screen /*and (max-width: 1000px)*/ {
-    #game {
-        width: 100vw;
-        height: 50vh;
-    }
+@media screen /*and (max-width: 1000px) */ {
+  #game {
+    width: 100vw;
+    height: 50vh;
+  }
 }
 </style>

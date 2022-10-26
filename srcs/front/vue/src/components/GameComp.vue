@@ -499,12 +499,12 @@ function handleGameResult() {
 </script>
 
 <template>
-  <!-- <p>Player number : {{ props.playerNumber }}</p>
+<p>Player number : {{ props.playerNumber }}</p>
   <p>Start Game : {{ this.startGame }}</p>
   <p>Game Code : {{ this.gameCode }}</p>
   <p>Level : {{ this.level }}</p>
   <p>Spectator : {{ props.spectator }}</p>
-  <p>Quit : {{ props.quit }}</p>-->
+  <p>Quit : {{ props.quit }}</p>
   <!-- <Suspense> -->
   <!-- <div v-if="props.startGame" :id="containerId" /> -->
   <!-- <div v-show="props.gameActive"> -->

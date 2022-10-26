@@ -30,6 +30,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @WebSocketServer() server: Server;
 
     afterInit(server: Server) {
+
         this.logger.log('Initialized');
     }
 
@@ -43,14 +44,24 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleConnection(client, this.server);
     }
 
-    @SubscribeMessage('newGame')
+   @SubscribeMessage('newGame')
     handleNewGame(client: Socket, data: any) {
         this.gameService.handleNewGame(client, data.level, this.server);
+    }
+
+    @SubscribeMessage('createNewGame')
+    handleCreateNewGame(client: Socket, data: any) {
+        this.gameService.handleCreateNewGame(client, data, this.server);
     }
 
     @SubscribeMessage('joinGame')
     handleJoinGame(client: Socket, gameCode: string) {
         this.gameService.handleJoinGame(client, gameCode, this.server);
+    }
+
+    @SubscribeMessage('watchGame')
+    handleWatchGame(client: Socket, gameCode: string) {
+        this.gameService.handleWatchGame(client, gameCode, this.server);
     }
 
     @SubscribeMessage('initGame')

@@ -8,9 +8,6 @@ import { Ball, Player } from "./classes";
 
 @Injectable()
 export class GameService {
-    private clientRooms = {};
-    private state = {};
-
     private waitingRoom1 = {
         level: 1,
         status: "empty",
@@ -62,6 +59,7 @@ export class GameService {
 
     private activeGames = {};
     private players = {};
+    private privateRooms = {};
 
     handleConnection(client: Socket, server: Server) {
         this.players[client.id] = {
@@ -74,7 +72,7 @@ export class GameService {
 
     }
 
-    async handleNewGame(client: Socket, level: any, server: Server) {
+    handleNewGame(client: Socket, level: any, server: Server) {
 
         let player = this.players[client.id];
         this.players[client.id].level = level;
@@ -129,10 +127,59 @@ export class GameService {
 
     }
 
+    handleCreateNewGame(client: Socket, data: any, server: Server) { 
+        let privateRoomId = this.makeid(5);
+        if (this.players[client.id] !== null) {
+            this.players[client.id] = {
+                id: client.id,
+                socket: client,
+                roomId: privateRoomId,
+                level: data.level,
+                spectator: false,
+            }
+        }
+        this.privateRooms[privateRoomId] = {
+            playerOne: this.players[client.id],
+            level: data.level
+        }
+        client.emit('createNewGame', { gameCode: privateRoomId });
+    }
+
+    handleJoinGame(client: Socket, data: any, server: Server) {
+
+        if (this.players[client.id] !== null) {
+            this.players[client.id] = {
+                id: client.id,
+                socket: client,
+                roomId: data.gameCode,
+                level: 0,
+                spectator: false,
+            }
+        }
+
+        if (this.privateRooms[data.gameCode]) {
+            if (this.activeGames[data.gameCode].playerTwo === null) {
+                console.log("TWO PLAYERS ALREADY PLAYING");
+                return;
+            } 
+            this.players[client.id].level = this.privateRooms[data.gameCode].playerOne.level;
+            this.privateRooms[data.gameCode].playerTwo = this.players[client.id];
+            this.activeGames[data.gameCode] = {
+                playerOne: this.privateRooms[data.gameCode].playerOne,
+                playerTwo: this.players[client.id],
+                level: this.players[client.id].level
+            }
+            console.log("NEW ROOM");
+            console.log(this.activeGames[data.gameCode]);
+            this.initGame(data.gameCode, server);
+        }
+    }
+
 
     initGame(roomId: any, server: Server) {
 
         let gameRoom = this.activeGames[roomId];
+        console.log("GAME ROOM ", gameRoom);
         let playerOne = gameRoom.playerOne.socket;
         let playerTwo = gameRoom.playerTwo.socket;
 
@@ -188,11 +235,8 @@ export class GameService {
     }
 
     handleInitGame(client: Socket, gameCode: any, server: Server) {
-        console.log(gameCode);
-        
         const state = this.activeGames[gameCode].state;
-        console.log(state);
-        
+
         if (this.players[client.id].spectator === true) {
             console.log("STATE SPECTATOR");
             console.log(state);
@@ -202,7 +246,7 @@ export class GameService {
     }
 
     handleLaunchBall(client: Socket, gameCode: any, server: Server) {
-        if (this.players[client.id].spectator === false) {
+        if (this.players[client.id].spectator === false && gameCode !== null) {
             const state = this.activeGames[gameCode].state;
             this.setBallState(state.ball);
             server.to(gameCode).emit("launchBall", { state });
@@ -223,7 +267,7 @@ export class GameService {
         return result;
     }
 
-    async handleJoinGame(client: Socket, gameCode: string, server: Server) {
+    async handleWatchGame(client: Socket, gameCode: string, server: Server) {
         const room = gameCode;
         if (!this.activeGames[room]) {
             client.emit("unknownGame");
@@ -238,7 +282,6 @@ export class GameService {
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-
         let roomId = this.players[client.id].roomId;
         let level = this.players[client.id].level;
 
@@ -250,7 +293,6 @@ export class GameService {
             return;
         }
 
-        console.log(level)
         let waitingRoom;
         if (level === 1) {
             console.log("level1");
@@ -289,6 +331,7 @@ export class GameService {
             console.log("CONNECTED " + sockets.length);
         }
         Reflect.deleteProperty(this.activeGames, roomId);
+        Reflect.deleteProperty(this.privateRooms, roomId);
         Reflect.deleteProperty(this.players, client.id);
     }
 
@@ -346,6 +389,7 @@ export class GameService {
         }
         this.players[client.id].roomId = "";
         this.players[client.id].level = 0;
+        Reflect.deleteProperty(this.privateRooms, roomId);
     }
 
     handleMovePlayer(client: Socket, data: any, server: Server) {
@@ -353,7 +397,7 @@ export class GameService {
     }
 
     handleAddPoint(client: Socket, gameCode: any, player: number, server: Server) {
-        if (this.players[client.id].spectator === false) {
+        if (this.players[client.id].spectator === false && gameCode !== null) {
             let score = ++this.activeGames[gameCode].state.players[player - 1].match_score;
             if (score === 11) {
                 server.to(gameCode).emit('gameResult', { winner: player });
