@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Res, Post, HttpCode, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, Post, HttpCode, Body, UnauthorizedException, ParseArrayPipe } from '@nestjs/common';
 import { FourtyTwoGuard } from './auth.guard';
 import { Request, Response } from 'express';
 import { JwtAuthService } from '../jwt-auth/jwt-auth.service';
@@ -18,13 +18,15 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body('code') code: string, @Res() res: Response) {
-      console.log("req.body", req.body)
-      console.log()
-      const {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+      console.log("debut 2fa; code: ", code)
+      let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+      console.log("id and username valides ", id, username)
       const isCodeValid = await this.usersService.isCodeValid(code, id)
+      console.log("code is valide ?", code, isCodeValid)
       if (!isCodeValid) {
         throw new UnauthorizedException('Wrong authentication code');
       }
+      username = "ggilbert"
       const { accessToken } = await this.jwtAuthService.login({id, username}, true)
       const expires = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
       res.cookie("jwt", accessToken, {expires});
