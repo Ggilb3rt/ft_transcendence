@@ -77,9 +77,11 @@ export default {
       this.quit = true;
       this.playerNumber = null;
       this.gameCode = "";
-	  console.log("innertext");
-	  console.log(this.$refs.gameCodeDisplay.innerText);
       this.$refs.gameCodeDisplay.innerText = "";
+      //this.reset();
+      this.socket.close();
+      //alert("You have been disconnected !");
+      this.socket.delete("http://localhost:3000/game"); // ?????
     },
     quitGame() {
       this.socket.emit("quitGame", {
@@ -95,8 +97,6 @@ export default {
       this.quit = true;
       this.playerNumber = null;
       this.gameCode = "";
-	  console.log("innertext");
-	  console.log(this.$refs.gameCodeDisplay.innerText);
       this.$refs.gameCodeDisplay.innerText = "";
       console.log(msg);
     },
@@ -124,25 +124,46 @@ export default {
     <button type="submit" @click.prevent="newGame(3)">LEVEL 3</button>
     <div>OR</div>
     <div class="form-group">
-      <input ref="gameCodeDisplay" v-model="gameCode" type="text" placeholder="Enter Game Code" />
+      <input
+        ref="gameCodeDisplay"
+        v-model="gameCode"
+        type="text"
+        placeholder="Enter Game Code"
+      />
       <button type="submit" @click.prevent="joinGame">Join Game</button>
     </div>
   </div>
 
   <div v-show="gameActive">
     <h1>THE GAME</h1>
-    <GameComp
-      :socket="this.socket"
-      :playerNumber="this.playerNumber"
-      :startGame="this.startGame"
-      :gameCode="this.gameCode"
-      :gameActive="this.gameActive"
-      :quit="this.quit"
-      :level="this.level"
-      :spectator="this.spectator"
-    />
+    <div id="game">
+      <GameComp
+        :socket="this.socket"
+        :playerNumber="this.playerNumber"
+        :startGame="this.startGame"
+        :gameCode="this.gameCode"
+        :gameActive="this.gameActive"
+        :quit="this.quit"
+        :level="this.level"
+        :spectator="this.spectator"
+      />
+    </div>
     <button type="submit" @click.prevent="quitGame">Quit</button>
   </div>
 </template>
 
-<style></style>
+<style>
+#game {
+    width: 50vw;
+    height: 100vh;
+    place-items: center;
+
+}
+
+@media screen /*and (max-width: 1000px)*/ {
+    #game {
+        width: 100vw;
+        height: 50vh;
+    }
+}
+</style>

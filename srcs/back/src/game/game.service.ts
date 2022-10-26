@@ -71,6 +71,7 @@ export class GameService {
             level: 0,
             spectator: false,
         }
+
     }
 
     async handleNewGame(client: Socket, level: any, server: Server) {
@@ -181,10 +182,8 @@ export class GameService {
 
     setPlayerState(players) {
         // if DEFAULT GAME
-        //players[0].speed = DEFAULT_PADDLE_SPEED;
-        //players[1].speed = DEFAULT_PADDLE_SPEED;
-        players[0].speed = 500;
-        players[1].speed = 500;
+        players[0].speed = DEFAULT_PADDLE_SPEED;
+        players[1].speed = DEFAULT_PADDLE_SPEED;
 
     }
 

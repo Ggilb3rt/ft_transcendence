@@ -1,8 +1,14 @@
 <script setup="ts">
-import { onMounted, onUnmounted, onUpdated, ref } from "vue";
+import { onMounted, onUnmounted, onUpdated, ref, getCurrentInstance } from "vue";
 import Phaser from "phaser";
 import ballImage from "@/assets/game/ball.png";
-import paddleImage from "@/assets/game/paddle.png";
+import paddleImage from "@/assets/game/paddle2.png";
+import bomb from "@/assets/game/bomb.png";
+import middleLine from "@/assets/game/middleLine.png";
+//import Boot from "./game/scenes/Boot";
+//import Preloader from "./game/scenes/Preloader";
+//import Menu from "./game/scenes/Menu";
+//import LevelOne from "./game/scenes/LevelOne";
 
 const props = defineProps({
   socket: Object,
@@ -30,9 +36,9 @@ onUpdated(() => {
     gameState.activeGame = false;
     gameState.endGame = false;
     gameState.upToDate = false;
-    (gameState.playerOneScore = 0),
-      (gameState.playerTwoScore = 0),
-      (gameInstance = launch(containerId));
+    gameState.playerOneScore = 0;
+    gameState.playerTwoScore = 0;
+    gameInstance = launch(containerId);
   }
   if (props.quit === true) {
     if (gameInstance) {
@@ -54,14 +60,15 @@ onUnmounted(() => {
 function launch(containerId) {
   return new Phaser.Game({
     type: Phaser.AUTO,
-	width: 800,
-	height: 640,
-	parent: containerId,
+    parent: containerId,
+    //width: 1400,
+    //height: 900,
+    width: 1400,
+    height: 900,
+    //backgroundColor: "#2dab2d",
     scale: {
-		//width: '100%',
-		//height: '100%',
-    	//mode: Phaser.Scale.FIT,
-       autoCenter: Phaser.Scale.CENTER_BOTH,
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
       default: "arcade",
@@ -105,6 +112,8 @@ function preload() {
   this.load.image("ball", ballImage);
   this.load.image("paddle", paddleImage);
   this.load.image("opponentPaddle", paddleImage);
+  this.load.image("bomb", bomb);
+  this.load.image("middleLine", middleLine);
 }
 
 function create() {
@@ -123,6 +132,12 @@ function create() {
 }
 
 function update() {
+  if (props.level === 2 && gameState.upToDate === false) {
+    console.log(props.level);
+    gameState.ball.setTexture("bomb");
+    gameState.ball.setScale(3);
+    gameState.upToDate === true;
+  }
   if (gameState.endGame) {
     gameState.playerOne.body.setVelocityY(0);
     gameState.playerTwo.body.setVelocityY(0);
@@ -158,6 +173,15 @@ function createGameObjects(game) {
   gameState.worldWidth = game.physics.world.bounds.width;
   gameState.worldHeight = game.physics.world.bounds.height;
 
+  // Create middle line
+  let middleLine = game.physics.add.image(
+    game.physics.world.bounds.width / 2,
+    game.physics.world.bounds.height / 2,
+    "middleLine"
+  );
+  //middleLine.setScale(.5);
+  middleLine.scaleY = middleLine.scaleX;
+
   // Create and add BALL
   gameState.ball = game.physics.add.sprite(
     game.physics.world.bounds.width / 2,
@@ -168,6 +192,7 @@ function createGameObjects(game) {
   gameState.ball.setBounce(1, 1);
   gameState.ballWidth = gameState.ball.body.width;
   gameState.ballHeight = gameState.ball.body.height;
+  gameState.ball.scaleY = gameState.ball.scaleX;
 
   // Create and add PLAYER 1
   gameState.playerOne = game.physics.add.sprite(
@@ -178,6 +203,9 @@ function createGameObjects(game) {
   gameState.playerOne.setCollideWorldBounds(true);
   gameState.playerOne.setImmovable(true);
   gameState.playerOne.setInteractive();
+  //gameState.playerOne.displayWidth = 0;
+  //gameState.playerOne.setScale(.5);
+  gameState.playerOne.scaleY = gameState.playerOne.scaleX;
 
   // Create and add PLAYER 2
   gameState.playerTwo = game.physics.add.sprite(
@@ -188,6 +216,9 @@ function createGameObjects(game) {
   gameState.playerTwo.setCollideWorldBounds(true);
   gameState.playerTwo.setImmovable(true);
   gameState.playerTwo.setInteractive();
+  //gameState.playerTwo.displayWidth = 0;
+  //gameState.playerTwo.setScale(.5);
+  gameState.playerTwo.scaleY = gameState.playerTwo.scaleX;
 
   // Init collision between ball and paddles
   game.physics.add.collider(gameState.ball, gameState.playerOne);
@@ -214,8 +245,8 @@ function startDrag2(pointer, target) {
 }
 
 function doDrag1(pointer) {
-    if (props.playerNumber === 1 && gameState.activeGame) {
-        gameState.playerOne.y = pointer.y;
+  if (props.playerNumber === 1 && gameState.activeGame) {
+    gameState.playerOne.y = pointer.y;
     props.socket.emit("movePlayer", {
       gameCode: props.gameCode,
       playerNumber: props.playerNumber,
@@ -225,8 +256,8 @@ function doDrag1(pointer) {
 }
 
 function doDrag2(pointer) {
-    if (props.playerNumber === 2 && gameState.activeGame) {
-       gameState.playerTwo.y = pointer.y;
+  if (props.playerNumber === 2 && gameState.activeGame) {
+    gameState.playerTwo.y = pointer.y;
     props.socket.emit("movePlayer", {
       gameCode: props.gameCode,
       playerNumber: props.playerNumber,
@@ -266,7 +297,8 @@ function checkPoints() {
       gameState.activeGame = false;
       props.socket.emit("addPoint", { gameCode: props.gameCode, player: 2 });
     }
-    if (gameState.ball.body.x > gameState.playerTwo.body.x) {
+    if (gameState.ball.x > gameState.playerTwo.body.x) {
+      console.log("POINT");
       gameState.activeGame = false;
       props.socket.emit("addPoint", { gameCode: props.gameCode, player: 1 });
     }
@@ -318,15 +350,6 @@ function destroyGameObjects(game) {
   gameState.playerOne.destroy();
   gameState.playerTwo.destroy();
 }
-/*
-function handleRematch(game) {
-  props.socket.on("reMatch", () => {
-    console.log("rematch handler");
-    destroyGameObjects(game);
-    createGameObjects(game);
-    gameState.isGameStarted = false;
-  });
-}*/
 
 function handleQuit(game) {
   if (props.quit) {
@@ -344,12 +367,8 @@ function handleInitGame() {
       launchBall();
     }
     if (props.playerNumber === 3) {
-      gameState.playerOneScoreText.setText(
-        "Player 1: " + gameState.playerOneScore
-      );
-      gameState.playerTwoScoreText.setText(
-        "Player 2: " + gameState.playerTwoScore
-      );
+      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
+      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
     }
   });
 }
@@ -375,45 +394,42 @@ function handleAddPoint(game) {
   props.socket.on("addPoint", ({ playerNumber, score }) => {
     if (playerNumber === 1) {
       gameState.playerOneScore = score;
-      gameState.playerOneScoreText.setText(
-        "Player 1: " + gameState.playerOneScore
-      );
+      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
     } else if (playerNumber === 2) {
       gameState.playerTwoScore = score;
-      gameState.playerTwoScoreText.setText(
-        "Player 2: " + gameState.playerTwoScore
-      );
+      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
     }
-    //f (props.playerNumber === 1) {
     gameState.ball.x = gameState.worldWidth / 2;
     gameState.ball.y = gameState.worldHeight / 2;
     gameState.playerOne.y = gameState.worldHeight / 2;
     gameState.playerTwo.y = gameState.worldHeight / 2;
-    //}//if (props.playerNumber === 1) {
     launchBall(game);
-    // }
-    //}
   });
 }
 
 function createScoreObjects(game) {
   // Init SCORE TEXT player 1
   gameState.playerOneScoreText = game.add.text(
-    100,
-    10,
-    "Player 1: " + gameState.playerOneScore
+    200,
+    50,
+    "PLAYER 1: " + gameState.playerOneScore
   );
   gameState.playerOneScoreText.setVisible(true);
   gameState.playerOneScoreText.setOrigin(0.5);
+  gameState.playerOneScoreText.displayWidth = 250;
+  gameState.playerOneScoreText.scaleY = gameState.playerOneScoreText.scaleX;
 
   // Init SCORE TEXT player 2
   gameState.playerTwoScoreText = game.add.text(
-    game.physics.world.bounds.width - 100,
-    10,
-    "Player 2: " + gameState.playerTwoScore
+    game.physics.world.bounds.width - 200,
+    50,
+    "PLAYER 2: " + gameState.playerTwoScore
   );
   gameState.playerTwoScoreText.setVisible(true);
   gameState.playerTwoScoreText.setOrigin(0.5);
+  //gameState.playerTwoScoreText.setScale(2);
+  gameState.playerTwoScoreText.displayWidth = 250;
+  gameState.playerTwoScoreText.scaleY = gameState.playerTwoScoreText.scaleX;
 
   // Init VICTORY TEXT player 1
   gameState.playerOneVictoryText = game.add.text(
@@ -469,16 +485,12 @@ function handleGameResult() {
     gameState.activeGame = false;
     if (winner === 1) {
       ++gameState.playerOneScore;
-      gameState.playerOneScoreText.setText(
-        "Player 1: " + gameState.playerOneScore
-      );
+      gameState.playerOneScoreText.setText("Player 1: " + gameState.playerOneScore);
       gameState.playerOneVictoryText.setVisible(true);
       gameState.activeGame = false;
     } else {
       ++gameState.playerTwoScore;
-      gameState.playerTwoScoreText.setText(
-        "Player 2: " + gameState.playerTwoScore
-      );
+      gameState.playerTwoScoreText.setText("Player 2: " + gameState.playerTwoScore);
       gameState.playerTwoVictoryText.setVisible(true);
       gameState.activeGame = false;
     }
@@ -487,19 +499,19 @@ function handleGameResult() {
 </script>
 
 <template>
-  <p>Player number : {{ props.playerNumber }}</p>
+  <!-- <p>Player number : {{ props.playerNumber }}</p>
   <p>Start Game : {{ this.startGame }}</p>
   <p>Game Code : {{ this.gameCode }}</p>
   <p>Level : {{ this.level }}</p>
   <p>Spectator : {{ props.spectator }}</p>
+  <p>Quit : {{ props.quit }}</p>-->
   <!-- <Suspense> -->
   <!-- <div v-if="props.startGame" :id="containerId" /> -->
-  <div v-show="props.gameActive">
-  	<div :id="containerId"></div>
+  <!-- <div v-show="props.gameActive"> -->
+  <div :id="containerId" />
   <!-- </div> -->
   <!-- <template #fallback>  -->
-  	<!-- <div class="placeholder" v-else>Downloading...</div> -->
-  </div>
+  <!-- <div class="placeholder">Downloading...</div> -->
   <!-- </template> -->
   <!-- </Suspense> -->
 </template>

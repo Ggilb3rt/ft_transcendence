@@ -8,7 +8,7 @@ COPY webpack-hmr.config.js /app/
 FROM start AS dev-installation
 
 RUN npm install
-RUN npm install @nestjs/websockets @nestjs/platform-socket.io
+#RUN npm install @nestjs/websockets @nestjs/platform-socket.io
 
 FROM dev-installation AS dev
 
