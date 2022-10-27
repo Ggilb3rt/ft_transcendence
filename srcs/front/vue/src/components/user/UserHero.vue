@@ -1,122 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user';
-import { useUsersStore } from '@/stores/users';
 import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
 import UserBasics from './UserBasics.vue';
-import Modal from '../Modal.vue';
-import type { IUser } from '@/types';
+import User2FAManagement from './User2FAManagement.vue';
 
 const userStore = useUserStore()
-const usersStore = useUsersStore()
-
-// edit system
-/*
-if route id == user id && verifyConnected
-change p.heroName p.heroTag img.heroAvatar by input with data
-		when validate changes 
-		send post request with all data (not only the changed => easyer)
-		if response OK
-					update the local pinia store
-					*/
-					
-/*
------------------------------------------------------------------
-|		Si pas moi			||			Si moi					|
-|----------------------------------------------------------------
-|	btn de demande d'ami	||	liste des demandes en attentes	|
-|	btn bloquer				||	btn du mode édition				|
-|	0						||	btn 2FA							|
------------------------------------------------------------------
-
-
-*/
-
-const twoFA_QR = ref("")
-const showQr = ref(false)
-const disable2FACode = ref("")
-
-async function enable2FA() {
-	// send to server
-	try {
-		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
-			method: 'POST',
-			headers: {
-				// 'Accept': 'application/json',
-				'Content-Type': 'application/json'
-			},
-			mode: "cors",
-			credentials: "include",
-			body: JSON.stringify({
-				status: !userStore.user.two_factor_auth,
-			})
-		})
-		.then((response) => {
-			if (response.status >= 200 && response.status < 300) {
-				console.log(response)
-				return response
-			}
-			throw new Error(response.statusText)
-		})
-		.then((data): Blob => {
-			console.log('data from change 2FA', data)
-			return data.blob()
-		})
-		.then((blob: Blob) => {
-			console.log("le blob de fin ", blob)
-			twoFA_QR.value = URL.createObjectURL(blob)
-			showQr.value = true
-		})
-	} catch (error: any) {
-		console.log('change 2FA err', error)
-		userStore.error = error
-		// return
-	} finally {
-		console.log("j'aimerai changer le store svp")
-		userStore.change2FA()
-		userStore.set2FA(!userStore.twoFactorAuth)
-	}
-}
-
-async function disable2FA() {
-	try {
-		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
-			method: 'POST',
-			headers: {
-				// 'Accept': 'application/json',
-				'Content-Type': 'application/json'
-			},
-			mode: "cors",
-			credentials: "include",
-			body: JSON.stringify({
-				status: !userStore.user.two_factor_auth,
-				code: disable2FACode.value
-			})
-		})
-		.then((response) => {
-			if (response.status >= 200 && response.status < 300) {
-				console.log(response)
-				return response.json
-			}
-			throw new Error(response.statusText)
-		})
-		.then((data) => {
-			console.log('disable 2FA data ', data)
-
-		})
-	} catch (error: any) {
-		console.log('change 2FA err', error)
-		userStore.error = error
-		// return
-	} finally {
-		console.log("j'aimerai changer le store svp")
-		userStore.change2FA()
-		userStore.set2FA(!userStore.twoFactorAuth)
-	}
-}
 
 </script>
 
@@ -137,25 +27,7 @@ async function disable2FA() {
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends" canEdit></UserList>
 		<UserList title="Ban" :user="userStore.user" :list="userStore.user.bans" canEdit></UserList>
 		
-		<div class="security">
-			<h1>Security</h1>
-			<p>Use two factor auth</p>
-			<div v-if="userStore.user.two_factor_auth">
-				<button @click="disable2FA()" >Enable</button>
-				<input type="text" v-model="disable2FACode">
-				{{ disable2FACode }}
-			</div>
-			<button @click="enable2FA()" v-else>Disable</button>
-			<modal :show="showQr" @click="showQr = false">
-				<template #header>
-					<h2>Scan with google authenticator</h2>
-				</template>
-				<template #body>
-					<img :src="twoFA_QR" alt="AuthQRcode" v-if="twoFA_QR != ''">
-				</template>
-			</modal>
-			
-		</div>
+		<User2FAManagement></User2FAManagement>
 	</div>
 </template>
 
@@ -175,12 +47,13 @@ async function disable2FA() {
 }
 
 .heroCard .heroAvatar {
-	max-width: 100%;
+	max-width: 500px;
+	width: 100%;
 	border-radius: 10px;
 }
 
 .heroCard .heroFigure {
-	max-width: 60%;
+	max-width: 100%;
 	border-radius: 10px;
 	overflow: hidden;
 }
@@ -236,13 +109,13 @@ async function disable2FA() {
 		flex-direction: row;
 	}
 	.heroCard .heroFigure {
-		max-width: 40%;
+		max-width: 60%;
 	}
 }
 
 @media screen and (min-width: 1024px) {
 	.heroCard .heroFigure {
-		max-width: 20%;
+		max-width: 50%;
 	}
 }
 

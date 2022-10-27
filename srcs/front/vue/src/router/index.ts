@@ -23,6 +23,15 @@ function goToDisconnect() {
     return ( {name: "home"} )
 }
 
+function isConnectionOk(to: any, from: any) {
+  const userStore = useUserStore()
+
+  if (to.name == 'success' && userStore.connected && (from.name == "2fa" && userStore.twoFactorAuth) )
+    console.log("success route")
+  else
+    return ( {name: "login"} )
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -40,7 +49,8 @@ const router = createRouter({
     {
       path: "/success",
       name: "success",
-      component: Success
+      component: Success,
+      // beforeEnter: [isConnectionOk]
     },
     {
       path: "/2fa",
@@ -114,7 +124,18 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   const userStore = useUserStore()
 
-  if (to.name == 'success' ) {
+
+  if (to.name == "success") {
+    // 2FA activé
+      // server redirect to 2FA
+    if (from.name == "2fa" && userStore.twoFactorAuth)
+      console.log("success from 2fa")
+    // 2FA desactive
+      // server redirect to success
+    else if (from.name != "2fa")
+      console.log("success without 2FA")
+  }
+  else if (to.name == 'success' && userStore.connected && (from.name == "2fa" && userStore.twoFactorAuth) ) {
     console.log("success route")
   }
   else if (!userStore.connected && to.name != 'login' && to.name != "2fa")

@@ -1,33 +1,39 @@
 <script setup lang="ts">
-	import { ref } from 'vue'
-	
-	let winWidth = ref(window.innerWidth)
-	const props = defineProps({
-		model: {type: [Object], required: true},
-		onRight: {type: Boolean, required: true}
-	})
+import { onUnmounted, ref } from 'vue'
 
-	function isOpen(index: number) {
-		return props.model.items[index].isOpen
-	}
-	function isFolder(index: number) {
-		return props.model.items[index].children && props.model.items[index].children.length
-	}
-	function toggle(index: number) {
-		props.model.items[index].isOpen = !props.model.items[index].isOpen
-	}
 
-	window.addEventListener('resize', (e) => {
-		winWidth.value = window.innerWidth
-		if (winWidth.value >= 768)
-			props.model.isOpen = true
-		else
-			props.model.isOpen = false
-	});
+//! Need big change :: set addEventlistener to onBeforeMount and add removeEventListener to onUnMounted
+
+
+let winWidth = ref(window.innerWidth)
+const props = defineProps({
+	model: {type: [Object], required: true},
+	onRight: {type: Boolean, required: true}
+})
+
+function isOpen(index: number) {
+	return props.model.items[index].isOpen
+}
+function isFolder(index: number) {
+	return props.model.items[index].children && props.model.items[index].children.length
+}
+function toggle(index: number) {
+	props.model.items[index].isOpen = !props.model.items[index].isOpen
+}
+
+window.addEventListener('resize', (e) => {
+	winWidth.value = window.innerWidth
 	if (winWidth.value >= 768)
 		props.model.isOpen = true
 	else
 		props.model.isOpen = false
+});
+// check on start
+if (winWidth.value >= 768)
+	props.model.isOpen = true
+else
+	props.model.isOpen = false
+
 </script>
 
 <template>

@@ -1,17 +1,11 @@
 <script setup lang="ts">
-// import { storeToRefs } from 'pinia';
-// import { useUserStore } from '../stores/user';
 import type { IUser, IOtherUser} from '@/types'
-
 
 const props = defineProps<{
 	user: IUser | IOtherUser,
   userRank: string,
   userWinRate: string
 }>()
-
-// const userStore = useUserStore()
-// const { getUserLevel } = useUserStore()
 
 </script>
 

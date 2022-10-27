@@ -14,8 +14,7 @@ export interface IUserStoreState {
 
 export const useUserStore = defineStore({
     id: "user",
-    state: () => ({
-        neededId: 1 as Number,
+    state: (): IUserStoreState => ({
         user: {} as IUser,
         loading: false,
         error: null,

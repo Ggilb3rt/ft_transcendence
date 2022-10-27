@@ -1,44 +1,19 @@
 <script setup lang="ts">
-import { ref, onUpdated, onBeforeUpdate, watch, onMounted } from "vue"
-import type { Ref } from "vue"
-import type { IUser, status, ISocketStatus } from "../types"
+import { ref, onBeforeUpdate, watch } from "vue"
+import type { status, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
-import { useUsersStore } from './stores/users';
-import { useUserStore } from './stores/user';
-// import HelloWorld from "./components/HelloWorld.vue";
-import PrimaryNav from "./components/navigation/PrimaryNav.vue";
-import Footer from "./components/Footer.vue";
 import { io } from "socket.io-client"
 
+import { useUsersStore } from './stores/users';
+import { useUserStore } from './stores/user';
+
+import PrimaryNav from "./components/navigation/PrimaryNav.vue";
+import ErrorPopUp from "./components/ErrorPopUp.vue";
 
 const userStore = useUserStore()
 const users = useUsersStore()
 const route = useRoute()
-
-
-
-function getCookie(cname: string) {
-  let name = cname + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';');
-  for(let i = 0; i <ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == ' ') {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
-    }
-  }
-  return "";
-}
-
-
-const lecookie = getCookie("jwt")
-console.log(lecookie)
-// if (lecookie != "")
-//   userStore.connected = true
 
 
 
@@ -80,8 +55,8 @@ async function testConnection() {
   }
 }
 
-// if (lecookie && lecookie != "")
-  testConnection()
+// if (userStore.connected)
+//   testConnection()
 
 
 // Socket Status
@@ -186,13 +161,14 @@ watch(route, (newRoute) => {
 })
 
 
-// if user is connected put user store on localStorage and getUsers again
 
 </script>
 
 <template>
   <main>
-    <header v-if="router.currentRoute.value.path != '/login'">
+    <ErrorPopUp></ErrorPopUp>
+
+    <header v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'">
       <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
       <PrimaryNav></PrimaryNav>
     </header>

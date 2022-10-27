@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
 import UserLink from './UserLink.vue';
-import type { IUser, IOtherUserRestrict } from '@/types';
+import type { IOtherUserRestrict } from '@/types';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -13,9 +11,6 @@ function resInvite(sayYes: boolean, id: number) {
 	if (sayYes) {
 		console.log(id)
 		userStore.addFriend(id)
-		// send info to back => remove from bdd
-			// create relation with id
-			// remove id from invite
 	}
 	else {
 		userStore.refuseInvite(id)
