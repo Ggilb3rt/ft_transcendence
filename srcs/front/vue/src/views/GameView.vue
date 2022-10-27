@@ -37,6 +37,7 @@ export default {
     handleInit(data) {
       console.log("handle init");
       this.playerNumber = data.playerNumber;
+      this.level = data.level;
       this.gameCode = data.gameCode;
       if (this.playerNumber > 2) {
         console.log("hello");

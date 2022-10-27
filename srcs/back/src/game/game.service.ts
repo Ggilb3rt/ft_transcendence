@@ -127,17 +127,16 @@ export class GameService {
 
     }
 
-    handleCreateNewGame(client: Socket, data: any, server: Server) { 
+    handleCreateNewGame(client: Socket, data: any, server: Server) {
         let privateRoomId = this.makeid(5);
-        if (this.players[client.id] !== null) {
-            this.players[client.id] = {
-                id: client.id,
-                socket: client,
-                roomId: privateRoomId,
-                level: data.level,
-                spectator: false,
-            }
+        this.players[client.id] = {
+            id: client.id,
+            socket: client,
+            roomId: privateRoomId,
+            level: data.level,
+            spectator: false,
         }
+
         this.privateRooms[privateRoomId] = {
             playerOne: this.players[client.id],
             level: data.level
@@ -147,30 +146,30 @@ export class GameService {
 
     handleJoinGame(client: Socket, data: any, server: Server) {
 
-        if (this.players[client.id] !== null) {
-            this.players[client.id] = {
-                id: client.id,
-                socket: client,
-                roomId: data.gameCode,
-                level: 0,
-                spectator: false,
-            }
+        this.players[client.id] = {
+            id: client.id,
+            socket: client,
+            roomId: data.gameCode,
+            level: 0,
+            spectator: false,
         }
 
         if (this.privateRooms[data.gameCode]) {
-            if (this.activeGames[data.gameCode].playerTwo === null) {
-                console.log("TWO PLAYERS ALREADY PLAYING");
+            if (typeof this.activeGames[data.gameCode] !== 'undefined') {
+                console.log("TWO PLAYERS ALREADY PLAYING"); // spectator watch game ou error ?
+                this.players[client.id].spectator = true;
+                this.handleWatchGame(client, data.gameCode, server);
                 return;
-            } 
+            }
             this.players[client.id].level = this.privateRooms[data.gameCode].playerOne.level;
             this.privateRooms[data.gameCode].playerTwo = this.players[client.id];
+            console.log(this.privateRooms[data.gameCode]);
             this.activeGames[data.gameCode] = {
                 playerOne: this.privateRooms[data.gameCode].playerOne,
                 playerTwo: this.players[client.id],
                 level: this.players[client.id].level
             }
-            console.log("NEW ROOM");
-            console.log(this.activeGames[data.gameCode]);
+            Reflect.deleteProperty(this.privateRooms, data.gameCode);
             this.initGame(data.gameCode, server);
         }
     }
@@ -184,9 +183,9 @@ export class GameService {
         let playerTwo = gameRoom.playerTwo.socket;
 
         playerOne.join(roomId);
-        playerOne.emit("init", { playerNumber: 1, gameCode: roomId });
+        playerOne.emit("init", { playerNumber: 1, gameCode: roomId, level: gameRoom.level });
         playerTwo.join(roomId);
-        playerTwo.emit("init", { playerNumber: 2, gameCode: roomId });
+        playerTwo.emit("init", { playerNumber: 2, gameCode: roomId, level: gameRoom.level });
 
         const state = this.createGameState();
         state.players[0].id = gameRoom.playerOne.id;
@@ -293,29 +292,34 @@ export class GameService {
             return;
         }
 
-        let waitingRoom;
-        if (level === 1) {
-            console.log("level1");
-            waitingRoom = this.waitingRoom1;
-        } else if (level === 2) {
-            console.log("level2");
-            waitingRoom = this.waitingRoom2;
-        } else if (level === 3) {
-            console.log("level3");
-            waitingRoom = this.waitingRoom2;
-        }
+        if (this.privateRooms[roomId]) {
+            Reflect.deleteProperty(this.privateRooms, roomId);
+        } else {
 
-        if (level !== 0) {
-            if (waitingRoom.playerOne.id === client.id) {
-                waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
-                waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
-                waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
-                waitingRoom.playerOne.level = waitingRoom.playerTwo.level;
-            } else if (waitingRoom.playerTwo.id === client.id) {
-                waitingRoom.playerTwo.id = "";
-                waitingRoom.playerTwo.socket = "";
-                waitingRoom.playerTwo.roomId = "";
-                waitingRoom.playerOne.level = 0;
+            let waitingRoom;
+            if (level === 1) {
+                console.log("level1");
+                waitingRoom = this.waitingRoom1;
+            } else if (level === 2) {
+                console.log("level2");
+                waitingRoom = this.waitingRoom2;
+            } else if (level === 3) {
+                console.log("level3");
+                waitingRoom = this.waitingRoom2;
+            }
+
+            if (level !== 0) {
+                if (waitingRoom.playerOne.id === client.id) {
+                    waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
+                    waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
+                    waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
+                    waitingRoom.playerOne.level = waitingRoom.playerTwo.level;
+                } else if (waitingRoom.playerTwo.id === client.id) {
+                    waitingRoom.playerTwo.id = "";
+                    waitingRoom.playerTwo.socket = "";
+                    waitingRoom.playerTwo.roomId = "";
+                    waitingRoom.playerOne.level = 0;
+                }
             }
         }
 
@@ -331,7 +335,6 @@ export class GameService {
             console.log("CONNECTED " + sockets.length);
         }
         Reflect.deleteProperty(this.activeGames, roomId);
-        Reflect.deleteProperty(this.privateRooms, roomId);
         Reflect.deleteProperty(this.players, client.id);
     }
 
@@ -348,29 +351,34 @@ export class GameService {
             return;
         }
 
-        let waitingRoom;
-        if (level === 1) {
-            console.log("level1");
-            waitingRoom = this.waitingRoom1;
-        } else if (level === 2) {
-            console.log("level2");
-            waitingRoom = this.waitingRoom2;
-        } else if (level === 3) {
-            console.log("level3");
-            waitingRoom = this.waitingRoom2;
-        }
+        if (this.privateRooms[roomId]) {
+            Reflect.deleteProperty(this.privateRooms, roomId);
+        } else {
 
-        if (level !== 0) {
-            if (waitingRoom.playerOne.id === client.id) {
-                waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
-                waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
-                waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
-                waitingRoom.playerOne.level = waitingRoom.playerTwo.level;
-            } else if (waitingRoom.playerTwo.id === client.id) {
-                waitingRoom.playerTwo.id = "";
-                waitingRoom.playerTwo.socket = "";
-                waitingRoom.playerTwo.roomId = "";
-                waitingRoom.playerOne.level = 0;
+            let waitingRoom;
+            if (level === 1) {
+                console.log("level1");
+                waitingRoom = this.waitingRoom1;
+            } else if (level === 2) {
+                console.log("level2");
+                waitingRoom = this.waitingRoom2;
+            } else if (level === 3) {
+                console.log("level3");
+                waitingRoom = this.waitingRoom2;
+            }
+
+            if (level !== 0) {
+                if (waitingRoom.playerOne.id === client.id) {
+                    waitingRoom.playerOne.id = waitingRoom.playerTwo.roomId;
+                    waitingRoom.playerOne.socket = waitingRoom.playerTwo.socket;
+                    waitingRoom.playerOne.roomId = waitingRoom.playerTwo.roomId;
+                    waitingRoom.playerOne.level = waitingRoom.playerTwo.level;
+                } else if (waitingRoom.playerTwo.id === client.id) {
+                    waitingRoom.playerTwo.id = "";
+                    waitingRoom.playerTwo.socket = "";
+                    waitingRoom.playerTwo.roomId = "";
+                    waitingRoom.playerOne.level = 0;
+                }
             }
         }
 
