@@ -19,13 +19,6 @@ onMounted(async () => {
     await fetch(`http://localhost:3000/auth/verify`, {
       method: "GET",
       credentials: "include",
-      headers: {
-        // Accept: 'application/json',
-		// AccessControlAllowOrigin: "http://localhost:3000"
-        // Authorization: "Bearer "
-        // Cookie: document.cookie
-        //! au final les autres requettes integrent le cookie...
-      }
     })
     .then((response) => {
       if (response.status >= 200 && response.status < 300) {

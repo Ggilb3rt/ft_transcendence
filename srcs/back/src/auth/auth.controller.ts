@@ -22,15 +22,18 @@ export class AuthController {
       console.log("validate == ", await this.jwtAuthService.validate(req.cookies.jwt).validate)
       let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
       console.log("id and username valides ", id, username)
-      const isCodeValid = await this.usersService.isCodeValid(code, id)
-      console.log("code is valide ?", code, isCodeValid)
-      if (!isCodeValid) {
-        throw new UnauthorizedException('Wrong authentication code');
-      }
+      // const isCodeValid = await this.usersService.isCodeValid(code, id)
+      // console.log("code is valide ?", code, isCodeValid)
+      // if (!isCodeValid) {
+      //   throw new UnauthorizedException('Wrong authentication code');
+      // }
       const { accessToken } = await this.jwtAuthService.login({id, username}, true)
-      const expires = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
-      res.cookie("jwt", accessToken);
-      res.redirect(process.env.URL_LOGIN_SUCCESS)
+      // const expires = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
+      res.header("Access-Control-Allow-Origin", "http://localhost:5173")
+      res.cookie("jwt", accessToken, {
+        httpOnly:true
+      });
+      return res.send({status: 200, msg: 'success'})
     }
 
   @Get()

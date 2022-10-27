@@ -23,10 +23,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: {
       credentials: true,
-      origin: true
+      origin: "http://localhost:5173",
+      methods: "GET,POST",
+      // preflightContinue: true
     }
   });
-  // app.enableCors();
   app.use(cookieParser())
   await app.listen(3000);
   } catch(err) {
