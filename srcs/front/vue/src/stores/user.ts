@@ -65,7 +65,7 @@ export const useUserStore = defineStore({
             if (this.user)
                 this.user.nickname = newTag
         },
-        set2FA(value: boolean) {
+        set2FAConnect(value: boolean) {
             console.log("in store set connection 2FA to ", value)
             this.twoFactorAuth = value
         },

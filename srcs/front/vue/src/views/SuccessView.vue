@@ -16,10 +16,14 @@ onBeforeMount(() => {
 onMounted(async () => {
 	// setup the stores
 	try {
+<<<<<<< HEAD
     await fetch(`http://localhost:3000/auth/verify`, {
       method: "GET",
       credentials: "include",
     })
+=======
+    await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
+>>>>>>> origin/vue-front
     .then((response) => {
       if (response.status >= 200 && response.status < 300) {
         return response.json()
