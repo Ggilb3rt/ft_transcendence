@@ -18,7 +18,6 @@ export class Player {
 
 
 export class Player {
-    y = 0;
     speed = 0;
     id = null;
     game_scores = [];
