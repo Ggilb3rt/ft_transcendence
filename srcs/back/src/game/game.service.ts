@@ -3,7 +3,7 @@ import { Socket, Server } from 'socket.io';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Ball, Player } from './classes';
 import { DEFAULT_PADDLE_SPEED } from './constants';
- 
+
 @Injectable()
 export class GameService {
     private waitingRoom1 = {
@@ -51,7 +51,7 @@ export class GameService {
         }
     }
 
-    handleJoinQueue(client: Socket, data: any, server: Server) { 
+    handleJoinQueue(client: Socket, data: any, server: Server) {
         let level = data.level;
         let player = this.players[client.id];
         this.players[client.id].level = level;
@@ -70,7 +70,8 @@ export class GameService {
         // Waiting room is empty
         if (waitingRoom.playerOne.id === "" && waitingRoom.playerTwo.id === "") {
             console.log("room empty");
-            let roomId = this.codeGenerator(5);
+            //let roomId = this.codeGenerator(5);
+            let roomId = "abcdef";
             waitingRoom.roomId = roomId;
             waitingRoom.playerOne.id = player.id;
             waitingRoom.playerOne.socket = player.socket;
@@ -156,15 +157,12 @@ export class GameService {
     }
 
     handlePlayerMovement(client: Socket, data: any, server: Server) {
-        console.log(data);
-        console.log(data.roomName)
         client.to(data.roomName).emit('playerMoved', data)
     }
 
-    handleLaunchBall(client: Socket, data: any, server: Server){
+    handleLaunchBall(client: Socket, data: any, server: Server) {
         const state = this.activeGames[data.roomName].state;
         this.initBall(state.ball);
-        console.log(state);
         server.to(data.roomName).emit("launchBall", state);
     }
 
@@ -178,18 +176,156 @@ export class GameService {
         }
         //ball.initialVelocity.x = dirx * DEFAULT_BALL_SPEED;
         //ball.initialVelocity.y = diry + DEFAULT_BALL_SPEED;
-        ball.initialVelocity.x = dirx * 500;
-        ball.initialVelocity.y = diry + 500;
+        ball.initialVelocity.x = dirx * 250;
+        ball.initialVelocity.y = diry + 250;
     }
 
     randomNumberBetween(min, max) {
         return Math.random() * (max - min) + min;
     }
 
-    handleMoveBall(client: Socket, data: any, server: Server){
+    handleMoveBall(client: Socket, data: any, server: Server) {
         client.to(data.roomName).emit("ballMoved", data);
 
     }
+
+    handleAddPoint(client: Socket, data: any, server: Server) {
+        let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
+        if (score === 3) {
+            server.to(data.roomName).emit('gameResult', { winner: data.player });
+        } else {
+            server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
+        }
+    }
+
+    handleWatchGame(client: Socket, server: Server) {
+        console.log("WATCH GANE");
+        this.players[client.id].roomId = "abcdef"; // attention
+        this.players[client.id].level = 0;
+        this.players[client.id].spectator = true;
+        if (this.activeGames["abcdef"]) {
+            client.join("abcdef");
+            client.emit("upDateInfo", this.activeGames["abcdef"].state);
+        }   
+    }
+
+    async handleDisconnect(client: Socket, server: Server) {
+        let roomName = this.players[client.id].roomId;
+        let level = this.players[client.id].level;
+
+        if (this.players[client.id].spectator) {
+            console.log("spectator disconnected");
+            client.emit("leftGame", {type: "disconnection"});
+            Reflect.deleteProperty(this.players, client.id);
+            return;
+        }
+
+        if (this.activeGames[roomName]) {
+            let connSockets = await server.in(roomName).fetchSockets();
+            connSockets.forEach((s) => {
+                s.emit("leftGame", {type: "disconnection"});
+                s.leave(roomName);
+                this.players[s.id].level = 0;
+                this.players[s.id].roomId = "";
+            })
+            Reflect.deleteProperty(this.activeGames, roomName);
+            Reflect.deleteProperty(this.players, client.id);
+        } else if (this.players[client.id].level !== 0) {
+            let wr;
+            if (this.players[client.id].level === 1) {
+                wr = this.waitingRoom1;
+            } else if (this.players[client.id].level === 2) {
+                wr = this.waitingRoom2;
+            }
+            if (wr.playerOne.id === client.id) {
+                this.switchPlayers(wr.playerOne, wr.plauerTwo, wr, 1);
+            } else if (wr.playerTwo.id === client.id) {
+                this.switchPlayers(null, null, wr, 2)
+            }
+        }
+
+        Reflect.deleteProperty(this.players, client.id);
+    }
+
+    async handleQuitGame(client: Socket, server: Server) {
+        console.log("1ACTIVE");
+        console.log(this.activeGames);
+        console.log("1PLAYERS");
+        console.log(this.players);
+        console.log("1WAITIN");
+        console.log(this.waitingRoom1);
+
+        let roomName = this.players[client.id].roomId;
+        let level = this.players[client.id].level;
+
+        if (this.players[client.id].spectator) {
+            console.log("spectator left");
+            let connSockets = await server.in("abcdef").fetchSockets();
+            console.log("1USERS " + connSockets);
+            this.players[client.id].roomId = "";
+            this.players[client.id].spectator = false;
+            client.leave("abcdef");
+            client.emit("leftGame", {type: "quit"});
+            console.log("2USERS " + connSockets);
+
+            return;
+        }
+
+        if (this.activeGames[roomName]) {
+            let connSockets = await server.in(roomName).fetchSockets();
+            connSockets.forEach((s) => {
+                s.emit("leftGame", {type: "quit"});
+                s.leave(roomName);
+                this.players[s.id].level = 0;
+                this.players[s.id].roomId = "";
+            })
+            Reflect.deleteProperty(this.activeGames, roomName);
+        } else if (this.players[client.id].level !== 0) {
+            let wr;
+            if (this.players[client.id].level === 1) {
+                wr = this.waitingRoom1;
+            } else if (this.players[client.id].level === 2) {
+                wr = this.waitingRoom2;
+            }
+            if (wr.playerOne.id === client.id) {
+                this.switchPlayers(wr.playerOne, wr.plauerTwo, wr, 1);
+            } else if (wr.playerTwo.id === client.id) {
+                this.switchPlayers(null, null, wr, 2)
+            }
+        }
+        this.players[client.id].level = 0;
+        this.players[client.id].roomId = "";
+        this.players[client.id].spectator = false;
+
+
+        console.log("1ACTIVE");
+        console.log(this.activeGames);
+        console.log("1PLAYERS");
+        console.log(this.players);
+        console.log("1WAITIN");
+        console.log(this.waitingRoom1);
+    }
+
+    switchPlayers(playerOne, playerTwo, wr, n) {
+        if (n === 1) {
+            wr.playerOne.id = wr.playerTwo.id;
+            wr.playerOne.socket = wr.playerTwo.socket;
+            wr.playerOne.roomId = wr.playerTwo.roomId;
+            wr.playerOne.level = wr.playerTwo.level;
+        } else {
+            wr.playerTwo.id = "";
+            wr.playerTWo.socket = "";
+            wr.playerTwo.roomId = "";
+            wr.playerTwo.level = 0;
+        }
+
+    }
+
+    handleRematch(client: Socket, data: any, server: Server) {
+        server.to(data.roomName).emit("rematch");
+    }
+
 }
+
 
 

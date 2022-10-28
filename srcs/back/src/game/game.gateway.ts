@@ -36,7 +36,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
         this.gameService.handleConnection(client, this.server);
-        
+    }
+
+    handleDisconnect(client: Socket) {
+        this.logger.log(`Client disconnected: ${client.id}`);
+        this.gameService.handleDisconnect(client, this.server);
     }
 
     @SubscribeMessage("joinQueue")
@@ -54,16 +58,32 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     handleMoveBall(client: Socket, data: any) {
         this.gameService.handleMoveBall(client, data, this.server);
     }
-    
+
     @SubscribeMessage("playerMovement")
     handlePlayerMovement(client: Socket, data: any) {
         this.gameService.handlePlayerMovement(client, data, this.server);
+    } 
+
+    @SubscribeMessage("addPoint")
+    handleAddPoint(client: Socket, data: any) {
+        this.gameService.handleAddPoint(client, data, this.server);
     }
 
-    handleDisconnect(client: Socket) {
-        this.logger.log(`Client disconnected: ${client.id}`);
-        //this.gameService.handleDisconnect(client, this.server);
+    @SubscribeMessage("watchGame") 
+    handleWatchGame(client: Socket, data: any) {
+        this.gameService.handleWatchGame(client, this.server);
     }
+
+    @SubscribeMessage("quitGame") 
+    handleQuitGame(client: Socket, data: any) {
+        this.gameService.handleQuitGame(client, this.server);
+    }
+
+    @SubscribeMessage("rematch") 
+    handleRematch(client: Socket, data: any) {
+        this.gameService.handleRematch(client, data, this.server);
+    }
+
 
 
    

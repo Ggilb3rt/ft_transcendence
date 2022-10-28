@@ -1,69 +1,47 @@
-import Phaser from "phaser";
-//import codeform from "../assets/text/codeform.html";
+import Phaser, { Scene } from "phaser";
+
+import eventsCenter from "./EventsCenter";
 
 export default class WaitingRoom extends Phaser.Scene {
   constructor() {
     super("WaitingRoom");
-    this.state = {};
-    this.hasBeenSet = false;
   }
 
-  init(data) {
-    this.socket = data.socket;
+  init() {
   }
 
-  preload() {
-    //this.load.html("codeform", codeform);
-  }
+  preload() {}
 
   create() {
     const scene = this;
+    let { width, height } = this.sys.game.canvas;
 
-    scene.waitingText = scene.add.text(140, 215, "Waiting for another player...", {
-      fill: "#ffffff",
-      fontSize: "20px",
-      fontStyle: "bold",
-    });
+    scene.popUp = scene.add.graphics();
 
-}
-    //scene.scene.stop("WaitinRoom");
-    
-    
-/*
-    scene.enterButton = scene.add.text(562.5, 250, "Enter Game", {
-        fill: "#000000",
-        fontSize: "20px",
+    // for popup window
+    scene.popUp.lineStyle(1, 0xffffff);
+    scene.popUp.fillStyle(0xffffff, 0.5);
+    //scene.popUp.strokeRect(0, height / 2 - 75, width, 150);
+    //scene.popUp.fillRect(0, height / 2 - 75, width, 150);
+    scene.popUp.strokeRect(0, 85, width, 105);
+    scene.popUp.fillRect(0, 85, width, 105);
+
+    //title
+ 
+    scene.message = scene.add
+      .text(200, 115, "WAITING FOR SECOND PLAYER", {
+        fill: "0x000000",
+        fontSize: "36px",
         fontStyle: "bold",
-      });
-      scene.enterButton.setInteractive();
-      scene.enterButton.on("pointerdown", () => {
-        scene.socket.emit("isKeyValid", 'Q0TW5');
-    });
-
-    scene.notValidText = scene.add.text(670, 295, "", {
-      fill: "#ff0000",
-      fontSize: "15px",
-    });
-    scene.roomKeyText = scene.add.text(210, 250, "", {
-      fill: "#00ff00",
-      fontSize: "20px",
-      fontStyle: "bold",
-    });
-
-    scene.socket.on("roomCreated", function (roomKey) {
-      scene.roomKey = roomKey;
-      scene.roomKeyText.setText(scene.roomKey);
-    });
-
-    scene.socket.on("keyNotValid", function () {
-      scene.notValidText.setText("Invalid Room Key");
-    });
-    scene.socket.on("keyIsValid", function (input) {
-        console.log(input);
-      scene.socket.emit("joinRoom", input);
-      scene.scene.stop("WaitingRoom");
-    });
-  }*/
+        boundsAlignH: "center",
+        boundsAlignV: "middle",
+      })
+      .setShadow(3, 3, "rgba(0,0,0,0.5)", 2);
+  
+      eventsCenter.on("ready", () => {
+        scene.scene.stop("WaitingRoom");
+      }, scene);
+  }
 
 
 }
