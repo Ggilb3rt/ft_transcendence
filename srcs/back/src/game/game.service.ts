@@ -3,7 +3,7 @@ import { Socket, Server } from 'socket.io';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { Ball, Player } from './classes';
 import { DEFAULT_PADDLE_SPEED } from './constants';
-
+ 
 @Injectable()
 export class GameService {
     private waitingRoom1 = {
@@ -92,7 +92,7 @@ export class GameService {
                     playerTwo: waitingRoom.playerTwo,
                     level: waitingRoom.level,
                 }
-                console.log("haha");
+
                 this.initGame(waitingRoom.roomId, server);
 
                 // Reset waiting Rooms
@@ -109,7 +109,6 @@ export class GameService {
 
     initGame(roomId: any, server: Server) {
         let gameRoom = this.activeGames[roomId];
-        console.log("GAME ROOM ", gameRoom);
         let playerOne = gameRoom.playerOne.socket;
         let playerTwo = gameRoom.playerTwo.socket;
 
@@ -124,7 +123,6 @@ export class GameService {
         state.roomName = roomId;
         this.setPlayerState(state.players);
         gameRoom.state = state;
-        console.log("sending room complete");
         server.to(roomId).emit("roomComplete", state);
 
     }
@@ -158,9 +156,40 @@ export class GameService {
     }
 
     handlePlayerMovement(client: Socket, data: any, server: Server) {
-        client.to(data.roomKey).emit('playerMoved', data)
+        console.log(data);
+        console.log(data.roomName)
+        client.to(data.roomName).emit('playerMoved', data)
+    }
+
+    handleLaunchBall(client: Socket, data: any, server: Server){
+        const state = this.activeGames[data.roomName].state;
+        this.initBall(state.ball);
+        console.log(state);
+        server.to(data.roomName).emit("launchBall", state);
+    }
+
+    initBall(ball: Ball) {
+        let dirx = 0;
+        let diry = 0;
+        while (Math.abs(dirx) <= 0.4 || Math.abs(dirx) >= 0.9) {
+            const heading = this.randomNumberBetween(0, 2 * Math.PI);
+            dirx = Math.cos(heading);
+            diry = Math.sin(heading);
+        }
+        //ball.initialVelocity.x = dirx * DEFAULT_BALL_SPEED;
+        //ball.initialVelocity.y = diry + DEFAULT_BALL_SPEED;
+        ball.initialVelocity.x = dirx * 500;
+        ball.initialVelocity.y = diry + 500;
+    }
+
+    randomNumberBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    handleMoveBall(client: Socket, data: any, server: Server){
+        client.to(data.roomName).emit("ballMoved", data);
+
     }
 }
-
 
 

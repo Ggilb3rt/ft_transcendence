@@ -44,11 +44,21 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleJoinQueue(client, data, this.server);
     }
 
+    
+    @SubscribeMessage("launchBall")
+    handleLaunchBall(client: Socket, data: any) {
+        this.gameService.handleLaunchBall(client, data, this.server);
+    }
+
+    @SubscribeMessage("moveBall")
+    handleMoveBall(client: Socket, data: any) {
+        this.gameService.handleMoveBall(client, data, this.server);
+    }
+    
     @SubscribeMessage("playerMovement")
     handlePlayerMovement(client: Socket, data: any) {
         this.gameService.handlePlayerMovement(client, data, this.server);
     }
-
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
