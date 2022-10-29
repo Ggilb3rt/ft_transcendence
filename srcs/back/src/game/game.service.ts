@@ -38,6 +38,22 @@ export class GameService {
         roomId: "",
     };
 
+	private waitingRoom3 = {
+        level: 3,
+        status: "empty",
+        playerOne: {
+            id: "",
+            socket: "",
+            roomId: "",
+        },
+        playerTwo: {
+            id: "",
+            socket: "",
+            roomId: ""
+        },
+        roomId: "",
+    };
+
     private activeGames = {};
     private players = {};
 
@@ -64,7 +80,7 @@ export class GameService {
             waitingRoom = this.waitingRoom2;
         } else if (level === 3) {
             console.log("level3");
-            waitingRoom = this.waitingRoom2;
+            waitingRoom = this.waitingRoom3;
         }
 
         // Waiting room is empty
@@ -215,7 +231,7 @@ export class GameService {
 
         if (this.players[client.id].spectator) {
             console.log("spectator disconnected");
-            client.emit("leftGame", {type: "disconnection"});
+            client.emit("leftGame", 1);
             Reflect.deleteProperty(this.players, client.id);
             return;
         }
@@ -223,7 +239,7 @@ export class GameService {
         if (this.activeGames[roomName]) {
             let connSockets = await server.in(roomName).fetchSockets();
             connSockets.forEach((s) => {
-                s.emit("leftGame", {type: "disconnection"});
+                s.emit("leftGame", 1);
                 s.leave(roomName);
                 this.players[s.id].level = 0;
                 this.players[s.id].roomId = "";
@@ -232,11 +248,15 @@ export class GameService {
             Reflect.deleteProperty(this.players, client.id);
         } else if (this.players[client.id].level !== 0) {
             let wr;
-            if (this.players[client.id].level === 1) {
+
+			if (level === 1) {
                 wr = this.waitingRoom1;
-            } else if (this.players[client.id].level === 2) {
+            } else if (level === 2) {
                 wr = this.waitingRoom2;
+            } else if (level === 3) {
+                wr = this.waitingRoom3;
             }
+
             if (wr.playerOne.id === client.id) {
                 this.switchPlayers(wr.playerOne, wr.plauerTwo, wr, 1);
             } else if (wr.playerTwo.id === client.id) {
@@ -248,13 +268,6 @@ export class GameService {
     }
 
     async handleQuitGame(client: Socket, server: Server) {
-        console.log("1ACTIVE");
-        console.log(this.activeGames);
-        console.log("1PLAYERS");
-        console.log(this.players);
-        console.log("1WAITIN");
-        console.log(this.waitingRoom1);
-
         let roomName = this.players[client.id].roomId;
         let level = this.players[client.id].level;
 
@@ -265,7 +278,7 @@ export class GameService {
             this.players[client.id].roomId = "";
             this.players[client.id].spectator = false;
             client.leave("abcdef");
-            client.emit("leftGame", {type: "quit"});
+            client.emit("leftGame", 2);
             console.log("2USERS " + connSockets);
 
             return;
@@ -274,7 +287,7 @@ export class GameService {
         if (this.activeGames[roomName]) {
             let connSockets = await server.in(roomName).fetchSockets();
             connSockets.forEach((s) => {
-                s.emit("leftGame", {type: "quit"});
+                s.emit("leftGame", 2);
                 s.leave(roomName);
                 this.players[s.id].level = 0;
                 this.players[s.id].roomId = "";
@@ -282,28 +295,25 @@ export class GameService {
             Reflect.deleteProperty(this.activeGames, roomName);
         } else if (this.players[client.id].level !== 0) {
             let wr;
-            if (this.players[client.id].level === 1) {
+            if (level === 1) {
                 wr = this.waitingRoom1;
-            } else if (this.players[client.id].level === 2) {
+            } else if (level === 2) {
                 wr = this.waitingRoom2;
+            } else if (level === 3) {
+                wr = this.waitingRoom3;
             }
+
             if (wr.playerOne.id === client.id) {
                 this.switchPlayers(wr.playerOne, wr.plauerTwo, wr, 1);
             } else if (wr.playerTwo.id === client.id) {
-                this.switchPlayers(null, null, wr, 2)
+                this.switchPlayers(null, null, wr, 2);
             }
+
+			client.emit("leftGame", 2);
         }
         this.players[client.id].level = 0;
         this.players[client.id].roomId = "";
         this.players[client.id].spectator = false;
-
-
-        console.log("1ACTIVE");
-        console.log(this.activeGames);
-        console.log("1PLAYERS");
-        console.log(this.players);
-        console.log("1WAITIN");
-        console.log(this.waitingRoom1);
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {
@@ -324,6 +334,10 @@ export class GameService {
     handleRematch(client: Socket, data: any, server: Server) {
         server.to(data.roomName).emit("rematch");
     }
+
+	handleMoveAnim(client: Socket, data: any) {
+		client.to(data.roomName).emit("animMoved", data);
+	}
 
 }
 

@@ -84,6 +84,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleRematch(client, data, this.server);
     }
 
+	@SubscribeMessage("moveAnim")
+    handleMoveAnim(client: Socket, data: any) {
+        this.gameService.handleMoveAnim(client, data, this.server);
+    }
 
 
    
