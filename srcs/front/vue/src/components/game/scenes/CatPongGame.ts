@@ -10,6 +10,7 @@ import fox_wait from "../assets/spritesheets/waiting_fox.png";
 import fox_jump from "../assets/spritesheets/jumping_fox.png";
 import fox_watch from "../assets/spritesheets/waiting_watching_fox.png";
 import fox_run from "../assets/spritesheets/walking_fox.png";
+import star from "../assets/others/star.png";
 
 export default class LevelOneScene extends Phaser.Scene {
   constructor() {
@@ -33,6 +34,7 @@ export default class LevelOneScene extends Phaser.Scene {
     this.load.image("ball", ball);
     this.load.image("paddle", p1);
     this.load.image("opponentPaddle", p2);
+	this.load.image("star", star);
     this.load.spritesheet("fox_wait", fox_wait, {
       frameWidth: 161 / 5,
       frameHeight: 15,
@@ -100,7 +102,10 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.socket.on("launchBall", (data) => {
       if (scene.playerNumber === 1) {
         scene.launchBall(data, scene);
-      }
+      } /*else {
+		scene.star.x = data.spritex;
+		scene.star.y = data.spritey;
+	  }*/
     });
 
     scene.socket.on("ballMoved", (data) => {
@@ -197,13 +202,15 @@ export default class LevelOneScene extends Phaser.Scene {
     console.log("NOW");
     scene.activeGame = true;
     if (scene.playerNumber === 1) {
+	  //scene.initSprite(width, height, scene);
+	  //console.log('haha');
       scene.socket.emit("launchBall", { roomName: scene.roomName });
     }
-    //props.socket.emit("launchBall", { gameCode: props.gameCode });
   }
 
   launchBall(data, scene) {
 	scene.ball.setImmovable(false);
+	//scene.fox.setImmovable(false);
     scene.ball.setVelocityX(data.ball.initialVelocity.x);
     scene.ball.setVelocityY(data.ball.initialVelocity.y);
   }
@@ -282,6 +289,7 @@ export default class LevelOneScene extends Phaser.Scene {
       scene.ball.setVelocity(0);
 	  scene.ball.setImmovable(true);
       scene.fox.setVelocity(0);
+	  //scene.fox.setImmovable(true);
       if (scene.playerNumber === 1) {
         scene.socket.emit("addPoint", { roomName: scene.roomName, player: 2 });
       }
@@ -293,7 +301,8 @@ export default class LevelOneScene extends Phaser.Scene {
       scene.activeGame = false;
       scene.ball.setVelocity(0);
 	  scene.ball.setImmovable(true);
-      scene.fox.setVelocity(0);
+	  scene.fox.setImmovable(true);
+      //scene.fox.setVelocity(0);
       if (scene.playerNumber === 1) {
         scene.socket.emit("addPoint", { roomName: scene.roomName, player: 1 });
       }
@@ -346,6 +355,7 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.initBallObject(width, height, scene);
     scene.initAnimation(width, height, scene);
     scene.initPlayerObjects(width, height, scene);
+	//scene.initSprite(width, height, scene);
     scene.initColliders(scene);
     scene.initScores(width, height, scene);
     scene.initObjectEventListeners(scene);
@@ -429,6 +439,12 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.playerTwo.setInteractive();
     scene.playerTwo.displayWidth = 20;
     scene.playerTwo.scaleY = scene.playerTwo.scaleX;
+  }
+
+  initSprite(width, height, scene) {
+	const x = Phaser.Math.RND.between(scene.playerOne.x + scene.playerOne.body.width, scene.playerTwo.x);
+	const y = Phaser.Math.RND.between(50, height - 50);
+	scene.star = this.add.sprite(x, y, "star");
   }
 
   initColliders(scene) {
