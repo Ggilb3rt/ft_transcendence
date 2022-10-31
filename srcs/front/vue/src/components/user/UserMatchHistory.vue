@@ -4,6 +4,7 @@ import type { IUser, IOtherUserRestrict, IOtherUser } from '../../../types'
 import { useUserStore } from '@/stores/user'
 import { useUsersStore } from '@/stores/users'
 import UserLink from './UserLink.vue'
+import BtnChallenge from '../navigation/BtnChallenge.vue'
 
 const props = defineProps<{
   user: IUser | IOtherUser
@@ -24,12 +25,12 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
 		<h1
 			@click="toggleMatch = !toggleMatch"
 			:class="{
-				triangleUp: toggleMatch && user.match_history != null,
-				triangleDown: !toggleMatch && user.match_history != null}"
+				triangleUp: toggleMatch && user.match_history != null && user.match_history.length > 0,
+				triangleDown: !toggleMatch && user.match_history != null && user.match_history.length > 0}"
 		>
 			Match History
 		</h1>
-		<div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null">
+		<div class="matchHistory" :class="{hide: !toggleMatch }" v-if="user.match_history != null && user.match_history.length > 0">
 			<div v-for="match in user.match_history" :key="match.opponent">
 			<!-- {{ match.date.getDate()+"/"+(match.date.getMonth() + 1)+"/"+match.date.getFullYear()+" "+match.date.getHours()+":"+match.date.getMinutes()+":"+match.date.getSeconds() }} -->
 				<div :class="{win: match.win, loose:!match.win}" class="matchResume">
@@ -52,6 +53,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
 		<div v-else>
 			<p>No matchs here
 				<router-link to="/" v-if="user.id == userStore.user.id">Make your first game</router-link>
+				<BtnChallenge v-else></BtnChallenge>
 			</p>
 		</div>
 	</div>
