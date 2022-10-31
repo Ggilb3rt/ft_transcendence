@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import { ref } from "vue";
+import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import { useUserStore } from '@/stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
@@ -12,10 +12,6 @@ let	isActive = ref(false);
 
 let winWidth = ref(window.innerWidth)
 
-window.addEventListener('resize', (e) => {
-	winWidth.value = window.innerWidth
-});
-
 // Disconnection, need to put it in component
 async function disconnect() {
 	// document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
@@ -23,6 +19,19 @@ async function disconnect() {
 	userStore.twoFactorAuth = false
 	router.push("/login")
 }
+
+
+function updateWinWidthValue(e: Event) {
+	winWidth.value = window.innerWidth
+}
+
+onBeforeMount(() => {
+	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
+})
 
 </script>
 

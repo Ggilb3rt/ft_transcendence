@@ -25,7 +25,7 @@ async function enable2FA() {
 		})
 		.then((response) => {
 			if (response.status >= 200 && response.status < 300) {
-				console.log(response)
+				console.log("enable 2FA ", response)
 				return response
 			}
 			throw new Error(response.statusText)
@@ -68,7 +68,7 @@ async function disable2FA() {
 		})
 		.then((response) => {
 			if (response.status >= 200 && response.status < 300) {
-				console.log(response)
+				console.log("disable 2FA", response)
 				return response.json
 			}
 			throw new Error(response.statusText)

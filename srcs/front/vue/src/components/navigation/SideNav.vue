@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue'
-
-
-//! Need big change :: set addEventlistener to onBeforeMount and add removeEventListener to onUnMounted
-
+import { onBeforeMount, onBeforeUnmount, onUnmounted, ref } from 'vue'
 
 let winWidth = ref(window.innerWidth)
 const props = defineProps({
@@ -21,18 +17,26 @@ function toggle(index: number) {
 	props.model.items[index].isOpen = !props.model.items[index].isOpen
 }
 
-window.addEventListener('resize', (e) => {
+function updateWinWidthValue(e: Event) {
 	winWidth.value = window.innerWidth
+		if (winWidth.value >= 768)
+			props.model.isOpen = true
+		else
+			props.model.isOpen = false
+}
+
+onBeforeMount(() => {
+	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+	// check on start
 	if (winWidth.value >= 768)
 		props.model.isOpen = true
 	else
 		props.model.isOpen = false
-});
-// check on start
-if (winWidth.value >= 768)
-	props.model.isOpen = true
-else
-	props.model.isOpen = false
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
+})
 
 </script>
 
