@@ -1,13 +1,10 @@
-import { Socket } from "socket.io-client";
 import eventsCenter from "../scenes/EventsCenter";
 
 export default class GamePlay {
-  constructor() {
-    const self = this;
-  }
+  constructor() {}
 
   joinQueue(scene, level) {
-      scene.socket.emit("joinQueue", { level });
+    scene.socket.emit("joinQueue", { level });
   }
 
   watchGame(scene) {
@@ -18,14 +15,18 @@ export default class GamePlay {
       scene.playerOneScoreText.setText(data.players[0].match_score);
       scene.playerTwoScoreText.setText(data.players[1].match_score);
     });
-
   }
 
-  addEventListeners(width, height, scene) {
+  /* EVENT LISTENERS */
+
+  addEventListeners(level, width, height, scene) {
     this.listenInitPlayer(scene);
     this.listenInitGame(scene);
     this.listenInitBallMovement(scene);
     this.listenBallMoved(width, height, scene);
+    if (level === 3) {
+      this.listenAnimMoved(width, height, scene);
+    }
     this.listenPlayerMoved(width, height, scene);
     this.listenAddPoint(width, height, scene);
     this.listenGameResult(width, height, scene);
@@ -33,8 +34,6 @@ export default class GamePlay {
     this.listenRematch(scene);
   }
 
-  /* Une fois que deux joueurs sont present dans une meme room, le premier dans la queue
-      sera initialise en tant que playerOne, le deuxieme en tant que playerTwo */
   listenInitPlayer(scene) {
     scene.socket.on("init", (data) => {
       scene.playerNumber = data.playerNumber;
@@ -42,7 +41,6 @@ export default class GamePlay {
     });
   }
 
-  /* Une fois que les deux joueurs ont ete initialises, on lance le jeu */
   listenInitGame(scene) {
     scene.socket.on("roomComplete", (state) => {
       eventsCenter.emit("ready");
@@ -52,7 +50,6 @@ export default class GamePlay {
     });
   }
 
-  /* A chaque debut de partie ou apres chaque point, on relance la balle */
   listenInitBallMovement(scene) {
     scene.socket.on("launchBall", (data) => {
       if (scene.playerNumber === 1) {
@@ -61,7 +58,6 @@ export default class GamePlay {
     });
   }
 
-  /* On update la position de la balle du playerTwo afin de s'assurer que la position soit synchro */
   listenBallMoved(width, height, scene) {
     scene.socket.on("ballMoved", (data) => {
       if (scene.playerNumber !== 1) {
@@ -70,7 +66,16 @@ export default class GamePlay {
       }
     });
   }
-  /* On update la position de l'autre joueur afin de synchroniser */
+
+  listenAnimMoved(width, height, scene) {
+    scene.socket.on("animMoved", (data) => {
+      if (scene.playerNumber !== 1) {
+        scene.fox.x = data.x + scene.fox.body.width / 2 + 2;
+        scene.fox.y = data.y + scene.fox.body.height / 2 + 2;
+      }
+    });
+  }
+
   listenPlayerMoved(width, height, scene) {
     scene.socket.on("playerMoved", (data) => {
       const { y, roomName, playerNumber } = data;
@@ -81,7 +86,7 @@ export default class GamePlay {
       }
     });
   }
-  /* A chaque point on update le score pour l'autre joueur et on reset la position de la balle */
+
   listenAddPoint(width, height, scene) {
     scene.socket.on("addPoint", (data) => {
       const { playerNumber, score } = data;
@@ -92,7 +97,6 @@ export default class GamePlay {
         scene.playerTwoScore = score;
         scene.playerTwoScoreText.setText(scene.playerTwoScore);
       }
-      //scene.ball.setPosition(width / 2, height / 2);
       scene.ball.x = width / 2;
       scene.ball.y = height / 2;
       scene.playerOne.y = height / 2;
@@ -109,7 +113,6 @@ export default class GamePlay {
     });
   }
 
-  /* On previent les deux joueurs s'il y a un gagnant */
   listenGameResult(width, height, scene) {
     scene.socket.on("gameResult", (data) => {
       scene.resultText = scene.add
@@ -121,7 +124,6 @@ export default class GamePlay {
     });
   }
 
-  /* On previent le joueur si l'opponent a quitte la partie */
   listenLeftGame(width, height, scene) {
     scene.socket.on("leftGame", (type) => {
       console.log(type);
@@ -145,6 +147,8 @@ export default class GamePlay {
     });
   }
 
+  /* GAMEPLAY FUNCTIONS */
+
   startGame(scene) {
     console.log("NOW");
     scene.activeGame = true;
@@ -156,16 +160,6 @@ export default class GamePlay {
   launchBall(data, scene) {
     scene.ball.setVelocityX(data.ball.initialVelocity.x);
     scene.ball.setVelocityY(data.ball.initialVelocity.y);
-  }
-
-  moveBall(scene) {
-    if (scene.playerNumber === 1) {
-      scene.socket.emit("moveBall", {
-        roomName: scene.roomName,
-        x: scene.ball.body.x,
-        y: scene.ball.body.y,
-      });
-    }
   }
 
   checkPoints(scene) {
@@ -190,9 +184,82 @@ export default class GamePlay {
     }
   }
 
-  /* HELPER FUNCTIONS */
+  /* OBJECTS MOVEMENT */
 
-  // PLAYER MOVEMENT
+  moveBall(scene) {
+    if (scene.playerNumber === 1) {
+      scene.socket.emit("moveBall", {
+        roomName: scene.roomName,
+        x: scene.ball.body.x,
+        y: scene.ball.body.y,
+      });
+    }
+  }
+
+  moveAnim(scene) {
+    if (scene.activeGame) {
+      scene.fox.setVelocity(0);
+      const fx = scene.fox.body.x;
+      const fy = scene.fox.body.y;
+      const bx = scene.ball.body.x;
+      const by = scene.ball.body.y;
+
+      const distance = Phaser.Math.Distance.Between(fx, fy, bx, by);
+      if (distance > 300) {
+        if (Math.random() > 0.5) {
+          scene.fox.anims.play("jump_fox", true);
+        }
+      } else scene.fox.anims.play("run_fox", true);
+
+      const rotation = Phaser.Math.Angle.Between(fx, fy, bx, by);
+      scene.fox.setRotation(rotation);
+      if (scene.playerNumber === 1) {
+        if (
+          rotation >= 0 &&
+          rotation <= Math.PI / 2 &&
+          fx < scene.foxLimitRight
+        ) {
+          scene.fox.setVelocity(
+            scene.foxVelocityRightDown,
+            scene.foxVelocityRightDown
+          );
+        } else if (
+          rotation > Math.PI / 2 &&
+          rotation <= Math.PI &&
+          fx > scene.foxLimitLeft
+        )
+          scene.fox.setVelocity(
+            scene.foxVelocityLeftUP,
+            scene.foxVelocityRightDown
+          );
+        else if (
+          rotation < 0 &&
+          rotation >= -Math.PI / 2 &&
+          fx < scene.foxLimitRight
+        )
+          scene.fox.setVelocity(
+            scene.foxVelocityRightDown,
+            scene.foxVelocityLeftUP
+          );
+        else if (
+          rotation < -Math.PI / 2 &&
+          rotation > -Math.PI &&
+          fx > scene.foxLimitLeft
+        )
+          scene.fox.setVelocity(
+            scene.foxVelocityLeftUP,
+            scene.foxVelocityLeftUP
+          );
+        else scene.fox.setVelocity(0, 0);
+        scene.socket.emit("moveAnim", {
+          roomName: scene.roomName,
+          x: scene.fox.body.x,
+          y: scene.fox.body.y,
+        });
+      }
+    }
+  }
+
   checkPlayerMovement(scene) {
     if (scene.playerNumber === 1) {
       if (
@@ -218,7 +285,7 @@ export default class GamePlay {
           roomName: scene.roomName,
           playerNumber: scene.playerNumber,
         });
-        scene.p1oldposy = scene.playerTwo.y;
+        scene.p2oldposy = scene.playerTwo.y;
       }
     }
   }
@@ -237,30 +304,38 @@ export default class GamePlay {
     return playerMoved;
   }
 
-  // GAME OBJECT CREATION
+  /* GAME OBJECT CREATION */
+
   createGameObjects(level, settings, images, width, height, scene) {
-    this.initBackground(width, height, scene);
+    this.initBackground(level, width, height, scene);
     this.initBallObject(level, settings, images, width, height, scene);
     this.initPlayerObjects(level, settings, images, width, height, scene);
-    this.initColliders(scene);
+    if (level === 3) {
+      this.initAnimation(images, width, height, scene);
+    }
+    this.initColliders(level, scene);
     this.initScores(width, height, scene);
     this.initObjectEventListeners(scene);
     this.initUIButtons(width, height, scene);
   }
 
-  initBackground(width, height, scene) {
-    // Create middle line
+  initBackground(level, width, height, scene) {
+    let color;
+    if (level === 1 || level === 2) {
+      color = 0xffffff;
+    } else {
+      color = 0xffb6c1;
+    }
     scene.middleLine = scene.add.graphics();
-    scene.middleLine.lineStyle(1, 0xffffff);
+    scene.middleLine.lineStyle(1, color);
     scene.middleLine.moveTo(width / 2, 0);
     scene.middleLine.lineTo(width / 2, height);
     scene.middleLine.stroke();
   }
 
   initBallObject(level, settings, images, width, height, scene) {
-    if (level === 1 || level == 2) {
-      scene.ball = scene.physics.add.sprite(width / 2, height / 2, images.ball);
-    }
+    scene.ball = scene.physics.add.sprite(width / 2, height / 2, images.ball);
+
     if (level === 2) {
       switch (settings.ball) {
         case "WHITE":
@@ -284,19 +359,39 @@ export default class GamePlay {
   }
 
   initPlayerObjects(level, settings, images, width, height, scene) {
-      if (level === 1 || level === 2) {
-        console.log(level);
-      scene.playerOne = scene.physics.add.sprite(
-        scene.ball.body.width / 2 + 1,
-        height / 2,
-        images.playerOne
-      );
-      scene.playerTwo = scene.physics.add.sprite(
-        width - (scene.ball.body.width / 2 + 1),
-        height / 2,
-        images.playerTwo
-      );
+    scene.playerOne = scene.physics.add.sprite(
+      scene.ball.body.width / 2 + 1,
+      height / 2,
+      images.playerOne
+    );
+    scene.playerTwo = scene.physics.add.sprite(
+      width - (scene.ball.body.width / 2 + 1),
+      height / 2,
+      images.playerTwo
+    );
+
+    scene.playerOne.setCollideWorldBounds(true);
+    scene.playerOne.setImmovable(true);
+    scene.playerOne.setInteractive();
+    if (level === 1 || level === 2) {
+      scene.playerOne.displayWidth = 10;
+    } else if (level === 2) {
+      scene.playerOne.displayWidth = 20;
     }
+    scene.playerOne.scaleY = scene.playerOne.scaleX;
+    scene.p1oldposy = scene.playerOne.y;
+
+    scene.playerTwo.setCollideWorldBounds(true);
+    scene.playerTwo.setImmovable(true);
+    scene.playerTwo.setInteractive();
+    if (level === 1 || level === 2) {
+      scene.playerTwo.displayWidth = 10;
+    } else if (level === 2) {
+      scene.playerTwo.displayWidth = 20;
+    }
+    scene.playerTwo.scaleY = scene.playerTwo.scaleX;
+    scene.p2oldposy = scene.playerTwo.y;
+
     if (level === 2) {
       switch (settings.playerOne) {
         case "WHITE":
@@ -329,26 +424,85 @@ export default class GamePlay {
           scene.playerTwo.tint = 0xffff00;
       }
     }
-
-    scene.playerOne.setCollideWorldBounds(true);
-    scene.playerOne.setImmovable(true);
-    scene.playerOne.setInteractive();
-    scene.playerOne.displayWidth = 10;
-    scene.playerOne.scaleY = scene.playerOne.scaleX;
-    scene.p1oldposy = scene.playerOne.y;
-
-    scene.playerTwo.setCollideWorldBounds(true);
-    scene.playerTwo.setImmovable(true);
-    scene.playerTwo.setInteractive();
-    scene.playerTwo.displayWidth = 10;
-    scene.playerTwo.scaleY = scene.playerTwo.scaleX;
-    scene.p2oldposy = scene.playerTwo.y;
   }
 
-  initColliders(scene) {
-    // Init collision between ball and paddles
+  initAnimation(images, width, height, scene) {
+    scene.fox = scene.physics.add
+      .sprite(
+        scene.physics.world.bounds.width / 2 - 20,
+        scene.physics.world.bounds.height / 2 - 50,
+        images.fox.wait
+      )
+      .setScale(3)
+      .refreshBody();
+
+    scene.anims.create({
+      key: "idle_fox",
+      frames: scene.anims.generateFrameNumbers(images.fox.wait, {
+        start: 0,
+        end: 4,
+      }),
+      frameRate: 5,
+      repeat: -1,
+    });
+    scene.anims.create({
+      key: "run_fox",
+      frames: scene.anims.generateFrameNumbers(images.fox.run, {
+        start: 0,
+        end: 4,
+      }),
+      frameRate: 8,
+      repeat: -1,
+    });
+    scene.anims.create({
+      key: "jump_fox",
+      frames: scene.anims.generateFrameNumbers(images.fox.jump, {
+        start: 0,
+        end: 4,
+      }),
+      frameRate: 11,
+      repeat: -1,
+    });
+
+    scene.fox.anims.play("run_fox");
+    scene.fox.setCollideWorldBounds(true);
+    scene.fox.setImmovable(true);
+  }
+
+  initColliders(level, scene) {
     scene.physics.add.collider(scene.ball, scene.playerOne);
     scene.physics.add.collider(scene.ball, scene.playerTwo);
+    if (level === 3) {
+      scene.physics.add.collider(scene.ball, scene.fox, () => {
+        if (scene.ball.body.velocity.x < 0) {
+          if (scene.ball.body.velocity.x > -350) {
+            scene.ball.body.velocity.x = -350;
+          }
+        } else {
+          if (scene.ball.body.velocity.x < 350) {
+            scene.ball.body.velocity.x = 350;
+          }
+        }
+        if (scene.ball.body.velocity.y < 0) {
+          if (scene.ball.body.velocity.y > -100) {
+            scene.ball.body.velocity.y = -100;
+          }
+        } else {
+          if (scene.ball.body.velocity.y < 100) {
+            scene.ball.body.velocity.y = 100;
+          }
+        }
+
+        if (scene.activeGame) {
+          scene.playerOne.setScale(0.5);
+          scene.playerTwo.setScale(0.5);
+          scene.time.delayedCall(3000, function () {
+            scene.playerOne.setScale(1);
+            scene.playerTwo.setScale(1);
+          });
+        }
+      });
+    }
   }
 
   initScores(width, heigth, scene) {
@@ -410,40 +564,4 @@ export default class GamePlay {
       }
     });
   }
-
-  // CLICK EVENT LISTENER (DRAG) HELPERS
-  /*startDragPlayerOne(pointer, targets) {
-      this.input.off("pointerdown", this.startDragPlayerOne, this);
-      this.input.on("pointermove", this.doDragPlayerOne, this);
-      this.input.on("pointerup", this.stopDragPlayerOne, this);
-    }
-  
-    startDragPlayerTwo(pointer, targets) {
-      this.input.off("pointerdown", this.startDragPlayerTwo, this);
-      this.input.on("pointermove", this.doDragPlayerTwo, this);
-      this.input.on("pointerup", this.stopDragPlayerTwo, this);
-    }
-  
-    doDragPlayerOne(pointer) {
-      if (this.playerNumber === 1) {
-        this.playerOne.y = pointer.y;
-      }
-    }
-    doDragPlayerTwo(pointer) {
-      if (this.playerNumber === 2) {
-        this.playerTwo.y = pointer.y;
-      }
-    }
-  
-    stopDragPlayerOne(pointer, targets) {
-      this.input.on("pointerdown", this.startDragPlayerOne, this);
-      this.input.off("pointermove", this.doDragPlayerOne, this);
-      this.input.off("pointerup", this.stopDragPlayerOne, this);
-    }
-  
-    stopDragPlayerTwo(pointer, targets) {
-      this.input.on("pointerdown", this.startDragPlayerTwo, this);
-      this.input.off("pointermove", this.doDragPlayerTwo, this);
-      this.input.off("pointerup", this.stopDragPlayerTwo, this);
-    }*/
 }

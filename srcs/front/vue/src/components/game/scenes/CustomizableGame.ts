@@ -15,8 +15,8 @@ export default class LevelOneScene extends Phaser.Scene {
 
   init(data) {
     this.spectator = data.spectator;
-    this.level = 2;
     this.socket = data.socket;
+    this.level = 2;
     this.playerNumber = 0;
     this.joinQueue = false;
     this.activeGame = false;
@@ -43,15 +43,20 @@ export default class LevelOneScene extends Phaser.Scene {
     this.load.image("defaultBall", defaultBall);
     this.load.image("defaultPaddle", defaultPaddle);
     this.load.image("defaultOpponentPaddle", defaultPaddle);
-  }
+ 
+}
 
   create() {
     const scene = this;
     let { width, height } = this.sys.game.canvas;
 
+    /* GO TO SETTINGS & WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
       scene.scene.launch("WaitingRoom", { level: "customizable" });
-    }
+    } else {
+        f.watchGame(scene);
+      }
+    
 
     /* ADD GAME OBJECTS */
     eventsCenter.on("settingsOK", (settings) => {
@@ -66,13 +71,10 @@ export default class LevelOneScene extends Phaser.Scene {
       );
     });
 
-    /* IF SPECTATOR WATCH GAME */
-    if (scene.spectator) {
-      f.watchGame(scene);
-    }
+   
 
     /* EVENT LISTENERS */
-    f.addEventListeners(width, height, scene);
+    f.addEventListeners(scene.level, width, height, scene);
   }
 
   update() {
@@ -90,9 +92,9 @@ export default class LevelOneScene extends Phaser.Scene {
     }
   }
 
-   /* HELPER FUNCTIONS FOR DRAGABLE PADDLES */
+  /* HELPER FUNCTIONS FOR DRAGABLE PADDLES */
 
-   startDragPlayerOne(pointer, targets) {
+  startDragPlayerOne(pointer, targets) {
     this.input.off("pointerdown", this.startDragPlayerOne, this);
     this.input.on("pointermove", this.doDragPlayerOne, this);
     this.input.on("pointerup", this.stopDragPlayerOne, this);

@@ -28,10 +28,10 @@ export default class LevelOneScene extends Phaser.Scene {
     this.p1oldposy;
     this.p2oldposy;
     this.images = {
-        ball: "defaultBall",
-        playerOne: "defaultPaddle",
-        playerTwo: "defaultOpponentPaddle"
-    }
+      ball: "defaultBall",
+      playerOne: "defaultPaddle",
+      playerTwo: "defaultOpponentPaddle",
+    };
   }
 
   preload() {
@@ -44,18 +44,23 @@ export default class LevelOneScene extends Phaser.Scene {
     const scene = this;
     let { width, height } = this.sys.game.canvas;
 
+    /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
       scene.scene.launch("WaitingRoom", { level: "default" });
+    } else {
+      f.watchGame(scene);
     }
 
     /* ADD GAME OBJECTS */
     f.createGameObjects(scene.level, null, scene.images, width, height, scene);
 
-    /* JOIN QUEUE */
-    f.joinQueue(scene, scene.level);
+    /* JOIN QUEUE OR WATCH GAME*/
+    if (!scene.spectator) {
+      f.joinQueue(scene, scene.level);
+    }
 
     /* EVENT LISTENERS */
-    f.addEventListeners(width, height, scene);
+    f.addEventListeners(scene.level, width, height, scene);
   }
 
   update() {

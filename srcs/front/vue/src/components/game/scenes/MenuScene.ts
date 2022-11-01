@@ -10,7 +10,7 @@ export default class WaitingRoom extends Phaser.Scene {
     this.buttons = [];
   }
 
-  preload() {}
+  preload() { }
 
   create() {
     const scene = this;

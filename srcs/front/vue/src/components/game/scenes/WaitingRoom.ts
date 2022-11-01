@@ -1,4 +1,4 @@
-import Phaser, { Scene } from "phaser";
+import Phaser from "phaser";
 
 import eventsCenter from "./EventsCenter";
 
