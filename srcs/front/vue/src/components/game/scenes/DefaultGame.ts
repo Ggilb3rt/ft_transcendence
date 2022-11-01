@@ -138,6 +138,8 @@ export default class LevelOneScene extends Phaser.Scene {
       } else if (type === 2) {
         console.log("a player quit");
       }
+      this.activeGame = false;
+      this.matchEnded = false;
 	  eventsCenter.emit("quit");
       scene.scene.start("MenuScene");
     });

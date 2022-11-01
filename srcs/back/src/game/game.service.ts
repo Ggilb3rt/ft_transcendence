@@ -65,12 +65,16 @@ export class GameService {
             level: 0,
             spectator: false,
         }
+        console.log("PLAYERS");
+        console.log(this.players);
     }
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
         let level = data.level;
         let player = this.players[client.id];
         this.players[client.id].level = level;
+        console.log("LEVEL");
+        console.log(this.players[client.id].level);
         let waitingRoom;
         if (level === 1) {
             console.log("level1");
@@ -241,6 +245,7 @@ export class GameService {
             connSockets.forEach((s) => {
                 s.emit("leftGame", 1);
                 s.leave(roomName);
+                s.disconnect();
                 this.players[s.id].level = 0;
                 this.players[s.id].roomId = "";
             })
@@ -270,7 +275,7 @@ export class GameService {
     async handleQuitGame(client: Socket, server: Server) {
         let roomName = this.players[client.id].roomId;
         let level = this.players[client.id].level;
-
+        
         if (this.players[client.id].spectator) {
             console.log("spectator left");
             let connSockets = await server.in("abcdef").fetchSockets();
@@ -280,20 +285,24 @@ export class GameService {
             client.leave("abcdef");
             client.emit("leftGame", 2);
             console.log("2USERS " + connSockets);
-
+            
             return;
         }
-
+        console.log('ahah' + level);
+        
         if (this.activeGames[roomName]) {
+            console.log("1");
             let connSockets = await server.in(roomName).fetchSockets();
             connSockets.forEach((s) => {
                 s.emit("leftGame", 2);
                 s.leave(roomName);
+                s.disconnect();
                 this.players[s.id].level = 0;
                 this.players[s.id].roomId = "";
             })
             Reflect.deleteProperty(this.activeGames, roomName);
         } else if (this.players[client.id].level !== 0) {
+            console.log("2");
             let wr;
             if (level === 1) {
                 wr = this.waitingRoom1;
@@ -308,12 +317,12 @@ export class GameService {
             } else if (wr.playerTwo.id === client.id) {
                 this.switchPlayers(null, null, wr, 2);
             }
-
-			client.emit("leftGame", 2);
         }
         this.players[client.id].level = 0;
         this.players[client.id].roomId = "";
         this.players[client.id].spectator = false;
+        client.emit("leftGame", 2);
+        client.disconnect();
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {
@@ -335,7 +344,7 @@ export class GameService {
         server.to(data.roomName).emit("rematch");
     }
 
-	handleMoveAnim(client: Socket, data: any) {
+	handleMoveAnim(client: Socket, data: any, server: Server) {
 		client.to(data.roomName).emit("animMoved", data);
 	}
 

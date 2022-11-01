@@ -7,8 +7,8 @@ export default class WaitingRoom extends Phaser.Scene {
 
   constructor() {
     super("WaitingRoom");
-	this.doneOK = false;
-	this.settingsOK = false;
+    this.doneOK = false;
+    this.settingsOK = false;
     this.settings = {
       playerOne: "white",
       playerTwo: "white",
@@ -26,14 +26,21 @@ export default class WaitingRoom extends Phaser.Scene {
     const scene = this;
     let { width, height } = this.sys.game.canvas;
 
-	eventsCenter.on("quit", () => {
-		console.log("QUITT");
-		scene.scene.stop();
-	});
+    eventsCenter.on("quit", () => {
+      this.doneOK = false;
+      this.settingsOK = false;
+      this.settings = {
+        playerOne: "white",
+        playerTwo: "white",
+        ball: "white",
+      };
+      console.log("QUITT");
+      scene.scene.stop();
+    });
 
     if (scene.level === "default") {
-		console.log('level default');
-		scene.waitingText(width, height, scene);
+      console.log("level default");
+      scene.waitingText(width, height, scene);
       eventsCenter.on(
         "ready",
         () => {
@@ -47,31 +54,30 @@ export default class WaitingRoom extends Phaser.Scene {
     }
 
     if (scene.level === "customizable") {
-		this.container = scene.add.container(0, height / 2 - 75);
+      this.container = scene.add.container(0, height / 2 - 75);
       scene.createPanel(width, height, scene);
       scene.buttonsPlayerOne(width, height, scene);
       scene.buttonsPlayerTwo(width, height, scene);
-	  scene.buttonsBall(width, height, scene);
-	  scene.doneButton(width, height, scene);
+      scene.buttonsBall(width, height, scene);
+      scene.doneButton(width, height, scene);
 
-	if (scene.settingsOK) {
-	  eventsCenter.on(
-        "ready",
-        () => {
-          scene.message.setText("GAME IS ABOUT TO START !");
-          scene.time.delayedCall(2000, function () {
-            scene.scene.stop("WaitingRoom");
-          });
-        },
-        scene
-      );
+      if (scene.settingsOK) {
+        eventsCenter.on(
+          "ready",
+          () => {
+            scene.message.setText("GAME IS ABOUT TO START !");
+            scene.time.delayedCall(2000, function () {
+              scene.scene.stop("WaitingRoom");
+            });
+          },
+          scene
+        );
+      }
     }
-}
   }
 
   waitingText(width, height, scene) {
-
-	scene.popUp = scene.add.graphics();
+    scene.popUp = scene.add.graphics();
 
     scene.popUp.lineStyle(1, 0xffffff);
     scene.popUp.fillStyle(0xffffff, 0.5);
@@ -88,18 +94,17 @@ export default class WaitingRoom extends Phaser.Scene {
       })
       .setShadow(3, 3, "rgba(0,0,0,0.5)", 2);
 
-	  eventsCenter.on(
-        "ready",
-        () => {
-          scene.message.setText("GAME IS ABOUT TO START !");
-          scene.time.delayedCall(2000, function () {
-            scene.scene.stop("WaitingRoom");
-          });
-        },
-        scene
-      );
+    eventsCenter.on(
+      "ready",
+      () => {
+        scene.message.setText("GAME IS ABOUT TO START !");
+        scene.time.delayedCall(2000, function () {
+          scene.scene.stop("WaitingRoom");
+        });
+      },
+      scene
+    );
   }
-
 
   createPanel(width, height, scene) {
     scene.panel = scene.add.graphics();
@@ -206,103 +211,106 @@ export default class WaitingRoom extends Phaser.Scene {
   }
 
   buttonsBall(width, height, scene) {
-	scene.color = scene.add.text(100, height / 2 + 10, "BALL COLOR     : ", {
-		fill: "0x000000",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-  
-	  scene.blue = scene.add.text(350, height / 2 + 10, "BLUE", {
-		fill: "#0080ff",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-	  scene.blue.setInteractive();
-	  scene.blue.on("pointerdown", () => {
-		this.settings.ball = "blue";
-	  });
-  
-	  scene.green = scene.add.text(450, height / 2 + 10, "GREEN", {
-		fill: "#008000",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-	  scene.green.setInteractive();
-	  scene.green.on("pointerdown", () => {
-		this.settings.ball = "green";
-	  });
-  
-	  scene.orange = scene.add.text(550, height / 2 + 10, "ORANGE", {
-		fill: "#FFA500",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-	  scene.orange.setInteractive();
-	  scene.orange.on("pointerdown", () => {
-		this.settings.ball = "orange";
-	  });
-  
-	  scene.yellow = scene.add.text(700, height / 2 + 10, "YELLOW", {
-		fill: "#FFFF00",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-	  scene.yellow.setInteractive();
-	  scene.yellow.on("pointerdown", () => {
-		this.settings.ball = "yellow";
-	  });
+    scene.color = scene.add.text(100, height / 2 + 10, "BALL COLOR     : ", {
+      fill: "0x000000",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
 
+    scene.blue = scene.add.text(350, height / 2 + 10, "BLUE", {
+      fill: "#0080ff",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
+    scene.blue.setInteractive();
+    scene.blue.on("pointerdown", () => {
+      this.settings.ball = "blue";
+    });
+
+    scene.green = scene.add.text(450, height / 2 + 10, "GREEN", {
+      fill: "#008000",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
+    scene.green.setInteractive();
+    scene.green.on("pointerdown", () => {
+      this.settings.ball = "green";
+    });
+
+    scene.orange = scene.add.text(550, height / 2 + 10, "ORANGE", {
+      fill: "#FFA500",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
+    scene.orange.setInteractive();
+    scene.orange.on("pointerdown", () => {
+      this.settings.ball = "orange";
+    });
+
+    scene.yellow = scene.add.text(700, height / 2 + 10, "YELLOW", {
+      fill: "#FFFF00",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
+    scene.yellow.setInteractive();
+    scene.yellow.on("pointerdown", () => {
+      this.settings.ball = "yellow";
+    });
   }
 
   doneButton(width, height, scene) {
-	scene.done = scene.add.text(width / 2 - 15 , height / 2 + 50, "DONE", {
-		fill: "0x000000",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-	  scene.done.setInteractive();
-	  scene.done.on("pointerdown", () => {
-		console.log("DONE");
-		this.doneOK = true;
-	  });
+    scene.done = scene.add.text(width / 2 - 15, height / 2 + 50, "DONE", {
+      fill: "0x000000",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
+    scene.done.setInteractive();
+    scene.done.on("pointerdown", () => {
+      console.log("DONE");
+      this.doneOK = true;
+    });
   }
 
   update() {
-	const scene = this;
-	const { width, height } = scene.sys.canvas;
-	if (scene.doneOK === true && scene.settingsOK === false) {
-		console.log("SETTINGS OK");
-		scene.settingsOK = true;
-		scene.waitingText(width, height, scene);
-		eventsCenter.emit("settingsOK", scene.settings);
-		scene.destroySettingsInterface(scene);
-		scene.physics.pause();
-	}
+    const scene = this;
+    const { width, height } = scene.sys.canvas;
+    if (scene.doneOK === true && scene.settingsOK === false) {
+      console.log("SETTINGS OK");
+      scene.settingsOK = true;
+      scene.waitingText(width, height, scene);
+      eventsCenter.emit("settingsOK", scene.settings);
+      scene.destroySettingsInterface(scene);
+      this.doneOK = false;
+      this.settingsOK = false;
+      this.settings = {
+        playerOne: "white",
+        playerTwo: "white",
+        ball: "white",
+      };
+      scene.physics.pause();
+    }
   }
 
   destroySettingsInterface(scene) {
-	scene.panel.destroy();
-	scene.color.setVisible(false);
-	scene.blue.destroy();
-	//scene.blue.setVisible(false);
-	scene.green.setVisible(false);
-	scene.orange.setVisible(false);
-	scene.yellow.setVisible(false);
-	scene.done.destroy();
-	scene.color1.setVisible(false);
-	scene.blue1.destroy();
-	//scene.blue.setVisible(false);
-	scene.green1.setVisible(false);
-	scene.orange1.setVisible(false);
-	scene.yellow1.setVisible(false);
-	scene.color2.setVisible(false);
-	scene.blue2.destroy();
-	//scene.blue.setVisible(false);
-	scene.green2.setVisible(false);
-	scene.orange2.setVisible(false);
-	scene.yellow2.setVisible(false);
-	
-	
+    scene.panel.destroy();
+    scene.color.setVisible(false);
+    scene.blue.destroy();
+    //scene.blue.setVisible(false);
+    scene.green.setVisible(false);
+    scene.orange.setVisible(false);
+    scene.yellow.setVisible(false);
+    scene.done.destroy();
+    scene.color1.setVisible(false);
+    scene.blue1.destroy();
+    //scene.blue.setVisible(false);
+    scene.green1.setVisible(false);
+    scene.orange1.setVisible(false);
+    scene.yellow1.setVisible(false);
+    scene.color2.setVisible(false);
+    scene.blue2.destroy();
+    //scene.blue.setVisible(false);
+    scene.green2.setVisible(false);
+    scene.orange2.setVisible(false);
+    scene.yellow2.setVisible(false);
   }
-
 }

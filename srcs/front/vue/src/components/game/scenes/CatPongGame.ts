@@ -1,4 +1,4 @@
-import Phaser, { Scene } from "phaser";
+import Phaser, { ScaleModes, Scene } from "phaser";
 import io from "socket.io-client";
 
 import eventsCenter from "./EventsCenter";
@@ -6,6 +6,7 @@ import eventsCenter from "./EventsCenter";
 import ball from "../assets/balls/catpong/ball.png";
 import p1 from "../assets/paddles/catpong/playerOnePaddle.png";
 import p2 from "../assets/paddles/catpong/playerTwoPaddle.png";
+import cat from "../assets/spritesheets/cat.png";
 import fox_wait from "../assets/spritesheets/waiting_fox.png";
 import fox_jump from "../assets/spritesheets/jumping_fox.png";
 import fox_watch from "../assets/spritesheets/waiting_watching_fox.png";
@@ -34,7 +35,7 @@ export default class LevelOneScene extends Phaser.Scene {
     this.load.image("ball", ball);
     this.load.image("paddle", p1);
     this.load.image("opponentPaddle", p2);
-	this.load.image("star", star);
+    this.load.image("star", star);
     this.load.spritesheet("fox_wait", fox_wait, {
       frameWidth: 161 / 5,
       frameHeight: 15,
@@ -149,8 +150,8 @@ export default class LevelOneScene extends Phaser.Scene {
       scene.ball.y = height / 2;
       scene.playerOne.y = height / 2;
       scene.playerTwo.y = height / 2;
-	  scene.fox.x = width / 2 - 20;
-	  scene.fox.y = height / 2 - 30;
+      scene.fox.x = width / 2 - 20;
+      scene.fox.y = height / 2 - 50;
 
       scene.time.delayedCall(1000, function () {
         scene.activeGame = true;
@@ -177,6 +178,8 @@ export default class LevelOneScene extends Phaser.Scene {
       } else if (type === 2) {
         console.log("a player quit");
       }
+      this.activeGame = false;
+      this.matchEnded = false;
       eventsCenter.emit("quit");
       scene.scene.start("MenuScene");
     });
@@ -192,9 +195,12 @@ export default class LevelOneScene extends Phaser.Scene {
 
     if (scene.activeGame) {
       scene.moveBall(scene);
-      scene.moveAnim(scene);
       scene.checkPlayerMovement(scene);
       scene.checkPoints(scene);
+      // scene.checkAnimCollision(scene);
+    }
+    if (scene.activeGame) {
+      scene.moveAnim(scene);
     }
   }
 
@@ -202,15 +208,15 @@ export default class LevelOneScene extends Phaser.Scene {
     console.log("NOW");
     scene.activeGame = true;
     if (scene.playerNumber === 1) {
-	  //scene.initSprite(width, height, scene);
-	  //console.log('haha');
+      //scene.initSprite(width, height, scene);
+      //console.log('haha');
       scene.socket.emit("launchBall", { roomName: scene.roomName });
     }
   }
 
   launchBall(data, scene) {
-	scene.ball.setImmovable(false);
-	//scene.fox.setImmovable(false);
+    scene.ball.setImmovable(false);
+    //scene.fox.setImmovable(false);
     scene.ball.setVelocityX(data.ball.initialVelocity.x);
     scene.ball.setVelocityY(data.ball.initialVelocity.y);
   }
@@ -237,10 +243,9 @@ export default class LevelOneScene extends Phaser.Scene {
         scene.fox.anims.play("jump_fox", true);
       }
     } else scene.fox.anims.play("run_fox", true);
-    // Make the fox run on the ball
+
     const rotation = Phaser.Math.Angle.Between(fx, fy, bx, by);
     scene.fox.setRotation(rotation);
-    // remove fx <> foxLimitXY is better
     if (rotation >= 0 && rotation <= Math.PI / 2 && fx < scene.foxLimitRight) {
       scene.fox.setVelocity(
         scene.foxVelocityRightDown,
@@ -279,35 +284,30 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   checkPoints(scene) {
-    //if (scene.playerNumber === 1) {
-    if (
-      scene.ball.body.x <
-      scene.playerOne.body.x /*+ scene.playerOne.body.width*/
-    ) {
+    if (scene.ball.body.x < scene.playerOne.body.x) {
       console.log("point for 2");
       scene.activeGame = false;
       scene.ball.setVelocity(0);
-	  scene.ball.setImmovable(true);
+      scene.ball.setImmovable(true);
+      scene.playerOne.setVelocity(0);
+      scene.playerTwo.setVelocity(0);
       scene.fox.setVelocity(0);
-	  //scene.fox.setImmovable(true);
       if (scene.playerNumber === 1) {
         scene.socket.emit("addPoint", { roomName: scene.roomName, player: 2 });
       }
     }
-    if (
-      scene.ball.x > scene.playerTwo.body.x /*+ scene.playerTwo.body.width*/
-    ) {
+    if (scene.ball.x > scene.playerTwo.body.x) {
       console.log("point for 2");
       scene.activeGame = false;
       scene.ball.setVelocity(0);
-	  scene.ball.setImmovable(true);
-	  scene.fox.setImmovable(true);
-      //scene.fox.setVelocity(0);
+      scene.ball.setImmovable(true);
+      scene.playerOne.setVelocity(0);
+      scene.playerTwo.setVelocity(0);
+      scene.fox.setVelocity(0);
       if (scene.playerNumber === 1) {
         scene.socket.emit("addPoint", { roomName: scene.roomName, player: 1 });
       }
     }
-    // }
   }
 
   /* HELPER FUNCTIONS */
@@ -353,10 +353,9 @@ export default class LevelOneScene extends Phaser.Scene {
   createGameObjects(width, height, scene) {
     scene.initBackground(width, height, scene);
     scene.initBallObject(width, height, scene);
-    scene.initAnimation(width, height, scene);
     scene.initPlayerObjects(width, height, scene);
-	//scene.initSprite(width, height, scene);
-    scene.initColliders(scene);
+    scene.initAnimation(width, height, scene);
+    scene.initColliders(width, height, scene);
     scene.initScores(width, height, scene);
     scene.initObjectEventListeners(scene);
     scene.initUIButtons(width, height, scene);
@@ -380,10 +379,17 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   initAnimation(width, height, scene) {
+    /*const x = Phaser.Math.RND.between(
+      scene.playerOne.x + scene.playerOne.body.width,
+      scene.playerTwo.x
+    );
+    const y = Phaser.Math.RND.between(50, height - 50);*/
     scene.fox = this.physics.add
       .sprite(
         this.physics.world.bounds.width / 2 - 20,
-        this.physics.world.bounds.height / 2 - 30,
+        this.physics.world.bounds.height / 2 - 50,
+        //x,
+        //y,
         "fox_wait"
       )
       .setScale(3)
@@ -411,8 +417,6 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.fox.anims.play("run_fox");
     scene.fox.setCollideWorldBounds(true);
     scene.fox.setImmovable(true);
-
-    scene.physics.add.collider(scene.ball, scene.fox);
   }
 
   initPlayerObjects(width, height, scene) {
@@ -442,15 +446,99 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   initSprite(width, height, scene) {
-	const x = Phaser.Math.RND.between(scene.playerOne.x + scene.playerOne.body.width, scene.playerTwo.x);
-	const y = Phaser.Math.RND.between(50, height - 50);
-	scene.star = this.add.sprite(x, y, "star");
+    const x = Phaser.Math.RND.between(
+      scene.playerOne.x + scene.playerOne.body.width,
+      scene.playerTwo.x
+    );
+    const y = Phaser.Math.RND.between(50, height - 50);
+    scene.star = this.add.sprite(x, y, "star");
   }
 
-  initColliders(scene) {
+  initColliders(width, height, scene) {
     // Init collision between ball and paddles
     scene.physics.add.collider(scene.ball, scene.playerOne);
+ /*   if (scene.activeGame) {
+    console.log(
+      scene.ball.body.velocity.x + " + " + scene.ball.body.velocity.y
+    );
+    if (scene.ball.body.velocity.x < 0) {
+      if (scene.ball.body.velocity.x > -350) {
+        scene.ball.body.velocity.x = -350;
+      }
+    } else {
+      if (scene.ball.body.velocity.x < 350) {
+        scene.ball.body.velocity.x = 350;
+      }
+    }
+    if (scene.ball.body.velocity.y < 0) {
+      if (scene.ball.body.velocity.y > -100) {
+        scene.ball.body.velocity.y = -100;
+      }
+    } else {
+      if (scene.ball.body.velocity.y < 100) {
+        scene.ball.body.velocity.y = 100;
+      }
+    }
+}*/
+
     scene.physics.add.collider(scene.ball, scene.playerTwo);
+    /*if (scene.activeGame) {
+    console.log(
+      scene.ball.body.velocity.x + " + " + scene.ball.body.velocity.y
+    );
+    if (scene.ball.body.velocity.x < 0) {
+      if (scene.ball.body.velocity.x > -350) {
+        scene.ball.body.velocity.x = -350;
+      }
+    } else {
+      if (scene.ball.body.velocity.x < 350) {
+        scene.ball.body.velocity.x = 350;
+      }
+    }
+    if (scene.ball.body.velocity.y < 0) {
+      if (scene.ball.body.velocity.y > -100) {
+        scene.ball.body.velocity.y = -100;
+      }
+    } else {
+      if (scene.ball.body.velocity.y < 100) {
+        scene.ball.body.velocity.y = 100;
+      }
+    }
+}*/
+
+    scene.physics.add.collider(scene.ball, scene.fox, () => {
+      console.log(
+        scene.ball.body.velocity.x + " + " + scene.ball.body.velocity.y
+      );
+      if (scene.ball.body.velocity.x < 0) {
+        if (scene.ball.body.velocity.x > -350) {
+          scene.ball.body.velocity.x = -350;
+        }
+      } else {
+        if (scene.ball.body.velocity.x < 350) {
+          scene.ball.body.velocity.x = 350;
+        }
+      }
+      if (scene.ball.body.velocity.y < 0) {
+        if (scene.ball.body.velocity.y > -100) {
+          scene.ball.body.velocity.y = -100;
+        }
+      } else {
+        if (scene.ball.body.velocity.y < 100) {
+          scene.ball.body.velocity.y = 100;
+        }
+      }
+
+      console.log("collide");
+      if (scene.activeGame) {
+        scene.playerOne.setScale(0.5);
+        scene.playerTwo.setScale(0.5);
+        scene.time.delayedCall(3000, function () {
+          scene.playerOne.setScale(1);
+          scene.playerTwo.setScale(1);
+        });
+      }
+    });
   }
 
   initScores(width, heigth, scene) {

@@ -41,6 +41,7 @@ export default class LevelOneScene extends Phaser.Scene {
     /* ADD GAME OBJECTS */
 
     eventsCenter.on("settingsOK", (settings) => {
+      //  scene.scene.stop("WaitingRoom");
       console.log("SETINGZ OK");
       this.settingsOK = true;
       scene.createGameObjects(settings, width, height, scene);
@@ -142,6 +143,11 @@ export default class LevelOneScene extends Phaser.Scene {
       } else if (type === "quit") {
         console.log("a player quit");
       }
+      this.playerNumber;
+        this.joinQueue = false;
+        this.activeGame = false;
+        this.matchEnded = false;
+        this.settingsOK = false;
 	  eventsCenter.emit("quit");
       scene.scene.start("MenuScene");
     });
