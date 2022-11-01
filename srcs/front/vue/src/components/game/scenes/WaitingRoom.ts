@@ -34,12 +34,12 @@ export default class WaitingRoom extends Phaser.Scene {
         playerTwo: "white",
         ball: "white",
       };
-      console.log("QUITT");
+      //console.log("QUITT");
       scene.scene.stop();
     });
 
     if (scene.level === "default") {
-      console.log("level default");
+      //console.log("level default");
       scene.waitingText(width, height, scene);
       eventsCenter.on(
         "ready",
@@ -266,7 +266,7 @@ export default class WaitingRoom extends Phaser.Scene {
     });
     scene.done.setInteractive();
     scene.done.on("pointerdown", () => {
-      console.log("DONE");
+      //console.log("DONE");
       this.doneOK = true;
     });
   }
@@ -275,7 +275,7 @@ export default class WaitingRoom extends Phaser.Scene {
     const scene = this;
     const { width, height } = scene.sys.canvas;
     if (scene.doneOK === true && scene.settingsOK === false) {
-      console.log("SETTINGS OK");
+      //console.log("SETTINGS OK");
       scene.settingsOK = true;
       scene.waitingText(width, height, scene);
       eventsCenter.emit("settingsOK", scene.settings);

@@ -56,7 +56,7 @@ export default class LevelOneScene extends Phaser.Scene {
 
   create() {
     const scene = this;
-    let { width, height } = this.sys.game.canvas;
+    const { width, height } = this.sys.game.canvas;
 
     /* INIT SOCKET */
     scene.socket = io("http://localhost:3000/game");
@@ -86,7 +86,6 @@ export default class LevelOneScene extends Phaser.Scene {
     // When two sockets are connected, a room is created. The first one on the queue will
     // become playerOne and the second one playerTwo. The room is given a roomName
     scene.socket.on("init", (data) => {
-      console.log(data.playerNumber);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
     });
@@ -103,10 +102,7 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.socket.on("launchBall", (data) => {
       if (scene.playerNumber === 1) {
         scene.launchBall(data, scene);
-      } /*else {
-		scene.star.x = data.spritex;
-		scene.star.y = data.spritey;
-	  }*/
+      }
     });
 
     scene.socket.on("ballMoved", (data) => {
@@ -127,16 +123,13 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.socket.on("playerMoved", (data) => {
       const { y, roomName, playerNumber } = data;
       if (playerNumber === 1 && playerNumber !== scene.playerNumber) {
-        console.log("actualise");
         scene.playerOne.y = y;
       } else if (playerNumber === 2 && playerNumber !== scene.playerNumber) {
-        console.log("actualise");
         scene.playerTwo.y = y;
       }
     });
 
     scene.socket.on("addPoint", (data) => {
-      console.log("ADDING POINT");
       const { playerNumber, score } = data;
       if (playerNumber === 1) {
         scene.playerOneScore = score;
@@ -146,12 +139,17 @@ export default class LevelOneScene extends Phaser.Scene {
         scene.playerTwoScoreText.setText(scene.playerTwoScore);
       }
       //scene.ball.setPosition(width / 2, height / 2);
+
       scene.ball.x = width / 2;
       scene.ball.y = height / 2;
       scene.playerOne.y = height / 2;
       scene.playerTwo.y = height / 2;
       scene.fox.x = width / 2 - 20;
       scene.fox.y = height / 2 - 50;
+      scene.playerOne.setScale(1);
+      scene.playerTwo.setScale(1);
+      scene.playerOne.displayWidth = 20;
+      scene.playerTwo.displayWidth = 20;
 
       scene.time.delayedCall(1000, function () {
         scene.activeGame = true;
@@ -163,15 +161,19 @@ export default class LevelOneScene extends Phaser.Scene {
 
     scene.socket.on("gameResult", (data) => {
       scene.resultText = scene.add
-        .text(width / 2, height / 2, "PLAYER " + data.winner + " WINS !", {
-          fontSize: "36px",
-        })
+        .text(
+          width / 2 - 125,
+          height / 2,
+          "PLAYER " + data.winner + " WINS !",
+          {
+            fontSize: "36px",
+          }
+        )
         .setVisible(true);
       scene.gameEnded = true;
     });
 
     scene.socket.on("leftGame", (type) => {
-      console.log(type);
       if (type === 1) {
         console.log("a player disconnected");
         scene.scene.start("MenuScene");
@@ -185,31 +187,23 @@ export default class LevelOneScene extends Phaser.Scene {
     });
 
     scene.socket.on("rematch", (type) => {
-      console.log("REMATCH");
       scene.scene.restart();
     });
   }
 
   update() {
     const scene = this;
+    const { width, height } = this.sys.game.canvas;
 
-    if (scene.activeGame) {
-      scene.moveBall(scene);
-      scene.checkPlayerMovement(scene);
-      scene.checkPoints(scene);
-      // scene.checkAnimCollision(scene);
-    }
-    if (scene.activeGame) {
-      scene.moveAnim(scene);
-    }
+    scene.moveBall(scene);
+    scene.moveAnim(scene);
+    scene.checkPlayerMovement(scene);
+    scene.checkPoints(width, height, scene);
   }
 
   startGame(scene) {
-    console.log("NOW");
     scene.activeGame = true;
     if (scene.playerNumber === 1) {
-      //scene.initSprite(width, height, scene);
-      //console.log('haha');
       scene.socket.emit("launchBall", { roomName: scene.roomName });
     }
   }
@@ -222,7 +216,7 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   moveBall(scene) {
-    if (scene.playerNumber === 1) {
+    if (scene.playerNumber === 1 && scene.activeGame) {
       scene.socket.emit("moveBall", {
         roomName: scene.roomName,
         x: scene.ball.body.x,
@@ -232,80 +226,98 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   moveAnim(scene) {
-    const fx = scene.fox.body.x;
-    const fy = scene.fox.body.y;
-    const bx = scene.ball.body.x;
-    const by = scene.ball.body.y;
-
-    const distance = Phaser.Math.Distance.Between(fx, fy, bx, by);
-    if (distance > 300) {
-      if (Math.random() > 0.5) {
-        scene.fox.anims.play("jump_fox", true);
-      }
-    } else scene.fox.anims.play("run_fox", true);
-
-    const rotation = Phaser.Math.Angle.Between(fx, fy, bx, by);
-    scene.fox.setRotation(rotation);
-    if (rotation >= 0 && rotation <= Math.PI / 2 && fx < scene.foxLimitRight) {
-      scene.fox.setVelocity(
-        scene.foxVelocityRightDown,
-        scene.foxVelocityRightDown
-      );
-    } else if (
-      rotation > Math.PI / 2 &&
-      rotation <= Math.PI &&
-      fx > scene.foxLimitLeft
-    )
-      scene.fox.setVelocity(
-        scene.foxVelocityLeftUP,
-        scene.foxVelocityRightDown
-      );
-    else if (
-      rotation < 0 &&
-      rotation >= -Math.PI / 2 &&
-      fx < scene.foxLimitRight
-    )
-      scene.fox.setVelocity(
-        scene.foxVelocityRightDown,
-        scene.foxVelocityLeftUP
-      );
-    else if (
-      rotation < -Math.PI / 2 &&
-      rotation > -Math.PI &&
-      fx > scene.foxLimitLeft
-    )
-      scene.fox.setVelocity(scene.foxVelocityLeftUP, scene.foxVelocityLeftUP);
-    else scene.fox.setVelocity(0, 0);
-    scene.socket.emit("moveAnim", {
-      roomName: scene.roomName,
-      x: scene.fox.body.x,
-      y: scene.fox.body.y,
-    });
-  }
-
-  checkPoints(scene) {
-    if (scene.ball.body.x < scene.playerOne.body.x) {
-      console.log("point for 2");
-      scene.activeGame = false;
-      scene.ball.setVelocity(0);
-      scene.ball.setImmovable(true);
-      scene.playerOne.setVelocity(0);
-      scene.playerTwo.setVelocity(0);
+    if (scene.activeGame) {
       scene.fox.setVelocity(0);
+      const fx = scene.fox.body.x;
+      const fy = scene.fox.body.y;
+      const bx = scene.ball.body.x;
+      const by = scene.ball.body.y;
+
+      const distance = Phaser.Math.Distance.Between(fx, fy, bx, by);
+      if (distance > 300) {
+        if (Math.random() > 0.5) {
+          scene.fox.anims.play("jump_fox", true);
+        }
+      } else scene.fox.anims.play("run_fox", true);
+
+      const rotation = Phaser.Math.Angle.Between(fx, fy, bx, by);
+      scene.fox.setRotation(rotation);
       if (scene.playerNumber === 1) {
-        scene.socket.emit("addPoint", { roomName: scene.roomName, player: 2 });
+        if (
+          rotation >= 0 &&
+          rotation <= Math.PI / 2 &&
+          fx < scene.foxLimitRight
+        ) {
+          scene.fox.setVelocity(
+            scene.foxVelocityRightDown,
+            scene.foxVelocityRightDown
+          );
+        } else if (
+          rotation > Math.PI / 2 &&
+          rotation <= Math.PI &&
+          fx > scene.foxLimitLeft
+        )
+          scene.fox.setVelocity(
+            scene.foxVelocityLeftUP,
+            scene.foxVelocityRightDown
+          );
+        else if (
+          rotation < 0 &&
+          rotation >= -Math.PI / 2 &&
+          fx < scene.foxLimitRight
+        )
+          scene.fox.setVelocity(
+            scene.foxVelocityRightDown,
+            scene.foxVelocityLeftUP
+          );
+        else if (
+          rotation < -Math.PI / 2 &&
+          rotation > -Math.PI &&
+          fx > scene.foxLimitLeft
+        )
+          scene.fox.setVelocity(
+            scene.foxVelocityLeftUP,
+            scene.foxVelocityLeftUP
+          );
+        else scene.fox.setVelocity(0, 0);
+        scene.socket.emit("moveAnim", {
+          roomName: scene.roomName,
+          x: scene.fox.body.x,
+          y: scene.fox.body.y,
+        });
       }
     }
-    if (scene.ball.x > scene.playerTwo.body.x) {
-      console.log("point for 2");
-      scene.activeGame = false;
-      scene.ball.setVelocity(0);
-      scene.ball.setImmovable(true);
-      scene.playerOne.setVelocity(0);
-      scene.playerTwo.setVelocity(0);
-      scene.fox.setVelocity(0);
-      if (scene.playerNumber === 1) {
-        scene.socket.emit("addPoint", { roomName: scene.roomName, player: 1 });
+  }
+
+  checkPoints(width, height, scene) {
+    if (scene.activeGame) {
+      if (scene.ball.body.x < scene.playerOne.body.x) {
+        scene.activeGame = false;
+        scene.ball.setVelocity(0);
+        scene.ball.setImmovable(true);
+        scene.playerOne.setVelocity(0);
+        scene.playerTwo.setVelocity(0);
+        scene.fox.setVelocity(0);
+        if (scene.playerNumber === 1) {
+          scene.socket.emit("addPoint", {
+            roomName: scene.roomName,
+            player: 2,
+          });
+        }
+      }
+      if (scene.ball.x > scene.playerTwo.body.x) {
+        scene.activeGame = false;
+        scene.ball.setVelocity(0);
+        scene.ball.setImmovable(true);
+        scene.playerOne.setVelocity(0);
+        scene.playerTwo.setVelocity(0);
+        scene.fox.setVelocity(0);
+        if (scene.playerNumber === 1) {
+          scene.socket.emit("addPoint", {
+            roomName: scene.roomName,
+            player: 1,
+          });
+        }
       }
     }
   }
@@ -314,18 +326,16 @@ export default class LevelOneScene extends Phaser.Scene {
 
   // PLAYER MOVEMENT
   checkPlayerMovement(scene) {
-    if (scene.playerNumber === 1) {
+    if (scene.playerNumber === 1 && scene.activeGame) {
       if (scene.playerMoved(scene.playerOne, scene)) {
-        console.log("moved " + scene.playerNumber);
         scene.socket.emit("playerMovement", {
           y: scene.playerOne.y,
           roomName: scene.roomName,
           playerNumber: scene.playerNumber,
         });
       }
-    } else if (scene.playerNumber === 2) {
+    } else if (scene.playerNumber === 2 && scene.activeGame) {
       if (scene.playerMoved(scene.playerTwo, scene)) {
-        console.log("moved " + scene.playerNumber);
         scene.socket.emit("playerMovement", {
           y: scene.playerTwo.y,
           roomName: scene.roomName,
@@ -457,59 +467,40 @@ export default class LevelOneScene extends Phaser.Scene {
   initColliders(width, height, scene) {
     // Init collision between ball and paddles
     scene.physics.add.collider(scene.ball, scene.playerOne);
- /*   if (scene.activeGame) {
-    console.log(
-      scene.ball.body.velocity.x + " + " + scene.ball.body.velocity.y
-    );
-    if (scene.ball.body.velocity.x < 0) {
-      if (scene.ball.body.velocity.x > -350) {
-        scene.ball.body.velocity.x = -350;
+    /*scene.physics.add.collider(scene.ball, scene.playerOne, () => {
+      if (scene.activeGame) {
+        if (scene.ball.y < scene.playerOne.y) {
+          scene.ball.body.velocity.y *= 1;
+          if (scene.ball.body.velocity.y >= -100) {
+            scene.ball.body.velocity.y = -100;
+          }
+        } else if (scene.ball.y > scene.playerOne.y) {;
+          scene.ball.body.velocity.y *= -1;
+          if (scene.ball.body.velocity.y >= 100) {
+            scene.ball.body.velocity.y = 100;
+          }
+        }
       }
-    } else {
-      if (scene.ball.body.velocity.x < 350) {
-        scene.ball.body.velocity.x = 350;
-      }
-    }
-    if (scene.ball.body.velocity.y < 0) {
-      if (scene.ball.body.velocity.y > -100) {
-        scene.ball.body.velocity.y = -100;
-      }
-    } else {
-      if (scene.ball.body.velocity.y < 100) {
-        scene.ball.body.velocity.y = 100;
-      }
-    }
-}*/
+    });*/
 
     scene.physics.add.collider(scene.ball, scene.playerTwo);
-    /*if (scene.activeGame) {
-    console.log(
-      scene.ball.body.velocity.x + " + " + scene.ball.body.velocity.y
-    );
-    if (scene.ball.body.velocity.x < 0) {
-      if (scene.ball.body.velocity.x > -350) {
-        scene.ball.body.velocity.x = -350;
+    /*scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
+      if (scene.activeGame) {
+        if (scene.ball.body.y < scene.playerTwo.body.y) {
+          scene.ball.body.velocity.y *= 1;
+          if (scene.ball.body.velocity.y >= -100) {
+            scene.ball.body.velocity.y = -100;
+          }
+        } else if (scene.ball.body.y > scene.playerTwo.body.y) {
+          scene.ball.body.velocity.y *= -1;
+          if (scene.ball.body.velocity.y >= 100) {
+            scene.ball.body.velocity.y = 100;
+          }
+        }
       }
-    } else {
-      if (scene.ball.body.velocity.x < 350) {
-        scene.ball.body.velocity.x = 350;
-      }
-    }
-    if (scene.ball.body.velocity.y < 0) {
-      if (scene.ball.body.velocity.y > -100) {
-        scene.ball.body.velocity.y = -100;
-      }
-    } else {
-      if (scene.ball.body.velocity.y < 100) {
-        scene.ball.body.velocity.y = 100;
-      }
-    }
-}*/
+    });*/
 
     scene.physics.add.collider(scene.ball, scene.fox, () => {
-      console.log(
-        scene.ball.body.velocity.x + " + " + scene.ball.body.velocity.y
-      );
       if (scene.ball.body.velocity.x < 0) {
         if (scene.ball.body.velocity.x > -350) {
           scene.ball.body.velocity.x = -350;
@@ -529,7 +520,6 @@ export default class LevelOneScene extends Phaser.Scene {
         }
       }
 
-      console.log("collide");
       if (scene.activeGame) {
         scene.playerOne.setScale(0.5);
         scene.playerTwo.setScale(0.5);
@@ -578,7 +568,6 @@ export default class LevelOneScene extends Phaser.Scene {
     });
     scene.quitButton.setInteractive();
     scene.quitButton.on("pointerdown", () => {
-      console.log("quit button clicked");
       scene.socket.emit("quitGame");
     });
 
@@ -598,7 +587,7 @@ export default class LevelOneScene extends Phaser.Scene {
       if (scene.gameEnded) {
         scene.socket.emit("rematch", { roomName: scene.roomName });
       } else {
-        console.log("YOU NEED TO FINISH THE GAME BEFORE A REMATCH");
+       // console.log("YOU NEED TO FINISH THE GAME BEFORE A REMATCH");
       }
     });
   }

@@ -25,8 +25,7 @@ export default class WaitingRoom extends Phaser.Scene {
     });
     scene.defaultButton.setInteractive();
     scene.defaultButton.on("pointerdown", () => {
-      console.log("Default button clicked");
-      scene.scene.start("DefaultGame", {spectator: false});
+      scene.scene.start("DefaultGame", { spectator: false });
     });
 
     // Level Two Button
@@ -37,23 +36,21 @@ export default class WaitingRoom extends Phaser.Scene {
     });
     scene.customizableButton.setInteractive();
     scene.customizableButton.on("pointerdown", () => {
-      console.log("Customizable button clicked");
-	  scene.scene.start("CustomizableGame", {spectator: false});
+      scene.scene.start("CustomizableGame", { spectator: false });
     });
 
-	// Level Three Button
-	scene.catPongButton = scene.add.text(140, 415, "CATPONG", {
-		fill: "#ffffff",
-		fontSize: "20px",
-		fontStyle: "bold",
-	  });
-	  scene.catPongButton.setInteractive();
-	  scene.catPongButton.on("pointerdown", () => {
-		console.log("Cat Pong button clicked");
-		scene.scene.start("CatPongGame", {spectator: false});
-	  });
+    // Level Three Button
+    scene.catPongButton = scene.add.text(140, 415, "CATPONG", {
+      fill: "#ffffff",
+      fontSize: "20px",
+      fontStyle: "bold",
+    });
+    scene.catPongButton.setInteractive();
+    scene.catPongButton.on("pointerdown", () => {
+      scene.scene.start("CatPongGame", { spectator: false });
+    });
 
-        // Level Two Button
+    // Level Two Button
     /*    scene.watchButton = scene.add.text(140, 415, "WATCH", {
             fill: "#ffffff",
             fontSize: "20px",
@@ -63,5 +60,5 @@ export default class WaitingRoom extends Phaser.Scene {
           scene.watchButton.on("pointerdown", () => {
             scene.scene.start("LevelOneScene", {spectator: true});
           });*/
-	}
+  }
 }
