@@ -1,12 +1,97 @@
 <script setup lang="ts">
-	import { ref, onUpdated } from 'vue'
-	import SideNav from '../components/navigation/SideNav.vue';
+import { ref, onUpdated } from 'vue'
+import SideNav from '../components/navigation/SideNav.vue';
+
+
+/*
+ * Routes for the back
+
+	// channels types : cf TChannel below; if channel.type == "direct" nobody is owner nor admin, if you want to ban direct channel just ban the user
+
+	// Global
+		getAllChannels(userId:number, ??myBans:[number]??): [IChannel] {} (myBans est util uniquement pour ne pas avoir les direct msg, pas forcement util ici)
+		??getAllDirectMessages(userId:number, myBans:[number]): [IChannel] {} (pas sûr que cette function soit utile)
+		??getMyChannels(userId:number): [IChannel] {}
+
+	// Dans un channel
+		createChannel(userId(number), channelName:string, channelType:TChannel, pass?:string) : boolean {
+			// owner is userId
+		}
+		getMessages(userId:number, channelId:number) : [IMessage] {
+			// userId must be in channelId && !isBan(userId)
+		}
+
+		isOwner(userId:number): boolean {}
+		isAdmin(userId:number): boolean {}
+		isMute(userId:number): boolean {}
+		endOfMute(userId:number): Date {} (soit ça soit isMute() return directement la Date ?)
+		isBan(userId:number): Date {}
+
+		// Devra probablement se passer via sockets (?)
+			joinChannel(userId:number, channelId:number): [IMessage] {}
+			leaveChannel(userId:number, channelId:number): boolean {}
+			renameChannel(userId:number, channelId:number, newName:string): boolean {
+				// must be owner
+			}
+			changeChannelType(userId:number, channelId:number, newType:TChannel, pass?:string): boolean {
+				// must be owner
+			}
+			changePass(userId:number, channelId:number, newPass:string): boolean {
+				// must be owner
+			}
+			addAdmin(nominator:number, nominated:number, channelId:number): boolean {
+				// must be at least admin
+			}
+			removeAdmin(remover:number, channelId:number): boolean {
+				// must be owner ?
+			}
+			restrictUser(restrictor:number, restricted:number, channelId:number, onlyMute: boolean): boolean {
+				// must be at least admin
+			}
+
+*/
+
+
+
+
+type TChannel = "public" | "private" | "pass" | "direct"
+
+interface IRestrictUserTime {
+	userId: number;
+	expire: Date;
+}
+
+interface IChannel {
+	id: number;
+	// href: string; // equivalent of id ??
+	name: string;
+	type: TChannel;
+	userList: [number];
+	channelOwner: number | null;
+	adminList: [number];
+	banList: [IRestrictUserTime];
+	muteList: [IRestrictUserTime];
+	pass?: string;
+}
+
+// remplacer tag et img par userId, permet de le retrouver dans le store usersList
+interface IMessage {
+	tag: string,
+	img: string,
+	msg: string,
+	date: Date
+}
+
 
 	const sideNavDataLeft = ref({
 		name: 'Channels',
 		isOpen: false,
 		items: [
-			{name: 'New', children: null, href: '/chat/new'},
+			{
+				name: 'New',
+				children: null,
+				href: '/chat/new'
+			},
 			{
 				name: 'All channels',
 				children: [	// need to get it
@@ -42,24 +127,10 @@
 				isOpen: false
 			},
 			{
-				name: 'Current channel',
+				name: 'Currents users in channel',
 				children: [	// need to get it
 					{ name: 'homer' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
+					{ name: 'roger' },
 				],
 				isOpen: true
 			}
@@ -69,13 +140,7 @@
 	let leftIsActive = ref(false);
 	let rightIsActive = ref(false);
 
-	interface IMessage {
-		tag: string,
-		img: string,
-		msg: string,
-		date: Date
-	}
-
+/// Messages
 	let channelMsgs: [IMessage] = [
 		{
 			tag: "Roger",
@@ -120,29 +185,21 @@
 
 
 	
-	let msg = ref("")
+let msg = ref("")
 
-	// function scrollToBottom(op) {
-	// 	const el = this.$el.getElementsByClassName('room')[0];
-		
-	// 	console.log(op)
-	// 	if (el) {
-	// 		el.scrollIntoView(op);
-	// 	}
-	// }
-
-	function submit(e: Event) {
-		e.preventDefault()
-		if (msg.value) {
-			channelMsgs.push({
-				tag: "Homer",
-				img: "src/assets/avatars/homer.jpeg",
-				msg: msg.value,
-				date: new Date()
-			})
-		}
-		msg.value = ""
+function submit(e: Event) {
+	e.preventDefault()
+	// fetch to server
+	if (msg.value) {
+		channelMsgs.push({
+			tag: "Homer",
+			img: "src/assets/avatars/homer.jpeg",
+			msg: msg.value,
+			date: new Date()
+		})
 	}
+	msg.value = ""
+}
 
 onUpdated(() => {
 	const room = document.getElementById('room-view')
@@ -154,7 +211,6 @@ onUpdated(() => {
 		});
 	}
 })
-
 
 </script>
 

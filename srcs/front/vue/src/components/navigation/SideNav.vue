@@ -45,7 +45,8 @@ onBeforeUnmount(() => {
 		<button 
 			class="btn_side"
 			@click="props.model.isOpen = !props.model.isOpen"
-			v-if="winWidth < 768">
+			v-if="winWidth < 768"
+		>
 			X
 			<!-- {{ props.model.name }} -->
 		</button>

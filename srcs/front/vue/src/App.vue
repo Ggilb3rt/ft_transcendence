@@ -17,6 +17,12 @@ const route = useRoute()
 
 
 
+//!!!!!!!! il serait très sexy de pouvoir ctrl + r sans avoir à refaire le processus de connection
+// on pourrai avoir une route dans le back à checker au lancement de l'app vue, si le cookie est present
+// et pas 2FA ==> set userStore.connected à true puis router.push(from) (ex: http://pongLocal/dashboard/2 ==> si cookie valide et pas 2FA recharge direct cette page (pas de retour à login))
+// sinon go login (parceque flemme de faire un autre sytème)
+
+
 async function testConnection() {
   try {
     socket.emit('testConnection')

@@ -1,5 +1,5 @@
-export type status = "available" | "disconnected" | "inGame"
-
+/// User(s) infos ///
+// Connected user
 export interface IUser {
     id: number;
     two_factor_auth: boolean;
@@ -18,12 +18,14 @@ export interface IUser {
     matches: IMatch[] | null;
   }
 
+// Minimum valuable informations for a user (ie: use for list of users)
 export interface IOtherUserRestrict {
     id: number;
     nickname: string;
     avatar_url: string;
 }
 
+// Other user infos (ie: use in dashboard)
 export interface IOtherUser {
     id: number;
     first_name: string;
@@ -38,6 +40,7 @@ export interface IOtherUser {
     matches: IMatch[] | null;
 }
 
+// Match prints in dashboard
 export interface IMatchHistory {
   opponent: number;
   win: boolean;
@@ -46,6 +49,7 @@ export interface IMatchHistory {
   date: Date | null;
 }
 
+// Match as they are stored in bdd
 export interface IMatch {
   id: number;
   player_left_id: number;
@@ -55,8 +59,32 @@ export interface IMatch {
   date: Date;
 }
 
+
+
+/// Socket Status ///
+export type status = "available" | "disconnected" | "inGame"
+
+// Status of each users, use to allowed or not some actions
 export interface ISocketStatus {
   socketId: string;
   userId: number;
   userStatus: status;
+}
+
+
+
+/// Side nav ///
+/// Used with SideNav.vue component ///
+
+export interface ISideNavData {
+	name: string;
+	isOpen: boolean;
+	items: [Object]
+}
+
+export interface ISideNavDataItem {
+	name: string;
+	href: string;
+	children?: [ISideNavDataItem] | null
+	isOpen?: boolean;
 }
