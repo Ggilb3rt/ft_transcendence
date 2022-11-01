@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onUpdated } from 'vue'
 import SideNav from '../components/navigation/SideNav.vue';
+import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 
 
 /*
@@ -226,6 +227,7 @@ onUpdated(() => {
 				<div v-for="msg in channelMsgs" :key="msg.tag" class="message">
 					<figure>
 						<img :src="msg.img" :alt="msg.tag + ' avatar'">
+						<BtnChallenge></BtnChallenge>
 					</figure>
 					<p>
 						<span class="tag">{{ msg.tag }}</span> | 
