@@ -4,61 +4,41 @@ import io from "socket.io-client";
 export default class WaitingRoom extends Phaser.Scene {
   constructor() {
     super("MenuScene");
-    this.player = {};
-    this.state = {};
   }
 
-  init() {}
+  init(data) {
+    this.buttons = [];
+  }
 
   preload() {}
 
   create() {
     const scene = this;
-
     //const { width, height } = this.scale;
 
+    /* INIT SOCKET */
+    scene.socket = io("http://localhost:3000/game");
+
     // Level One Button
-    scene.defaultButton = scene.add.text(140, 215, "DEFAULT", {
+    scene.buttons.push(scene.createButton(140, 215, "DEFAULT", "DefaultGame", scene));
+    scene.buttons.push(scene.createButton(140, 315, "CUSTOMIZABLE", "CustomizableGame", scene));
+    scene.buttons.push(scene.createButton(140, 415, "CATPONG", "CatPongGame", scene));
+
+    //scene.buttons.push(scene.createButton(140, 515, "WATCHGAME", xxxx, scene));
+  }
+
+  createButton(width, height, text, dest, scene) {
+    let button = scene.add.text(width, height, text, {
       fill: "#ffffff",
       fontSize: "20px",
       fontStyle: "bold",
     });
-    scene.defaultButton.setInteractive();
-    scene.defaultButton.on("pointerdown", () => {
-      scene.scene.start("DefaultGame", { spectator: false });
-    });
 
-    // Level Two Button
-    scene.customizableButton = scene.add.text(140, 315, "CUSTOMIZABLE", {
-      fill: "#ffffff",
-      fontSize: "20px",
-      fontStyle: "bold",
+    button.setInteractive();
+    button.on("pointerdown", () => {
+      scene.scene.start(dest, { spectator: false, socket: scene.socket });
     });
-    scene.customizableButton.setInteractive();
-    scene.customizableButton.on("pointerdown", () => {
-      scene.scene.start("CustomizableGame", { spectator: false });
-    });
-
-    // Level Three Button
-    scene.catPongButton = scene.add.text(140, 415, "CATPONG", {
-      fill: "#ffffff",
-      fontSize: "20px",
-      fontStyle: "bold",
-    });
-    scene.catPongButton.setInteractive();
-    scene.catPongButton.on("pointerdown", () => {
-      scene.scene.start("CatPongGame", { spectator: false });
-    });
-
-    // Level Two Button
-    /*    scene.watchButton = scene.add.text(140, 415, "WATCH", {
-            fill: "#ffffff",
-            fontSize: "20px",
-            fontStyle: "bold",
-          });
-          scene.watchButton.setInteractive();
-          scene.watchButton.on("pointerdown", () => {
-            scene.scene.start("LevelOneScene", {spectator: true});
-          });*/
+    return button;
   }
 }
+

@@ -65,8 +65,8 @@ export class GameService {
             level: 0,
             spectator: false,
         }
-        console.log("PLAYERS");
-        console.log(this.players);
+        //console.log("PLAYERS");
+        //console.log(this.players);
     }
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
@@ -125,7 +125,6 @@ export class GameService {
                 waitingRoom.playerTwo.roomId = "";
             }
         }
-
     }
 
     initGame(roomId: any, server: Server) {
@@ -322,7 +321,7 @@ export class GameService {
         this.players[client.id].roomId = "";
         this.players[client.id].spectator = false;
         client.emit("leftGame", 2);
-        client.disconnect();
+        //client.disconnect();
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {

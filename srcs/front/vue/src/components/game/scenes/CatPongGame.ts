@@ -16,10 +16,31 @@ import star from "../assets/others/star.png";
 export default class LevelOneScene extends Phaser.Scene {
   constructor() {
     super("CatPongGame");
-    this.playerNumber;
+    /*this.playerNumber;
     this.activeGame = false;
     this.matchEnded = false;
-    this.state = {};
+    this.foxSpeed = 100;
+    this.foxVelocityLeftUP = -this.foxSpeed;
+    this.foxVelocityRightDown = this.foxSpeed;
+    this.foxLimitLeft = 230;
+    this.foxLimitRight = 800 - this.foxLimitLeft;*/
+  }
+
+  init(data) {
+    this.spectator = data.spectator;
+    this.socket = data.socket;
+    this.playerNumber = 0;
+    this.activeGame = false;
+    this.matchEnded = false;
+    this.gameEnded = false;
+    this.playerOne = {};
+    this.playerTwo = {};
+    this.ball = {};
+    this.roomId = "";
+    this.roomName = "";
+    this.playerOneScoreText = {};
+    this.playerTwoScoreText = {};
+    this.fox = {};
     this.foxSpeed = 100;
     this.foxVelocityLeftUP = -this.foxSpeed;
     this.foxVelocityRightDown = this.foxSpeed;
@@ -27,15 +48,10 @@ export default class LevelOneScene extends Phaser.Scene {
     this.foxLimitRight = 800 - this.foxLimitLeft;
   }
 
-  init(data) {
-    this.spectator = data.spectator;
-  }
-
   preload() {
-    this.load.image("ball", ball);
-    this.load.image("paddle", p1);
-    this.load.image("opponentPaddle", p2);
-    this.load.image("star", star);
+    this.load.image("ballCP", ball);
+    this.load.image("paddleCP", p1);
+    this.load.image("opponentPaddleCP", p2);
     this.load.spritesheet("fox_wait", fox_wait, {
       frameWidth: 161 / 5,
       frameHeight: 15,
@@ -58,8 +74,6 @@ export default class LevelOneScene extends Phaser.Scene {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
 
-    /* INIT SOCKET */
-    scene.socket = io("http://localhost:3000/game");
 
     if (!scene.spectator) {
       scene.scene.launch("WaitingRoom", { level: "default" });
@@ -86,6 +100,7 @@ export default class LevelOneScene extends Phaser.Scene {
     // When two sockets are connected, a room is created. The first one on the queue will
     // become playerOne and the second one playerTwo. The room is given a roomName
     scene.socket.on("init", (data) => {
+        console.log("PLAYER NUMBER " + data.playerNumber);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
     });
@@ -93,7 +108,6 @@ export default class LevelOneScene extends Phaser.Scene {
     // When giving specific info to each player is done, we can start the game
     scene.socket.on("roomComplete", (state) => {
       eventsCenter.emit("ready");
-      scene.state = state;
       scene.time.delayedCall(3000, function () {
         scene.startGame(scene);
       });
@@ -381,7 +395,7 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   initBallObject(width, height, scene) {
-    scene.ball = scene.physics.add.sprite(width / 2, height / 2, "ball");
+    scene.ball = scene.physics.add.sprite(width / 2, height / 2, "ballCP");
     scene.ball.setCollideWorldBounds(true);
     scene.ball.setBounce(1, 1);
     //scene.ball.displayWidth = 50;
@@ -389,17 +403,10 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   initAnimation(width, height, scene) {
-    /*const x = Phaser.Math.RND.between(
-      scene.playerOne.x + scene.playerOne.body.width,
-      scene.playerTwo.x
-    );
-    const y = Phaser.Math.RND.between(50, height - 50);*/
     scene.fox = this.physics.add
       .sprite(
         this.physics.world.bounds.width / 2 - 20,
         this.physics.world.bounds.height / 2 - 50,
-        //x,
-        //y,
         "fox_wait"
       )
       .setScale(3)
@@ -434,7 +441,7 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.playerOne = scene.physics.add.sprite(
       scene.ball.body.width / 2 + 1,
       height / 2,
-      "paddle"
+      "paddleCP"
     );
     scene.playerOne.setCollideWorldBounds(true);
     scene.playerOne.setImmovable(true);
@@ -446,7 +453,7 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.playerTwo = scene.physics.add.sprite(
       width - (scene.ball.body.width / 2 + 1),
       height / 2,
-      "opponentPaddle"
+      "opponentPaddleCP"
     );
     scene.playerTwo.setCollideWorldBounds(true);
     scene.playerTwo.setImmovable(true);
@@ -455,51 +462,10 @@ export default class LevelOneScene extends Phaser.Scene {
     scene.playerTwo.scaleY = scene.playerTwo.scaleX;
   }
 
-  initSprite(width, height, scene) {
-    const x = Phaser.Math.RND.between(
-      scene.playerOne.x + scene.playerOne.body.width,
-      scene.playerTwo.x
-    );
-    const y = Phaser.Math.RND.between(50, height - 50);
-    scene.star = this.add.sprite(x, y, "star");
-  }
-
   initColliders(width, height, scene) {
     // Init collision between ball and paddles
     scene.physics.add.collider(scene.ball, scene.playerOne);
-    /*scene.physics.add.collider(scene.ball, scene.playerOne, () => {
-      if (scene.activeGame) {
-        if (scene.ball.y < scene.playerOne.y) {
-          scene.ball.body.velocity.y *= 1;
-          if (scene.ball.body.velocity.y >= -100) {
-            scene.ball.body.velocity.y = -100;
-          }
-        } else if (scene.ball.y > scene.playerOne.y) {;
-          scene.ball.body.velocity.y *= -1;
-          if (scene.ball.body.velocity.y >= 100) {
-            scene.ball.body.velocity.y = 100;
-          }
-        }
-      }
-    });*/
-
     scene.physics.add.collider(scene.ball, scene.playerTwo);
-    /*scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
-      if (scene.activeGame) {
-        if (scene.ball.body.y < scene.playerTwo.body.y) {
-          scene.ball.body.velocity.y *= 1;
-          if (scene.ball.body.velocity.y >= -100) {
-            scene.ball.body.velocity.y = -100;
-          }
-        } else if (scene.ball.body.y > scene.playerTwo.body.y) {
-          scene.ball.body.velocity.y *= -1;
-          if (scene.ball.body.velocity.y >= 100) {
-            scene.ball.body.velocity.y = 100;
-          }
-        }
-      }
-    });*/
-
     scene.physics.add.collider(scene.ball, scene.fox, () => {
       if (scene.ball.body.velocity.x < 0) {
         if (scene.ball.body.velocity.x > -350) {
