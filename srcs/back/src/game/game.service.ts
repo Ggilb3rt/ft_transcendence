@@ -90,8 +90,8 @@ export class GameService {
         // Waiting room is empty
         if (waitingRoom.playerOne.id === "" && waitingRoom.playerTwo.id === "") {
             console.log("room empty");
-            //let roomId = this.codeGenerator(5);
-            let roomId = "abcdef";
+            let roomId = this.codeGenerator(5);
+            //let roomId = "abcdef";
             waitingRoom.roomId = roomId;
             waitingRoom.playerOne.id = player.id;
             waitingRoom.playerOne.socket = player.socket;
@@ -277,11 +277,11 @@ export class GameService {
         
         if (this.players[client.id].spectator) {
             console.log("spectator left");
-            let connSockets = await server.in("abcdef").fetchSockets();
+            //let connSockets = await server.in("abcdef").fetchSockets();
             console.log("1USERS " + connSockets);
             this.players[client.id].roomId = "";
             this.players[client.id].spectator = false;
-            client.leave("abcdef");
+            //client.leave("abcdef");
             client.emit("leftGame", 2);
             console.log("2USERS " + connSockets);
             
