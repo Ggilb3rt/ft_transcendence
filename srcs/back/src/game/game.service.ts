@@ -229,7 +229,7 @@ export class GameService {
         
         if (this.players[client.id].spectator) {
             console.log("spectator left");
-            let connSockets = await server.in("abcdef").fetchSockets();
+            //let connSockets = await server.in("abcdef").fetchSockets();
             console.log("1USERS " + connSockets);
             this.players[client.id].roomId = "";
             this.players[client.id].spectator = false;
