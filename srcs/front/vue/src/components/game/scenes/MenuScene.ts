@@ -16,7 +16,6 @@ export default class WaitingRoom extends Phaser.Scene {
   }
 
   init(data) {
-	this.socket = data.socket;
     this.buttons = [];
   }
 
@@ -46,16 +45,14 @@ export default class WaitingRoom extends Phaser.Scene {
     //const { width, height } = this.scale;
 
     /* INIT SOCKET */
-	//if (scene.socket === undefined) {
-    //	scene.socket = io("http://localhost:3000/game");
-	//s}
+    scene.socket = io("http://localhost:3000/game");
 
-    // Level One Button
+
     scene.buttons.push(scene.createButton(140, 215, "DEFAULT", "DefaultGame", scene));
     scene.buttons.push(scene.createButton(140, 315, "CUSTOMIZABLE", "CustomizableGame", scene));
     scene.buttons.push(scene.createButton(140, 415, "CATPONG", "CatPongGame", scene));
 
-    //scene.buttons.push(scene.createButton(140, 515, "WATCHGAME", xxxx, scene));
+    scene.buttons.push(scene.createButton(140, 515, "WATCHGAME", "DefaultGame", scene));
   }
 
   createButton(width, height, text, dest, scene) {
@@ -67,9 +64,12 @@ export default class WaitingRoom extends Phaser.Scene {
 
     button.setInteractive();
     button.on("pointerdown", () => {
-      scene.scene.start(dest, { spectator: false, socket: scene.socket });
+        if (text === "WATCHGAME") {
+            scene.scene.start(dest, { spectator: true, socket: scene.socket });
+        } else {
+         scene.scene.start(dest, { spectator: false, socket: scene.socket });
+        }
     });
     return button;
   }
 }
-

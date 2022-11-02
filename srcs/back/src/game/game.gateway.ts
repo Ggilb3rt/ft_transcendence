@@ -89,6 +89,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleMoveAnim(client, data, this.server);
     }
 
+    @SubscribeMessage("animCollision")
+    handleAnimCollision(client: Socket, data: any) {
+        this.gameService.handleAnimCollision(client, data, this.server);
+    }
+
 
    
 

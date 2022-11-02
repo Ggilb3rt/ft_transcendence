@@ -1,22 +1,17 @@
 import Phaser from "phaser";
 import GamePlay from "../tools/GamePlay";
 
-/*
-import defaultBall from "../assets/balls/default/ball.png";
-import defaultPaddle from "../assets/paddles/default/paddle.png";
-*/
-
 const f = new GamePlay();
 
-export default class LevelOneScene extends Phaser.Scene {
+export default class DefaultGame extends Phaser.Scene {
   constructor() {
     super("DefaultGame");
   }
 
   init(data) {
     this.spectator = data.spectator;
-    this.level = 1;
     this.socket = data.socket;
+    this.level = 1;
     this.playerNumber = 0;
     this.activeGame = false;
     this.matchEnded = false;
@@ -25,8 +20,8 @@ export default class LevelOneScene extends Phaser.Scene {
     this.playerTwo = {};
     this.ball = {};
     this.roomName = "";
-	this.playerOneScore = 0;
-	this.playerTwoScore = 0;
+    this.playerOneScore = 0;
+    this.playerTwoScore = 0;
     this.playerOneScoreText = {};
     this.playerTwoScoreText = {};
     this.p1oldposy;
@@ -38,17 +33,12 @@ export default class LevelOneScene extends Phaser.Scene {
     };
   }
 
-  preload() {
-	/*
-    this.load.image("defaultBall", defaultBall);
-    this.load.image("defaultPaddle", defaultPaddle);
-    this.load.image("defaultOpponentPaddle", defaultPaddle);
-	*/
-  }
+  preload() {}
 
   create() {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
+    console.log("defaultgame");
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -71,49 +61,12 @@ export default class LevelOneScene extends Phaser.Scene {
 
   update() {
     const scene = this;
-	const { width, height } = this.sys.game.canvas;
+    const { width, height } = this.sys.game.canvas;
 
     if (scene.activeGame) {
       f.moveBall(scene);
       f.checkPlayerMovement(scene);
       f.checkPoints(scene.level, width, height, scene);
     }
-  }
-
-  /* HELPER FUNCTIONS FOR DRAGABLE PADDLES */
-
-  startDragPlayerOne(pointer, targets) {
-    this.input.off("pointerdown", this.startDragPlayerOne, this);
-    this.input.on("pointermove", this.doDragPlayerOne, this);
-    this.input.on("pointerup", this.stopDragPlayerOne, this);
-  }
-
-  startDragPlayerTwo(pointer, targets) {
-    this.input.off("pointerdown", this.startDragPlayerTwo, this);
-    this.input.on("pointermove", this.doDragPlayerTwo, this);
-    this.input.on("pointerup", this.stopDragPlayerTwo, this);
-  }
-
-  doDragPlayerOne(pointer) {
-    if (this.playerNumber === 1) {
-      this.playerOne.y = pointer.y;
-    }
-  }
-  doDragPlayerTwo(pointer) {
-    if (this.playerNumber === 2) {
-      this.playerTwo.y = pointer.y;
-    }
-  }
-
-  stopDragPlayerOne(pointer, targets) {
-    this.input.on("pointerdown", this.startDragPlayerOne, this);
-    this.input.off("pointermove", this.doDragPlayerOne, this);
-    this.input.off("pointerup", this.stopDragPlayerOne, this);
-  }
-
-  stopDragPlayerTwo(pointer, targets) {
-    this.input.on("pointerdown", this.startDragPlayerTwo, this);
-    this.input.off("pointermove", this.doDragPlayerTwo, this);
-    this.input.off("pointerup", this.stopDragPlayerTwo, this);
   }
 }

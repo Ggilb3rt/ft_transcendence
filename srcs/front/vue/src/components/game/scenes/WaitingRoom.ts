@@ -11,6 +11,7 @@ export default class WaitingRoom extends Phaser.Scene {
 
   init(data) {
     this.level = data.level;
+    this.rematch = data.rematch;
     this.doneOK = false;
     this.settingsOK = false;
     this.settings = {
@@ -34,8 +35,8 @@ export default class WaitingRoom extends Phaser.Scene {
       scene.scene.stop();
     });
 
-    if (scene.level === "default") {
-      scene.waitingText(width, height, scene);
+    if (scene.level === "default" && !scene.rematch) {
+      scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
       eventsCenter.on(
         "ready",
         () => {
@@ -48,7 +49,7 @@ export default class WaitingRoom extends Phaser.Scene {
       );
     }
 
-    if (scene.level === "customizable") {
+    if (scene.level === "customizable" && !scene.rematch) {
       this.container = scene.add.container(0, height / 2 - 75);
       scene.createPanel(width, height, scene);
       scene.buttonsPlayerOne(width, height, scene);
@@ -56,27 +57,38 @@ export default class WaitingRoom extends Phaser.Scene {
       scene.buttonsBall(width, height, scene);
       scene.doneButton(width, height, scene);
 
-      if (scene.settingsOK) {
+      if (scene.settingsOK || scene.rematch) {
         eventsCenter.on(
           "ready",
           () => {
-            scene.message.setText("GAME IS ABOUT TO START !");
-            scene.time.delayedCall(2000, function () {
-              scene.scene.stop("WaitingRoom");
-            });
+            if (scene.rematch === true) {
+              scene.message.setText("GO !");
+              scene.time.delayedCall(1000, function () {
+                scene.scene.stop("WaitingRoom");
+              });
+            } else {
+              scene.message.setText("GAME IS ABOUT TO START !");
+              scene.time.delayedCall(2000, function () {
+                scene.scene.stop("WaitingRoom");
+              });
+            }
           },
           scene
         );
       }
+    }
+
+    if (scene.rematch) {
+      scene.waitingText(width, height, "BE READY FOR REMATCH !", scene);
     }
   }
 
   update() {
     const scene = this;
     const { width, height } = scene.sys.canvas;
-    if (scene.doneOK === true && scene.settingsOK === false) {
+    if (scene.doneOK === true && scene.settingsOK === false && !scene.rematch) {
       scene.settingsOK = true;
-      scene.waitingText(width, height, scene);
+      scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
       eventsCenter.emit("settingsOK", scene.settings);
       scene.panel.destroy();
       scene.buttons.forEach((b) => {
@@ -86,7 +98,7 @@ export default class WaitingRoom extends Phaser.Scene {
     }
   }
 
-  waitingText(width, height, scene) {
+  waitingText(width, height, text, scene) {
     scene.popUp = scene.add.graphics();
     scene.popUp.lineStyle(1, 0xffffff);
     scene.popUp.fillStyle(0xffffff, 0.5);
@@ -94,7 +106,8 @@ export default class WaitingRoom extends Phaser.Scene {
     scene.popUp.fillRect(0, 85, width, 105);
 
     scene.message = scene.add
-      .text(200, 115, "WAITING FOR SECOND PLAYER", {
+      //.text(200, 115, "WAITING FOR SECOND PLAYER", {
+      .text(200, 115, text, {
         fill: "0x000000",
         fontSize: "36px",
         fontStyle: "bold",

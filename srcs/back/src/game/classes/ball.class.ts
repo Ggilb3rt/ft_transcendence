@@ -1,5 +1,7 @@
 export class Ball {
-    initialVelocity = {
+    speed = 450;
+    initialVelocity =
+    {
         x: 0,
         y: 0,
     };
