@@ -3,7 +3,6 @@ import HomeView from "../views/HomeView.vue";
 import Dashboard from "../views/DashboardView.vue";
 import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
-import Chat2 from "../views/ChatView2.vue";
 import Login from "../views/LoginView.vue"
 import path from "path";
 

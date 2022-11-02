@@ -50,28 +50,23 @@ export default class WaitingRoom extends Phaser.Scene {
     }
 
     if (scene.level === "customizable" && !scene.rematch) {
-      this.container = scene.add.container(0, height / 2 - 75);
-      scene.createPanel(width, height, scene);
-      scene.buttonsPlayerOne(width, height, scene);
-      scene.buttonsPlayerTwo(width, height, scene);
-      scene.buttonsBall(width, height, scene);
-      scene.doneButton(width, height, scene);
+      if (!scene.rematch) {
+        this.container = scene.add.container(0, height / 2 - 75);
+        scene.createPanel(width, height, scene);
+        scene.buttonsPlayerOne(width, height, scene);
+        scene.buttonsPlayerTwo(width, height, scene);
+        scene.buttonsBall(width, height, scene);
+        scene.doneButton(width, height, scene);
+      }
 
-      if (scene.settingsOK || scene.rematch) {
+      if (scene.settingsOK) {
         eventsCenter.on(
           "ready",
           () => {
-            if (scene.rematch === true) {
-              scene.message.setText("GO !");
-              scene.time.delayedCall(1000, function () {
-                scene.scene.stop("WaitingRoom");
-              });
-            } else {
-              scene.message.setText("GAME IS ABOUT TO START !");
-              scene.time.delayedCall(2000, function () {
-                scene.scene.stop("WaitingRoom");
-              });
-            }
+            scene.message.setText("GAME IS ABOUT TO START !");
+            scene.time.delayedCall(2000, function () {
+              scene.scene.stop("WaitingRoom");
+            });
           },
           scene
         );
@@ -80,6 +75,16 @@ export default class WaitingRoom extends Phaser.Scene {
 
     if (scene.rematch) {
       scene.waitingText(width, height, "BE READY FOR REMATCH !", scene);
+      eventsCenter.on(
+        "ready",
+        () => {
+          scene.message.setText("          GO !          ");
+          scene.time.delayedCall(1000, function () {
+            scene.scene.stop("WaitingRoom");
+          });
+        },
+        scene
+      );
     }
   }
 

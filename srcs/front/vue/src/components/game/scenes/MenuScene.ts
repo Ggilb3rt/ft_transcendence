@@ -45,7 +45,13 @@ export default class WaitingRoom extends Phaser.Scene {
     //const { width, height } = this.scale;
 
     /* INIT SOCKET */
-    scene.socket = io("http://localhost:3000/game");
+    scene.socket = io("http://localhost:3000/game", {query: {
+        connType: "client"
+    }});
+
+    scene.socket.on("testingz", (data) => {
+        console.log(data);
+    })
 
 
     scene.buttons.push(scene.createButton(140, 215, "DEFAULT", "DefaultGame", scene));

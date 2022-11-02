@@ -4,7 +4,7 @@
   import { useUsersStore } from '@/stores/users';
   import type { IUser } from '../../types';
   import { mande } from 'mande';
-  
+
   const userHomer = useUsersStore()
   const { user, loading, error } = storeToRefs(userHomer) // is reactive
   const { getUsers } = userHomer // is not reactive

@@ -35,12 +35,24 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
-        this.gameService.handleConnection(client, this.server);
+        let connType = client.handshake.query.connType;
+        if (connType === "client") {
+
+            this.gameService.handleConnection(client, this.server);
+        } else {
+            console.log("CONN QUERY " + client.handshake.query.connType)
+        }
+
     }
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        this.gameService.handleDisconnect(client, this.server);
+        let connType = client.handshake.query.connType;
+        if (connType === "client") {
+            this.gameService.handleDisconnect(client, this.server);
+        } else {
+            console.log("DISCO QUERY " + client.handshake.query.connType)
+        }
     }
 
     @SubscribeMessage("joinQueue")

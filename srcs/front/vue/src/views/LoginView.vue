@@ -4,6 +4,25 @@ import { ref } from "vue"
 import router from "@/router";
 import { useUserStore } from '../stores/user';
 
+import io from "socket.io-client";
+const socket = io("http://localhost:3000/game", {query: {
+    connType: "general"
+}});
+socket.on("testingz", (data) => {
+    console.log(data);
+})
+
+async function testingz() {
+    try {
+        await fetch(`http://localhost:3000/gamepage`, {
+        method: "GET",
+        });
+    }
+    catch (error: any) {
+    console.log(error)
+    }
+}
+
 
 // const users = useUsersStore()
 const user = useUserStore()
