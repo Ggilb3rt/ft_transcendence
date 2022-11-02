@@ -71,7 +71,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage("watchGame") 
     handleWatchGame(client: Socket, data: any) {
-        this.gameService.handleWatchGame(client, this.server);
+        this.gameService.handleWatchGame(client, data, this.server);
     }
 
     @SubscribeMessage("quitGame") 

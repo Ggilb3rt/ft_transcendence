@@ -28,7 +28,7 @@ export default class GamePlay {
       this.listenAnimMoved(width, height, scene);
     }
     this.listenPlayerMoved(width, height, scene);
-    this.listenAddPoint(width, height, scene);
+    this.listenAddPoint(level, width, height, scene);
     this.listenGameResult(width, height, scene);
     this.listenLeftGame(width, height, scene);
     this.listenRematch(scene);
@@ -87,7 +87,7 @@ export default class GamePlay {
     });
   }
 
-  listenAddPoint(width, height, scene) {
+  listenAddPoint(level, width, height, scene) {
     scene.socket.on("addPoint", (data) => {
       const { playerNumber, score } = data;
       if (playerNumber === 1) {
@@ -103,6 +103,12 @@ export default class GamePlay {
       scene.playerTwo.y = height / 2;
       scene.p1oldposy = scene.playerOne.y;
       scene.p1oldposy = scene.playerTwo.y;
+      if (level === 3) {
+        scene.fox.x = width / 2 - 20;
+        scene.fox.y = height / 2 - 50;
+		scene.playerOne.setScale(1);
+        scene.playerTwo.setScale(1);
+      }
 
       scene.time.delayedCall(1000, function () {
         scene.activeGame = true;
@@ -129,14 +135,14 @@ export default class GamePlay {
       console.log(type);
       if (type === 1) {
         console.log("a player disconnected");
-        scene.scene.start("MenuScene");
+       // scene.scene.start("MenuScene", {socket: scene.socket});
       } else if (type === 2) {
         console.log("a player quit");
       }
       this.activeGame = false;
       this.matchEnded = false;
       eventsCenter.emit("quit");
-      scene.scene.start("MenuScene");
+      scene.scene.start("MenuScene", {socket: scene.socket});
     });
   }
 
@@ -162,24 +168,37 @@ export default class GamePlay {
     scene.ball.setVelocityY(data.ball.initialVelocity.y);
   }
 
-  checkPoints(scene) {
-    if (scene.playerNumber === 1) {
-      if (
-        scene.ball.body.x <
-        scene.playerOne.body.x /*+ scene.playerOne.body.width*/
-      ) {
+  checkPoints(level, width, height, scene) {
+    if (scene.activeGame) {
+      if (scene.ball.body.x < scene.playerOne.body.x) {
         scene.activeGame = false;
         scene.ball.setVelocity(0);
-        //scene.ball.setImmovable();
-        scene.socket.emit("addPoint", { roomName: scene.roomName, player: 2 });
+        scene.playerOne.setVelocity(0);
+        scene.playerTwo.setVelocity(0);
+        if (level === 3) {
+          scene.fox.setVelocity(0);
+        }
+        if (scene.playerNumber === 1) {
+          scene.socket.emit("addPoint", {
+            roomName: scene.roomName,
+            player: 2,
+          });
+        }
       }
-      if (
-        scene.ball.x > scene.playerTwo.body.x /*+ scene.playerTwo.body.width*/
-      ) {
+      if (scene.ball.x > scene.playerTwo.body.x) {
         scene.activeGame = false;
         scene.ball.setVelocity(0);
-        //scene.ball.setImmovable();
-        scene.socket.emit("addPoint", { roomName: scene.roomName, player: 1 });
+        scene.playerOne.setVelocity(0);
+        scene.playerTwo.setVelocity(0);
+        if (level === 3) {
+          scene.fox.setVelocity(0);
+        }
+        if (scene.playerNumber === 1) {
+          scene.socket.emit("addPoint", {
+            roomName: scene.roomName,
+            player: 1,
+          });
+        }
       }
     }
   }
@@ -375,8 +394,9 @@ export default class GamePlay {
     scene.playerOne.setInteractive();
     if (level === 1 || level === 2) {
       scene.playerOne.displayWidth = 10;
-    } else if (level === 2) {
+    } else if (level === 3) {
       scene.playerOne.displayWidth = 20;
+	  scene.playerOne.setScale(1);
     }
     scene.playerOne.scaleY = scene.playerOne.scaleX;
     scene.p1oldposy = scene.playerOne.y;
@@ -386,8 +406,9 @@ export default class GamePlay {
     scene.playerTwo.setInteractive();
     if (level === 1 || level === 2) {
       scene.playerTwo.displayWidth = 10;
-    } else if (level === 2) {
+    } else if (level === 3) {
       scene.playerTwo.displayWidth = 20;
+	  scene.playerTwo.setScale(1);
     }
     scene.playerTwo.scaleY = scene.playerTwo.scaleX;
     scene.p2oldposy = scene.playerTwo.y;

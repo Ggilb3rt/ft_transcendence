@@ -1,8 +1,10 @@
 import Phaser from "phaser";
 import GamePlay from "../tools/GamePlay";
 
+/*
 import defaultBall from "../assets/balls/default/ball.png";
 import defaultPaddle from "../assets/paddles/default/paddle.png";
+*/
 
 const f = new GamePlay();
 
@@ -23,6 +25,8 @@ export default class LevelOneScene extends Phaser.Scene {
     this.playerTwo = {};
     this.ball = {};
     this.roomName = "";
+	this.playerOneScore = 0;
+	this.playerTwoScore = 0;
     this.playerOneScoreText = {};
     this.playerTwoScoreText = {};
     this.p1oldposy;
@@ -35,14 +39,16 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   preload() {
+	/*
     this.load.image("defaultBall", defaultBall);
     this.load.image("defaultPaddle", defaultPaddle);
     this.load.image("defaultOpponentPaddle", defaultPaddle);
+	*/
   }
 
   create() {
     const scene = this;
-    let { width, height } = this.sys.game.canvas;
+    const { width, height } = this.sys.game.canvas;
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -65,11 +71,12 @@ export default class LevelOneScene extends Phaser.Scene {
 
   update() {
     const scene = this;
+	const { width, height } = this.sys.game.canvas;
 
     if (scene.activeGame) {
       f.moveBall(scene);
       f.checkPlayerMovement(scene);
-      f.checkPoints(scene);
+      f.checkPoints(scene.level, width, height, scene);
     }
   }
 

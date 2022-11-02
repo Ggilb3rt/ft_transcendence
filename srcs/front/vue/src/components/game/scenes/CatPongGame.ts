@@ -1,12 +1,13 @@
 import Phaser from "phaser";
 import GamePlay from "../tools/GamePlay";
-
+/*
 import CPBall from "../assets/balls/catpong/ball.png";
 import CPPaddle from "../assets/paddles/catpong/playerOnePaddle.png";
 import CPOpponentPaddle from "../assets/paddles/catpong/playerTwoPaddle.png";
 import fox_wait from "../assets/spritesheets/waiting_fox.png";
 import fox_jump from "../assets/spritesheets/jumping_fox.png";
 import fox_run from "../assets/spritesheets/walking_fox.png";
+*/
 
 const f = new GamePlay();
 
@@ -28,6 +29,8 @@ export default class LevelOneScene extends Phaser.Scene {
     this.ball = {};
     this.roomId = "";
     this.roomName = "";
+	this.playerOneScore = 0;
+	this.playerTwoScore = 0;
     this.playerOneScoreText = {};
     this.playerTwoScoreText = {};
     this.fox = {};
@@ -49,6 +52,7 @@ export default class LevelOneScene extends Phaser.Scene {
   }
 
   preload() {
+	/*
     this.load.image("CPBall", CPBall);
     this.load.image("CPPaddle", CPPaddle);
     this.load.image("CPOpponentPaddle", CPOpponentPaddle);
@@ -63,7 +67,7 @@ export default class LevelOneScene extends Phaser.Scene {
     this.load.spritesheet("fox_jump", fox_jump, {
       frameWidth: 352 / 11,
       frameHeight: 18,
-    });
+    });*/
   }
 
   create() {
@@ -96,7 +100,7 @@ export default class LevelOneScene extends Phaser.Scene {
     f.moveBall(scene);
     f.moveAnim(scene);
     f.checkPlayerMovement(scene);
-    f.checkPoints(width, height, scene);
+    f.checkPoints(scene.level, width, height, scene);
   }
 
   /* HELPER FUNCTIONS FOR DRAGABLE PADDLES */

@@ -1,136 +1,93 @@
 import { Injectable } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { Ball, Player } from './classes';
+import { Ball, Player, WaitingRoom } from './classes';
 import { DEFAULT_PADDLE_SPEED } from './constants';
 
 @Injectable()
 export class GameService {
-    private waitingRoom1 = {
-        level: 1,
-        status: "empty",
-        playerOne: {
-            id: "",
-            socket: "",
-            roomId: "",
-        },
-        playerTwo: {
-            id: "",
-            socket: "",
-            roomId: ""
-        },
-        roomId: "",
-    };
-
-    private waitingRoom2 = {
-        level: 2,
-        status: "empty",
-        playerOne: {
-            id: "",
-            socket: "",
-            roomId: "",
-        },
-        playerTwo: {
-            id: "",
-            socket: "",
-            roomId: ""
-        },
-        roomId: "",
-    };
-
-	private waitingRoom3 = {
-        level: 3,
-        status: "empty",
-        playerOne: {
-            id: "",
-            socket: "",
-            roomId: "",
-        },
-        playerTwo: {
-            id: "",
-            socket: "",
-            roomId: ""
-        },
-        roomId: "",
-    };
-
+	private waitingRooms = {};
     private activeGames = {};
     private players = {};
+
+	constructor() {
+		this.waitingRooms['1'] = WaitingRoom;
+		this.waitingRooms['2'] = WaitingRoom;
+		this.waitingRooms['3'] = WaitingRoom;
+	}
 
     handleConnection(client: Socket, server: Server) {
         this.players[client.id] = {
             id: client.id,
             socket: client,
             roomId: "",
-            level: 0,
+            level: '0',
             spectator: false,
         }
-        //console.log("PLAYERS");
-        //console.log(this.players);
+		//console.log("PLAYERS");
+		//console.log(this.players);
     }
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
-        let level = data.level;
-        let player = this.players[client.id];
+		//console.log(this.players);
+		const level = String(data.level);
+        const player = this.players[client.id];
+		const wr = this.waitingRooms[level];
+		console.log(level);
+		//console.log(wr);
+
         this.players[client.id].level = level;
-        console.log("LEVEL");
-        console.log(this.players[client.id].level);
-        let waitingRoom;
-        if (level === 1) {
-            console.log("level1");
-            waitingRoom = this.waitingRoom1;
-        } else if (level === 2) {
-            console.log("level2");
-            waitingRoom = this.waitingRoom2;
-        } else if (level === 3) {
-            console.log("level3");
-            waitingRoom = this.waitingRoom3;
-        }
 
         // Waiting room is empty
-        if (waitingRoom.playerOne.id === "" && waitingRoom.playerTwo.id === "") {
+        if (wr.playerOne.id === "" && wr.playerTwo.id === "") {
             console.log("room empty");
-            //let roomId = this.codeGenerator(5);
-            let roomId = "abcdef";
-            waitingRoom.roomId = roomId;
-            waitingRoom.playerOne.id = player.id;
-            waitingRoom.playerOne.socket = player.socket;
-            waitingRoom.playerOne.roomId = roomId;
-            this.players[player.id].roomId = waitingRoom.roomId;
+            const roomId = this.codeGenerator(5);
+            //let roomId = "abcdef";
+            wr.roomId = roomId;
+            wr.playerOne.id = player.id;
+            wr.playerOne.socket = player.socket;
+            wr.playerOne.roomId = roomId;
+			wr.playerOne.level = String(level);
+            this.players[player.id].roomId = wr.roomId;
         }
         // Waiting room has 1 player
-        else if (waitingRoom.playerOne.id !== "" && waitingRoom.playerTwo.id === "") {
+        else if (wr.playerOne.id !== "" && wr.playerTwo.id === "") {
             console.log("room waiting");
-            waitingRoom.playerTwo.id = player.id;
-            waitingRoom.playerTwo.socket = player.socket;
-            waitingRoom.playerTwo.roomId = waitingRoom.roomId;
-            this.players[player.id].roomId = waitingRoom.roomId;
+            wr.playerTwo.id = player.id;
+            wr.playerTwo.socket = player.socket;
+            wr.playerTwo.roomId = wr.roomId;
+			wr.playerTwo.level = level;
+            this.players[player.id].roomId = wr.roomId;
             // Waiting room has 2 players
-            if (waitingRoom.playerOne.id !== "" && waitingRoom.playerTwo.id !== "") {
+            if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
                 console.log("room complete");
-                this.activeGames[waitingRoom.roomId] = {
-                    playerOne: waitingRoom.playerOne,
-                    playerTwo: waitingRoom.playerTwo,
-                    level: waitingRoom.level,
+                this.activeGames[wr.roomId] = {
+                    playerOne: wr.playerOne,
+                    playerTwo: wr.playerTwo,
+                    level: level,
                 }
 
-                this.initGame(waitingRoom.roomId, server);
+                this.initGame(wr.roomId, server);
 
                 // Reset waiting Rooms
-                waitingRoom.playerOne.id = "";
-                waitingRoom.playerOne.socket = "";
-                waitingRoom.playerOne.roomId = "";
-                waitingRoom.playerTwo.id = "";
-                waitingRoom.playerTwo.socket = "";
-                waitingRoom.playerTwo.roomId = "";
+				wr.roomId = "";
+                wr.playerOne.id = "";
+                wr.playerOne.socket = "";
+                wr.playerOne.roomId = "";
+				wr.playerOne.level = "0";
+                wr.playerTwo.id = "";
+                wr.playerTwo.socket = "";
+                wr.playerTwo.roomId = "";
+				wr.playerTwo.level = "0";
+				wr.level = '0';
             }
         }
     }
 
     initGame(roomId: any, server: Server) {
-        let gameRoom = this.activeGames[roomId];
-        let playerOne = gameRoom.playerOne.socket;
-        let playerTwo = gameRoom.playerTwo.socket;
+        const gameRoom = this.activeGames[roomId];
+		const level: number = gameRoom.level;
+        const playerOne = gameRoom.playerOne.socket;
+        const playerTwo = gameRoom.playerTwo.socket;
 
         playerOne.join(roomId);
         playerOne.emit("init", { playerNumber: 1, gameCode: roomId, level: gameRoom.level });
@@ -217,25 +174,29 @@ export class GameService {
         }
     }
 
-    handleWatchGame(client: Socket, server: Server) {
+    handleWatchGame(client: Socket, data: any, server: Server) {
         console.log("WATCH GANE");
-        this.players[client.id].roomId = "abcdef"; // attention
-        this.players[client.id].level = 0;
+		const roomName = data.roomName;
+        //this.players[client.id].roomId = "abcdef"; // attention
+        this.players[client.id].level = '0';
         this.players[client.id].spectator = true;
         if (this.activeGames["abcdef"]) {
-            client.join("abcdef");
+            //client.join("abcdef");
+			client.join(roomName);
             client.emit("upDateInfo", this.activeGames["abcdef"].state);
         }   
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-        let roomName = this.players[client.id].roomId;
-        let level = this.players[client.id].level;
+        const roomName = this.players[client.id].roomId;
+        const level: string = this.players[client.id].level;
 
         if (this.players[client.id].spectator) {
             console.log("spectator disconnected");
             client.emit("leftGame", 1);
-            Reflect.deleteProperty(this.players, client.id);
+			this.players[client.id].roomId = "";
+            this.players[client.id].spectator = false;
+            //Reflect.deleteProperty(this.players, client.id);
             return;
         }
 
@@ -244,36 +205,27 @@ export class GameService {
             connSockets.forEach((s) => {
                 s.emit("leftGame", 1);
                 s.leave(roomName);
-                s.disconnect();
-                this.players[s.id].level = 0;
+                //s.disconnect();
+                this.players[s.id].level = '0';
                 this.players[s.id].roomId = "";
             })
             Reflect.deleteProperty(this.activeGames, roomName);
-            Reflect.deleteProperty(this.players, client.id);
-        } else if (this.players[client.id].level !== 0) {
-            let wr;
-
-			if (level === 1) {
-                wr = this.waitingRoom1;
-            } else if (level === 2) {
-                wr = this.waitingRoom2;
-            } else if (level === 3) {
-                wr = this.waitingRoom3;
-            }
+            //Reflect.deleteProperty(this.players, client.id);
+        } else if (this.players[client.id].level !== '0') {
+            const wr = this.waitingRooms[level];
 
             if (wr.playerOne.id === client.id) {
-                this.switchPlayers(wr.playerOne, wr.plauerTwo, wr, 1);
+                this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
             } else if (wr.playerTwo.id === client.id) {
                 this.switchPlayers(null, null, wr, 2)
             }
         }
-
         Reflect.deleteProperty(this.players, client.id);
     }
 
     async handleQuitGame(client: Socket, server: Server) {
-        let roomName = this.players[client.id].roomId;
-        let level = this.players[client.id].level;
+        const roomName = this.players[client.id].roomId;
+        const level: string = this.players[client.id].level;
         
         if (this.players[client.id].spectator) {
             console.log("spectator left");
@@ -281,51 +233,62 @@ export class GameService {
             console.log("1USERS " + connSockets);
             this.players[client.id].roomId = "";
             this.players[client.id].spectator = false;
-            client.leave("abcdef");
+            //client.leave("abcdef");
+			client.leave(roomName);
+			//client.disconnect();
             client.emit("leftGame", 2);
             console.log("2USERS " + connSockets);
-            
+			//Reflect.deleteProperty(this.players, client.id);
             return;
         }
-        console.log('ahah' + level);
+
+		//console.log("players1");
+		//	console.log(this.players);
         
         if (this.activeGames[roomName]) {
-            console.log("1");
+            //console.log("HOLA1");
+			//console.log("activeroom1");
+			//console.log(this.activeGames[roomName]);
             let connSockets = await server.in(roomName).fetchSockets();
             connSockets.forEach((s) => {
                 s.emit("leftGame", 2);
                 s.leave(roomName);
-                s.disconnect();
-                this.players[s.id].level = 0;
+                //s.disconnect();
+				//Reflect.deleteProperty(this.players, s.id);
+                this.players[s.id].level = '0';
                 this.players[s.id].roomId = "";
             })
             Reflect.deleteProperty(this.activeGames, roomName);
-        } else if (this.players[client.id].level !== 0) {
-            console.log("2");
-            let wr;
-            if (level === 1) {
-                wr = this.waitingRoom1;
-            } else if (level === 2) {
-                wr = this.waitingRoom2;
-            } else if (level === 3) {
-                wr = this.waitingRoom3;
-            }
+			//console.log("activeroom2");
+			//console.log(this.activeGames[roomName]);
+        } else if (this.players[client.id].level !== '0') {
+            //console.log("HOLA2");
+            const wr = this.waitingRooms[level];
+			//console.log('waitingRoom1');
+			//console.log(wr);
 
             if (wr.playerOne.id === client.id) {
-                this.switchPlayers(wr.playerOne, wr.plauerTwo, wr, 1);
+                this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
             } else if (wr.playerTwo.id === client.id) {
                 this.switchPlayers(null, null, wr, 2);
             }
+
+			//console.log('waitingRoom2');
+			//console.log(wr);
+			this.players[client.id].level = '0';
+			this.players[client.id].roomId = "";
+			this.players[client.id].spectator = false;
+			client.emit("leftGame", 2);
+			//Reflect.deleteProperty(this.players, client.id);
+			//client.disconnect();
         }
-        this.players[client.id].level = 0;
-        this.players[client.id].roomId = "";
-        this.players[client.id].spectator = false;
-        client.emit("leftGame", 2);
-        //client.disconnect();
+		//console.log("players2");
+		//	console.log(this.players);
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {
         if (n === 1) {
+			wr.roomId = wr.playerTwo.roomId;
             wr.playerOne.id = wr.playerTwo.id;
             wr.playerOne.socket = wr.playerTwo.socket;
             wr.playerOne.roomId = wr.playerTwo.roomId;
@@ -334,7 +297,7 @@ export class GameService {
             wr.playerTwo.id = "";
             wr.playerTWo.socket = "";
             wr.playerTwo.roomId = "";
-            wr.playerTwo.level = 0;
+            wr.playerTwo.level = '0';
         }
 
     }
