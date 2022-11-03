@@ -39,7 +39,7 @@ async function submitCode() {
           })
     } catch (error: any) {
 		console.log(error)
-        userStore.error = "2fa error " + error
+        userStore.error = error.body
 		userStore.loading = false
     }
 }

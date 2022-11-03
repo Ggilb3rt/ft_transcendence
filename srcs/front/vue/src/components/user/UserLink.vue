@@ -68,7 +68,6 @@ function filterStatus(id: number): status {
     z-index: 15;
 }
 
-
 a {
     display: block;
 }
@@ -76,5 +75,7 @@ a {
 img {
     max-width: 100%;
 }
+
+p { text-align: center; }
 
 </style>

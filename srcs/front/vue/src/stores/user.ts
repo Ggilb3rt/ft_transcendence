@@ -7,7 +7,7 @@ defaults.credentials = "include"
 export interface IUserStoreState {
     user: IUser
     loading: boolean
-    error: Error | any | null
+    error: any | null
     connected: boolean
     twoFactorAuth: boolean
 }
@@ -60,6 +60,9 @@ export const useUserStore = defineStore({
         getUserNick(): string {
             return `${this.user.nickname}`
         },
+        getFriendsList(): number[] {
+            return this.user.friends
+        },
         setUserNick(newTag:string) {
             if (this.user)
                 this.user.nickname = newTag
@@ -92,7 +95,7 @@ export const useUserStore = defineStore({
                         }
                     })
             } catch (error: any) {
-                this.error = error
+                this.error = error.body
             } finally {
                     // console.log(user)
                 // if (!this.user.invites && !this.error)
@@ -151,7 +154,7 @@ export const useUserStore = defineStore({
                     })
                 } catch (error: any) {
                     console.log('refuse friend invite err ', error.message)
-                    this.error = error
+                    this.error = error.body
                     return
                 }
                 if (this.isInvite(id))
@@ -176,7 +179,7 @@ export const useUserStore = defineStore({
                     })
                 } catch (error: any) {
                     console.log('add friend err ', error.message)
-                    this.error = error
+                    this.error = error.body
                     return
                 }
                 if (this.isInvite(id))
@@ -202,7 +205,7 @@ export const useUserStore = defineStore({
                     })
                 } catch (error: any) {
                     console.log('ban err ', error)
-                    this.error = error
+                    this.error = error.body
                     return
                 }
                 this.user.bans.push(id)
@@ -224,7 +227,7 @@ export const useUserStore = defineStore({
                         })
                     } catch (error: any) {
                         console.log('remove friend err ', error)
-                        this.error = error
+                        this.error = error.body
                         return
                     }
                 }
@@ -245,7 +248,7 @@ export const useUserStore = defineStore({
                         })
                     } catch (error: any) {
                         console.log('remove ban err ', error)
-                        this.error = error
+                        this.error = error.body
                         return
                     }
                 }

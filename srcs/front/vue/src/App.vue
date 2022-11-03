@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onBeforeUpdate, watch } from "vue"
-import type { status, ISocketStatus } from "../types"
+import type { TStatus, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
 import { io } from "socket.io-client"
@@ -57,7 +57,7 @@ async function testConnection() {
       }
     })
   } catch (error: any) {
-    userStore.error = error
+    userStore.error = error.body
   }
 }
 
@@ -72,19 +72,19 @@ async function testConnection() {
 // je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
 
 let alreadyConnect = ref<boolean>(false)
-let socket
+let socket = io("http://localhost:3000/userStatus", {autoConnect: false});
 const statusList = ref<ISocketStatus[]>([])
 
-onBeforeUpdate(() => {
-if (userStore.user.nickname === 'ptroger') {
-  console.log("jesuis ici ptroger")
-  socket = io("http://localhost:3000/usersStatus", {autoConnect: false});
-}
-else {
-  console.log("jesuis la test")
-  socket = io("http://localhost:3000/test", {autoConnect: false})
-}
-})
+// onBeforeUpdate(() => {
+// if (userStore.user.nickname === 'ptroger') {
+//   console.log("jesuis ici ptroger")
+//   socket = io("http://localhost:3000/userStatus", {autoConnect: false});
+// }
+// else {
+//   console.log("jesuis la test")
+//   socket = io("http://localhost:3000/test", {autoConnect: false})
+// }
+// })
 
 onBeforeUpdate(() => {
   if (userStore.connected && socket.disconnected && !alreadyConnect.value) {
@@ -101,7 +101,7 @@ onBeforeUpdate(() => {
       console.log("update connection", statusList.value)
     })
     socket.on("newStatusDisconnection", (res: ISocketStatus) => {
-      // console.log(res)
+      console.log(res)
       statusList.value.splice(statusList.value.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
       console.log("update disconnection", statusList.value)
     })
@@ -112,6 +112,7 @@ onBeforeUpdate(() => {
         statusList.value[changedIndex].userStatus = res.userStatus
     })
     alreadyConnect.value = true
+    console.log("socket connection ", alreadyConnect.value)
   }
 
 watch(statusList, (newStatusList) => {
@@ -122,7 +123,7 @@ watch(statusList, (newStatusList) => {
   })
 })
 
-function getCurrentUserStatus(): status {
+function getCurrentUserStatus(): TStatus {
   for (const key in statusList.value) {
     if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
       const el = statusList.value[key];
@@ -134,7 +135,7 @@ function getCurrentUserStatus(): status {
   return "disconnected"
 }
 
-function changeCurrentUserStatus(newStatus: status) {
+function changeCurrentUserStatus(newStatus: TStatus) {
   for (const key in statusList.value) {
     if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
       const el = statusList.value[key];
@@ -165,8 +166,6 @@ watch(route, (newRoute) => {
     }
   }
 })
-
-
 
 </script>
 

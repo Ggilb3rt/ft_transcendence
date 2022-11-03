@@ -141,6 +141,7 @@ onBeforeUnmount(() => {
   height: 60px;
   width: 60px;
   border-radius: 60px;
+  object-fit: cover;
 }
 
 nav {
@@ -151,14 +152,6 @@ nav {
   display: flex;
   align-items: center;
   /* justify-content: center; */
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
 }
 
 nav a {

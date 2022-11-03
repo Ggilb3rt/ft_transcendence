@@ -29,6 +29,15 @@ h1 {
   font-weight: normal;
 }
 
+
+nav a.router-link-exact-active {
+  color: var(--color-text);
+}
+
+nav a.router-link-exact-active:hover {
+  background-color: transparent;
+}
+
 a, .blue {
   text-decoration: none;
   color: var(--global-c-blue);
@@ -42,8 +51,12 @@ a, .blue {
 }
 
 .red {
-  color: #EB5757;
+  /* color: #EB5757; */
   transition: 0.4s;
+  background: linear-gradient(to right,#3E140C, #F15E11);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .vue_wrapper {
@@ -83,7 +96,7 @@ button.cant_click:hover {
 
 /*
 User status
-cf type status
+cf type TStatus
 */
 .available::after, .disconnected::after, .inGame::after {
   content: " ";
@@ -114,7 +127,7 @@ cf type status
 
 @media screen and (hover: hover) {
   a:hover {
-    background-color: var(--global-c-blue-hover);
+    background: var(--global-c-blue-hover) !important;
   }
 }
 

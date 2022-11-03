@@ -124,3 +124,8 @@ button:hover {
 button:active {
     transform: scale(.95);
 }
+
+/* input::-webkit-search-cancel-button {
+  color: #fff;
+  background: url(./logo.svg);
+} */

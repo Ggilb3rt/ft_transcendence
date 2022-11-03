@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUnmount, onUnmounted, ref } from 'vue'
+import { RouterLink, RouterView } from "vue-router";
+
 
 let winWidth = ref(window.innerWidth)
 const props = defineProps({
@@ -43,32 +45,34 @@ onBeforeUnmount(() => {
 <template>
 	<ul :class="{side_right: onRight, side_left: !onRight}" class="second_side_menu">
 		<button 
+			v-if="winWidth < 768"
 			class="btn_side"
 			@click="props.model.isOpen = !props.model.isOpen"
-			v-if="winWidth < 768"
 		>
 			X
 			<!-- {{ props.model.name }} -->
 		</button>
 		<li v-for="el, index in model.items" :key="el">
-			<div
+			<nav
 				:class="{ bold: isFolder(index) }"
 				@click="toggle(index)">
-				<a v-if="el.href" :href="el.href">
+				<RouterLink v-if="el.href" :to="el.href">
 					{{ el.name }}
-				</a>
+				</RouterLink>
 				<button v-else>{{ el.name }}
 					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
 				</button>
-			</div>
-			<ul v-show="isOpen(index)" v-if="isFolder(index)">
-				<li v-for="child in el.children" :key="child">
-					<a v-if="child.href" :href="child.href">
-						{{ child.name }}
-					</a>
-					<button v-else>{{ child.name }}</button>
-				</li>
-			</ul>
+			</nav>
+			<nav>
+				<ul v-show="isOpen(index)" v-if="isFolder(index)">
+					<li v-for="child in el.children" :key="child">
+						<RouterLink v-if="child.href" :to="child.href">
+							{{ child.name }}
+						</RouterLink>
+						<button v-else>{{ child.name }}</button>
+					</li>
+				</ul>
+			</nav>
 		</li>
 	</ul>
 </template>
@@ -94,9 +98,32 @@ onBeforeUnmount(() => {
 	display: block;
 }
 
+ul a {
+	word-break: break-all;
+}
+
+ul li ul {
+	padding: 0;
+	margin: 10px 0;
+}
+
+ul li ul li a {
+	padding: 5px;
+	display: block;
+}
+
+/* ul li ul li:nth-child(even) a{
+	background: var(--color-background-soft);
+} */
+
+ul li ul li:nth-child(n+2) a{
+	border-top: 1px solid #fff;
+}
+
 @media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
+		max-width: 15vw;
 	}
 }
 

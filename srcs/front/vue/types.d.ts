@@ -62,13 +62,13 @@ export interface IMatch {
 
 
 /// Socket Status ///
-export type status = "available" | "disconnected" | "inGame"
+export type TStatus = "available" | "disconnected" | "inGame"
 
 // Status of each users, use to allowed or not some actions
 export interface ISocketStatus {
   socketId: string;
   userId: number;
-  userStatus: status;
+  userStatus: TStatus;
 }
 
 

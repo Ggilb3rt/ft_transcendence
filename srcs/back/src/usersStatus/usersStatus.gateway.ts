@@ -3,7 +3,8 @@ import {
     SubscribeMessage,
     WebSocketGateway,
     OnGatewayInit,
-    OnGatewayDisconnect } from '@nestjs/websockets';
+    OnGatewayDisconnect,
+} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
@@ -50,19 +51,24 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
     }
 
-    // handleConnection(client: Socket, ...args: any[]) {
-    //     // this.userList.set(Number(client.id), client)
-    //     const u: IStatus = {socketId: client.id, userStatus: "available", userId: args[0]}
+    // async handleConnection(client: Socket, ...args: any[]) {
+    //     console.log("HandleConnection2");
+    //     const sockets = await this.server.fetchSockets()
+    //     sockets.forEach(element => {
+    //         console.log("id == ", element.id)
+    //     });
+    //     const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
     //     this.userArr.push(u)
     //     this.logger.log(`client connection : ${client.id}`)
-        // this.server.sockets.emit('newStatusConnection', u)
+    //     // nsp.emit('newStatusConnection', u)
+    //     this.server.emit('newStatusConnection', u)
     //     return this.userArr
     // }
 
 
     @SubscribeMessage('connectionStatus')
     async handleConnection2(client: Socket, arg: number) {
-        console.log("TEST GATEWAY");
+        console.log("HandleConnection2");
         const sockets = await this.server.fetchSockets()
         sockets.forEach(element => {
             console.log("id == ", element.id)
@@ -71,16 +77,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         this.userArr.push(u)
         this.logger.log(`client connection : ${client.id}`)
         // nsp.emit('newStatusConnection', u)
-        return this.userArr
-    }
-
-    @SubscribeMessage('testConnection')
-    testConnection(client: Socket, arg: number) {
-        // const nsp = this.server.of("/usersStatus")
-        const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
-        this.userArr.push(u)
-        this.logger.log(`client connection : ${client.id}`)
-        // nsp.emit('newStatusConnection', u)
+        this.server.emit('newStatusConnection', u)
         return this.userArr
     }
 
@@ -91,6 +88,8 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (changedIndex != -1) {
             // nsp.emit("newStatusChange", this.userArr[changedIndex])
             this.userArr[changedIndex].userStatus = arg.userStatus
+            // this.server.emit("newStatusChange", this.userArr[changedIndex])
+            client.broadcast.emit("newStatusChange", this.userArr[changedIndex])
         }
     }
 

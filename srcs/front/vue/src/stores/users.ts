@@ -178,6 +178,23 @@ export const useUsersStore = defineStore({
         //     console.log("get userStatus ", ret)
         //     return ret.userStatus
         // },
+        
+        // je devrai plutot return string[] et adapter si besoin dans les composents
+        getUsersListForChat(idList: number[]): Object[] | null {
+            let list: Object[] = []
+            if (!idList)
+                return null
+            idList.forEach((el) => {
+                const findUser = this.userList.find((user) => user.id == el)
+                if (findUser != undefined) {
+                    list.push({
+                        name: `${findUser.nickname}`,
+                        href: `/chat/room/direct/${findUser.id}`
+                    })
+                }
+            })
+            return list
+        },
         changUserNick(id: number, newNick: string) {
             this.userList.some((el) => {
                 if (el.id == id && el.nickname != newNick) {
