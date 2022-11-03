@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, useSlots } from "vue"
 import router from "../router";
-import { useUserStore } from '../stores/user'
+import { setStatus, useUserStore } from '../stores/user'
 import { mande, defaults } from 'mande'
 
 const userStore = useUserStore()
@@ -64,10 +64,9 @@ async function submitCode() {
           .then((data) => {
             if (data) {
             	console.log("return data ", data)
-				userStore.set2FAConnect(true)
-				userStore.connected = true
+				userStore.changeStatus(setStatus.connected)
 				userStore.loading = false
-				router.push("/")
+				router.push("/success")
 
               }
           })
@@ -78,16 +77,6 @@ async function submitCode() {
     }
 
 
-
-	// fetch
-		// if ok 
-			// route to home
-		if (code.value == "lol") {
-			userStore.set2FA(true)
-			router.push("/")
-		}
-		// else
-			// print error msg
 }
 
 </script>

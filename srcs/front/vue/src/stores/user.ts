@@ -1,8 +1,16 @@
 import { defineStore } from "pinia"
-import type { IMatchHistory, IUser, IMatch } from '../../types'
+import type { IMatchHistory, IUser } from '../../types'
 import { mande, defaults } from 'mande'
 
 defaults.credentials = "include"
+
+export enum setStatus {
+    connected = 0,
+    need2fa,
+    needLogin,
+  }
+
+export type constatus = setStatus.connected | setStatus.need2fa | setStatus.needLogin
 
 export interface IUserStoreState {
     user: IUser
@@ -10,6 +18,7 @@ export interface IUserStoreState {
     error: Error | any | null
     connected: boolean
     twoFactorAuth: boolean
+    conStatus: constatus
 }
 
 export const useUserStore = defineStore({
@@ -21,6 +30,7 @@ export const useUserStore = defineStore({
         error: null,
         connected: false,
         twoFactorAuth: false,
+        conStatus: setStatus.needLogin, 
     }),
     getters: {
         // getUserNick: (state) => {
@@ -72,6 +82,12 @@ export const useUserStore = defineStore({
         change2FA() {
             console.log("in store change user 2FA")
             this.user.two_factor_auth = !this.user.two_factor_auth
+        },
+        getStatus(): constatus {
+            return this.conStatus
+        },
+        changeStatus(status: constatus) {
+            this.conStatus = status
         },
         async getUser(id: number) {
             this.loading = true

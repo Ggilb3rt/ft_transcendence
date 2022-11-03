@@ -430,6 +430,7 @@ export class GameService {
         this.reInitGameState(this.state[gameCode]);
         this.startGameInterval(gameCode, server);
     }
+
 }
 
 

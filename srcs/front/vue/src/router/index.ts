@@ -10,7 +10,9 @@ import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
 import Success from "@/views/SuccessView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
-import { useUserStore } from "@/stores/user";
+import { setStatus, useUserStore } from "@/stores/user";
+import { useStatusStore } from "@/stores/status";
+
 
 type gameList = "pong" | "catPong"
 
@@ -113,13 +115,17 @@ const router = createRouter({
 //! need to add a canAccess global guad naviguation with token
 router.beforeEach((to, from) => {
   const userStore = useUserStore()
+  console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
 
-  if (to.name == 'success' ) {
-    console.log("success route")
+  if (localStorage.getItem('last_page') != undefined) {
+    const temp = localStorage.getItem('last_page')?.toString()
+    setTimeout(() => {return {name : temp}} , 1000);
   }
-  else if (!userStore.connected && to.name != 'login' && to.name != "2fa")
+  else if (userStore.conStatus == setStatus.needLogin && to.name != 'login' && to.name != "2fa") {
+    console.log('userStore.conStatus === ', userStore.conStatus)
     return { name: 'login' }
-  else if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
+  }
+  else if (userStore.conStatus == setStatus.need2fa && to.name != "2fa")
     return { name: "2fa" }
 })
 

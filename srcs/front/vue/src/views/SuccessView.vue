@@ -9,6 +9,7 @@ import router from "../router";
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 
+
 onBeforeMount(() => {
 	userStore.loading = true
 })
@@ -16,14 +17,7 @@ onBeforeMount(() => {
 onMounted(async () => {
 	// setup the stores
 	try {
-<<<<<<< HEAD
-    await fetch(`http://localhost:3000/auth/verify`, {
-      method: "GET",
-      credentials: "include",
-    })
-=======
     await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
->>>>>>> origin/vue-front
     .then((response) => {
       if (response.status >= 200 && response.status < 300) {
         return response.json()
@@ -36,7 +30,7 @@ onMounted(async () => {
         userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
         userStore.error = null
         userStore.connected = true
-        users.getUsers()
+        usersStore.getUsers()
         router.push('/')
       }
     })
