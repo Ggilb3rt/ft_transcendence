@@ -1,60 +1,65 @@
 <script setup lang="ts">
-import type { IUser } from "../../types"
-import { ref } from "vue"
-import router from "@/router";
-import { useUserStore } from '../stores/user';
-
-const user = useUserStore()
-const { getUser } = user
-const selectedUser = ref(1)
-
-async function selectUser(e: Event) {
-    e.preventDefault()
-    console.log(selectedUser)
-    await getUser(selectedUser.value);
-    router.push("/")
-}
-
-async function connection42() {
-    try {
-    await fetch(`http://localhost:3000/auth/`, {
-      method: "GET",
-      headers: {
-        // Accept: 'application/json',
-        credentials: "include",
-        // Authorization: "Bearer " + lecookie,
-        // AccessControlAllowOrigin: "http://localhost"
-
-        // Cookie: document.cookie
-        //! au final les autres requettes integrent le cookie...
-      }
-    })
-    .then((response) => {
-      if (response.status >= 200 && response.status < 300) {
-        return response.json()
-      }
-      throw new Error(response.statusText)
-    })
-  } catch (error: any) {
-    console.log(error)
-  }
-}
+import Loader from '@/components/navigation/Loader.vue';
 
 </script>
 
 <template>
-    <div>
-        <p v-if="user.loading">Loading user...</p>
-        <p v-if="user.error">{{ user.error.message }}</p>
-        <h1>Select your user with his id</h1>
-        <form @keypress.enter="selectUser($event)">
-            <input type="number" v-model="selectedUser">
-            <input type="submit" @keypress.enter="selectUser($event)" @click="selectUser($event)">
-        </form>
-
-
-        <h1>Connection with 42</h1>
+    <div class="loginWrapper">
+      <h1>Let's play <br>a <span class="red">game</span></h1>
+      <Loader></Loader>
+      <figure>
+        <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
         <a href="http://localhost:3000/auth" class="btn">Connection with 42</a>
-        <button @click="connection42()">Connection 42</button>
+      </figure>
     </div>
 </template>
+
+<style>
+.loginWrapper {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: space-between;
+  align-items: center;
+  height: 100vh;
+  padding: 50px;
+  background: url(@/assets/space-flame.png) no-repeat center center;
+}
+
+.loginWrapper figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loginWrapper .logo {
+  transform: scale(1.5);
+  margin-bottom: 20px;
+}
+
+.loginWrapper h1 {
+  font-size: 64px;
+  line-height: 57px;
+  text-transform: uppercase;
+  text-align: right;
+  color: #fff;
+}
+/* 
+h1 span::before {
+  content: '\a';
+  white-space: pre;
+} */
+
+.loginWrapper .btn {
+  color: #fff;
+  background: var(--global-c-blue);
+  transition: all .4s ease;
+  padding: 25px;
+  font-size: 20px;
+  font-weight: 400;
+  border: none;
+}
+.loginWrapper .btn:hover {
+  background: var(--global-c-blue-hover);
+}
+</style>

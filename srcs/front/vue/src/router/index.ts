@@ -1,25 +1,37 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
-import Dashboard from "../views/DashboardView.vue";
-import Game from "../views/GameView.vue";
-import Chat from "../views/ChatView.vue";
 import Login from "../views/LoginView.vue"
-import DashOther from "@/views/DashOtherView.vue";
 import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
 import Success from "@/views/SuccessView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
-import { useUserStore } from "@/stores/user";
+import { setStatus, useUserStore } from "@/stores/user";
+import { useStatusStore } from "@/stores/status";
+
 
 type gameList = "pong" | "catPong"
 
 const ourGames: gameList = 'pong';
+const Chat = () => import("@/views/ChatView.vue")
+const Channel = () => import("@/views/ChannelView.vue")
+const Dashboard = () => import("@/views/DashboardView.vue")
+const DashOther = () => import("@/views/DashOtherView.vue")
+const Game = () => import("@/views/GameView.vue")
 
 function goToDisconnect() {
   const userStore = useUserStore()
 
   if (userStore.connected)
     return ( {name: "home"} )
+}
+
+function isConnectionOk(to: any, from: any) {
+  const userStore = useUserStore()
+
+  if (to.name == 'success' && userStore.connected && (from.name == "2fa" && userStore.twoFactorAuth) )
+    console.log("success route")
+  else
+    return ( {name: "login"} )
 }
 
 const router = createRouter({
@@ -39,7 +51,8 @@ const router = createRouter({
     {
       path: "/success",
       name: "success",
-      component: Success
+      component: Success,
+      // beforeEnter: [isConnectionOk]
     },
     {
       path: "/2fa",
@@ -58,10 +71,20 @@ const router = createRouter({
       path: "/chat",
       name: "chat",
       component: Chat,
-      children: [{
-        path: 'room/:id',
-        component: Chat
-      }]
+      children: [
+        {
+          name: "channel",
+          path: 'room/:id',
+          props: (route) => ({ direct:false, channelId: route.params.id}),
+          component: Channel
+        },
+        {
+          name: "channelDirect",
+          path: 'room/direct/:id',
+          props: (route) => ({ direct:true, channelId: route.params.id}),
+          component: Channel
+        }
+      ]
     },
     {
       path: "/dashboard",
@@ -71,7 +94,7 @@ const router = createRouter({
       //   {
       //     path: ":id",
       //     name: "dashOther",
-      //     component: Login  // create UserOtherHero component
+      //     component: DashOther
       //   }
       // ]
     },
@@ -79,11 +102,6 @@ const router = createRouter({
       path: "/user/:id",
       name: "dashOther",
       component: DashOther,
-      // beforeEnter: (to, from) => {
-      //   const usersStore = useUsersStore()
-
-      //   console.log(usersStore.user.first_name)
-      // }
     },
     {
       path: "/game/:ourGames?/:id?",
@@ -112,13 +130,18 @@ const router = createRouter({
 //! need to add a canAccess global guad naviguation with token
 router.beforeEach((to, from) => {
   const userStore = useUserStore()
+  console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
+  userStore.loading = true
 
-  if (to.name == 'success' ) {
-    console.log("success route")
+  if (localStorage.getItem('last_page') != undefined) {
+    const temp = localStorage.getItem('last_page')?.toString()
+    setTimeout(() => {return {name : temp}} , 1000);
   }
-  else if (!userStore.connected && to.name != 'login')
+  else if (userStore.conStatus == setStatus.needLogin && to.name != 'login' && to.name != "2fa") {
+    console.log('userStore.conStatus === ', userStore.conStatus)
     return { name: 'login' }
-  else if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
+  }
+  else if (userStore.conStatus == setStatus.need2fa && to.name != "2fa")
     return { name: "2fa" }
 })
 
@@ -132,6 +155,12 @@ router.beforeEach(async (to, from) => {
       return false
   }
   return true
+})
+
+router.afterEach((to, from) => {
+  const userStore = useUserStore()
+
+  userStore.loading = false
 })
 
 export default router;

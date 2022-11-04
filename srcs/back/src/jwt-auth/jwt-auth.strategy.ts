@@ -13,10 +13,10 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     const extractJwtFromCookie = (req) => {
       let token = null;
 
-      console.log("extractJwtfromCookie ", req.cookies)
+      // console.log("extractJwtfromCookie ", req.cookies)
       if (req && req.cookies) {
         token = req.cookies['jwt'];
-        console.log(token)
+        // console.log(token)
       }
       return token;
     };
@@ -31,15 +31,15 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
 
   async validate(req, payload: JwtPayload) {
 
-  console.log(payload);
+  // console.log(payload);
   const {username, id, isAuth} = payload;
 
   const user = await prisma.users.findFirst({where:{id}})
-  console.log("params validade", req.params.id)
+  // console.log("params validate", req.params.id)
   if (!user || (req.params.id != undefined && req.params.id != id))
     throw new HttpException("Invalid Token", HttpStatus.FORBIDDEN)
   if (!isAuth && user.two_factor_auth) {
-    throw new UnauthorizedException("not 2fa secured")
+    throw new HttpException("not 2fa secured", HttpStatus.PRECONDITION_FAILED)
   }
   return { id, username };
   }

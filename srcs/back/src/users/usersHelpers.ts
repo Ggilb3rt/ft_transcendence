@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { match, PrismaClient, users } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -34,7 +34,7 @@ function convertUserList(list:userRelation[]) {
 }
 
 @Injectable()
-export class UsersHelper {
+class UsersHelper {
     formatFriends(friends, id): number[] {
         var arr: number[] = [];
         friends.forEach((friend) => {
@@ -179,7 +179,7 @@ export class UsersHelper {
           status: false
         }
       })
-      console.log("friends == ", friends)
+      // console.log("friends == ", friends)
       return (friends)
     }
 
@@ -232,3 +232,5 @@ export class UsersHelper {
       return (user)
     }
 }
+
+export {UsersHelper}

@@ -11,15 +11,13 @@ import { CreateUserDto } from "src/users/createUserDto";
 export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
     constructor(private usersService: UsersService){
         super({
-            // authorizationURL: process.env.BASE_URL_GET,
-            // tokenURL: process.env.BASE_URL_POST,
             clientID: process.env.AUTH_UID, 
             clientSecret: process.env.AUTH_SECRET,
-            callbackURL: "http://localhost:3000/auth/redirect"
+            callbackURL: process.env.REDIRECT_URI
         })
     }
 
-    async validate(accessToken, refreshToken, profile: Profile) {
+    async validate(accessToken, refreshToken, profile: Profile): Promise<CreateUserDto> {
     
         if (!profile) {
             throw new HttpException("No 42 user", HttpStatus.NOT_FOUND)
@@ -41,17 +39,12 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
             two_factor_auth: false
         }
 
-        console.log("validate accessToken == ", accessToken)
-        console.log("user == ", user);
-
         const ret = await prisma.users.findFirst({
             where: {nick_fourtytwo: profile.username}
         })
 
         if (!ret) {
-            const newUser = await this.usersService.postOneUser(user)
-            console.log('\n\n42user == \n', newUser);
-            return (newUser)
+            return await this.usersService.postOneUser(user)
         }
         return (ret)
     }

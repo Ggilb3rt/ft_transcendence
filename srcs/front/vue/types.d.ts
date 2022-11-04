@@ -1,4 +1,11 @@
-export type status = "available" | "disconnected" | "inGame"
+export type status = "available" | "disconnected" | "inGame" | "challenged"
+
+
+export type Challenge = {
+  challenger: Number,
+  level: Number,
+  challenged: Number,
+} | null
 
 export interface IUser {
     id: number;
@@ -6,7 +13,7 @@ export interface IUser {
     first_name: string;
     last_name: string;
     nickname: string;
-    avatar_url: string;
+    avatar_url: string | ArrayBuffer;
     ranking: number;
     wins: number;
     loses: number;
@@ -18,12 +25,14 @@ export interface IUser {
     matches: IMatch[] | null;
   }
 
+// Minimum valuable informations for a user (ie: use for list of users)
 export interface IOtherUserRestrict {
     id: number;
     nickname: string;
     avatar_url: string;
 }
 
+// Other user infos (ie: use in dashboard)
 export interface IOtherUser {
     id: number;
     first_name: string;
@@ -38,6 +47,7 @@ export interface IOtherUser {
     matches: IMatch[] | null;
 }
 
+// Match prints in dashboard
 export interface IMatchHistory {
   opponent: number;
   win: boolean;
@@ -46,6 +56,7 @@ export interface IMatchHistory {
   date: Date | null;
 }
 
+// Match as they are stored in bdd
 export interface IMatch {
   id: number;
   player_left_id: number;
@@ -55,8 +66,32 @@ export interface IMatch {
   date: Date;
 }
 
+
+
+/// Socket Status ///
+export type TStatus = "available" | "disconnected" | "inGame"
+
+// Status of each users, use to allowed or not some actions
 export interface ISocketStatus {
   socketId: string;
   userId: number;
-  userStatus: status;
+  userStatus: TStatus;
+}
+
+
+
+/// Side nav ///
+/// Used with SideNav.vue component ///
+
+export interface ISideNavData {
+	name: string;
+	isOpen: boolean;
+	items: [Object]
+}
+
+export interface ISideNavDataItem {
+	name: string;
+	href: string;
+	children?: [ISideNavDataItem] | null
+	isOpen?: boolean;
 }

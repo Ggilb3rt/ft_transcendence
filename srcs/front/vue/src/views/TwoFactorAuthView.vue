@@ -1,31 +1,67 @@
-<script setup>
-import { ref, useSlots } from "vue"
+<script setup lang="ts">
+import { ref } from "vue"
 import router from "../router";
-import { useUserStore } from '../stores/user'
+import { setStatus, useUserStore } from '../stores/user'
+import { mande, defaults } from 'mande'
+import Loader from '../components/navigation/loader.vue';
 
 const userStore = useUserStore()
 const code = ref("")
 
 async function submitCode() {
-	console.log("send data ", code.value)
-	// fetch
-		// if ok 
-			// route to home
-		if (code.value == "lol") {
-			userStore.set2FA(true)
-			router.push("/")
-		}
-		// else
-			// print error msg
+	const mybody = {code: `${code.value}`}
+
+	try {
+      await fetch(`http://localhost:3000/auth/2fa`, {
+        method: 'POST',
+        credentials: "include",
+		mode: "cors",
+		headers: {
+			'Content-Type': 'application/json;charset=utf-8',
+		},
+        body: JSON.stringify(mybody)
+      })
+          .then((response) => {
+			userStore.loading = true
+            if (response.status >= 200 && response.status < 300) {
+                return response.json()
+            }
+                throw new Error(response.statusText)
+          })
+          .then((data) => {
+            if (data) {
+            	console.log("return data ", data)
+				userStore.changeStatus(setStatus.connected)
+				userStore.loading = false
+				router.push("/success")
+
+              }
+          })
+    } catch (error: any) {
+		console.log(error)
+        userStore.error = error.body
+		userStore.loading = false
+    }
+
 }
 
 </script>
 
 <template>
-	<div>
-		<p>Enter your code</p>
-		<input type="text" v-model="code" @keypress.enter="submitCode()">
-		<button @click="submitCode()">Submit</button>
-		<p class="error">{{ userStore.user.error }}</p>
+	<div class="loginWrapper">
+		<Loader></Loader>
+		<div>
+			<h1>Two-Factor<br>Authentication</h1>
+		</div>
+		<div class="flex-column">
+			<input type="text" v-model="code" @keypress.enter="submitCode()" placeholder="ex: 123456" class="logo">
+			<button @click="submitCode()" class="btn">Send your code</button>
+		</div>
 	</div>
 </template>
+
+<style>
+
+/* Uses the styles of LoginView.vue */
+
+</style>

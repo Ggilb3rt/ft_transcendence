@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { IOtherUserRestrict, status, ISocketStatus } from '@/types'
 import { useUsersStore } from '@/stores/users';
-import { watch, ref, watchEffect } from 'vue';
+import { watch, ref } from 'vue';
 
 const props = defineProps<{
     otherUser: IOtherUserRestrict | null,
@@ -46,10 +46,6 @@ function filterStatus(id: number): status {
     return "disconnected"
 }
 
-// watchEffect( () => {
-//     console.log("watchEffect ", usersStore.socketStatus)
-// })
-
 </script>
 
 <template>
@@ -72,7 +68,6 @@ function filterStatus(id: number): status {
     z-index: 15;
 }
 
-
 a {
     display: block;
 }
@@ -80,5 +75,7 @@ a {
 img {
     max-width: 100%;
 }
+
+p { text-align: center; }
 
 </style>

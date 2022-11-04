@@ -57,10 +57,10 @@ model channels {
 
 model match {
   id                                 Int    @id @default(autoincrement())
-  player_left_id                     Int?
-  player_right_id                    Int?
-  score_left                         Int?
-  score_right                        Int?
+  player_left_id                     Int
+  player_right_id                    Int
+  score_left                         Int
+  score_right                        Int
   date                               DateTime? @db.Timestamptz(6)
   users_match_player_left_idTousers  users? @relation("match_player_left_idTousers", fields: [player_left_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_match_player_right_idTousers users? @relation("match_player_right_idTousers", fields: [player_right_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -89,8 +89,8 @@ model users {
   id                                         Int            @id @default(autoincrement())
   first_name                                 String
   last_name                                  String
-  nickname                                   String
-  nick_fourtytwo                             String  @default("marvin@42")           
+  nickname                                   String   @unique
+  nick_fourtytwo                             String   @unique          
   avatar_url                                 String?  @default("/app/resources/default.jpg")       
   ranking                                    Int? @default(0)
   wins                                       Int? @default(0)

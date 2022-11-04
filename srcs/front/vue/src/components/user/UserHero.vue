@@ -1,58 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { storeToRefs } from 'pinia';
 import { useUserStore } from '@/stores/user';
-import { useUsersStore } from '@/stores/users';
 import UserGameStats from './UserGameStats.vue'
 import UserList from './UserList.vue'
 import UserMatchHistory from './UserMatchHistory.vue'
 import UserBasics from './UserBasics.vue';
-import type { IUser } from '@/types';
-import { mande } from 'mande';
+import User2FAManagement from './User2FAManagement.vue';
 
 const userStore = useUserStore()
-const usersStore = useUsersStore()
-
-// edit system
-/*
-if route id == user id && verifyConnected
-change p.heroName p.heroTag img.heroAvatar by input with data
-		when validate changes 
-		send post request with all data (not only the changed => easyer)
-		if response OK
-					update the local pinia store
-					*/
-					
-/*
------------------------------------------------------------------
-|		Si pas moi			||			Si moi					|
-|----------------------------------------------------------------
-|	btn de demande d'ami	||	liste des demandes en attentes	|
-|	btn bloquer				||	btn du mode édition				|
-|	0						||	btn 2FA							|
------------------------------------------------------------------
-
-
-*/
-
-async function change2FA() {
-	// send to server
-	try {
-		const api = mande(`http://localhost:3000/users/${userStore.user.id}/2fa`);
-		await api.post({
-			two_factor_auth: String(!userStore.user.two_factor_auth)
-		})
-		.then((data) => {
-			console.log('data from change nick', data)
-			userStore.change2FA()
-			userStore.twoFactorAuth = !userStore.twoFactorAuth
-		})
-	} catch (error: any) {
-		console.log('change nick err', error)
-		userStore.error = error
-		// return
-	}
-}
 
 </script>
 
@@ -73,15 +27,7 @@ async function change2FA() {
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends" canEdit></UserList>
 		<UserList title="Ban" :user="userStore.user" :list="userStore.user.bans" canEdit></UserList>
 		
-		<div class="security">
-			<h1>Security</h1>
-			<p>User double auth :
-				<button @click="change2FA()">
-					<span v-if="userStore.user.two_factor_auth">Enable</span>
-					<span v-else>Disable</span>
-				</button>
-			</p>
-		</div>
+		<User2FAManagement></User2FAManagement>
 	</div>
 </template>
 
@@ -101,12 +47,13 @@ async function change2FA() {
 }
 
 .heroCard .heroAvatar {
-	max-width: 100%;
+	max-width: 500px;
+	width: 100%;
 	border-radius: 10px;
 }
 
 .heroCard .heroFigure {
-	max-width: 60%;
+	max-width: 100%;
 	border-radius: 10px;
 	overflow: hidden;
 }
@@ -162,13 +109,13 @@ async function change2FA() {
 		flex-direction: row;
 	}
 	.heroCard .heroFigure {
-		max-width: 40%;
+		max-width: 60%;
 	}
 }
 
 @media screen and (min-width: 1024px) {
 	.heroCard .heroFigure {
-		max-width: 20%;
+		max-width: 50%;
 	}
 }
 

@@ -1,160 +1,194 @@
 <script setup lang="ts">
-	import { ref, onUpdated } from 'vue'
-	import SideNav from '../components/navigation/SideNav.vue';
-
-	const sideNavDataLeft = ref({
-		name: 'Channels',
-		isOpen: false,
-		items: [
-			{name: 'New', children: null, href: '/chat/new'},
-			{
-				name: 'All channels',
-				children: [	// need to get it
-					{ name: 'chan1', href: '/chat/id1' },
-					{ name: 'chan2', href: '/chat/id2' },
-					{ name: 'chan3', href: '/chat/id3' },
-					{ name: 'chan4', href: '/chat/id4' },
-				],
-				isOpen: false
-			},
-			{
-				name: 'My channels',
-				children: [
-					{ name: 'chan1', href: '/chat/id1' },
-					{ name: 'chan3', href: '/chat/id3' },
-				],
-				isOpen: true
-			}
-		]
-	})
-
-	const sideNavDataRight = ref({
-		name: 'Friends',
-		isOpen: false,
-		items: [
-			{
-				name: 'All friends',
-				children: [	// need to get it
-					{ name: 'roger' },
-					{ name: 'simon' },
-					{ name: 'pierre' },
-				],
-				isOpen: false
-			},
-			{
-				name: 'Current channel',
-				children: [	// need to get it
-					{ name: 'homer' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-					{ name: 'simon' },
-				],
-				isOpen: true
-			}
-		]
-	})
-
-	let leftIsActive = ref(false);
-	let rightIsActive = ref(false);
-
-	interface IMessage {
-		tag: string,
-		img: string,
-		msg: string,
-		date: Date
-	}
-
-	let channelMsgs: [IMessage] = [
-		{
-			tag: "Roger",
-			img: "src/assets/avatars/rogerRabbit.png",
-			msg: "Bonjour",
-			date: new Date()
-		},
-		{
-			tag: "Homer",
-			img: "src/assets/avatars/homer.jpeg",
-			msg: "Bonjour",
-			date: new Date()
-		},
-		{
-			tag: "Homer",
-			img: "src/assets/avatars/homer.jpeg",
-			msg: "J'adore les pommes",
-			date: new Date()
-		},
-	]
-
-	let channelMsgs2: [IMessage] = [
-		{
-			tag: "Roger",
-			img: "src/assets/avatars/rogerRabbit.png",
-			msg: "Bonjour",
-			date: new Date()
-		},
-		{
-			tag: "Homer",
-			img: "src/assets/avatars/homer.jpeg",
-			msg: "Bonjour",
-			date: new Date()
-		},
-		{
-			tag: "Homer",
-			img: "src/assets/avatars/homer.jpeg",
-			msg: "J'adore les pommes",
-			date: new Date()
-		},
-	]
+import { ref, onUpdated } from 'vue'
+import { useRoute } from 'vue-router';
+import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
+import { useUsersStore } from '@/stores/users';
+import { useUserStore } from '@/stores/user';
+import SideNav from '../components/navigation/SideNav.vue';
+import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 
 
-	
-	let msg = ref("")
+/*
+ * Routes for the back
 
-	// function scrollToBottom(op) {
-	// 	const el = this.$el.getElementsByClassName('room')[0];
-		
-	// 	console.log(op)
-	// 	if (el) {
-	// 		el.scrollIntoView(op);
-	// 	}
-	// }
+	// channels types : cf TChannel below; if channel.type == "direct" nobody is owner nor admin, if you want to ban direct channel just ban the user
 
-	function submit(e: Event) {
-		e.preventDefault()
-		if (msg.value) {
-			channelMsgs.push({
-				tag: "Homer",
-				img: "src/assets/avatars/homer.jpeg",
-				msg: msg.value,
-				date: new Date()
-			})
+	// Global
+		getAllChannels(userId:number, ??myBans:number[]??): IChannel[] {} (myBans est util uniquement pour ne pas avoir les direct msg, pas forcement util ici)
+		getAllChannelsRestricts(userId:number): IChannelRestrict[] {}
+		??getAllDirectMessages(userId:number, myBans:number[]): IChannel[] {} (pas sûr que cette function soit utile)
+		??getMyChannels(userId:number): IChannel[] {}
+
+		createChannel(userId(number), channelName:string, channelType:TChannel, pass?:string) : boolean {
+			// owner is userId
 		}
-		msg.value = ""
-	}
+		getChannel(channelId:number): IChannel | null {}
 
-onUpdated(() => {
-	const room = document.getElementById('room-view')
-	if (room) {
-		room.scrollTo({
-			top: room.scrollHeight,
-			left: 0,
-			behavior: 'smooth'
-		});
-	}
+	// Dans un channel
+		getMessages(userId:number, channelId:number) : IMessage[] {
+			// isInChannel(userId) && !isBan(userId)
+			// return (getMessages of channel from prisma)
+		}
+		getUsersInChannel(userId:number, channelId:number): number[] {
+			// if (channelId)
+				// return channelId.userList
+		}
+
+		isInChannel(userId:number): boolean { this.userList.find(el => el == userId) ? true : false }
+		isOwner(userId:number): boolean { userId == this.owner ? true : false }
+		isAdmin(userId:number): boolean { this.adminList.find(el => el == userId) ? true : false }
+		isMute(userId:number): boolean { this.muteList.find(el => el.userId == userId) ? true : false }
+		endOfMute(userId:number): Date | null {
+			const mutedUser: TRestrictUserTime = this.muteList.find(el => el.userId == userId)
+
+			if (mutedUser)
+				return mutedUser.expire
+			return null
+		} (soit ça soit isMute() return directement la Date ?)
+		isBan(userId:number): Date { this.banList.find(el => el.userId == userId) ? true : false} (même chose que endOfMute mais en version Ban)
+
+	// Devra probablement se passer via sockets (?)
+	//! si methode d'un object Channel pas de channelId,chan mais un this
+		joinChannel(userId:number, channelId:number): IMessage[] | null {
+			const chan = getChannel(channelId)
+			if (chan)) {
+				if (!chan.isInChannel(userId) && !chan.isBan(userId)) {
+					chan.userList.push(userId)
+					// const [messages]: IMessage = prisma.getMessages(chan.id)
+					// return messages
+				}
+			}
+			return null
+		}
+		leaveChannel(userId:number, channelId:number): boolean {
+			// check channelId exist
+				// check user is in chan.userList
+					// remove userId from chan.userList
+					// return true
+			// return false
+		}
+		renameChannel(userId:number, channelId:number, newName:string): boolean {
+			// if channelId exist
+				// if isOwner(userId)
+					// if newName != chan.name
+						// chan.name = newName
+						// return true
+			return false
+		}
+		changeChannelType(userId:number, channelId:number, newType:TChannel, pass?:string): boolean {
+			// if channelId exist
+				// if isOwner(userId)
+					// if newType != chan.type
+						// if newType === "pass" && pass.length > 5
+							// chan.type = newType
+							// chan.pass = pass
+							// return true
+						// else if newType === "direct"
+							// return false
+						// else
+							// chan.type = newType
+							// return true
+			return false
+		}
+		changePass(userId:number, channelId:number, newPass:string): boolean {
+			// if channelId exist
+				// if isOwner(userId)
+					// if chan.type == "pass"
+						// if chan.pass != newPass && chan.pass > 5
+							// chan.pass = newPass
+							// return true
+			// return false
+		}
+		addAdmin(nominator:number, nominated:number, channelId:number): boolean {
+			// if channelId exist
+				// if chan.isAdmin(nominator) && !chan.isAdmin(nominated)
+					// chan.adminList.push(nominated)
+					// return true
+			return false
+		}
+		removeAdmin(remover:number, removed:number, channelId:number): boolean {
+			// if channelId exist
+				// if chan.isOwner(remover) && chan.isAdmin(removed) && remover != removed && removed != chan.owner
+					// const find = chan.adminList.findIndex(el => el == removed)
+					// chan.adminList.splice(find, 1)
+					// return true
+			return false
+		}
+		restrictUser(restrictor:number, restricted:number, channelId:number, onlyMute: boolean): boolean {
+			// if channelId exist
+				// if chan.isAdmin(restrictor)
+		}
+
+*/
+
+
+
+// ChatView need to
+	// getAllRestrictChannel
+	// createChannel
+	
+	
+
+	// getChannel and pas his messages to ChannelView via props ? ==> better to getChannel on ChannelView
+
+const sideNavDataLeft = ref({
+	name: 'Channels',
+	isOpen: false,
+	items: [
+		{
+			name: 'New',
+			children: null,
+			href: '/chat/new'
+		},
+		{
+			name: 'All channels',
+			children: [	// need to getAllChannelRestrict [IChannelRestrict]
+				{ name: 'chan1', href: '/chat/room/1' },
+				{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
+				{ name: 'chan3', href: '/chat/room/3' },
+				{ name: 'chan4', href: '/chat/room/direct/4' },
+			],
+			isOpen: false
+		},
+		{
+			name: 'My channels',
+			children: [
+				{ name: 'chan1', href: '/chat/room/1' },
+				{ name: 'chan3', href: '/chat/room/3' },
+			],
+			isOpen: true
+		}
+	]
 })
 
+
+// get the friends from usersStore
+const usersStore = useUsersStore()
+const userStore = useUserStore()
+
+const sideNavDataRight = ref({
+	name: 'Friends',
+	isOpen: false,
+	items: [
+		{
+			name: 'All friends',
+			children: usersStore.getUsersListForChat(userStore.getFriendsList()),
+			isOpen: false
+		},
+		{
+			name: 'Currents users in channel',
+			children: [	// need to get
+				{ name: 'homer' },
+				{ name: 'roger' },
+			],
+			isOpen: true
+		}
+	]
+})
+
+let leftIsActive = ref(false);
+let rightIsActive = ref(false);
+const route = useRoute()
 
 </script>
 
@@ -164,26 +198,14 @@ onUpdated(() => {
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav>
 		
-		<!-- put it to a component ? -->
-		<div class="room">
-			<div class="chatRoom" id="room-view">
-				<div v-for="msg in channelMsgs" :key="msg.tag" class="message">
-					<figure>
-						<img :src="msg.img" :alt="msg.tag + ' avatar'">
-					</figure>
-					<p>
-						<span class="tag">{{ msg.tag }}</span> | 
-						<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ msg.date.getMinutes() }}</span>
-						<br>
-						<span>{{ msg.msg }}</span>
-					</p>
-				</div>
-				<form @keyup.enter="submit">
-					<textarea v-model="msg"></textarea>
-					<input type="submit" class="send" @click="submit">
-				</form>
-			</div>
+		<div v-if="route.name == 'chat'">
+			<h1>
+				Faire un tuto
+			</h1>
+			<button>Create channel</button>
+			Select ou cree un nouveau channel
 		</div>
+		<router-view v-else></router-view>
 		
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
@@ -198,102 +220,11 @@ onUpdated(() => {
 	padding: 0;
 }
 
-.room {
-	align-self: flex-start;
-	width: 100%;
-	height: calc(90vh - 126px);
-	overflow: hidden;
-	/* padding: 20px; */
-}
-
-.room:hover ::-webkit-scrollbar {
-	width: 5px;
-}
-
-.room:hover .chatRoom .message{
-	padding: 10px 15px 10px 20px;
-}
-
-.room .chatRoom {
-	width: 100%;
-	height: 99%;
-	overflow: auto;
-	scrollbar-color: var(--global-c-blue);
-	scrollbar-width: thin;
-}
-
-.room .message .tag {
-	color: var(--global-c-blue);
-	font-size: .8em;
-}
-
-.room .message .time {
-	/* color: var(--color-background-soft); */
-	font-size: .8em;
-}
-
-.room .message:nth-child(2n) {
-	background: var(--color-background-mute);
-}
-.room .message {
-	padding: 10px 20px;
-	display: flex;
-	gap: 0px 20px;
-	word-break: break-all;
-
-}
-
-.room .message img{
-	max-width: 50px;
-	min-height: 50px;
-	/* border-radius: 50px; */
-}
-
-.room form {
-	position: fixed;
-	bottom : 10px;
-	z-index: 9;
-	display: grid;
-	grid-template-columns: 4fr 1fr;
-}
-
-.room form textarea {
-	min-height: 50px;
-	max-height: 500px;
-	min-width: 80vw;
-	max-width: 80vw;
-}
-
-.room form input[type='submit'] {
-	width: 20vw;
-	height: 50px;
-}
-
-
 @media screen and (min-width: 768px) {
 	.vue_wrapper.chat {
 		/* min-height: 90vh; */
 		align-items: center;
 		flex-flow: row;
-	}
-
-	.room {
-		flex-grow: 1;
-	}
-
-	.room form {
-		width: 70%;
-	}
-	.room form textarea {
-	min-height: 50px;
-	max-height: 500px;
-	min-width: 70%;
-	max-width: 70%;
-}
-
-	.room form input[type='submit'] {
-		width: 20%;
-		height: 50px;
 	}
 
 	.btn_side {

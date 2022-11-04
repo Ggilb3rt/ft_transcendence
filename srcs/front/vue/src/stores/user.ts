@@ -1,24 +1,35 @@
 import { defineStore } from "pinia"
-import type { IMatchHistory, IUser, IMatch } from '../../types'
-import { mande } from 'mande'
+import type { IMatchHistory, IUser } from '../../types'
+import { mande, defaults } from 'mande'
+
+defaults.credentials = "include"
+
+export enum setStatus {
+    connected = 0,
+    need2fa,
+    needLogin,
+  }
+
+export type constatus = setStatus.connected | setStatus.need2fa | setStatus.needLogin
 
 export interface IUserStoreState {
     user: IUser
     loading: boolean
-    error: Error | any | null
+    error: any | null
     connected: boolean
     twoFactorAuth: boolean
+    conStatus: constatus
 }
 
 export const useUserStore = defineStore({
     id: "user",
-    state: () => ({
-        neededId: 1 as Number,
+    state: (): IUserStoreState => ({
         user: {} as IUser,
         loading: false,
         error: null,
         connected: false,
         twoFactorAuth: false,
+        conStatus: setStatus.needLogin, 
     }),
     getters: {
         // getUserNick: (state) => {
@@ -59,20 +70,31 @@ export const useUserStore = defineStore({
         getUserNick(): string {
             return `${this.user.nickname}`
         },
+        getFriendsList(): number[] {
+            return this.user.friends
+        },
         setUserNick(newTag:string) {
             if (this.user)
                 this.user.nickname = newTag
         },
-        set2FA(value: boolean) {
+        set2FAConnect(value: boolean) {
+            console.log("in store set connection 2FA to ", value)
             this.twoFactorAuth = value
         },
         change2FA() {
-            this.twoFactorAuth = !this.twoFactorAuth
+            console.log("in store change user 2FA")
+            this.user.two_factor_auth = !this.user.two_factor_auth
+        },
+        getStatus(): constatus {
+            return this.conStatus
+        },
+        changeStatus(status: constatus) {
+            this.conStatus = status
         },
         async getUser(id: number) {
             this.loading = true
             try {
-                await fetch(`http://localhost:3000/users/${id}`)
+                await fetch(`http://localhost:3000/users/${id}`, {credentials: "include"})
                     .then((response) => {
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
@@ -89,7 +111,7 @@ export const useUserStore = defineStore({
                         }
                     })
             } catch (error: any) {
-                this.error = error
+                this.error = error.body
             } finally {
                     // console.log(user)
                 // if (!this.user.invites && !this.error)
@@ -137,7 +159,7 @@ export const useUserStore = defineStore({
             return false
         },
         async refuseInvite(id: number) {
-            const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+            const api = mande('http://localhost:3000/users/'+this.user.id+'/friends', {credentials: "include"})
                 try {
                     await api.post({
                         friend: id,
@@ -148,7 +170,7 @@ export const useUserStore = defineStore({
                     })
                 } catch (error: any) {
                     console.log('refuse friend invite err ', error.message)
-                    this.error = error
+                    this.error = error.body
                     return
                 }
                 if (this.isInvite(id))
@@ -162,7 +184,7 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
-                const api = mande('http://localhost:3000/users/'+this.user.id+'/friends')
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/friends', {credentials: "include"})
                 try {
                     await api.post({
                         friend: id,
@@ -173,7 +195,7 @@ export const useUserStore = defineStore({
                     })
                 } catch (error: any) {
                     console.log('add friend err ', error.message)
-                    this.error = error
+                    this.error = error.body
                     return
                 }
                 if (this.isInvite(id))
@@ -189,7 +211,7 @@ export const useUserStore = defineStore({
                     else
                         return
                 // send info to back and wait for res
-                const api = mande('http://localhost:3000/users/'+this.user.id+'/ban')
+                const api = mande('http://localhost:3000/users/'+this.user.id+'/ban', {credentials: "include"})
                 try {
                     await api.post({
                         banned: id
@@ -199,7 +221,7 @@ export const useUserStore = defineStore({
                     })
                 } catch (error: any) {
                     console.log('ban err ', error)
-                    this.error = error
+                    this.error = error.body
                     return
                 }
                 this.user.bans.push(id)
@@ -210,7 +232,7 @@ export const useUserStore = defineStore({
                 const index = this.user.friends.indexOf(id, 0)
                 if(confirm(`Remove ${id} from your friends ?`)) {
                     // send info to back and wait for res
-                    const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove')
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/friends/remove', {credentials: "include"})
                     try {
                         await api.post({
                             friend: String(id)
@@ -221,7 +243,7 @@ export const useUserStore = defineStore({
                         })
                     } catch (error: any) {
                         console.log('remove friend err ', error)
-                        this.error = error
+                        this.error = error.body
                         return
                     }
                 }
@@ -231,7 +253,7 @@ export const useUserStore = defineStore({
                 // const indexOtherFriend = 
                 if(confirm(`Remove ${id} from your bans ?`)) {
                     // send info to back and wait for res
-                    const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove')
+                    const api = mande('http://localhost:3000/users/'+this.user.id+'/ban/remove', {credentials: "include"})
                     try {
                         await api.post({
                             ban: String(id)
@@ -242,7 +264,7 @@ export const useUserStore = defineStore({
                         })
                     } catch (error: any) {
                         console.log('remove ban err ', error)
-                        this.error = error
+                        this.error = error.body
                         return
                     }
                 }

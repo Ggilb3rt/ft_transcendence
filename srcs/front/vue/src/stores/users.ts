@@ -2,9 +2,8 @@ import { defineStore } from "pinia"
 import type { Ref } from "vue"
 import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, status, ISocketStatus } from '../../types'
 import type { io, Socket } from "socket.io-client"
-// import { mande } from 'mande'
 
-export interface IUserStoreState {
+export interface IUsersStoreState {
     userList: IOtherUserRestrict[]
     socketStatus: ISocketStatus[]
     user: IOtherUser | null
@@ -101,11 +100,9 @@ const marcRestrict: IOtherUserRestrict = {
 // fin data qui doit etre fetch
 
 
-// const api = mande('http://localhost:3000/users')
-
 export const useUsersStore = defineStore({
     id: "users",
-    state: (): IUserStoreState => ({
+    state: (): IUsersStoreState => ({
         userList: [],
         socketStatus: [],
         user: null,
@@ -152,12 +149,15 @@ export const useUsersStore = defineStore({
             this.socketStatus = socket
             console.log("socket in store", this.socketStatus)
         },
-        socketIsAvailable(userId: number): boolean {
+        socketIs(userId: number, type: status): boolean {
             const findIndex = this.socketStatus.findIndex((el) => el.userId == userId)
             if (findIndex != -1)
-                if (this.socketStatus[findIndex].userStatus == "available")
+                if (this.socketStatus[findIndex].userStatus == type)
                     return true
             return false
+        },
+        socketIsAvailable(userId: number): boolean {
+            return this.socketIs(userId, "available")
         },
         // getUserStatus(id: number): status {
         //     let ret: ISocketStatus | undefined = undefined;
@@ -178,9 +178,26 @@ export const useUsersStore = defineStore({
         //     console.log("get userStatus ", ret)
         //     return ret.userStatus
         // },
+        
+        // je devrai plutot return string[] et adapter si besoin dans les composents
+        getUsersListForChat(idList: number[]): Object[] | null {
+            let list: Object[] = []
+            if (!idList)
+                return null
+            idList.forEach((el) => {
+                const findUser = this.userList.find((user) => user.id == el)
+                if (findUser != undefined) {
+                    list.push({
+                        name: `${findUser.nickname}`,
+                        href: `/chat/room/direct/${findUser.id}`
+                    })
+                }
+            })
+            return list
+        },
         changUserNick(id: number, newNick: string) {
             this.userList.some((el) => {
-                if (el.id == id) {
+                if (el.id == id && el.nickname != newNick) {
                     el.nickname = newNick
                     return
                 }
@@ -202,7 +219,7 @@ export const useUsersStore = defineStore({
         async getUsers() {
             this.loading = true
             try {
-                await fetch('http://localhost:3000/users/restrict')
+                await fetch('http://localhost:3000/users/restrict', {credentials: "include"})
                     .then((response) => {
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
@@ -217,7 +234,7 @@ export const useUsersStore = defineStore({
                         this.error = null
                     })
             } catch (error) {
-                this.error = error
+                this.error = "getUsers " + error
             } finally {
                 this.loading = false
             }
@@ -226,7 +243,7 @@ export const useUsersStore = defineStore({
             this.loading = true
             const url = `http://localhost:3000/users/${id}/other`
             try {
-                await fetch(url)
+                await fetch(url, {credentials: "include"})
                     .then((response) => {
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
@@ -237,13 +254,12 @@ export const useUsersStore = defineStore({
                         this.user = data
                         if (this.user) {
                             this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
-                            if (this.user.match_history.length == 0)
-                                this.user.match_history = []
+                            this.changUserNick(this.user.id, this.user.nickname)
                         }
                         this.error = null
                     })
             } catch (error: any) {
-                this.error = error
+                this.error = "getOtherUser " + error
                 return
             } finally {
                 if (this.user) {
@@ -258,13 +274,15 @@ export const useUsersStore = defineStore({
                                     myScore: el.score_left,
                                     opponentScore: el.score_right,
                                     win: (el.score_left > el.score_right),
-                                    date: new Date()
+                                    date: (el.date ? el.date : new Date())
                                 }
-                                this.user.match_history.push(match)
+                                if (this.user)
+                                    this.user.match_history.push(match)
                             })
                             this.user.matches = null
                         }
                     }
+                    // this.error = null
                 }
                 this.loading = false
             }

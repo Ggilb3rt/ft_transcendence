@@ -322,6 +322,7 @@ export class GameService {
     handleAnimCollision(client: Socket, data: any, server: Server) {
         server.to(data.roomName).emit("animCollision");
     }
+
 }
 
 

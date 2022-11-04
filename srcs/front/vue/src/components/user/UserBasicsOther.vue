@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
+import BtnChallenge from '../navigation/BtnChallenge.vue';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -9,12 +10,6 @@ const usersStore = useUsersStore()
 // async function sendInvite() {
 //     console.log(`invitation from ${userStore.user.id} to ${usersStore.user.id}`)
 // }
-
-async function challenge() {
-    // need to check if users are connected and available
-    console.log(`challenge from ${userStore.user.id} to ${usersStore.user.id}`)
-    // put invitation in a modal in the other side
-}
 
 </script>
 
@@ -36,7 +31,8 @@ async function challenge() {
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnFriend</button>
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnBan</button>
-            <button @click="challenge()" v-if="!userStore.isBan(usersStore.user.id) && usersStore.socketIsAvailable(usersStore.user.id)">Challenge</button>
+            
+            <BtnChallenge></BtnChallenge>
         </div>
     </div>
 </template>

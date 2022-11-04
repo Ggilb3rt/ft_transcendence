@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import { ref } from "vue";
-import { useUserStore } from '../../stores/user';
+import { onBeforeMount, onBeforeUnmount, ref } from "vue";
+import { useUserStore } from '@/stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
 import IconSupport from "@/components/icons/IconSupport.vue"
@@ -12,16 +12,26 @@ let	isActive = ref(false);
 
 let winWidth = ref(window.innerWidth)
 
-window.addEventListener('resize', (e) => {
-	winWidth.value = window.innerWidth
-});
-
-function disconnect() {
-	document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+// Disconnection, need to put it in component
+async function disconnect() {
+	// document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
 	userStore.connected = false
 	userStore.twoFactorAuth = false
 	router.push("/login")
 }
+
+
+function updateWinWidthValue(e: Event) {
+	winWidth.value = window.innerWidth
+}
+
+onBeforeMount(() => {
+	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
+})
 
 </script>
 
@@ -38,15 +48,12 @@ function disconnect() {
 		<nav :class="{open: isActive, side_menu: winWidth < 768}" class="side-left">
 			<button class="btn-menu" @click="isActive = (isActive) ? false : true" v-if="winWidth < 768">
 				<div v-if="!isActive">
-				<span class="bar ping"></span>
-				<span class="bar ball"></span>
-				<span class="bar pong"></span>
-			</div>
-			<span v-else>X</span>
+					<span class="bar ping"></span>
+					<span class="bar ball"></span>
+					<span class="bar pong"></span>
+				</div>
+				<span v-else>X</span>
 			</button>
-			<!-- <RouterLink to="/about" @click="isActive = false">AddUser</RouterLink> -->
-			<!-- <RouterLink to="/login" @click="isActive = false">Login</RouterLink> -->
-			<RouterLink to="/success" @click="isActive = false">success</RouterLink>
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
 			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
@@ -134,6 +141,7 @@ function disconnect() {
   height: 60px;
   width: 60px;
   border-radius: 60px;
+  object-fit: cover;
 }
 
 nav {
@@ -144,14 +152,6 @@ nav {
   display: flex;
   align-items: center;
   /* justify-content: center; */
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
 }
 
 nav a {
