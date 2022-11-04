@@ -6,7 +6,7 @@ import UserMatchHistory from "@/components/user/UserMatchHistory.vue";
 import UserList from "@/components/user/UserList.vue";
 import UserBasicsOther from "@/components/user/UserBasicsOther.vue";
 import { useUsersStore } from "@/stores/users";
-import Loader from "@/components/navigation/Loader.vue"
+import Loader from "@/components/navigation/loader.vue"
 import router from "@/router";
 import { onBeforeRouteUpdate } from "vue-router";
 
