@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useUserStore } from "@/stores/user"
 import { useUsersStore } from "@/stores/users"
+import { useStatusStore } from "../stores/status";
 import { onBeforeMount, onBeforeUnmount, onMounted } from "@vue/runtime-core";
 import Loader from '../components/navigation/Loader.vue';
 import router from "../router";
-import { useStatusStore } from "../stores/status";
 
 
 const userStore = useUserStore()

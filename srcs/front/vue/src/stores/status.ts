@@ -1,34 +1,31 @@
 import { defineStore } from "pinia";
-import type { Challenge, ISocketStatus, IUser, status } from '../../types'
+import type { Challenge, ISocketStatus, TStatus } from '../../types'
 import { io } from "socket.io-client"
-
-// const user = useUserStore().user
+import { useUsersStore } from "./users";
 
 interface IUserStatusStore {
-    status: status,
+    status: TStatus,
     invitations: Number,
     socket: any,
     statusList: ISocketStatus[],
     setuped: boolean
-    // user: IUser,
     error: string | null,
     challenge: Challenge,
-    alreadyChallenged: boolean,
     challengeAccepted: boolean,
 }
+
+// const usersStore = useUrsersStore()
 
 export const useStatusStore = defineStore({
     id: "status",
     state: (): IUserStatusStore => ({
-        status: 'disconnected' as status,
+        status: 'disconnected' as TStatus,
         invitations: 0 as Number,
         socket: io("http://localhost:3000/userStatus"),
         statusList: [],
         setuped: false,
-        // user,
         error: null,
         challenge: null,
-        alreadyChallenged: false,
         challengeAccepted: false,
     }),
 
@@ -66,6 +63,8 @@ export const useStatusStore = defineStore({
             if (this.setuped == false) {
             
                 //Push my instance to list of sockets
+                const toto = this.socket.emit('findAllStatus')
+                console.log("toto = ", toto, "\n\ntypeof toto = ", typeof toto)
                 this.pushToList({
                     socketId: this.socket.id,
                     userId: id,
@@ -75,7 +74,6 @@ export const useStatusStore = defineStore({
                 //Change my current status for myself, emit to server i do am connected
                 this.changeCurrentUserStatus('available', id)
                 this.socket.emit('connectionStatus', id)
-
                 //Subscribe to messages from other sockets
 
                 // Messages for userStatus
@@ -90,31 +88,30 @@ export const useStatusStore = defineStore({
                     const changedIndex = this.statusList.findIndex((el) => el.socketId == res.socketId)
                     if (changedIndex != -1)
                       this.statusList[changedIndex].userStatus = res.userStatus
-                    }
-                )
+                })
 
                 //Messages for challenges
                 this.socket.on("newChallenge", (challenge: Challenge) => {
-                    if (this.challenge != null) {
-                        this.socket.emit('alreadyChallenged')   
-                    }
-                    else {
+                    if (challenge) {
                         this.challenge = challenge
+                        this.changeCurrentUserStatus('challenged', challenge.challenged)
                     }
                 })
                 this.socket.on("challengeAccepted", (arg: ISocketStatus) => {
                     this.challengeAccepted = true;
                 })
-
-                this.socket.on("alreadyChallenged", (id: Number) => {
-                    this.alreadyChallenged = true;
+                this.socket.on("refuseChallenge", () => {
+                    this.challenge = null
                 })
                 this.setuped = true;
             }
-        } ,
+        },
 
-        closeAlreadyChallenged() {
-            this.alreadyChallenged = false
+        refuseChallenge() {
+            if (this.challenge) {
+                this.socket.emit('refuseChallenge', this.challenge)
+                this.challenge = null
+            }
         },
 
         findSocket(id: Number) {
@@ -130,10 +127,11 @@ export const useStatusStore = defineStore({
             const el = this.findSocket(id)
             if (el) {
                 this.socket.emit("newChallenge", challenge)
+                this.changeCurrentUserStatus('challenged', id)
             }
         },
 
-        changeCurrentUserStatus(newStatus: status, id: Number) {
+        changeCurrentUserStatus(newStatus: TStatus, id: Number) {
             const el = this.findSocket(id)
             
             if (el) {

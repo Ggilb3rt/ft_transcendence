@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import type { Ref } from "vue"
-import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, status, ISocketStatus } from '../../types'
+import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, TStatus, ISocketStatus } from '../../types'
 import type { io, Socket } from "socket.io-client"
 
 export interface IUsersStoreState {
@@ -149,7 +149,7 @@ export const useUsersStore = defineStore({
             this.socketStatus = socket
             console.log("socket in store", this.socketStatus)
         },
-        socketIs(userId: number, type: status): boolean {
+        socketIs(userId: number, type: TStatus): boolean {
             const findIndex = this.socketStatus.findIndex((el) => el.userId == userId)
             if (findIndex != -1)
                 if (this.socketStatus[findIndex].userStatus == type)

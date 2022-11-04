@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onUpdated, onBeforeUpdate, watch, onMounted, onBeforeMount } from "vue"
 import type { Ref } from "vue"
-import type { IUser, status, ISocketStatus } from "../types"
+import type { IUser, TStatus, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
 import { io } from "socket.io-client"
@@ -45,7 +45,6 @@ async function testConnection() {
       }
     })
     localStorage.clear();
-    document.cookie
     var data;
     if (response.status == 412) {
         userStore.changeStatus(setStatus.need2fa)
