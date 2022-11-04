@@ -4,6 +4,8 @@ import { ref } from "vue";
 import { useUserStore } from '../../stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
+import IconSupport from "@/components/icons/IconSupport.vue"
+import router from "@/router/index"
 
 const userStore = useUserStore();
 let	isActive = ref(false);
@@ -13,6 +15,13 @@ let winWidth = ref(window.innerWidth)
 window.addEventListener('resize', (e) => {
 	winWidth.value = window.innerWidth
 });
+
+function disconnect() {
+	document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+	userStore.connected = false
+	userStore.twoFactorAuth = false
+	router.push("/login")
+}
 
 </script>
 
@@ -35,15 +44,18 @@ window.addEventListener('resize', (e) => {
 			</div>
 			<span v-else>X</span>
 			</button>
-			<RouterLink to="/about" @click="isActive = false">AddUser</RouterLink>
+			<!-- <RouterLink to="/about" @click="isActive = false">AddUser</RouterLink> -->
+			<!-- <RouterLink to="/login" @click="isActive = false">Login</RouterLink> -->
+			<RouterLink to="/success" @click="isActive = false">success</RouterLink>
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
 			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
 			<RouterLink to="/dashboard" @click="isActive = false">
-				<img v-if="userStore.user" :src="userStore.getUserAvatar()" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
+				<img v-if="userStore.user" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>
 			</RouterLink>
 			<ModalSearch></ModalSearch>
+			<button @click="disconnect()" title="disconnect"><IconSupport /></button>
 		</nav>
 	</div>
 </template>
@@ -130,7 +142,7 @@ nav {
   text-align: center;
   /* margin-top: 2rem; */
   display: flex;
-  /* align-items: center; */
+  align-items: center;
   /* justify-content: center; */
 }
 

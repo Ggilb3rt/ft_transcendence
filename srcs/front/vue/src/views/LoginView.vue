@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IUser } from "../types"
+import type { IUser } from "../../types"
 import { ref } from "vue"
 import router from "@/router";
 import { useUserStore } from '../stores/user';
@@ -8,20 +8,53 @@ const user = useUserStore()
 const { getUser } = user
 const selectedUser = ref(1)
 
-function selectUser(e: Event) {
+async function selectUser(e: Event) {
     e.preventDefault()
     console.log(selectedUser)
-    getUser(selectedUser.value);
+    await getUser(selectedUser.value);
     router.push("/")
+}
+
+async function connection42() {
+    try {
+    await fetch(`http://localhost:3000/auth/`, {
+      method: "GET",
+      headers: {
+        // Accept: 'application/json',
+        credentials: "include",
+        // Authorization: "Bearer " + lecookie,
+        // AccessControlAllowOrigin: "http://localhost"
+
+        // Cookie: document.cookie
+        //! au final les autres requettes integrent le cookie...
+      }
+    })
+    .then((response) => {
+      if (response.status >= 200 && response.status < 300) {
+        return response.json()
+      }
+      throw new Error(response.statusText)
+    })
+  } catch (error: any) {
+    console.log(error)
+  }
 }
 
 </script>
 
 <template>
-    <h1>Select your user with his id</h1>
-    <form @keypress.enter="selectUser($event)">
-        <input type="number" v-model="selectedUser">
-        <input type="submit" @click="selectUser($event)">
-    </form>
+    <div>
+        <p v-if="user.loading">Loading user...</p>
+        <p v-if="user.error">{{ user.error.message }}</p>
+        <h1>Select your user with his id</h1>
+        <form @keypress.enter="selectUser($event)">
+            <input type="number" v-model="selectedUser">
+            <input type="submit" @keypress.enter="selectUser($event)" @click="selectUser($event)">
+        </form>
 
+
+        <h1>Connection with 42</h1>
+        <a href="http://localhost:3000/auth" class="btn">Connection with 42</a>
+        <button @click="connection42()">Connection 42</button>
+    </div>
 </template>

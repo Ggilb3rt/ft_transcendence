@@ -16,7 +16,7 @@
     first_name: "guillaume",
     last_name: "gilbert",
     nickname: "ggilbert",
-    avatar_url: "toto"
+    avatar_url: "/src/assets/avatars/"
     }
   function postDataBase(userBDD: any) {
     api.post({userBDD}).then((userBDD) => {
@@ -24,7 +24,8 @@
         first_name: "",
         last_name: "",
         nickname: "",
-        avatar_url: ""
+        avatar_url: "",
+        nick_fourtytwo: "lol"
     }
     })
   }

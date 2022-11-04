@@ -4,12 +4,23 @@ import Dashboard from "../views/DashboardView.vue";
 import Game from "../views/GameView.vue";
 import Chat from "../views/ChatView.vue";
 import Login from "../views/LoginView.vue"
+import DashOther from "@/views/DashOtherView.vue";
+import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
+import Success from "@/views/SuccessView.vue"
 import path from "path";
+import { useUsersStore } from "@/stores/users";
+import { useUserStore } from "@/stores/user";
 
-
-type gameList = 'pong' | 'catPong'
+type gameList = "pong" | "catPong"
 
 const ourGames: gameList = 'pong';
+
+function goToDisconnect() {
+  const userStore = useUserStore()
+
+  if (userStore.connected)
+    return ( {name: "home"} )
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,7 +33,18 @@ const router = createRouter({
     {
       path: "/login",
       name: "login",
-      component: Login
+      component: Login,
+      beforeEnter: [goToDisconnect]
+    },
+    {
+      path: "/success",
+      name: "success",
+      component: Success
+    },
+    {
+      path: "/2fa",
+      name: "2fa",
+      component: TwoFactorAuth
     },
     {
       path: "/about",
@@ -45,13 +67,23 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: Dashboard,
-      children: [
-        {
-          path: ":id",
-          name: "dashOther",
-          component: Dashboard
-        }
-      ]
+      // children: [
+      //   {
+      //     path: ":id",
+      //     name: "dashOther",
+      //     component: Login  // create UserOtherHero component
+      //   }
+      // ]
+    },
+    {
+      path: "/user/:id",
+      name: "dashOther",
+      component: DashOther,
+      // beforeEnter: (to, from) => {
+      //   const usersStore = useUsersStore()
+
+      //   console.log(usersStore.user.first_name)
+      // }
     },
     {
       path: "/game/:ourGames?/:id?",
@@ -75,5 +107,31 @@ const router = createRouter({
     }
   ],
 });
+
+
+//! need to add a canAccess global guad naviguation with token
+router.beforeEach((to, from) => {
+  const userStore = useUserStore()
+
+  if (to.name == 'success' ) {
+    console.log("success route")
+  }
+  else if (!userStore.connected && to.name != 'login')
+    return { name: 'login' }
+  else if (userStore.connected && userStore.user.two_factor_auth && !userStore.twoFactorAuth && to.name != "2fa")
+    return { name: "2fa" }
+})
+
+
+router.beforeEach(async (to, from) => {
+  if (to.name == "dashOther") {
+    const usersStore = useUsersStore()
+
+    usersStore.getOtherUser(Number(to.params.id))
+    if (usersStore.error)
+      return false
+  }
+  return true
+})
 
 export default router;

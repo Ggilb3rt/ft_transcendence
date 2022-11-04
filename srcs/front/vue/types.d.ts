@@ -1,3 +1,5 @@
+export type status = "available" | "disconnected" | "inGame"
+
 export interface IUser {
     id: number;
     two_factor_auth: boolean;
@@ -9,9 +11,11 @@ export interface IUser {
     wins: number;
     loses: number;
     friends: number[];
-    blocks: number[];
+    bans: number[];
+    bannedBy: number[];
     invites: number[];
-    match_history: IMatchHistory[]; 
+    match_history: IMatchHistory[];
+    matches: IMatch[] | null;
   }
 
 export interface IOtherUserRestrict {
@@ -30,7 +34,8 @@ export interface IOtherUser {
     wins: number;
     loses: number;
     friends: number[];
-    match_history: IMatchHistory[]; 
+    match_history: IMatchHistory[];
+    matches: IMatch[] | null;
 }
 
 export interface IMatchHistory {
@@ -38,4 +43,20 @@ export interface IMatchHistory {
   win: boolean;
   myScore: number;
   opponentScore: number;
+  date: Date | null;
+}
+
+export interface IMatch {
+  id: number;
+  player_left_id: number;
+  player_right_id: number;
+  score_left: number;
+  score_right: number;
+  date: Date;
+}
+
+export interface ISocketStatus {
+  socketId: string;
+  userId: number;
+  userStatus: status;
 }

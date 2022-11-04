@@ -1,59 +1,82 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+import { ref, onMounted, onUpdated, watch } from "vue"
 import { useUsersStore } from '../stores/users'
+import { useUserStore } from '../stores/user'
 import Modal from './Modal.vue'
 import IconCommunity from "./icons/IconCommunity.vue";
-import UserLink from "./UserLink.vue";
+import UserLink from "./user/UserLink.vue";
 
 
 const props = defineProps({
     show: Boolean
 })
 
+const userStore = useUserStore()
 const usersStore = useUsersStore()
 
+// il serait sympa de mettre un focus sur le premier user de la liste
+// ==> ajout d'un @keypress.enter="..." sur le input
+// userFriendly++
 
 const showSearchUserModal = ref(false)
-const searchInput = ref(null)
+const searchInput = ref<HTMLElement | null>(null)
 
 let nicknameSearch = ref("")
 function filteredNames() {
-	return usersStore.userList.filter((user) => user.nickname.toLowerCase().includes(nicknameSearch.value.toLowerCase()))
+	return usersStore.userList.filter((user) => user.nickname.toLowerCase().includes(nicknameSearch.value.toLowerCase()) && user.id != userStore.user.id)
 }
+
+
+// Le focus sur l'input marche pas, d'l'a merde
+onUpdated(() => {
+    // console.log("modal search update", searchInput)
+    if (searchInput.value)
+            searchInput.value.focus()
+})
+
+watch(showSearchUserModal, (newVal) => {
+    if (newVal == true) {
+        // console.log("modal search watch", searchInput)
+        if (searchInput.value)
+            searchInput.value.focus()
+    }
+})
 
 </script>
 
 <template>
-    <button @click="showSearchUserModal = true">
-        <i class="icon-search-button">
-            <IconCommunity />
-        </i>
-    </button>
-    <Teleport to="body">
-        <Transition name="modal">
-            <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
-                <div class="search-mask" @click="showSearchUserModal = false"></div>    
-                <div class="container-search">
-                    <input 
+    <div>
+        <button @click="showSearchUserModal = true">
+            <i class="icon-search-button">
+                <IconCommunity />
+            </i>
+        </button>
+        <Teleport to="body">
+            <Transition name="modal">
+                <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
+                    <div class="search-mask" @click="showSearchUserModal = false"></div>    
+                    <div class="container-search">
+                        <input 
                         type="search"
+                        ref="searchInput"
                         id="search-bar"
-                        autofocus
                         placeholder="find a user"
                         autocomplete="off"
                         v-model="nicknameSearch"
-                    />
-                    <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
-                    <div class="list">
-                        <ul>
-                            <li v-for="user in filteredNames()" :key="user.id">
-                                <UserLink :other-user="user"></UserLink>
-                            </li>
-                        </ul>
+                        />
+                        <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
+                        <div class="list">
+                            <ul>
+                                <li v-for="user in filteredNames()" :key="user.id" @click="showSearchUserModal = false">
+                                    <UserLink :other-user="user"></UserLink>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Transition>
-    </Teleport>
+            </Transition>
+        </Teleport>
+    </div>
 </template>
 
 <style>
@@ -129,12 +152,12 @@ function filteredNames() {
 
 
 @media screen and (min-width: 800px) {
-    .container {
+    .container-search {
         left: calc(50% - 70% / 2);
         width: 70%;
     }
 
-    .container input{
+    .container-search input{
         font-size: 2em;
     }
 }

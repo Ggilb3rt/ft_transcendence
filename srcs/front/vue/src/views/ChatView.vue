@@ -1,5 +1,5 @@
 <script setup lang="ts">
-	import { ref } from 'vue'
+	import { ref, onUpdated } from 'vue'
 	import SideNav from '../components/navigation/SideNav.vue';
 
 	const sideNavDataLeft = ref({
@@ -134,36 +134,27 @@
 	function submit(e: Event) {
 		e.preventDefault()
 		if (msg.value) {
-			// const toSend = new Promise ((resolve, error) => 
-			// {
-				channelMsgs.push({
-					tag: "Homer",
-					img: "src/assets/avatars/homer.jpeg",
-					msg: msg.value,
-					date: new Date()
-				})
-				// scrollToBottom(document.getElementById('room-view').lastChild)
-				// resolve(true)
-			// })
-			// .then((val) => {
-				// console.log(val)
-				const room = document.getElementById('room-view')
-				if (room) {
-					// const lastEl = room.getElementsByTagName('p');
-					console.log(room.childNodes.length)
-					console.log(room.childNodes)
-					// console.log(lastEl)
-					room.scrollTo({
-						top: room.scrollHeight,
-						left: 0,
-						behavior: 'smooth'
-					});
-					// lastEl[lastEl.length - 1].scrollIntoView({behavior: 'smooth'})
-				}
-			// })
+			channelMsgs.push({
+				tag: "Homer",
+				img: "src/assets/avatars/homer.jpeg",
+				msg: msg.value,
+				date: new Date()
+			})
 		}
 		msg.value = ""
 	}
+
+onUpdated(() => {
+	const room = document.getElementById('room-view')
+	if (room) {
+		room.scrollTo({
+			top: room.scrollHeight,
+			left: 0,
+			behavior: 'smooth'
+		});
+	}
+})
+
 
 </script>
 

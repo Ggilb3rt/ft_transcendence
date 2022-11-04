@@ -1,31 +1,193 @@
 <script setup lang="ts">
-import type { IUser } from "../types"
-import { RouterLink, RouterView } from "vue-router";
-// import { useUsersStore } from './stores/users';
+import { ref, onUpdated, onBeforeUpdate, watch } from "vue"
+import type { Ref } from "vue"
+import type { IUser, status, ISocketStatus } from "../types"
+import { RouterLink, RouterView, useRoute } from "vue-router";
+import router from "./router";
+import { useUsersStore } from './stores/users';
 import { useUserStore } from './stores/user';
 // import HelloWorld from "./components/HelloWorld.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
+import { io } from "socket.io-client"
 
 
-// const users = useUsersStore()
-const user = useUserStore()
-const { getUser } = user
+const userStore = useUserStore()
+const users = useUsersStore()
+const route = useRoute()
 
-// getUser(1);
+
+
+function getCookie(cname: string) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+
+const lecookie = getCookie("jwt")
+console.log(lecookie)
+// if (lecookie != "")
+//   userStore.connected = true
+
+
+
+async function testConnection() {
+  try {
+    await fetch(`http://localhost:3000/auth/authenticate`, {
+      method: "GET",
+      // mode: "cors",
+      credentials: "include",
+      headers: {
+        // Accept: 'application/json',
+        // credentials: "include",
+        // Authorization: "Bearer " + lecookie,
+        // AccessControlAllowOrigin: "http://localhost"
+
+        // Cookie: document.cookie
+        //! au final les autres requettes integrent le cookie...
+      }
+    })
+    .then((response) => {
+      if (response.status >= 200 && response.status < 300) {
+        return response.json()
+      }
+      throw new Error(response.statusText)
+    })
+    .then((data) => {
+      if (data) {
+        userStore.user = data
+        userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
+        userStore.error = null
+        userStore.connected = true
+        users.getUsers()
+        router.push('/')
+      }
+    })
+  } catch (error: any) {
+    userStore.error = error
+  }
+}
+
+// if (lecookie && lecookie != "")
+  testConnection()
+
+
+// Socket Status
+
+// ici j'utilise une var en double que je watch ici pour update une copie dans le store. Je devrai le faire direct dans le store
+//!!!!!!!!!!!! factoriser dès que ca marche avec "inGame"
+// je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
+
+let alreadyConnect = ref<boolean>(false)
+let socket = io("http://localhost:3000/usersStatus", {autoConnect: false});
+const statusList = ref<ISocketStatus[]>([])
+
+onBeforeUpdate(() => {
+  if (userStore.connected && socket.disconnected && !alreadyConnect.value) {
+    socket.connect()
+  }
+  if (socket.connected && !alreadyConnect.value) {
+    socket.emit("connectionStatus", userStore.user.id, (res: any) => {
+      statusList.value = res
+      console.log("connectionStatus", statusList.value)
+    })
+    
+    socket.on("newStatusConnection", (res: ISocketStatus) => {
+      statusList.value.push(res)
+      console.log("update connection", statusList.value)
+    })
+    socket.on("newStatusDisconnection", (res: ISocketStatus) => {
+      // console.log(res)
+      statusList.value.splice(statusList.value.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
+      console.log("update disconnection", statusList.value)
+    })
+    socket.on("newStatusChange", (res: ISocketStatus) => {
+      console.log("onCHangeStatus", res)
+      const changedIndex = statusList.value.findIndex((el) => el.socketId == res.socketId)
+      if (changedIndex != -1)
+        statusList.value[changedIndex].userStatus = res.userStatus
+    })
+    alreadyConnect.value = true
+  }
+
+watch(statusList, (newStatusList) => {
+    // console.log("watcher before setSocket\n", newStatusList[0].userStatus, oldStatusList)
+    if (users.socketStatus) {
+      users.setSocket(newStatusList)
+    }
+  })
+})
+
+function getCurrentUserStatus(): status {
+  for (const key in statusList.value) {
+    if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
+      const el = statusList.value[key];
+      if (el.userId === userStore.user.id) {
+        return el.userStatus
+      }
+    }
+  }
+  return "disconnected"
+}
+
+function changeCurrentUserStatus(newStatus: status) {
+  for (const key in statusList.value) {
+    if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
+      const el = statusList.value[key];
+      console.log(el.userId, userStore.user.id)
+      if (el.userId === userStore.user.id) {
+        el.userStatus = newStatus
+        if (socket.connected)
+          socket.emit("changeStatus", el)
+        console.log("watch", el)
+        break
+      }
+    }
+  }
+}
+
+watch(route, (newRoute) => {
+  console.log(route.matched)
+  if (users.socketStatus) {
+    if (newRoute.name == "game") {
+      console.log(newRoute.name)
+      // change my status by 'inGame' and emit it
+      changeCurrentUserStatus("inGame")
+      console.log("should be inGame")
+    }
+    else {
+      if (getCurrentUserStatus() == "inGame")
+        changeCurrentUserStatus("available")
+    }
+  }
+})
+
+
+// if user is connected put user store on localStorage and getUsers again
 
 </script>
 
 <template>
   <main>
-    <header>
+    <header v-if="router.currentRoute.value.path != '/login'">
       <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
       <PrimaryNav></PrimaryNav>
     </header>
 
     <RouterView />
 
-    <Footer></Footer>
+    <!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
   </main>
 </template>
 

@@ -40,6 +40,13 @@ a, .blue {
   padding: 0 1rem;
 }
 
+.triangleUp::after {
+  content: "  ▴";
+}
+.triangleDown::after {
+  content: "  ▾"
+}
+
 button.cant_click {
 	opacity: .5;
 }
@@ -62,6 +69,37 @@ button.cant_click:hover {
 .gameList li button.cant_click:hover img{
   border: none;
 }
+
+
+/*
+User status
+cf type status
+*/
+.available::after, .disconnected::after, .inGame::after {
+  content: " ";
+  display: block;
+  width: 20%;
+  height: 20%;
+  max-width: 20px;
+  max-height: 20px;
+  aspect-ratio: 1 / 1;
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  border-radius: 100px;
+  border: 2px solid #232323;
+}
+
+.available::after {
+  background: var(--global-c-blue);
+}
+.disconnected::after {
+  background: var(--global-c-red);
+}
+.inGame::after {
+  background: orange; /* vomi */
+}
+
 
 
 @media screen and (hover: hover) {
