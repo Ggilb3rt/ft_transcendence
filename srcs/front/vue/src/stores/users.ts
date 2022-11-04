@@ -145,19 +145,12 @@ export const useUsersStore = defineStore({
 
     },
     actions: {
-        setSocket(socket: ISocketStatus[]) {    // change the name
-            this.socketStatus = socket
-            console.log("socket in store", this.socketStatus)
-        },
-        socketIs(userId: number, type: status): boolean {
-            const findIndex = this.socketStatus.findIndex((el) => el.userId == userId)
-            if (findIndex != -1)
-                if (this.socketStatus[findIndex].userStatus == type)
-                    return true
-            return false
-        },
-        socketIsAvailable(userId: number): boolean {
-            return this.socketIs(userId, "available")
+        getUserNickById(id: number): string {
+            const name = this.userList.find((el) => el.id == id)
+
+            if (name)
+                return name.nickname
+            return ""
         },
         // getUserStatus(id: number): status {
         //     let ret: ISocketStatus | undefined = undefined;

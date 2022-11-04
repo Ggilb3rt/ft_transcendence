@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import Login from "../views/LoginView.vue"
 import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
+import DashOther from "@/views/DashOtherView.vue";
 import Success from "@/views/SuccessView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
@@ -15,7 +16,7 @@ const ourGames: gameList = 'pong';
 const Chat = () => import("@/views/ChatView.vue")
 const Channel = () => import("@/views/ChannelView.vue")
 const Dashboard = () => import("@/views/DashboardView.vue")
-const DashOther = () => import("@/views/DashOtherView.vue")
+// const DashOther = () => import("@/views/DashOtherView.vue")
 const Game = () => import("@/views/GameView.vue")
 
 function goToDisconnect() {

@@ -15,35 +15,13 @@ const statusStore = useStatusStore()
 
 const userStatus: status = ref("disconnected")
 
-// function print_statut(id: number) {
-//     console.log("statut in link user \n", userStatus)
-// }
-// const userStatus: status = ref(usersStore.getUserStatus(props.otherUser.id))
-
-// il me faudrait plutôt un watch ici pour regarder le moindre changement sur le socket
-// watch()
-
 function filterStatus(id: number): status {
-    // console.log("filterStatus start ", usersStore.socketStatus)
     if (statusStore.statusList) {
+        // je pourrai utiliser un find ici
         for (let i = 0; i < statusStore.statusList.length; i++) {
-            if (statusStore.statusList[i].userId == id) {
-                // console.log("good old for loop ", usersStore.statusList[i].userStatus)
+            if (statusStore.statusList[i].userId == id)
                 return statusStore.statusList[i].userStatus
-            }
         }
-        // usersStore.socketStatus.forEach(el => {
-        //     if (el.userId == id) {
-        //         console.log("user ids", el.userStatus)
-        //         return "available"
-        //     }
-        // })
-        // console.log(usersStore.socketStatus)
-        // const ret = usersStore.socketStatus
-        // const ret = usersStore.socketStatus.values.filter((el: any) => el.id[0] == props.otherUser.id);
-        // console.log("filter status ", ret)
-        // if (ret.length > 0)
-        //     return ret
     }
     return "disconnected"
 }

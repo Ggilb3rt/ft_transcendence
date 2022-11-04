@@ -143,7 +143,7 @@ watch(showSearchUserModal, (newVal) => {
     * these styles.
     */
 
-.modal-enter-active,
+/* .modal-enter-active,
 .modal-leave-active {
   transition: opacity 0.2s ease-in-out;
 }
@@ -156,7 +156,7 @@ watch(showSearchUserModal, (newVal) => {
 .modal-leave-to .modal-container {
     -webkit-transform: scale(1.1);
     transform: scale(1.1);
-}
+} */
 
 
 

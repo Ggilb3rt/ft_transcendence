@@ -29,6 +29,7 @@ const usersStore = useUsersStore()
 	color: #fff;
 	align-self: flex-end;
 	/* transition: all .2s ease-in-out; */
+	align-self: flex-start;
 }
 .bar {
 	display: block;

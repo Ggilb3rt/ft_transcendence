@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, onUpdated } from 'vue'
+import { ref, onUpdated, watch } from 'vue'
 import { useRoute } from 'vue-router';
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
 import SideNav from '../components/navigation/SideNav.vue';
 import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
+import CreateChanForm from '@/components/chat/CreateChanForm.vue'
+import Loader from '@/components/navigation/loader.vue'
 
 
 /*
@@ -131,23 +133,25 @@ import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 
 	// getChannel and pas his messages to ChannelView via props ? ==> better to getChannel on ChannelView
 
+const channelList = ref([
+	{ name: 'chan1', href: '/chat/room/1' },
+	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
+	{ name: 'chan3', href: '/chat/room/3' },
+	{ name: 'chan4', href: '/chat/room/direct/4' },
+])
+
 const sideNavDataLeft = ref({
 	name: 'Channels',
 	isOpen: false,
 	items: [
-		{
-			name: 'New',
-			children: null,
-			href: '/chat/new'
-		},
+		// {
+		// 	name: 'New',
+		// 	children: null,
+		// 	href: '/chat/new'
+		// },
 		{
 			name: 'All channels',
-			children: [	// need to getAllChannelRestrict [IChannelRestrict]
-				{ name: 'chan1', href: '/chat/room/1' },
-				{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
-				{ name: 'chan3', href: '/chat/room/3' },
-				{ name: 'chan4', href: '/chat/room/direct/4' },
-			],
+			children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
 			isOpen: false
 		},
 		{
@@ -177,7 +181,7 @@ const sideNavDataRight = ref({
 		},
 		{
 			name: 'Currents users in channel',
-			children: [	// need to get
+			children: [	// need to get users in current channel
 				{ name: 'homer' },
 				{ name: 'roger' },
 			],
@@ -198,13 +202,8 @@ const route = useRoute()
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav>
 		
-		<div v-if="route.name == 'chat'">
-			<h1>
-				Faire un tuto
-			</h1>
-			<button>Create channel</button>
-			Select ou cree un nouveau channel
-		</div>
+		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
+		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
 		<router-view v-else></router-view>
 		
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>

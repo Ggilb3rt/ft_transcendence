@@ -6,17 +6,22 @@ export type TRestrictUserTime = {
 	expire: Date;
 }
 
+export type TChannelUser = {
+	id: number;
+	isAdmin: boolean;
+}
+
 export interface IChannel {
 	id: number;
 	// href: string; // equivalent of id ??
 	name: string;
 	type: TChannelType;
-	userList: number[];
+	pass?: string;
 	owner: number | null;
+	userList: number[];
 	adminList: number[];
 	banList: TRestrictUserTime[];
 	muteList: TRestrictUserTime[];
-	pass?: string;
 	messages: TMessage[];
 }
 
@@ -28,8 +33,9 @@ export interface IChannelRestrict {
 // remplacer tag et img par userId, permet de le retrouver dans le store usersList
 // en vrai pas sur parceque ça va faire plein d'appel au store... je sais pas trop en vrai
 export type TMessage = {
-	tag: string,
-	img: string,
+	sender: number,
+	reciever: number,
 	msg: string,
+	isDirect: boolean,
 	date: Date
 }
