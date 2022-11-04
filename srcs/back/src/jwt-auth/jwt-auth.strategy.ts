@@ -39,7 +39,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
   if (!user || (req.params.id != undefined && req.params.id != id))
     throw new HttpException("Invalid Token", HttpStatus.FORBIDDEN)
   if (!isAuth && user.two_factor_auth) {
-    throw new UnauthorizedException("not 2fa secured")
+    throw new HttpException("not 2fa secured", HttpStatus.PRECONDITION_FAILED)
   }
   return { id, username };
   }

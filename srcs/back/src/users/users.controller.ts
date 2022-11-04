@@ -10,7 +10,6 @@ import { otherFormat, userFront, userRestrict } from './types';
 
 
 @Controller('users')
-// @UseGuards(JwtAuthGuard)
 export class UsersController {
     constructor(private usersService: UsersService) {}
 

@@ -1,5 +1,12 @@
-/// User(s) infos ///
-// Connected user
+export type status = "available" | "disconnected" | "inGame" | "challenged"
+
+
+export type Challenge = {
+  challenger: Number,
+  level: Number,
+  challenged: Number,
+} | null
+
 export interface IUser {
     id: number;
     two_factor_auth: boolean;

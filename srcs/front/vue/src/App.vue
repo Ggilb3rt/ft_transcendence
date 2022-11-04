@@ -1,32 +1,36 @@
 <script setup lang="ts">
-import { ref, onBeforeUpdate, watch } from "vue"
-import type { TStatus, ISocketStatus } from "../types"
+import { ref, onUpdated, onBeforeUpdate, watch, onMounted, onBeforeMount } from "vue"
+import type { Ref } from "vue"
+import type { IUser, status, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
 import { io } from "socket.io-client"
-
 import { useUsersStore } from './stores/users';
-import { useUserStore } from './stores/user';
-
+import { setStatus, useUserStore } from './stores/user';
+import { useStatusStore } from './stores/status'
+// import HelloWorld from "./components/HelloWorld.vue";
+import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
 
+
+
+
+const route = useRoute()
 const userStore = useUserStore()
 const users = useUsersStore()
-const route = useRoute()
+const statusStore = useStatusStore()
 
-
-
-//!!!!!!!! il serait très sexy de pouvoir ctrl + r sans avoir à refaire le processus de connection
-// on pourrai avoir une route dans le back à checker au lancement de l'app vue, si le cookie est present
-// et pas 2FA ==> set userStore.connected à true puis router.push(from) (ex: http://pongLocal/dashboard/2 ==> si cookie valide et pas 2FA recharge direct cette page (pas de retour à login))
-// sinon go login (parceque flemme de faire un autre sytème)
-
+window.addEventListener('beforeunload', () => {
+  if (userStore.conStatus == setStatus.connected) {
+    localStorage.setItem('last_page', route.name.toString());
+  }
+})
 
 async function testConnection() {
   try {
-    socket.emit('testConnection')
-    await fetch(`http://localhost:3000/auth/verify`, {
+    console.log("Test Connection premiere ligne")
+    const response = await fetch(`http://localhost:3000/auth/verify`, {
       method: "GET",
       // mode: "cors",
       credentials: "include",
@@ -40,29 +44,36 @@ async function testConnection() {
         //! au final les autres requettes integrent le cookie...
       }
     })
-    .then((response) => {
-      if (response.status >= 200 && response.status < 300) {
-        return response.json()
+    localStorage.clear();
+    document.cookie
+    var data;
+    if (response.status == 412) {
+        userStore.changeStatus(setStatus.need2fa)
+        router.push('/2fa')
       }
+    else if (response.status >= 200 && response.status < 300) {
+        userStore.changeStatus(setStatus.connected)
+        data = await response.json()
+    }
+    else {
       throw new Error(response.statusText)
-    })
-    .then((data) => {
-      if (data) {
+    }
+    if (data) {
         userStore.user = data
         userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
         userStore.error = null
         userStore.connected = true
         users.getUsers()
-        router.push('/')
+        console.log('userStore.id = ', userStore.user.id)
+        statusStore.setup(userStore.user.id);
       }
-    })
   } catch (error: any) {
     userStore.error = error.body
   }
 }
 
 // if (userStore.connected)
-//   testConnection()
+  testConnection()
 
 
 // Socket Status
@@ -71,98 +82,19 @@ async function testConnection() {
 //!!!!!!!!!!!! factoriser dès que ca marche avec "inGame"
 // je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
 
-let alreadyConnect = ref<boolean>(false)
-let socket = io("http://localhost:3000/userStatus", {autoConnect: false});
-const statusList = ref<ISocketStatus[]>([])
-
-// onBeforeUpdate(() => {
-// if (userStore.user.nickname === 'ptroger') {
-//   console.log("jesuis ici ptroger")
-//   socket = io("http://localhost:3000/userStatus", {autoConnect: false});
-// }
-// else {
-//   console.log("jesuis la test")
-//   socket = io("http://localhost:3000/test", {autoConnect: false})
-// }
-// })
-
-onBeforeUpdate(() => {
-  if (userStore.connected && socket.disconnected && !alreadyConnect.value) {
-    socket.connect()
-  }
-  if (socket.connected && !alreadyConnect.value) {
-    socket.emit("connectionStatus", userStore.user.id, (res: any) => {
-      statusList.value = res
-      console.log("connectionStatus", statusList.value)
-    })
-    
-    socket.on("newStatusConnection", (res: ISocketStatus) => {
-      statusList.value.push(res)
-      console.log("update connection", statusList.value)
-    })
-    socket.on("newStatusDisconnection", (res: ISocketStatus) => {
-      console.log(res)
-      statusList.value.splice(statusList.value.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
-      console.log("update disconnection", statusList.value)
-    })
-    socket.on("newStatusChange", (res: ISocketStatus) => {
-      console.log("onCHangeStatus", res)
-      const changedIndex = statusList.value.findIndex((el) => el.socketId == res.socketId)
-      if (changedIndex != -1)
-        statusList.value[changedIndex].userStatus = res.userStatus
-    })
-    alreadyConnect.value = true
-    console.log("socket connection ", alreadyConnect.value)
-  }
-
-watch(statusList, (newStatusList) => {
-    // console.log("watcher before setSocket\n", newStatusList[0].userStatus, oldStatusList)
-    if (users.socketStatus) {
-      users.setSocket(newStatusList)
-    }
-  })
-})
-
-function getCurrentUserStatus(): TStatus {
-  for (const key in statusList.value) {
-    if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
-      const el = statusList.value[key];
-      if (el.userId === userStore.user.id) {
-        return el.userStatus
-      }
-    }
-  }
-  return "disconnected"
-}
-
-function changeCurrentUserStatus(newStatus: TStatus) {
-  for (const key in statusList.value) {
-    if (Object.prototype.hasOwnProperty.call(statusList.value, key)) {
-      const el = statusList.value[key];
-      console.log(el.userId, userStore.user.id)
-      if (el.userId === userStore.user.id) {
-        el.userStatus = newStatus
-        if (socket.connected)
-          socket.emit("changeStatus", el)
-        console.log("watch", el)
-        break
-      }
-    }
-  }
-}
-
 watch(route, (newRoute) => {
   console.log(route.matched)
   if (users.socketStatus) {
     if (newRoute.name == "game") {
       console.log(newRoute.name)
       // change my status by 'inGame' and emit it
-      changeCurrentUserStatus("inGame")
+      console.log("in watch route user id should be 9 == ", userStore.user.id)
+      statusStore.changeCurrentUserStatus("inGame", userStore.user.id)
       console.log("should be inGame")
     }
     else {
-      if (getCurrentUserStatus() == "inGame")
-        changeCurrentUserStatus("available")
+      if (statusStore.status == "inGame")
+        statusStore.changeCurrentUserStatus("available", userStore.user.id)
     }
   }
 })

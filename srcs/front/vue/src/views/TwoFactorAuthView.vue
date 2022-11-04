@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import router from "../router";
-import { useUserStore } from '../stores/user'
+import { setStatus, useUserStore } from '../stores/user'
 import Loader from '../components/navigation/loader.vue';
 
 const userStore = useUserStore()
@@ -30,8 +30,7 @@ async function submitCode() {
           .then((data) => {
             if (data) {
             	console.log("return data ", data)
-				userStore.set2FAConnect(true)
-				userStore.connected = true
+				userStore.changeStatus(setStatus.connected)
 				userStore.loading = false
 				router.push("/success")
 
@@ -42,6 +41,7 @@ async function submitCode() {
         userStore.error = error.body
 		userStore.loading = false
     }
+
 }
 
 </script>

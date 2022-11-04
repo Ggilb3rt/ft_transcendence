@@ -29,8 +29,10 @@ export class AuthController {
       // }
       const { accessToken } = await this.jwtAuthService.login({id, username}, true)
       const expires = new Date(Date.now() + process.env.JWT_EXPIRES_IN)
-      res.cookie("jwt", accessToken, {httpOnly: true});
-      return res.send({status: 200, msg: true})
+      res.cookie("jwt", accessToken, {
+        httpOnly:true
+      });
+      return res.send({status:200, msg: true})
     }
 
   @Get()
@@ -40,6 +42,7 @@ export class AuthController {
   }
 
   @Get('redirect')
+  @HttpCode(200)
   @UseGuards(FourtyTwoGuard)
   async googleAuthRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
 
@@ -48,6 +51,7 @@ export class AuthController {
       httpOnly:true,
     })
     if (two_factor_auth == false) {
+      
       return res.redirect(process.env.URL_LOGIN_SUCCESS)
     }
     else
@@ -55,6 +59,7 @@ export class AuthController {
   }
 
   @Get('verify')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async verif(@Req() req): Promise<users> {
     return (this.authService.verify(req.cookies.jwt))

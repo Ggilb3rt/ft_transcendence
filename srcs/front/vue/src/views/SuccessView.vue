@@ -4,10 +4,13 @@ import { useUsersStore } from "@/stores/users"
 import { onBeforeMount, onBeforeUnmount, onMounted } from "@vue/runtime-core";
 import Loader from '../components/navigation/Loader.vue';
 import router from "../router";
+import { useStatusStore } from "../stores/status";
 
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
+const statusStore = useStatusStore()
+
 
 onBeforeMount(() => {
 	userStore.loading = true
@@ -29,6 +32,7 @@ onMounted(async () => {
         userStore.error = null
         userStore.connected = true
         usersStore.getUsers()
+        statusStore.setup(userStore.user.id);
         router.push('/')
     })
   } catch (error: any) {
