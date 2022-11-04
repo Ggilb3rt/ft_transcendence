@@ -2,7 +2,7 @@
 import { ref } from "vue"
 import router from "../router";
 import { useUserStore } from '../stores/user'
-import Loader from '../components/navigation/Loader.vue';
+import Loader from '../components/navigation/loader.vue';
 
 const userStore = useUserStore()
 const code = ref("")
