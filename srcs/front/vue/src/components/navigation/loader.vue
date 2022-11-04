@@ -8,13 +8,13 @@ const usersStore = useUsersStore()
 </script>
 
 <template>
-    <div class="loader" v-if="userStore.loading || usersStore.loading">
-        <div>
-            <span class="bar ping"></span>
-            <span class="bar ball"></span>
-            <span class="bar pong"></span>
-        </div>
-    </div>
+	<div class="loader" v-if="userStore.loading || usersStore.loading">
+		<div>
+			<span class="bar ping"></span>
+			<span class="bar ball"></span>
+			<span class="bar pong"></span>
+		</div>
+	</div>
 </template>
 
 <style scoped>

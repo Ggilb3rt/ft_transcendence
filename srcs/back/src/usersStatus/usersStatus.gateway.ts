@@ -3,8 +3,7 @@ import {
     SubscribeMessage,
     WebSocketGateway,
     OnGatewayInit,
-    OnGatewayDisconnect, 
-    OnGatewayConnection} from '@nestjs/websockets';
+    OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import cluster from 'cluster';
@@ -46,12 +45,17 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
     }
 
-    // handleConnection(client: Socket, ...args: any[]) {
-    //     // this.userList.set(Number(client.id), client)
-    //     const u: IStatus = {socketId: client.id, userStatus: "available", userId: args[0]}
+    // async handleConnection(client: Socket, ...args: any[]) {
+    //     console.log("HandleConnection2");
+    //     const sockets = await this.server.fetchSockets()
+    //     sockets.forEach(element => {
+    //         console.log("id == ", element.id)
+    //     });
+    //     const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
     //     this.userArr.push(u)
     //     this.logger.log(`client connection : ${client.id}`)
-        // this.server.sockets.emit('newStatusConnection', u)
+    //     // nsp.emit('newStatusConnection', u)
+    //     this.server.emit('newStatusConnection', u)
     //     return this.userArr
     // }
 

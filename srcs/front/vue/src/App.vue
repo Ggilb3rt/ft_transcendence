@@ -4,13 +4,17 @@ import type { Ref } from "vue"
 import type { IUser, status, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
+import { io } from "socket.io-client"
 import { useUsersStore } from './stores/users';
 import { setStatus, useUserStore } from './stores/user';
 import { useStatusStore } from './stores/status'
 // import HelloWorld from "./components/HelloWorld.vue";
-import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import Footer from "./components/Footer.vue";
-import { io } from "socket.io-client"
+import PrimaryNav from "./components/navigation/PrimaryNav.vue";
+import ErrorPopUp from "./components/ErrorPopUp.vue";
+
+
+
 
 const route = useRoute()
 const userStore = useUserStore()
@@ -63,16 +67,13 @@ async function testConnection() {
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
       }
-    } catch (error: any) {
-    userStore.error = error
-  } finally {
-  
+  } catch (error: any) {
+    userStore.error = error.body
   }
 }
 
-// if (lecookie && lecookie != "")
-testConnection()
-
+// if (userStore.connected)
+  testConnection()
 
 
 // Socket Status
@@ -98,14 +99,13 @@ watch(route, (newRoute) => {
   }
 })
 
-
-// if user is connected put user store on localStorage and getUsers again
-
 </script>
 
 <template>
   <main>
-    <header v-if="router.currentRoute.value.path != '/login'">
+    <ErrorPopUp></ErrorPopUp>
+
+    <header v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'">
       <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
       <PrimaryNav></PrimaryNav>
     </header>

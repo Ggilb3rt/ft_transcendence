@@ -1,39 +1,37 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import { ref } from "vue";
+import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 import { useUserStore } from '@/stores/user';
-import type { IUserStoreState } from "@/stores/user"
-import { useUsersStore } from "@/stores/users";
-import type { IUsersStoreState } from "@/stores/users"
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
 import IconSupport from "@/components/icons/IconSupport.vue"
 import router from "@/router/index"
 
 const userStore = useUserStore();
-const usersStore = useUsersStore();
 let	isActive = ref(false);
 
 let winWidth = ref(window.innerWidth)
 
-window.addEventListener('resize', (e) => {
-	winWidth.value = window.innerWidth
-});
-
 // Disconnection, need to put it in component
 async function disconnect() {
-	document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+	// document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
 	userStore.connected = false
 	userStore.twoFactorAuth = false
 	router.push("/login")
 }
 
 
-// Error, need to put it in component
-function removeError(store: IUserStoreState | IUsersStoreState) {
-	if (store.error)
-		store.error = null
+function updateWinWidthValue(e: Event) {
+	winWidth.value = window.innerWidth
 }
+
+onBeforeMount(() => {
+	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+})
+
+onBeforeUnmount(() => {
+	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
+})
 
 </script>
 
@@ -50,15 +48,12 @@ function removeError(store: IUserStoreState | IUsersStoreState) {
 		<nav :class="{open: isActive, side_menu: winWidth < 768}" class="side-left">
 			<button class="btn-menu" @click="isActive = (isActive) ? false : true" v-if="winWidth < 768">
 				<div v-if="!isActive">
-				<span class="bar ping"></span>
-				<span class="bar ball"></span>
-				<span class="bar pong"></span>
-			</div>
-			<span v-else>X</span>
+					<span class="bar ping"></span>
+					<span class="bar ball"></span>
+					<span class="bar pong"></span>
+				</div>
+				<span v-else>X</span>
 			</button>
-			<!-- <RouterLink to="/about" @click="isActive = false">AddUser</RouterLink> -->
-			<!-- <RouterLink to="/login" @click="isActive = false">Login</RouterLink> -->
-			<RouterLink to="/success" @click="isActive = false">success</RouterLink>
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
 			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
@@ -69,25 +64,10 @@ function removeError(store: IUserStoreState | IUsersStoreState) {
 			<ModalSearch></ModalSearch>
 			<button @click="disconnect()" title="disconnect"><IconSupport /></button>
 		</nav>
-		<div class="error" v-if="userStore.error || usersStore.error">
-			<p v-if="userStore.error">UserStore err : {{ userStore.error }} <button @click="removeError(userStore)">X</button></p> 
-			<p v-if="usersStore.error">UsersStore err : {{ usersStore.error }} <button @click="removeError(usersStore)">X</button></p>
-		</div>
 	</div>
 </template>
 
 <style scoped>
-
-div.error {
-	position: absolute;
-	z-index: 5;
-	padding: 20px;
-	top: 0;
-	left: 0;
-	right: 0;
-	color: white;
-	background: #FF5555;
-}
 
 .side_menu {
 	position: fixed;
@@ -161,6 +141,7 @@ div.error {
   height: 60px;
   width: 60px;
   border-radius: 60px;
+  object-fit: cover;
 }
 
 nav {
@@ -171,14 +152,6 @@ nav {
   display: flex;
   align-items: center;
   /* justify-content: center; */
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
 }
 
 nav a {

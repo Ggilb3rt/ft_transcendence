@@ -349,7 +349,7 @@ export class UsersService {
       const { otpauthUrl } = await this.generate2faSecret(id);
       return this.pipeQrCodeStream(response, otpauthUrl);
     }
-    return ret
+    return { status: 200, message: ret}
   }
 
   async setSecret(id: number, secret: string) {

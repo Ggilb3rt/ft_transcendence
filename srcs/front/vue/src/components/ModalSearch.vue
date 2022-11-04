@@ -56,6 +56,7 @@ watch(showSearchUserModal, (newVal) => {
                 <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
                     <div class="search-mask" @click="showSearchUserModal = false"></div>    
                     <div class="container-search">
+                        <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
                         <input 
                         type="search"
                         ref="searchInput"
@@ -64,7 +65,6 @@ watch(showSearchUserModal, (newVal) => {
                         autocomplete="off"
                         v-model="nicknameSearch"
                         />
-                        <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
                         <div class="list">
                             <ul>
                                 <li v-for="user in filteredNames()" :key="user.id" @click="showSearchUserModal = false">
@@ -88,7 +88,7 @@ watch(showSearchUserModal, (newVal) => {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(10, 10, 10, 0.9);
     transition: opacity 0.3s ease;
 }
 
@@ -99,21 +99,21 @@ watch(showSearchUserModal, (newVal) => {
     width: 90%;
     z-index: 9998;
     padding: 10px;
-    background-color: #fff;
     color: var(--vt-c-text-light-1);
     border-radius: var(--global-border-radius);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
     transition: all scale 0.3s ease;
+    /* background-color: #fff; */
+    /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33); */
 }
 
 .list {
-    margin: 10px 0;
+    margin: 30px 0;
 }
 .list ul {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: space-between;
     padding: 0;
     gap: 20px;
 }
@@ -126,7 +126,15 @@ watch(showSearchUserModal, (newVal) => {
     float: right;
 }
 
-/*
+.container-search input {
+    background: none;
+    border: 1px solid rgba(100,100,100, .6);
+    width: 100%;
+    font-size: 2.5em;
+    color: #fff;
+}
+
+    /*
     * The following styles are auto-applied to elements with
     * transition="modal" when their visibility is toggled
     * by Vue.js.
@@ -135,12 +143,13 @@ watch(showSearchUserModal, (newVal) => {
     * these styles.
     */
 
-.modal-enter-from {
-    opacity: 0;
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease-in-out;
 }
-
+.modal-enter-from,
 .modal-leave-to {
-    opacity: 0;
+  opacity: 0;
 }
 
 .modal-enter-from .modal-container,
@@ -162,5 +171,8 @@ watch(showSearchUserModal, (newVal) => {
     }
 }
 
+@keyframes identifier {
+    
+}
 
 </style>
