@@ -88,10 +88,10 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
     }
 
-    // @SubscribeMessage('findAllStatus')
-    // handleFindAll() {
-    //     return this.userArr
-    // }
+    @SubscribeMessage('findAllStatus')
+    handleFindAll() {
+        return this.userArr
+    }
     // @SubscribeMessage('chatToServer')
     // handleMessage(client: any, payload: { sender: string, room: string, payload: string }) {
     //     // Le to() permet d'emit a une room specifique et non pas a tout le namespace
