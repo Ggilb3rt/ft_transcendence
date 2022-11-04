@@ -36,7 +36,7 @@ export const useStatusStore = defineStore({
     },
     
     actions: {
-        socketIs(userId: number, type: status): boolean {
+        socketIs(userId: number, type: TStatus): boolean {
             const findIndex = this.statusList.findIndex((el) => el.userId == userId)
             if (findIndex != -1)
                 if (this.statusList[findIndex].userStatus == type)
@@ -88,6 +88,10 @@ export const useStatusStore = defineStore({
 
                 // Messages for userStatus
                 this.socket.on("newStatusConnection", (res: ISocketStatus) => {
+                    const alreadyConnected = this.statusList.findIndex((el) => {res.userId === el.userId})
+                    if (alreadyConnected != -1) {
+                        this.statusList.slice(alreadyConnected, 1)
+                    }
                     this.statusList.push(res)
                 })
                 this.socket.on("newStatusDisconnection", (res: ISocketStatus) => {
@@ -102,7 +106,9 @@ export const useStatusStore = defineStore({
 
                 //Messages for challenges
                 this.socket.on("newChallenge", (challenge: Challenge) => {
+                    console.log("Challenge recu")
                     if (challenge) {
+                    console.log("Challenge valide", challenge)
                         this.challenge = challenge
                         this.changeCurrentUserStatus('challenged', challenge.challenged)
                     }
@@ -136,8 +142,13 @@ export const useStatusStore = defineStore({
             const challenge: Challenge = {challenger: id, level, challenged}
             const el = this.findSocket(id)
             if (el) {
+                console.log("je suis la ")
                 this.socket.emit("newChallenge", challenge)
+                this.challenge = challenge
                 this.changeCurrentUserStatus('challenged', id)
+            }
+            else {
+                console.log("Noooooooo")
             }
         },
 
