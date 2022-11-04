@@ -1,14 +1,8 @@
 import { defineStore } from "pinia";
-import type { ISocketStatus, IUser, status } from '../../types'
+import type { Challenge, ISocketStatus, IUser, status } from '../../types'
 import { io } from "socket.io-client"
-import { setStatus } from "./user";
 
 // const user = useUserStore().user
-
-type Challenge = {
-    challenger: Number,
-    level: Number
-} | null
 
 interface IUserStatusStore {
     status: status,
@@ -20,6 +14,7 @@ interface IUserStatusStore {
     error: string | null,
     challenge: Challenge,
     alreadyChallenged: boolean,
+    challengeAccepted: boolean,
 }
 
 export const useStatusStore = defineStore({
@@ -33,7 +28,8 @@ export const useStatusStore = defineStore({
         // user,
         error: null,
         challenge: null,
-        alreadyChallenged: false
+        alreadyChallenged: false,
+        challengeAccepted: false,
     }),
 
     getters: {
@@ -100,15 +96,14 @@ export const useStatusStore = defineStore({
                 //Messages for challenges
                 this.socket.on("newChallenge", (challenge: Challenge) => {
                     if (this.challenge != null) {
-                        this.socket.emit('alreadyChallenged')
-                        
+                        this.socket.emit('alreadyChallenged')   
                     }
                     else {
                         this.challenge = challenge
                     }
                 })
                 this.socket.on("challengeAccepted", (arg: ISocketStatus) => {
-                    this.socket.emit("createChallenge")
+                    this.challengeAccepted = true;
                 })
 
                 this.socket.on("alreadyChallenged", (id: Number) => {
@@ -130,8 +125,8 @@ export const useStatusStore = defineStore({
             return el
         },
 
-        challengeUser(id: Number, level:number) {
-            const challenge: Challenge = {challenger: id, level}
+        challengeUser(id: Number, level: Number, challenged: Number) {
+            const challenge: Challenge = {challenger: id, level, challenged}
             const el = this.findSocket(id)
             if (el) {
                 this.socket.emit("newChallenge", challenge)

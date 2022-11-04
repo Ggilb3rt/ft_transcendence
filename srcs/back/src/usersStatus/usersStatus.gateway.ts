@@ -7,6 +7,7 @@ import {
     OnGatewayConnection} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import cluster from 'cluster';
 
 
 type TStatus = "available" | "disconnected" | "inGame"
@@ -72,6 +73,14 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (changedIndex != -1) {
             this.userArr[changedIndex].userStatus = arg.userStatus
             client.broadcast.emit("newStatusChange", this.userArr[changedIndex])
+        }
+    }
+
+    @SubscribeMessage('newChallenge')
+    newChallenge(client: Socket, challenge: {challenger: Number, level: Number, challenged: Number}) {
+        const receiver = this.userArr.find((el) => {el.userId === challenge.challenger}) 
+        if (receiver) {
+            this.server.to(receiver.socketId).emit('newChallenge', challenge)
         }
     }
 

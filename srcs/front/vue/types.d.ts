@@ -1,4 +1,11 @@
-export type status = "available" | "disconnected" | "inGame"
+export type status = "available" | "disconnected" | "inGame" | "challenged"
+
+
+export type Challenge = {
+  challenger: Number,
+  level: Number,
+  challenged: Number,
+} | null
 
 export interface IUser {
     id: number;
