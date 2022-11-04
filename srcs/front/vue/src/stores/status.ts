@@ -36,6 +36,17 @@ export const useStatusStore = defineStore({
     },
     
     actions: {
+        socketIs(userId: number, type: status): boolean {
+            const findIndex = this.statusList.findIndex((el) => el.userId == userId)
+            if (findIndex != -1)
+                if (this.statusList[findIndex].userStatus == type)
+                    return true
+            return false
+        },
+        socketIsAvailable(userId: number): boolean {
+            return this.socketIs(userId, "available")
+        },
+
 
         async getPending(id: Number) {
             const invitedBy= await fetch(`http://localhost:3000/users/${id}/pending`);
@@ -58,10 +69,9 @@ export const useStatusStore = defineStore({
         },
         
         async setup(id: number) {
-
             // Check to do it only once
             if (this.setuped == false) {
-            
+                this.socket.emit("findAllStatus", (res: any) => {this.statusList = res})
                 //Push my instance to list of sockets
                 const toto = this.socket.emit('findAllStatus')
                 console.log("toto = ", toto, "\n\ntypeof toto = ", typeof toto)
