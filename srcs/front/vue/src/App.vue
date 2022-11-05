@@ -21,10 +21,17 @@ const userStore = useUserStore()
 const users = useUsersStore()
 const statusStore = useStatusStore()
 
-window.addEventListener('beforeunload', () => {
-  if (userStore.conStatus == setStatus.connected) {
-    localStorage.setItem('last_page', route.name.toString());
+window.addEventListener('beforeunload', async (e) => {
+  const res = await fetch('http://localhost:3000/auth/verify', {
+    credentials: "include"
+  })
+  console.log("res == ", res);
+  if (res.status < 300) {
+    if (userStore.conStatus == setStatus.connected) {
+      localStorage.setItem('last_page', route.name.toString());
+    }
   }
+  localStorage.setItem('log', res.toString());
 })
 
 async function testConnection() {
@@ -44,7 +51,7 @@ async function testConnection() {
         //! au final les autres requettes integrent le cookie...
       }
     })
-    localStorage.clear();
+    // localStorage.clear();
     var data;
     if (response.status == 412) {
         userStore.changeStatus(setStatus.need2fa)

@@ -11,17 +11,17 @@ model admins {
   id         Int       @id @default(autoincrement())
   channel_id Int?
   admin_id   Int?
-  users      users?    @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  channels   channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user      users?    @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  channel   channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model ban_channels {
   id                                  Int       @id @default(autoincrement())
-  user_id                             Int?
-  banned_id                           Int?
-  ban_begin                           DateTime? @db.Timestamptz(6)
-  users_ban_channels_banned_idTousers users?    @relation("ban_channels_banned_idTousers", fields: [banned_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_ban_channels_idTousers        users     @relation("ban_channels_idTousers", fields: [id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_id                             Int
+  channel_id                          Int
+  expires                             DateTime? @db.Timestamptz(6)
+  user                                users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  channel                             channels  @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model friends {
@@ -37,21 +37,29 @@ model ban_users {
   id                               Int       @id @default(autoincrement())
   user_id                          Int
   banned_id                        Int
-  ban_begin                        DateTime? @db.Timestamptz(6)
+  expires                          DateTime? @db.Timestamptz(6)
   users_ban_users_banned_idTousers users    @relation("ban_users_banned_idTousers", fields: [banned_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users_ban_users_idTousers        users     @relation("ban_users_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
+model direct_message {
+  id                  Int          @id @default(autoincrement())
+  user_id             Int
+  second_user_id      Int
+  messages            messages[]
+}
+
 model channels {
   id         Int          @id @default(autoincrement())
-  need_pass  Boolean?
+  name       String
+  type       String
   pass       String?
-  is_public  Boolean?
-  chan_owner Int?
-  users      users?       @relation(fields: [chan_owner], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  owner      Int?
+  users      users?       @relation(fields: [owner], references: [id], onDelete: Cascade, onUpdate: NoAction)
   admins     admins[]
   messages   messages[]
   muted      muted[]
+  banned     ban_channels[] 
   users_list users_list[]
 }
 
@@ -70,8 +78,10 @@ model messages {
   id           Int       @id @default(autoincrement())
   channel_id   Int?
   sender_id    Int?
+  relation     Int?
   content      String
   message_date DateTime  @db.Timestamptz(6)
+  direct       direct_message? @relation(fields: [relation], references: [id], onDelete: Cascade, onUpdate: NoAction)
   channels     channels? @relation(fields: [channel_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users        users?    @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -97,11 +107,10 @@ model users {
   loses                                      Int? @default(0)
   two_factor_auth                            Boolean? @default(false)
   two_factor_secret                          String?
-  admins                                     admins[]
+  admin_of_channel                           admins[]
   friends                                    friends[] @relation("friends")
   friendsWithMe                              friends[] @relation("friendsWithMe")
-  ban_channels_ban_channels_banned_idTousers ban_channels[] @relation("ban_channels_banned_idTousers")
-  ban_channels_ban_channels_idTousers        ban_channels?  @relation("ban_channels_idTousers")
+  banned_from_channel                        ban_channels[]
   ban_users_ban_users_banned_idTousers       ban_users[]    @relation("ban_users_banned_idTousers")
   ban_users_ban_users_idTousers              ban_users[]    @relation("ban_users_idTousers")
   channels                                   channels[]

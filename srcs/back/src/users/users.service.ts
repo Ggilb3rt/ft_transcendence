@@ -126,6 +126,7 @@ export class UsersService {
       invites
     }
 
+    console.log("return == ", userFormat)
     return (userFormat);
   }
 

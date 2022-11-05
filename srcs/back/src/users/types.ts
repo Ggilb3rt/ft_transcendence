@@ -27,4 +27,35 @@ type otherFormat = {
     matches: match[],
 }
 
-export { userFront, userRestrict, otherFormat}
+type TChannelType = "public" | "private" | "pass" | "direct"
+
+
+type TRestrictUserTime = {
+	userId: number;
+	expire: Date;
+}
+
+type TMessage = {
+	sender: number,
+	receiver: number,
+	msg: string,
+	isDirect: boolean,
+	date: Date
+}
+
+type TChannel = {
+    id: number;
+	// href: string; // equivalent of id ??
+	name: string;
+	type: TChannelType;
+	userList: number[];
+	owner: number | null;
+	adminList: number[];
+	banList: TRestrictUserTime[];
+	muteList: TRestrictUserTime[];
+	pass?: string;
+	messages: TMessage[];
+}
+
+
+export { userFront, userRestrict, otherFormat, TChannelType, TMessage, TRestrictUserTime, TChannel}
