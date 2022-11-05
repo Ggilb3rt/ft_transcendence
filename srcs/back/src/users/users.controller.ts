@@ -31,7 +31,7 @@ export class UsersController {
     }
 
     @Get(':id/other')
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     getOther(@Param('id', ParseIntPipe) id): Promise<otherFormat> {
        return (this.usersService.getOtherUser(id))
     }
@@ -61,7 +61,7 @@ export class UsersController {
     }
 
     @Post(':id/2fa')
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     async switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status, @Body('code') code: string | undefined, @Res() response) {
         console.log("bounjouern sdf", status)
         let isCodeValid: boolean = false
@@ -132,7 +132,7 @@ export class UsersController {
     }
 
     @Get(':id/avatar')
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     @Header('Content-Type', 'image/jpeg')
     @Header('Content-Disposition', 'attachment; filename="your_avatar.jpeg"')
     async getAvatar(@Param('id', ParseIntPipe) id): Promise<StreamableFile> {

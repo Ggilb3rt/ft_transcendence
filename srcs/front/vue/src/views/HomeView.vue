@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import UserInvite from "@/components/user/UserInvite.vue";
 import router from "@/router";
 import { ref } from "vue";
-import { useUserStore } from '../stores/user';
 
 // simule server timing
 function sleep(ms: number) {
@@ -9,9 +9,6 @@ function sleep(ms: number) {
     resolve => setTimeout(resolve, ms)
     );
   }
-
-
-const userStore = useUserStore()
 
 let inQueue = ref(false)
 

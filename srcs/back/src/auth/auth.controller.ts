@@ -43,7 +43,7 @@ export class AuthController {
 
   @Get('redirect')
   @HttpCode(200)
-  @UseGuards(FourtyTwoGuard)
+   @UseGuards(FourtyTwoGuard)
   async googleAuthRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
 
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);

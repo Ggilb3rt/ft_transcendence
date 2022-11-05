@@ -24,11 +24,13 @@ export class GameService {
             level: 0,
             spectator: false,
         }
+        //console.log("PLAYERS")
+        //console.log(this.players);
     }
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
         const level = data.level;
-        console.log(level);
+        //console.log(level);
         const player = this.players[client.id];
         let wr = this.waitingRooms[level];
 
@@ -166,8 +168,8 @@ export class GameService {
     }
 
     handleWatchGame(client: Socket, data: any, server: Server) {
-        console.log("WATCH GAME");
-        console.log(data.roomName);
+        //console.log("WATCH GAME");
+        //console.log(data.roomName);
 		const roomName = data.roomName;
         this.players[client.id].level = 0;
         this.players[client.id].spectator = true;
@@ -311,8 +313,10 @@ export class GameService {
         server.to(data.roomName).emit("rematch");
         //console.log(Object.keys(this.players).length);
 
-        console.log(player);
-        console.log(opponent);
+        
+        
+        //console.log(player);
+        //console.log(opponent);
     }
 
 	handleMoveAnim(client: Socket, data: any, server: Server) {

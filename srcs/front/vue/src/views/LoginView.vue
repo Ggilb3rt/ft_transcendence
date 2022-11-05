@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Loader from '@/components/navigation/Loader.vue';
+import Loader from '@/components/navigation/loader.vue';
 
 </script>
 

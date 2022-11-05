@@ -2,7 +2,7 @@
 import { useUserStore } from "@/stores/user"
 import { useUsersStore } from "@/stores/users"
 import { onBeforeMount, onBeforeUnmount, onMounted } from "@vue/runtime-core";
-import Loader from '../components/navigation/Loader.vue';
+import Loader from '../components/navigation/loader.vue';
 import router from "../router";
 import { useStatusStore } from "../stores/status";
 
