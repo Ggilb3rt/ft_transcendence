@@ -6,6 +6,15 @@ const prisma = new PrismaClient()
 
 @Injectable()
 export class ChatHelper {
+
+    formatRestrictTime(ban) {
+        
+    }
+
+    formatChannels(channel: TChannel) {
+        
+    }
+
     async createChannel(chan: TChannel) {
         const channel = await prisma.channels.create({
             data:{

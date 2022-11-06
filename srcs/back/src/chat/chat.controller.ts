@@ -16,18 +16,28 @@ export class ChatController {
         return this.chatService.getChannel(channelId)
     }
 
-    @Post()
-    createChannel(@Body('Channel') channel) {
-        return this.chatService.createChannel(channel)
-    }
+    // @Post()
+    // createChannel(@Body('Channel') channel) {
+    //     return this.chatService.createChannel(channel)
+    // }
 
-    @Get('/available:id')
-    getAvailables(@Param('id', ParseIntPipe) userId) {
-        return this.chatService.getAvailables(userId)
-    }
+    // ROUTES FOR SOCKET
 
-    @Get('/joined:id')
-    getJoined(@Param('id', ParseIntPipe) userId) {
-        return this.chatService.getJoined(userId)
-    }
+    // add remove an admin
+
+    // '' '' mute
+
+    // '' '' ban
+
+    // 
+
+    // @Get('/available:id')
+    // getAvailables(@Param('id', ParseIntPipe) userId) {
+    //     return this.chatService.getAvailables(userId)
+    // }
+
+    // @Get('/joined:id')
+    // getJoined(@Param('id', ParseIntPipe) userId) {
+    //     return this.chatService.getJoined(userId)
+    // }
 }

@@ -113,8 +113,8 @@ export const useStatusStore = defineStore({
                         this.changeCurrentUserStatus('challenged', challenge.challenged)
                     }
                 })
-                this.socket.on("challengeAccepted", (arg: ISocketStatus) => {
-                    this.challengeAccepted = true;
+                this.socket.on("challengeAccepted", (challenge: Challenge) => {
+                    // redirige vers gameView(props: challenge)
                 })
                 this.socket.on("refuseChallenge", () => {
                     this.challenge = null

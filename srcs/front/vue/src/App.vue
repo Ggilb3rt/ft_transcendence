@@ -105,6 +105,10 @@ watch(route, (newRoute) => {
   }
 })
 
+watch(statusStore.challengeAccepted, (chall) => {
+  
+})
+
 </script>
 
 <template>
