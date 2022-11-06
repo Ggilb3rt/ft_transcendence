@@ -5,6 +5,8 @@ import { useUserStore } from '../stores/user'
 import Modal from './Modal.vue'
 import IconCommunity from "./icons/IconCommunity.vue";
 import UserLink from "./user/UserLink.vue";
+import CarbonSearch from "@/components/icones-bags/CarbonSearch.vue"
+import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
 
 const props = defineProps({
@@ -48,7 +50,7 @@ watch(showSearchUserModal, (newVal) => {
     <div>
         <button @click="showSearchUserModal = true">
             <i class="icon-search-button">
-                <IconCommunity />
+                <CarbonSearch></CarbonSearch>
             </i>
         </button>
         <Teleport to="body">
@@ -56,7 +58,11 @@ watch(showSearchUserModal, (newVal) => {
                 <div v-if="showSearchUserModal" @keyup.esc="showSearchUserModal = false">
                     <div class="search-mask" @click="showSearchUserModal = false"></div>    
                     <div class="container-search">
-                        <button class="modal-default-button" @click="showSearchUserModal = false">X</button>
+                        <button class="modal-default-button" @click="showSearchUserModal = false">
+                            <i class="icon_btn">
+                                <CarbonClose></CarbonClose>
+                            </i>
+                        </button>
                         <input 
                         type="search"
                         ref="searchInput"

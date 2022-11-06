@@ -29,76 +29,8 @@ const matchsHistory = [
     }
 ]
 
-// avec l'appel api je le ferai dans l'autre sens :
-// recuperer tous les users en IOtherUserRestrict (pour l'affichage des friends, match history, search etc)
-// si je vais sur le dashboard d'un autre user, je fais un autre fetch qui recupere les infos de IOtherUser en fonction de l'id
-
 // dans un soucis d'optimisation on pourrai uniquement remplir UsersList avec les users dont le user principal connait les relations
 // sinon cf virtualList from VueUse
-
-const roger: IOtherUser = {
-    id: 1,
-    first_name: "Roger",
-    last_name: "Rabbit",
-    nickname: "rogerrabbit",
-    avatar_url: "src/assets/avatars/rogerRabbit.png",
-    ranking: 3,
-    wins: 7,
-    loses: 3,
-    friends: [1],
-    match_history: [],
-    match_match_player_left_idTousers: null,
-    match_match_player_right_idTousers: null
-};
-const rogerRestrict: IOtherUserRestrict = {
-    id: roger.id,
-    nickname: roger.nickname,
-    avatar_url: roger.avatar_url
-}
-
-const homer: IOtherUser = {
-    id: 2,
-    first_name: "Homer",
-    last_name: "Simpsons",
-    nickname: "homer",
-    avatar_url: "src/assets/avatars/homer.jpeg",
-    ranking: 1,
-    wins: 1,
-    loses: 3,
-    friends: [0, 1, 2, 3, 4],
-    match_history: matchsHistory,
-    match_match_player_left_idTousers: null,
-    match_match_player_right_idTousers: null
-};
-const homerRestrict: IOtherUserRestrict = {
-    id: homer.id,
-    nickname: homer.nickname,
-    avatar_url: homer.avatar_url
-}
-
-const marc: IOtherUser = {
-    id: 4,
-    first_name: "oh",
-    last_name: "hi",
-    nickname: "Mark",
-    avatar_url: "src/assets/avatars/mark.jpg",
-    ranking: 1,
-    wins: 1,
-    loses: 3,
-    friends: [0, 1, 2, 3, 4],
-    match_history: matchsHistory,
-    match_match_player_left_idTousers: null,
-    match_match_player_right_idTousers: null
-};
-const marcRestrict: IOtherUserRestrict = {
-    id: marc.id,
-    nickname: marc.nickname,
-    avatar_url: marc.avatar_url
-}
-
-
-// fin data qui doit etre fetch
-
 
 export const useUsersStore = defineStore({
     id: "users",
@@ -150,6 +82,13 @@ export const useUsersStore = defineStore({
 
             if (name)
                 return name.nickname
+            return ""
+        },
+        getUserAvatarById(id: number): string {
+            const img = this.userList.find((el) => el.id == id)
+
+            if (img)
+                return img.avatar_url
             return ""
         },
         // getUserStatus(id: number): status {
@@ -217,7 +156,7 @@ export const useUsersStore = defineStore({
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
                           }
-                          throw new Error(response.statusText)
+                          throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
                     })
                     .then((data) => {
                         this.userList = data
@@ -226,8 +165,8 @@ export const useUsersStore = defineStore({
                         })
                         this.error = null
                     })
-            } catch (error) {
-                this.error = "getUsers " + error
+            } catch (error: any) {
+                this.error = error.body
             } finally {
                 this.loading = false
             }
@@ -241,7 +180,7 @@ export const useUsersStore = defineStore({
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
                           }
-                          throw new Error(response.statusText)
+                          throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
                     })
                     .then((data) => {
                         this.user = data
@@ -252,7 +191,7 @@ export const useUsersStore = defineStore({
                         this.error = null
                     })
             } catch (error: any) {
-                this.error = "getOtherUser " + error
+                this.error = error.body
                 return
             } finally {
                 if (this.user) {

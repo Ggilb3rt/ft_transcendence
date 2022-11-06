@@ -9,6 +9,10 @@
 	align-items: center;
 }
 
+.icon_btn {
+  display: inline-flex;
+}
+
 .bold {
   font-weight: bold;
 }

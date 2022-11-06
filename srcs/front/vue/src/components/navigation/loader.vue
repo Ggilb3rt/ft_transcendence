@@ -21,13 +21,15 @@ const usersStore = useUsersStore()
 
 .loader {
 	position: relative;
+	left: calc(50% - 25px);
+	top: 5px;
 	width: 50px;
 	height: 50px;
 	padding: 10px;
 	background: none;
 	/* border: 3px solid #fff; */
 	color: #fff;
-	align-self: flex-end;
+	/* align-self: flex-end; */
 	/* transition: all .2s ease-in-out; */
 	align-self: flex-start;
 }

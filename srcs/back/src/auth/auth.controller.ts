@@ -52,7 +52,7 @@ export class AuthController {
     })
     if (two_factor_auth == false) {
       
-      return res.redirect(process.env.URL_LOGIN_SUCCESS)
+      return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
     }
     else
       return res.redirect(process.env.URL_LOGIN_2FA)

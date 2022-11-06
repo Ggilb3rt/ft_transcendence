@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUnmount, onUnmounted, ref } from 'vue'
 import { RouterLink, RouterView } from "vue-router";
+import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
 
 let winWidth = ref(window.innerWidth)
@@ -49,7 +50,9 @@ onBeforeUnmount(() => {
 			class="btn_side"
 			@click="props.model.isOpen = !props.model.isOpen"
 		>
-			X
+			<i class="icon_btn">
+				<CarbonClose></CarbonClose>
+			</i>
 			<!-- {{ props.model.name }} -->
 		</button>
 		<li v-for="el, index in model.items" :key="el">
@@ -88,6 +91,11 @@ onBeforeUnmount(() => {
 	right: 0;
 	z-index: 10;
 	padding: 20px;
+}
+
+.btn_side {
+	font-size: 1.5rem;
+	display: inline-flex;
 }
 
 .side_left.open {

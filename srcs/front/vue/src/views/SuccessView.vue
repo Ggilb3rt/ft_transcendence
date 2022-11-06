@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { useUserStore } from "@/stores/user"
-import { useUsersStore } from "@/stores/users"
 import { onBeforeMount, onBeforeUnmount, onMounted } from "@vue/runtime-core";
 import Loader from '../components/navigation/Loader.vue';
 import router from "../router";
+import { setStatus, useUserStore } from "@/stores/user"
+import { useUsersStore } from "@/stores/users"
 import { useStatusStore } from "../stores/status";
 
+
+//! provoque redirection infini, plus utiliser, on pourra le retirer
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -21,7 +23,12 @@ onMounted(async () => {
 	try {
     await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
     .then((response) => {
-      if (response.status >= 200 && response.status < 300) {
+      if (response.status == 412) {
+        userStore.changeStatus(setStatus.need2fa)
+        router.push('/2fa')
+      }
+    else if (response.status >= 200 && response.status < 300) {
+        userStore.changeStatus(setStatus.connected)
         return response.json()
       }
       throw new Error(response.statusText)
@@ -36,15 +43,16 @@ onMounted(async () => {
         router.push('/')
     })
   } catch (error: any) {
-    userStore.error = error
-    router.push("/login")
+    userStore.error = error.body
+    // router.push("/login")
   }
 	// redirect to "/"
 	// router.push('/')
 })
 
 onBeforeUnmount(() => {
-	userStore.loading = false
+	// setTimeout(() => { userStore.loading = false }, 10000)
+  userStore.loading = false
 })
 
 </script>

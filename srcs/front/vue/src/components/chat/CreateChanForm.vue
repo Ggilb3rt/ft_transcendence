@@ -3,6 +3,8 @@ import { ref, watch } from 'vue'
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
+import CarbonArrowLeft from "@/components/icones-bags/CarbonArrowLeft.vue"
+import CarbonArrowRight from "@/components/icones-bags/CarbonArrowRight.vue"
 
 
 const usersStore = useUsersStore()
@@ -91,8 +93,8 @@ async function sendCreateChan() {
 				<p v-if="newChannel">{{ newChannel }}</p>
 			</div>
 		<hr>
-		<h1>&lt-- Join one</h1>
-		<h1>Or send direct message --&gt</h1>
+		<h3><CarbonArrowLeft></CarbonArrowLeft>Join one</h3>
+		<h3>Or send direct message <CarbonArrowRight></CarbonArrowRight></h3>
 	</div>
 </template>
 
@@ -101,7 +103,19 @@ async function sendCreateChan() {
 .create_chan_form {
 	display: flex;
 	flex-flow: column;
-	align-self: flex-start;
+	align-self: center;
 	gap: 5px;
 }
+
+h3 {
+	display: inline-flex;
+	align-items: center;
+}
+
+@media screen and (min-width: 768px) {
+  .create_chan_form {
+	align-self: flex-start;
+  }
+}
+
 </style>

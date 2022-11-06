@@ -129,14 +129,23 @@ const router = createRouter({
 
 
 //! need to add a canAccess global guad naviguation with token
-router.beforeEach((to, from) => {
+router.beforeEach(async (to, from) => {
   const userStore = useUserStore()
   console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
-  if (localStorage.getItem('last_page') != undefined) {
-    const temp = localStorage.getItem('last_page')?.toString()
-    setTimeout(() => {return {name : temp}} , 1000);
+  if (to.name == 'success')
+    console.log("le success est apparu")
+  else if (localStorage.getItem('last_page') != undefined) {
+    console.log("localStorage found on router", localStorage.getItem('last_page'), "\nneed to go to ", to.name, "\ncome from ", from.name)
+    const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
+    if (response.status == 401) {
+      return { name: 'login' }
+    }
+    // else {
+    //   const temp = localStorage.getItem('last_page')?.toString()
+    //   setTimeout(() => {return {name : temp}} , 1000);
+    // }
   }
   else if (userStore.conStatus == setStatus.needLogin && to.name != 'login' && to.name != "2fa") {
     console.log('userStore.conStatus === ', userStore.conStatus)

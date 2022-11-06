@@ -12,40 +12,31 @@ import { useStatusStore } from './stores/status'
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
+import Loader from "@/components/navigation/loader.vue"
 
 
-
+//! Deux problèmes :
+  // problème important : il est necessaire de cliquer deux fois sur connection pour se connecter
+  // la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
 
 const route = useRoute()
 const userStore = useUserStore()
-const users = useUsersStore()
+const usersStore = useUsersStore()
 const statusStore = useStatusStore()
 
 window.addEventListener('beforeunload', () => {
   if (userStore.conStatus == setStatus.connected) {
-    localStorage.setItem('last_page', route.name.toString());
+    if (route.name)
+      localStorage.setItem('last_page', route.name.toString());
   }
 })
 
 async function testConnection() {
   try {
     console.log("Test Connection premiere ligne")
-    const response = await fetch(`http://localhost:3000/auth/verify`, {
-      method: "GET",
-      // mode: "cors",
-      credentials: "include",
-      headers: {
-        // Accept: 'application/json',
-        // credentials: "include",
-        // Authorization: "Bearer " + lecookie,
-        // AccessControlAllowOrigin: "http://localhost"
-
-        // Cookie: document.cookie
-        //! au final les autres requettes integrent le cookie...
-      }
-    })
+    userStore.loading = true
+    const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
     localStorage.clear();
-    document.cookie
     var data;
     if (response.status == 412) {
         userStore.changeStatus(setStatus.need2fa)
@@ -56,35 +47,33 @@ async function testConnection() {
         data = await response.json()
     }
     else {
-      throw new Error(response.statusText)
+      throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
     }
     if (data) {
         userStore.user = data
         userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
         userStore.error = null
         userStore.connected = true
-        users.getUsers()
+        usersStore.getUsers()
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
       }
   } catch (error: any) {
-    userStore.error = error.body
+    // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
+    const tempErr = JSON.parse(error.message)
+    userStore.error = tempErr.body
+  } finally {
+    userStore.loading = false
   }
 }
 
-// if (userStore.connected)
-  testConnection()
+testConnection()
 
 
 // Socket Status
-
-// ici j'utilise une var en double que je watch ici pour update une copie dans le store. Je devrai le faire direct dans le store
-//!!!!!!!!!!!! factoriser dès que ca marche avec "inGame"
-// je vais aussi devoir trouver un moyen pour se connecter au socket directement (sans etre obliger de trigger onBeforeUpdate une fois)
-
 watch(route, (newRoute) => {
   console.log(route.matched)
-  if (users.socketStatus) {
+  if (usersStore.socketStatus) {
     if (newRoute.name == "game") {
       console.log(newRoute.name)
       // change my status by 'inGame' and emit it
@@ -110,7 +99,10 @@ watch(route, (newRoute) => {
       <PrimaryNav></PrimaryNav>
     </header>
 
-    <RouterView />
+    <div v-if="userStore.loading">
+      <Loader></Loader>
+    </div>
+    <RouterView v-else/>
 
     <!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
   </main>

@@ -13,8 +13,7 @@ export type TChannelUser = {
 
 export interface IChannel {
 	id: number;
-	// href: string; // equivalent of id ??
-	name: string;
+	ChanName: string;
 	type: TChannelType;
 	pass?: string;
 	owner: number | null;

@@ -99,7 +99,7 @@ export const useUserStore = defineStore({
                         if (response.status >= 200 && response.status < 300) {
                             return response.json()
                           }
-                          throw new Error(response.statusText)
+                          throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
                     })
                     .then((data) => {
                         if (data) {
