@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import type { Challenge, ISocketStatus, TStatus } from '../../types'
 import { io } from "socket.io-client"
 import { useUsersStore } from "./users";
+import router from "@/router";
 
 interface IUserStatusStore {
     status: TStatus,
@@ -113,8 +114,9 @@ export const useStatusStore = defineStore({
                         this.changeCurrentUserStatus('challenged', challenge.challenged)
                     }
                 })
-                this.socket.on("challengeAccepted", (challenge: Challenge) => {
+                this.socket.on("challengeAccepted", (challenge: any) => {
                     // redirige vers gameView(props: challenge)
+                    router.push({path: "/game", query: {challenge: challenge}})
                 })
                 this.socket.on("refuseChallenge", () => {
                     this.challenge = null
@@ -123,10 +125,11 @@ export const useStatusStore = defineStore({
             }
         },
 
-        refuseChallenge() {
+        refuseChallenge(id: number) {
             if (this.challenge) {
                 this.socket.emit('refuseChallenge', this.challenge)
-                this.challenge = null
+                this.challenge = null;
+                this.changeCurrentUserStatus('available', id)
             }
         },
 
@@ -152,6 +155,12 @@ export const useStatusStore = defineStore({
             }
         },
 
+        acceptChallenge() {
+            this.socket.emit('challengeAccepted', this.challenge)
+            let challenge: any = this.challenge
+            router.push({path: "/game", query: {challenge}})
+        },
+
         changeCurrentUserStatus(newStatus: TStatus, id: Number) {
             const el = this.findSocket(id)
             
@@ -161,6 +170,11 @@ export const useStatusStore = defineStore({
                 this.status = newStatus;
                 this.socket.emit("changeStatus", el)
             }
+        },
+
+        finishChallenge() {
+            this.challenge = null,
+            this.challengeAccepted = false
         }
     } ,
 })

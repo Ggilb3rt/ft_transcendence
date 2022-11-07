@@ -16,6 +16,8 @@ interface IStatus {
     userStatus: TStatus;
 }
 
+type TChallenge = {challenger: Number, level: Number, challenged: Number}
+
 @WebSocketGateway({
 	cors: {
 		origin: '*'
@@ -88,12 +90,21 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     @SubscribeMessage('newChallenge')
-    newChallenge(client: Socket, challenge: {challenger: Number, level: Number, challenged: Number}) {
+    newChallenge(client: Socket, challenge: TChallenge) {
         const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenged})
         console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
             console.log("i challenge => ", receiver)
             this.server.to(receiver.socketId).emit('newChallenge', challenge)
+        }
+    }
+
+    @SubscribeMessage('challengeAccepted')
+    acceptChallenge(client: Socket, challenge: TChallenge) {
+        const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
+        if (receiver) {
+            console.log("i accept challenge from => ", receiver)
+            this.server.to(receiver.socketId).emit('challengeAccepted', challenge)
         }
     }
 //

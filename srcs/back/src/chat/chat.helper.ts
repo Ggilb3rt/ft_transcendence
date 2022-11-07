@@ -1,278 +1,405 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
+import { identity } from "rxjs";
 import { TChannel, TChannelType, TMessage } from "src/users/types";
 
 const prisma = new PrismaClient()
 
 @Injectable()
 export class ChatHelper {
+    // TODO: hash all passwords
 
     formatRestrictTime(ban) {
         
     }
 
-    formatChannels(channel: TChannel) {
-        
+    formatChannels(channel) {
+        const { id, name, type, owner } = channel
+        // format relations to array
+        // return
+        // const ret: TChannel = {
+
+        // }
     }
 
     async createChannel(chan: TChannel) {
-        const channel = await prisma.channels.create({
-            data:{
-                name: chan.name,
-                type: chan.type,
-                pass: chan.pass,
-                owner: chan.owner,
-            }
-        })
-        return channel;
+        try {
+            const channel = await prisma.channels.create({
+                data:{
+                    name: chan.name,
+                    type: chan.type,
+                    pass: chan.pass,
+                    owner: chan.owner,
+                }
+            })
+            return channel;
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async addAdmin(admin_id: number, channel_id: number) {
-        const admin = await prisma.admins.create({
-            data: {
-                admin_id,
-                channel_id
-            }
-        })
+        try {
+            const admin = await prisma.admins.create({
+                data: {
+                    admin_id,
+                    channel_id
+                }
+            }) 
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async muteOne(muted_id: number, channel_id: number) {
-        const mute_date = new Date()
-        const muted = await prisma.muted.create({
-            data: {
-                muted_id,
-                channel_id,
-                mute_date
-            }
-        })
-        return muted
+        try {
+            const mute_date = new Date()
+            const muted = await prisma.muted.create({
+                data: {
+                    muted_id,
+                    channel_id,
+                    mute_date
+                }
+            })
+            return muted
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async banOne(user_id: number, channel_id: number, expires) {
-        const ban = await prisma.ban_channels.create({
-            data: {
-                user_id,
-                channel_id,
-                expires,
-            }
-        })
-        return ban
+        try {
+            const ban = await prisma.ban_channels.create({
+                data: {
+                    user_id,
+                    channel_id,
+                    expires,
+                }
+            })
+            return ban
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async deleteChannel(chan: TChannel) {
-        await prisma.channels.delete({
-            where: {
-                id: chan.id
-            }
-        })
+        try {
+            await prisma.channels.delete({
+                where: {
+                    id: chan.id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getBan(user_id: number, channel_id: number) {
-        const ban = await prisma.ban_channels.findFirst({where: {
-            user_id,
-            channel_id
-        }})
-        return (ban)
+        try {
+            const ban = await prisma.ban_channels.findFirst({where: {
+                user_id,
+                channel_id
+            }})
+            return (ban)
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async unBan(user_id: number, channel_id: number) {
-        const ban = await this.getBan(user_id, channel_id)
-        await prisma.ban_channels.delete({
-            where: {
-                id: ban.id
-            }
-        })
+        try {
+            const ban = await this.getBan(user_id, channel_id)
+            await prisma.ban_channels.delete({
+                where: {
+                    id: ban.id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
     
     async postMessage(message: TMessage) {
-        if (message.isDirect) {
-            await prisma.messages.create({data: {
-                content: message.msg,
-                relation: message.receiver,
-                sender_id: message.sender,
-                message_date: message.date
-            }})
-        }
-        else {
-            await prisma.messages.create({data: {
-                content: message.msg,
-                relation: message.receiver,
-                channel_id: message.sender,
-                message_date: message.date
-            }})
+        try {
+            if (message.isDirect) {
+                await prisma.messages.create({data: {
+                    content: message.msg,
+                    relation: message.receiver,
+                    sender_id: message.sender,
+                    message_date: message.date
+                }})
+            }
+            else {
+                await prisma.messages.create({data: {
+                    content: message.msg,
+                    relation: message.receiver,
+                    channel_id: message.sender,
+                    message_date: message.date
+                }})
+            }
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
         }
     }
 
     async getMyChannels(id: number) {
-        const myChannels = await prisma.users.findUnique({
-            where: {
-                id
-            },
-            select: {
-                channels: {
-                    select: {
-                        name: true,
-                        id: true
+        try {
+            const myChannels = await prisma.users.findUnique({
+                where: {
+                    id
+                },
+                select: {
+                    channels: {
+                        select: {
+                            name: true,
+                            id: true
+                        }
                     }
                 }
-            }
-        })
-        return myChannels
+            })
+            return myChannels
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getAvailableChannels(id: number) {
-        const availableChannels = await prisma.channels.findMany({
-            where: {
-                OR: [
-                    {
-                        type: 'public'
-                    },
-                    {
-                        type: 'pass'
-                    }
-                ]
-            }
-        })
-        return availableChannels
+        try {
+            const availableChannels = await prisma.channels.findMany({
+                where: {
+                    OR: [
+                        {
+                            type: 'public'
+                        },
+                        {
+                            type: 'pass'
+                        }
+                    ]
+                }
+            })
+            return availableChannels
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getMutes(channel_id: number) {
-        const muted = await prisma.muted.findMany({
-            where: {
-                channel_id
-            }
-        })
+        try {
+            const muted = await prisma.muted.findMany({
+                where: {
+                    channel_id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getAdmins(channel_id: number) {
-        const admins = await prisma.admins.findMany({
-            where: {
-                channel_id
-            }
-        })
+        try {
+            const admins = await prisma.admins.findMany({
+                where: {
+                    channel_id
+                }
+            })  
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getAdmin(channel_id: number, user_id: number) {
-        return await prisma.admins.findFirst({
-            where: {
-                channel_id,
-                admin_id: user_id
-            }
-        })
+        try {
+            return await prisma.admins.findFirst({
+                where: {
+                    channel_id,
+                    admin_id: user_id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getMute(channel_id: number, muted_id: number) {
-        return await prisma.muted.findFirst({
-            where: {
-                channel_id,
-                muted_id
-            }
-        })
+        try {
+            return await prisma.muted.findFirst({
+                where: {
+                    channel_id,
+                    muted_id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async getMessages(channel_id: number, isDirect: boolean) {
-        if (isDirect) {
-            return await prisma.messages.findMany({where: {
-                relation: channel_id
-            }})
-        }
-        else {
-            return await prisma.messages.findMany({where: {
-                channel_id
-            }})
+        try {
+            if (isDirect) {
+                return await prisma.messages.findMany({where: {
+                    relation: channel_id
+                }})
+            }
+            else {
+                return await prisma.messages.findMany({where: {
+                    channel_id
+                }})
+            }
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
         }
     }
 
     async unMute(channel_id: number, muted, number) {
-        const mute = await this.getMute(channel_id, muted)
-        await prisma.muted.delete({
-            where: {
-                id: mute.id
-            }
-        })
+        try {
+            const mute = await this.getMute(channel_id, muted)
+            await prisma.muted.delete({
+                where: {
+                    id: mute.id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async unAdmin(channel_id: number, admin_id: number) {
-        const admin = await this.getAdmin(channel_id, admin_id)
-        return await prisma.admins.delete({
-            where: {
-                id: admin.id
-            }
-        })
+        try {
+            const admin = await this.getAdmin(channel_id, admin_id)
+            return await prisma.admins.delete({
+                where: {
+                    id: admin.id
+                }
+            })  
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async joinChannel(channel_id: number, user_id: number) {
-        return await prisma.users_list.create({
-            data: {
-                channel_id,
-                user_id
-            }
-        })
+        try {
+            return await prisma.users_list.create({
+                data: {
+                    channel_id,
+                    user_id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async isInChannel(channel_id, user_id) {
-        return ((await prisma.users_list.findFirst({
-            where: {
-                channel_id,
-                user_id
-            }
-        })) ? true : false)
+        try {
+            return ((await prisma.users_list.findFirst({
+                where: {
+                    channel_id,
+                    user_id
+                }
+            })) ? true : false)
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async isOwner(channel_id: number, user_id: number) {
-        return (await prisma.channels.findFirst({
-            where: {
-                id: channel_id,
-                owner: user_id
-            }
-        }) ? true : false)
+        try {
+            return (await prisma.channels.findFirst({
+                where: {
+                    id: channel_id,
+                    owner: user_id
+                }
+            }) ? true : false)
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async leaveChannel(channel_id: number, user_id: number) {
-        const user = await prisma.users_list.findFirst({
-            where: {
-                channel_id,
-                user_id
-            }
-        })
-        return await prisma.users_list.delete({
-            where: {
-                id: user.id
-            }
-        })
+        try {
+            const user = await prisma.users_list.findFirst({
+                where: {
+                    channel_id,
+                    user_id
+                }
+            })
+            return await prisma.users_list.delete({
+                where: {
+                    id: user.id
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async renameChannel(channel_id: number, name: string) {
-        return await prisma.channels.update({
-            where: {
-                id: channel_id
-            }, 
-            data: {
-                name
-            }
-        })
+        try {
+            return await prisma.channels.update({
+                where: {
+                    id: channel_id
+                }, 
+                data: {
+                    name
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async changeChannelType(channel_id: number, type: TChannelType) {
-        return await prisma.channels.update({
-            where: {
-                id: channel_id
-            },
-            data: {
-                type
-            }
-        })
+        try {
+            return await prisma.channels.update({
+                where: {
+                    id: channel_id
+                },
+                data: {
+                    type
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     async changePass(channel_id: number, pass: string) {
-        return await prisma.channels.update({
-            where: {
-                id: channel_id
-            },
-            data: {
-                pass
-            }
-        })
+        try {
+            return await prisma.channels.update({
+                where: {
+                    id: channel_id
+                },
+                data: {
+                    pass
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
     }
 
     // isInChannel(userId:number): boolean { this.userList.find(el => el == userId) ? true : false }

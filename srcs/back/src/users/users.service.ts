@@ -21,6 +21,7 @@ export class UsersService {
 
   // ban user
   async banUser(id:number, banned:number) {
+
     this.usersHelper.checkSame(id, banned);
     await this.usersHelper.getUser(id);
     await this.usersHelper.getUser(banned);
@@ -39,7 +40,7 @@ export class UsersService {
       data:{
         user_id:id,
         banned_id:banned,
-        ban_begin
+        expires: ban_begin
       }
     })
   }
@@ -61,22 +62,22 @@ export class UsersService {
   }
 
   //deprecated, get userbynick
-  async getUserByNick(nick: string): Promise<userRestrict> {
-    const res = await prisma.users.findUnique({
-      where:{
-        nickname: nick
-      },
-      select:{
-        id: true,
-        avatar_url: true,
-        nickname: true
-      }
-    })
-    if (!res) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-    return (res);
-  }
+  // async getUserByNick(nick: string): Promise<userRestrict> {
+  //   const res = await prisma.users.findUnique({
+  //     where:{
+  //       nickname: nick
+  //     },
+  //     select:{
+  //       id: true,
+  //       avatar_url: true,
+  //       nickname: true
+  //     }
+  //   })
+  //   if (!res) {
+  //     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+  //   }
+  //   return (res);
+  // }
   
 
   //get resolved friendships: both agreed
@@ -218,69 +219,68 @@ export class UsersService {
 
   //get everything xcept relations
   async getAllUsers(): Promise<users[]> {
+    try {
       const users = await prisma.users.findMany();
       return (users);
+    } catch (e) {
+      throw new Error(e)
+    }
   }
   
   //do i need to explain?
   async changeNickname(id: number, nickname: string): Promise<users> {
-
-    await this.usersHelper.testNickname(nickname);
-    await this.usersHelper.getUser(id);
-
-    return await prisma.users.update({
-      where:{id},
-      data:{
-        nickname
-      }
-    })
-
+    try {
+      await this.usersHelper.testNickname(nickname);
+      await this.usersHelper.getUser(id);
+  
+      return await prisma.users.update({
+        where:{id},
+        data:{
+          nickname
+        }
+      })
+    } catch (e) {
+      throw new Error(e)
+    }
   }
 
   //another way to request partial user
   async getOtherUser(id: number): Promise<otherFormat> {
 
-    const user = await prisma.users.findFirst({where:{id}})
+    try {
+      const user = await prisma.users.findFirst({where:{id}})
 
-    const {nickname, first_name, last_name, avatar_url, ranking, wins, loses} = user
-    const matches = await this.getMatches(id);
-    const friends = await this.getFriends(id);
-
-    const otherFormat: otherFormat = {
-      id,
-      nickname,
-      first_name,
-      last_name,
-      avatar_url,
-      ranking,
-      wins,
-      loses,
-      friends,
-      matches
+      const {nickname, first_name, last_name, avatar_url, ranking, wins, loses} = user
+      const matches = await this.getMatches(id);
+      const friends = await this.getFriends(id);
+  
+      const otherFormat: otherFormat = {
+        id,
+        nickname,
+        first_name,
+        last_name,
+        avatar_url,
+        ranking,
+        wins,
+        loses,
+        friends,
+        matches
+      }
+  
+       return (otherFormat)
+    } catch (e) {
+      throw new Error(e)
     }
-
-     return (otherFormat)
   }
 
   //and another other way
   async getUsersRestrict(): Promise<userRestrict[]> {
-      const users = await prisma.users.findMany({select:{
-        id:true,
-        nickname:true,
-        avatar_url:true
-      }})
-      return (users);
+      return this.usersHelper.getUsersRestrict()
   }
 
   //add a user in DB
   async postOneUser(user: CreateUserDto): Promise<users> {
-    await this.usersHelper.testNickname(user.nickname);
-    const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
-    if (existsAlready) {
-      throw new HttpException("42 account already binded to a user", HttpStatus.CONFLICT)
-    }
-    const ret = await prisma.users.create( {data: user })
-    return ret;
+    return await this.usersHelper.postOneUser(user)
   }
 
   //Get match history for user
@@ -303,7 +303,11 @@ export class UsersService {
     const dest: string = path.join('/app/resources/', (user.id.toString() + '_id.jpeg'))
 
     console.log("new dest ", dest)
-    await myWriteFile(dest, file.buffer, 'ascii')
+    try {
+      await myWriteFile(dest, file.buffer, 'ascii')
+    } catch (e) {
+      throw new Error('writing file to fs failed')
+    }
     const ret = await this.usersHelper.changeAvatarUrl(id, dest);
     console.log(ret)
     return (dest);
@@ -311,13 +315,16 @@ export class UsersService {
 
 
   async isCodeValid(code: string, id: number) {
-
     const {two_factor_secret} = await this.getUserById(id)
-    const verify = await authenticator.verify({
-      token: code,
-      secret: two_factor_secret
-    })
-    return verify
+    try {
+      const verify = await authenticator.verify({
+        token: code,
+        secret: two_factor_secret
+      })
+      return verify
+    } catch (e) {
+      throw new Error(e)
+    }
   }
 
   async pipeQrCodeStream (stream: Response, otpauthUrl: string) {
@@ -335,29 +342,33 @@ export class UsersService {
         secret,
         otpauthUrl
     }
-}
+  }
+
+  async hashPassowrd() {
+    
+  }
 
   async switch2fa(id: number, status: boolean, response) {
-    await this.usersHelper.getUser(id);
+    try {
+      await this.usersHelper.getUser(id);
 
-    const ret = await prisma.users.update({
-      where:{id},
-      data:{
-        two_factor_auth: status
+      const ret = await prisma.users.update({
+        where:{id},
+        data:{
+          two_factor_auth: status
+        }
+      })
+      if (ret.two_factor_auth == true) {
+        const { otpauthUrl } = await this.generate2faSecret(id);
+        return this.pipeQrCodeStream(response, otpauthUrl);
       }
-    })
-    if (ret.two_factor_auth == true) {
-      const { otpauthUrl } = await this.generate2faSecret(id);
-      return this.pipeQrCodeStream(response, otpauthUrl);
+      return { status: 200, message: ret}
+    } catch (e) {
+      throw new Error(e)
     }
-    return { status: 200, message: ret}
   }
 
   async setSecret(id: number, secret: string) {
-    const user = await this.usersHelper.getUser(id);
-
-    await prisma.users.update({where:{id}, data:{
-      two_factor_secret: secret
-    }})
+    this.usersHelper.setSecret(id, secret)
   }
 }
