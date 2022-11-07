@@ -1,18 +1,112 @@
-import { Injectable, Global } from '@nestjs/common';
-import { Game } from './classes/game.class';
+import { Injectable } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { FRAME_RATE, INITIAL_VELOCITY, CANVAS_WIDTH, DEFAULT_PADDLE_W, CANVAS_HEIGHT, DEFAULT_PADDLE_H } from './constants';
-import { Ball, Player } from "./classes";
-
-
-
+import { Ball, Player, WR1, WR2, WR3 } from './classes';
 
 @Injectable()
 export class GameService {
-    private clientRooms = {};
-    private state = {};
-    private intervalId;
+	private waitingRooms = {};
+    private activeGames = {
+		"abcdef": 0,
+	};
+    private players = {};
+
+	constructor() {
+		this.waitingRooms[1] = WR1;
+		this.waitingRooms[2] = WR2;
+		this.waitingRooms[3] = WR3;
+
+        console.log(this.waitingRooms);
+	}
+
+    handleConnection(client: Socket, server: Server) {
+        this.players[client.id] = {
+            id: client.id,
+            socket: client,
+            roomId: "",
+            level: 0,
+            spectator: false,
+        }
+        //console.log("PLAYERS")
+        //console.log(this.players);
+    }
+
+    handleJoinQueue(client: Socket, data: any, server: Server) {
+        const level = data.level;
+        //console.log(level);
+        const player = this.players[client.id];
+        let wr = this.waitingRooms[level];
+
+        this.players[client.id].level = level;
+
+
+        // Waiting room is empty
+        if (wr.playerOne.id === "" && wr.playerTwo.id === "") {
+            console.log("room empty");
+            const roomId = this.codeGenerator(5);
+            //const roomId = "abcdef";
+            wr.roomId = roomId;
+            wr.playerOne.id = player.id;
+            wr.playerOne.socket = player.socket;
+            wr.playerOne.roomId = roomId;
+			wr.playerOne.level = level;
+            wr.level = level;
+            this.players[player.id].roomId = wr.roomId;
+            //console.log(wr);
+        }
+        // Waiting room has 1 player
+        else if (wr.playerOne.id !== "" && wr.playerTwo.id === "") {
+            console.log("room waiting");
+            wr.playerTwo.id = player.id;
+            wr.playerTwo.socket = player.socket;
+            wr.playerTwo.roomId = wr.roomId;
+			wr.playerTwo.level = level;
+            this.players[player.id].roomId = wr.roomId;
+            // Waiting room has 2 players
+            if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
+                 console.log("room complete");
+                const p1 = wr.playerOne;
+                const p2 = wr.playerTwo;
+                this.activeGames[wr.roomId] = {
+                    playerOne: p1,
+                    playerTwo: p2,
+                    level: level,
+                }
+
+                this.initGame(wr.roomId, server);
+
+                // Reset waiting Rooms
+				wr.roomId = "";
+                wr.playerOne.id = "";
+                wr.playerOne.socket = "";
+                wr.playerOne.roomId = "";
+				wr.playerOne.level = 0;
+                wr.playerTwo.id = "";
+                wr.playerTwo.socket = "";
+                wr.playerTwo.roomId = "";
+				wr.playerTwo.level = 0;
+				wr.level = 0;
+            }
+        }
+    }
+
+    initGame(roomId: any, server: Server) {
+        const gameRoom = this.activeGames[roomId];
+		const level = gameRoom.level;
+        const playerOne = gameRoom.playerOne.socket;
+        const playerTwo = gameRoom.playerTwo.socket;
+       
+        playerOne.join(roomId);
+        playerOne.emit("init", { playerNumber: 1, gameCode: roomId, level: gameRoom.level });
+        playerTwo.join(roomId);
+        playerTwo.emit("init", { playerNumber: 2, gameCode: roomId, level: gameRoom.level });
+
+        const state = this.createGameState();
+        state.players[0].id = gameRoom.playerOne.id;
+        state.players[1].id = gameRoom.playerTwo.id;
+        state.roomName = roomId;
+        gameRoom.state = state;
+        server.to(roomId).emit("roomComplete", state);
+	}
 
     createGameState() {
         return {
@@ -21,348 +115,11 @@ export class GameService {
                 new Player,
                 new Player,
             ],
-            roomName: String,
+            roomName: String
         }
     }
 
-    initGame() {
-        const state = this.createGameState();
-        this.setPlayerPos(state.players);
-        this.randomDir(state.ball);
-        console.log("deb pos x: " + state.ball.posx);
-        console.log("deb pos y: " + state.ball.posy);
-        console.log("deb dir x: " + state.ball.dirx);
-        console.log("deb dir x: " + state.ball.dirx);
-        return state;
-    }
-
-    reInitGameState(state) {
-
-        let newPlayer = new Player;
-        let newBall = new Ball;
-
-        state.ball.posx = newBall.posx;
-        state.ball.posy = newBall.posy;
-        state.ball.dirx = newBall.dirx;
-        state.ball.diry = newBall.diry;
-        state.ball.rad = newBall.rad;
-        state.ball.speed = newBall.speed;
-        state.ball.vel = newBall.vel;
-        this.randomDir(state.ball);
-
-        state.players[0].posx = newPlayer.posx;
-        state.players[0].posy = newPlayer.posy;
-        state.players[0].width = newPlayer.width;
-        state.players[0].height = newPlayer.height;
-        state.players[0].speed = newPlayer.speed;
-        state.players[0].vel = newPlayer.vel;
-
-
-        state.players[1].posx = newPlayer.posx;
-        state.players[1].posy = newPlayer.posy;
-        state.players[1].width = newPlayer.width;
-        state.players[1].height = newPlayer.height;
-        state.players[1].speed = newPlayer.speed;
-        state.players[1].vel = newPlayer.vel;
-        this.setPlayerPos(state.players);
-    }
-
-    setPlayerPos(players) {
-        let playerOne = players[0];
-        playerOne.posx = 0;
-
-        let playerTwo = players[1];
-        playerTwo.posx = CANVAS_WIDTH - playerTwo.width;
-    }
-
-    startGameInterval(roomName: string, server: Server) {
-        this.intervalId = setInterval(() => {
-            const winner = this.gameLoop(this.state[roomName]);
-
-            if (!winner) {
-                this.emitGameState(roomName, this.state[roomName], server);
-
-            } else {
-                this.emitGameOver(roomName, winner, server)
-                clearInterval(this.intervalId);
-            }
-
-        }, 1000 / FRAME_RATE);
-       
-    }
-
-    emitGameState(roomName: string, state: any, server: Server) {
-        server.sockets.in(roomName)
-            .emit('gameState', JSON.stringify(state));
-    }
-
-    emitGameOver(roomName: string, winner, server: Server) {
-        server.sockets.in(roomName)
-            .emit('gameOver', JSON.stringify({ winner }));
-    }
-
-    gameLoop(state) {
-        if (!state) {
-            return;
-        }
-
-        let ball = state.ball;
-        this.ballMovement(ball);
-        this.wallCollision(ball);
-
-        let players = state.players;
-        this.paddleMovement(players)
-        this.paddleCollision(ball, players);
-
-        if ((ball.posx + (ball.rad * 2)) <= 0) {
-            ++state.players[0].score;
-            if (state.players[0].score === 11) {
-                return (2); // Player 1 wins
-            }
-            this.reInitGameState(state);
-
-        } else if ((ball.posx - (ball.rad * 2)) >= CANVAS_WIDTH) {
-            ++state.players[1].score;
-            if (state.players[0].score === 11) {
-                return (1); // Player 2 wins
-            }
-            this.reInitGameState(state);
-        }
-
-        return (0); // no winner
-    }
-
-    ballMovement(ball) {
-        ball.posx += ball.dirx * ball.speed;
-        ball.posy += ball.diry * ball.speed;
-    }
-
-    lerp(a, b, t) {
-        return a + (b - a) * t;
-    }
-
-    wallCollision(ball) {
-        if (ball.posy >= CANVAS_HEIGHT) {
-            console.log('hehe');
-            ball.diry = -Math.abs(ball.diry);
-        }
-
-        if (ball.posy <= 0) {
-            ball.diry = Math.abs(ball.diry);
-            console.log('hoho');
-        }
-    }
-
-    paddleCollision(ball, players) {
-
-        // https://stackoverflow.com/questions/17768301/top-of-paddle-collision-detection-pong
-        var rad = ball.rad / 2;
-        var padding = 3;
-        var x, y, px, py;
-
-        let p1 = players[0];
-
-        if (p1.posy >= CANVAS_HEIGHT) {
-            p1.posy = CANVAS_HEIGHT;
-        } else if (p1.posy <= 0) {
-            p1.posy = 0;
-        }
-
-        if (ball.posx <= p1.posx + p1.width) {
-
-            if (ball.posx + padding >= p1.posx + p1.width
-                //&& ball.posy >= p1.posy
-                //&& ball.posy - rad <= p1.posy + p1.height) {
-                && ball.posy - rad >= p1.posy
-                && ball.posy + rad <= p1.posy + p1.height) {
-                ball.dirx = -ball.dirx;
-
-            } else if (ball.posy - CANVAS_HEIGHT >= p1.posy
-                && ball.posy <= p1.posy
-                && ball.posx - rad >= p1.posx) {
-
-                x = ball.posx + rad;
-                y = ball.posy + rad;
-
-                px = p1.posx + p1.width;
-                py = p1.posy;
-
-                if (ball.posy + CANVAS_HEIGHT > p1.posy) {
-                    py += p1.height;
-                }
-
-                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
-
-                if (dist <= rad && dist >= rad - padding) {
-                    var angle = Math.asin(x - px / y - py);
-                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
-                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
-                }
-            }
-        }
-
-        let p2 = players[1];
-
-        if (p2.posy >= CANVAS_HEIGHT) {
-            p2.posy = CANVAS_HEIGHT;
-        } else if (p2.posy <= 0) {
-            p2.posy = 0;
-        }
-
-        if (ball.posx + rad == p1.posx) {
-            ball.dirx *= -1;
-        }
-        
-        if (ball.posx >= p2.posx) {
-            if (ball.posx - padding <= p2.posx
-                //&& ball.posy >= p2.posy
-                //&& ball.posy - rad <= p2.posy + p2.height) {
-                && ball.posy - rad >= p2.posy
-                && ball.posy + rad <= p2.posy + p2.height) {
-                ball.dirx = -ball.dirx;
-                
-            } else if (ball.posy - CANVAS_HEIGHT >= p2.posy
-                && ball.posy <= p2.posy
-                && ball.posx - rad <= p2.posx + p2.width) {
-
-                x = ball.posx + rad;
-                y = ball.posy + rad;
-
-                px = p2.posx;
-                py = p2.posy;
-                if (ball.posy + CANVAS_HEIGHT > p2.posy) {
-                    py += p2.height;
-                }
-
-                var dist = Math.pow(Math.pow(x - px, 2) + Math.pow(y - py, 2), 0.5);
-
-                if (dist <= rad && dist >= rad - padding) {
-                    var angle = Math.asin(x - px / y - py);
-                    ball.diry = (-ball.diry * Math.cos(angle)) + (-ball.dirx * Math.sin(angle));
-                    ball.dirx = (-ball.dirx * Math.cos(angle)) + (-ball.diry * Math.sin(angle));
-                }
-            }
-        }
-    }
-
-    paddleMovement(players) {
-        let playerOne = players[0];
-        if (playerOne.vel === 1) {
-            playerOne.posy += playerOne.speed * INITIAL_VELOCITY;
-        } else if (playerOne.vel === -1) {
-            playerOne.posy -= playerOne.speed * INITIAL_VELOCITY;
-        }
-
-        if (playerOne.posy <= 0) {
-            playerOne.posy = 0;
-        } else if (playerOne.posy + DEFAULT_PADDLE_H >= CANVAS_HEIGHT) {
-            playerOne.posy = CANVAS_HEIGHT - DEFAULT_PADDLE_H;
-        }
-
-        let playerTwo = players[1];
-        if (playerTwo.vel === 1) {
-            playerTwo.posy += playerTwo.speed * INITIAL_VELOCITY;
-        } else if (playerTwo.vel === -1) {
-            playerTwo.posy -= playerTwo.speed * INITIAL_VELOCITY;
-        }
-    }
-
-    randomDir(ball) {
-        while (Math.abs(ball.dirx) <= 0.4 || Math.abs(ball.dirx) >= 0.9) {
-            const heading = this.randomNumberBetween(0, 2 * Math.PI);
-            //console.log("dirx: " + Math.abs(ball.dirx));
-            ball.dirx = Math.cos(heading);
-            ball.diry = Math.sin(heading);
-        }
-        ball.speed *= INITIAL_VELOCITY;
-    }
-
-    randomNumberBetween(min, max) {
-        return Math.random() * (max - min) + min;
-    }
-
-    handleKeydown(client: Socket, keyCode: any) {
-        const roomName = this.clientRooms[client.id];
-
-        if (!roomName) {
-            return;
-        }
-
-        try {
-            keyCode = parseInt(keyCode);
-        } catch (e) {
-            console.error(e);
-            return;
-        }
-
-        let playerNumber;
-        if (this.state[roomName].players[0].id === client.id) {
-            playerNumber = 0;
-        } else {
-            playerNumber = 1;
-        }
-
-        const vel = this.getUpdatedVelocity(keyCode);
-
-        if (vel) {
-            this.state[roomName].players[playerNumber].vel = vel;
-        }
-
-    }
-
-    getUpdatedVelocity(keyCode: number) {
-        switch (keyCode) {
-            case 38: // down
-                return -1;
-            case 40: // up
-                return 1;
-        }
-    }
-
-    handleKeyup(client: Socket, keyCode: any) {
-        const roomName = this.clientRooms[client.id];
-
-        if (!roomName) {
-            return;
-        }
-
-        try {
-            keyCode = parseInt(keyCode);
-        } catch (e) {
-            console.error(e);
-            return;
-        }
-
-        if (keyCode !== 38 && keyCode !== 40) {
-            return;
-        }
-
-        let playerNumber;
-        if (this.state[roomName].players[0].id === client.id) {
-            playerNumber = 0;
-        } else {
-            playerNumber = 1;
-        }
-
-        this.state[roomName].players[playerNumber].vel = 0;
-    }
-
-
-    handleNewGame(client: Socket, server: Server) {
-        let roomName = this.makeid(5);
-        this.clientRooms[client.id] = roomName;
-        client.emit('gameCode', roomName);
-
-        this.state[roomName] = this.initGame();
-        this.state[roomName].roomName = roomName;
-
-        client.join(roomName);
-        this.state[roomName].players[0].id = client.id;
-        client.emit('init', 1);
-        //this.startGameInterval(roomName, server);
-    }
-
-    makeid(length: number) {
+    codeGenerator(length: number) : string {
         var result = "";
         var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         var charactersLength = characters.length;
@@ -372,64 +129,225 @@ export class GameService {
         return result;
     }
 
-    async handleJoinGame(client: Socket, gameCode: string, server: Server) {
-        // On parcours les rooms et on recupere celle dont le nom est gameCode
-        const room = await server.sockets.adapter.rooms.has(gameCode);
+    handlePlayerMovement(client: Socket, data: any, server: Server) {
+        client.to(data.roomName).emit('playerMoved', data)
+    }
 
-        let allUsers;
-        if (room) {
-            allUsers = await server.in(gameCode).fetchSockets();
+    handleLaunchBall(client: Socket, data: any, server: Server) {
+        const state = this.activeGames[data.roomName].state;
+        this.initBall(state.ball);
+        //server.to(data.roomName).emit("launchBall", state);
+        client.emit("launchBall", state);
+		console.log("garn2 " + this.getActiveRoomNames());
+    }
+
+    initBall(ball: Ball) {
+        let dirx = 0;
+        let diry = 0;
+        while (Math.abs(dirx) <= 0.6 || Math.abs(dirx) >= 0.9) {
+            const heading = this.randomNumberBetween(0, 2 * Math.PI);
+            dirx = Math.cos(heading);
+            diry = Math.sin(heading);
         }
+        ball.initialVelocity.x = dirx * ball.speed;
+        ball.initialVelocity.y = diry * ball.speed;
+    }
 
-        let numClients = 0;
-        if (allUsers) {
-            numClients = Object.keys(allUsers).length;
+    randomNumberBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    handleMoveBall(client: Socket, data: any, server: Server) {
+        client.to(data.roomName).emit("ballMoved", data);
+
+    }
+
+    handleAddPoint(client: Socket, data: any, server: Server) {
+        let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
+        if (score === 3) {
+            server.to(data.roomName).emit('gameResult', { winner: data.player });
+        } else {
+            server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
         }
+    }
 
-        // Personne waiting to play game donc personne a join
-        if (numClients === 0) {
-            client.emit('unknownGame');
-            return;
-        } else if (numClients > 1) { // Trop de joueurs
-            client.emit('tooManyPlayers');
-            return;
-        }
-
-        this.clientRooms[client.id] = gameCode;
-
-        client.join(gameCode);
-        this.state[gameCode].players[1].id = client.id;
-        client.emit('init', 2);
-
-        this.startGameInterval(gameCode, server);
+    handleWatchGame(client: Socket, data: any, server: Server) {
+        //console.log("WATCH GAME");
+        //console.log(data.roomName);
+		const roomName = data.roomName;
+        this.players[client.id].level = 0;
+        this.players[client.id].spectator = true;
+        this.players[client.id].roomId = roomName;
+        if (this.activeGames[roomName]) {
+			client.join(roomName);
+            client.emit("upDateInfo", this.activeGames[roomName].state);
+        }   
     }
 
     async handleDisconnect(client: Socket, server: Server) {
+        const roomName = this.players[client.id].roomId;
+        const level = this.players[client.id].level;
 
-        clearInterval(this.intervalId);
-        const roomName = this.clientRooms[client.id];
-
-        let allUsers;
-        if (roomName) {
-            allUsers = await server.in(roomName).fetchSockets();
-            let sockets = [];
-            allUsers.forEach(function (s) {
-                console.log(s.id);
-                s.emit('disconnected');
-                s.leave(roomName);
-                sockets.push(s.id);
-            });
-            sockets.forEach(socket => Reflect.deleteProperty(this.clientRooms, socket));
+        if (this.players[client.id].spectator) {
+            console.log("spectator disconnected");
+            client.emit("leftGame", 1);
+            Reflect.deleteProperty(this.players, client.id);
+            return;
         }
 
-        Reflect.deleteProperty(this.clientRooms, client.id);
+        if (this.activeGames[roomName]) {
+			console.log("existing room name");
+            let connSockets = await server.in(roomName).fetchSockets();
+            connSockets.forEach((s) => {
+                s.emit("leftGame", 1);
+                s.leave(roomName);
+                s.disconnect();
+                Reflect.deleteProperty(this.players, s.id);
+            })
+            Reflect.deleteProperty(this.activeGames, roomName);
+        } else if (this.players[client.id].level !== 0) {
+            const wr = this.waitingRooms[level];
+       
+            if (wr.playerOne.id === client.id) {
+                this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
+            } else if (wr.playerTwo.id === client.id) {
+                this.switchPlayers(null, null, wr, 2)
+            }
+        }
+        Reflect.deleteProperty(this.players, client.id);
+
+		//console.log("ACTIVE GAMES");
+		//console.log(this.activeGames);
+
+		//console.log("WAITING ROOMS");
+		//console.log(this.waitingRooms);
     }
 
-    handleReMatch(client: Socket, gameCode: any, server: Server) {
-        server.sockets.in(gameCode).emit("reMatch", JSON.stringify("rematch !!"));
-        this.reInitGameState(this.state[gameCode]);
-        this.startGameInterval(gameCode, server);
+    async handleQuitGame(client: Socket, server: Server) {
+        const roomName = this.players[client.id].roomId;
+        let level = this.players[client.id].level;
+		console.log("level quit " + level)
+        
+        if (this.players[client.id].spectator) {
+            console.log("spectator left");
+            console.log(this.players[client.id].roomId)
+            this.players[client.id].roomId = "";
+            this.players[client.id].spectator = false;
+			client.leave(roomName);
+            client.emit("leftGame", 2);
+			client.disconnect();
+			Reflect.deleteProperty(this.players, client.id);
+            return;
+        }
+
+        if (this.activeGames[roomName]) {
+            client.emit("leftGame", 3);
+            client.disconnect();
+            Reflect.deleteProperty(this.players, client.id);
+
+            let connSockets = await server.in(roomName).fetchSockets();
+            connSockets.forEach((s) => {
+                s.emit("leftGame", 2);
+                s.leave(roomName);
+                s.disconnect();
+				Reflect.deleteProperty(this.players, s.id);
+            })
+            Reflect.deleteProperty(this.activeGames, roomName);
+        } else if (this.players[client.id].level !== 0) {
+            const wr = this.waitingRooms[level];
+    
+            if (wr.playerOne.id === client.id) {
+                   this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
+               } else if (wr.playerTwo.id === client.id) {
+                   this.switchPlayers(null, null, wr, 2);
+               }
+
+			client.emit("leftGame", 3);
+			client.disconnect();
+			Reflect.deleteProperty(this.players, client.id);
+        }
+		//console.log("ACTIVE GAMES");
+		//console.log(this.activeGames);
+
+		//console.log("WAITING ROOMS");
+		//console.log(this.waitingRooms);
     }
+
+    switchPlayers(playerOne, playerTwo, wr, n) {
+        if (n === 1) {
+			wr.roomId = wr.playerTwo.roomId;
+            wr.playerOne.id = wr.playerTwo.id;
+            wr.playerOne.socket = wr.playerTwo.socket;
+            wr.playerOne.roomId = wr.playerTwo.roomId;
+            wr.playerOne.level = wr.playerTwo.level;
+        } else {
+            wr.playerTwo.id = "";
+            wr.playerTWo.socket = "";
+            wr.playerTwo.roomId = "";
+            wr.playerTwo.level = '0';
+        }
+    }
+
+    handleRematch(client: Socket, data: any, server: Server) {
+        //console.log(Object.keys(this.players).length);
+        const roomId = this.players[client.id].roomId;
+        const room = this.activeGames[roomId];
+        let player;
+        let opponent;
+        let playerNum;
+        let winner;
+        if (client.id === room.state.players[0].id) {
+            player = room.state.players[0]; 
+            playerNum = 1;
+            opponent = room.state.players[1]
+        } else if (client.id === room.state.players[1].id) {
+            player = room.state.players[1];
+            playerNum = 2;
+            opponent = room.state.players[0];
+        }
+
+        if (room.state.players[0].match_score === 3) {
+            winner = room.state.players[0].id;
+        } else {
+            winner = room.state.players[1].id;
+        }
+
+        let result = {
+            winner,
+            player: player.id,
+            opponent: opponent.id,
+            playerScore: player.match_score,
+            opponentScore: opponent.match_score,
+        }
+
+        player.game_scores.push(result);
+        opponent.game_scores.push(result); 
+
+        player.match_score = 0;
+        opponent.match_score = 0;
+
+
+        server.to(data.roomName).emit("rematch");
+        //console.log(Object.keys(this.players).length);
+
+        
+        
+        //console.log(player);
+        //console.log(opponent);
+    }
+
+	handleMoveAnim(client: Socket, data: any, server: Server) {
+		client.to(data.roomName).emit("animMoved", data);
+	}
+
+    handleAnimCollision(client: Socket, data: any, server: Server) {
+        server.to(data.roomName).emit("animCollision");
+    }
+
+	async getActiveRoomNames() : Promise<string[]> {
+		const roomNames = await Object.keys(this.activeGames);
+		return (roomNames);
+	}
 
 }
 

@@ -22,6 +22,7 @@ const users = useUsersStore()
 const statusStore = useStatusStore()
 
 window.addEventListener('beforeunload', async (e) => {
+  statusStore.refuseChallenge(userStore.user.id)
   const res = await fetch('http://localhost:3000/auth/verify', {
     credentials: "include"
   })
@@ -103,10 +104,6 @@ watch(route, (newRoute) => {
         statusStore.changeCurrentUserStatus("available", userStore.user.id)
     }
   }
-})
-
-watch(statusStore.challengeAccepted, (chall) => {
-  
 })
 
 </script>

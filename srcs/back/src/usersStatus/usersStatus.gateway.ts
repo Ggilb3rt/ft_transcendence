@@ -65,7 +65,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     async handleConnection2(client: Socket, arg: number) {
-        const alreadyConnected = this.userArr.findIndex((el) => {el.userId === arg})
+        const alreadyConnected = this.userArr.findIndex((el) => {console.log("el ==== ", el, "id ==== ", arg); return el.userId === arg})
         console.log("handleConnection2")
         if (alreadyConnected != -1) {
             console.log("already connected")
@@ -75,6 +75,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         console.log('client id = ', client.id)
         const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
         this.userArr.push(u)
+        console.log('arr = ', this.userArr)
         this.logger.log(`client connection : ${client.id}`)
         client.broadcast.emit('newStatusConnection', u)
         return this.userArr
@@ -86,6 +87,24 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (changedIndex != -1) {
             this.userArr[changedIndex].userStatus = arg.userStatus
             client.broadcast.emit("newStatusChange", this.userArr[changedIndex])
+        }
+    }
+
+    @SubscribeMessage('refuseChallenge')
+    refuseChallenges(client: Socket, challenge: TChallenge) {
+        const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
+        if (receiver) {
+            console.log("i decline challenge from => ", receiver)
+            this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+        }
+    }
+
+    @SubscribeMessage('abortChallenge')
+    abortChallenge(client: Socket, challenge: TChallenge) {
+        const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenged})
+        if (receiver) {
+            console.log("i abort challenge to => ", receiver)
+            this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
         }
     }
 

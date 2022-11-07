@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import UserInvite from "@/components/user/UserInvite.vue";
 import router from "@/router";
 import { ref } from "vue";
-import { useUserStore } from '../stores/user';
 
 // simule server timing
 function sleep(ms: number) {
@@ -9,9 +9,6 @@ function sleep(ms: number) {
     resolve => setTimeout(resolve, ms)
     );
   }
-
-
-const userStore = useUserStore()
 
 let inQueue = ref(false)
 
@@ -33,14 +30,14 @@ async function findGame(event: Event, game: string) {
 
   console.log(url)
   for(let i = 0; i < 4; i++) {
-    await sleep(1000)
+    //await sleep(1000)
     span.innerText = motivational[i]
   }
 
-  await sleep(1000)
+  //await sleep(1000)
   console.log(data);
   btnEl?.removeChild(span)
-  router.push({ path: `/game/${game}/${data}`, })
+  router.push({ path: `/game/${game}`, query: {test: "hello"} })
 }
 </script>
 
@@ -60,7 +57,7 @@ async function findGame(event: Event, game: string) {
           </button>
         </li>
         <li>
-          <button id="tong" class="pongLink cant_click">Tong<br>
+			<button id="customizable" @click="findGame($event, 'customizable')" class="pongLink">Customizable<br>
             <img src="../assets/more.jpg" alt="another pong game" srcset="">
           </button>
         </li>

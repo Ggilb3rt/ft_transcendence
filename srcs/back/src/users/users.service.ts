@@ -126,8 +126,6 @@ export class UsersService {
       matches,
       invites
     }
-
-    console.log("return == ", userFormat)
     return (userFormat);
   }
 
@@ -248,6 +246,7 @@ export class UsersService {
   async getOtherUser(id: number): Promise<otherFormat> {
 
     try {
+      console.log("jesuis la ")
       const user = await prisma.users.findFirst({where:{id}})
 
       const {nickname, first_name, last_name, avatar_url, ranking, wins, loses} = user
@@ -345,7 +344,7 @@ export class UsersService {
   }
 
   async hashPassowrd() {
-    
+
   }
 
   async switch2fa(id: number, status: boolean, response) {

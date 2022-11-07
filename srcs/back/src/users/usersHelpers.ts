@@ -199,14 +199,15 @@ class UsersHelper {
         if (!nickname.match(regex)) {
           throw new HttpException("Only alphanumeric characters", HttpStatus.NOT_ACCEPTABLE)
         }
-        const test = await prisma.users.findFirst({where:{nickname}})
+        const test = await prisma.users.findUnique({where:{nickname}})
         console.log("test == ", test)
-      } catch (e) {
-        throw new Error(e)
-      }
         if (test) {
           throw new HttpException("nickname already taken", HttpStatus.CONFLICT);
         }
+      } catch (e) {
+        console.log("catch == ", e);
+        throw new Error(e)
+      }
     }
 
     async getPending(id: number) {

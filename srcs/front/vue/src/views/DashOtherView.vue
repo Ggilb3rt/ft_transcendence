@@ -7,7 +7,7 @@ import UserGameStats from "@/components/user/UserGameStats.vue"
 import UserMatchHistory from "@/components/user/UserMatchHistory.vue";
 import UserList from "@/components/user/UserList.vue";
 import UserBasicsOther from "@/components/user/UserBasicsOther.vue";
-import Loader from "@/components/navigation/Loader.vue"
+import Loader from "@/components/navigation/loader.vue"
 
 const usersStore = useUsersStore()
 
