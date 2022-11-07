@@ -7,7 +7,9 @@ import { watch, ref } from 'vue';
 const props = defineProps<{
     otherUser: IOtherUserRestrict | null,
     removeImg?: boolean,
-    removeStatus?: boolean
+    removeStatus?: boolean,
+    removeName?: boolean,
+    removeHover?: boolean
 }>()
 
 const usersStore = useUsersStore()
@@ -29,33 +31,48 @@ function filterStatus(id: number): status {
 </script>
 
 <template>
-    <router-link :to="{ name: 'dashOther', params: { id: otherUser.id }}" v-if="otherUser">
+    <router-link 
+        v-if="otherUser"
+        class="user-link"
+        :class="{hoverable: !removeHover}"
+        :to="{ name: 'dashOther', params: { id: otherUser.id }}"
+        :title="'go to ' + otherUser.nickname"
+    >
         <div :class="filterStatus(otherUser.id)" class="status-container" v-if="!removeStatus">
         </div>
             <img 
             :src="otherUser.avatar_url" :alt="otherUser.nickname + ' avatar'"
             v-if="!removeImg"
         >
-        <p>{{ otherUser.nickname }}</p>
+        <p v-if="!removeName">{{ otherUser.nickname }}</p>
     </router-link>
 </template>
 
-<style scoped>
-.status-container {
+<style>
+.user-link .status-container {
     width: 100%;
     height: 100%;
     position: absolute;
     z-index: 15;
 }
 
-a {
+.user-link{
     display: block;
 }
 
-img {
-    max-width: 100%;
+.user-link img {
+    width: 100%;
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: cover;
 }
 
-p { text-align: center; }
+.user-link p { text-align: center; }
+
+@media screen and (hover: hover) {
+    .user-link:hover.hoverable {
+        transform: scale(1.05);
+    }
+}
 
 </style>

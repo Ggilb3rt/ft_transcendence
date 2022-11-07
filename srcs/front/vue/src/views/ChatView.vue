@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, onUpdated, watch } from 'vue'
+import { ref, onUpdated, watch, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router';
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
+import { useChannelsStore } from '@/stores/channels'
 import SideNav from '../components/navigation/SideNav.vue';
 import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 import CreateChanForm from '@/components/chat/CreateChanForm.vue'
 import Loader from '@/components/navigation/loader.vue'
+
 
 
 /*
@@ -123,15 +125,12 @@ import Loader from '@/components/navigation/loader.vue'
 
 */
 
-
-
 // ChatView need to
 	// getAllRestrictChannel
 	// createChannel
 	
-	
 
-	// getChannel and pas his messages to ChannelView via props ? ==> better to getChannel on ChannelView
+
 
 const channelList = ref([
 	{ name: 'chan1', href: '/chat/room/1' },
@@ -169,6 +168,19 @@ const sideNavDataLeft = ref({
 // get the friends from usersStore
 const usersStore = useUsersStore()
 const userStore = useUserStore()
+const channelsStore = useChannelsStore()
+
+
+const currentUserList = ref<object[]>([])
+function changeCurrentUserList(userList: object[]) {
+	console.log('currentUserList from parent in function', userList, currentUserList.value)
+	currentUserList.value = userList
+	console.log("currentUserList avec change ", currentUserList.value)
+}
+
+onUpdated(() => {
+	console.log('currentUserList from parent ', currentUserList.value)
+})
 
 const sideNavDataRight = ref({
 	name: 'Friends',
@@ -181,10 +193,8 @@ const sideNavDataRight = ref({
 		},
 		{
 			name: 'Currents users in channel',
-			children: [	// need to get users in current channel
-				{ name: 'homer' },
-				{ name: 'roger' },
-			],
+			// children: currentUserList.value,
+			children: usersStore.getUsersListForChat(channelsStore.getUsersInChannel(2)),
 			isOpen: true
 		}
 	]
@@ -201,11 +211,10 @@ const route = useRoute()
 		<button class="btn_side" @click="sideNavDataLeft.isOpen = !sideNavDataLeft.isOpen">{{ sideNavDataLeft.name }}</button>
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav>
-		
+
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
-		<router-view v-else></router-view>
-		
+		<router-view v-else @send-list="(data) => changeCurrentUserList(data)"></router-view>		
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
 </template>

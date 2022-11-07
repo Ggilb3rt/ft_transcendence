@@ -24,6 +24,7 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
 
+
 window.addEventListener('beforeunload', () => {
   if (userStore.conStatus == setStatus.connected) {
     if (route.name)
