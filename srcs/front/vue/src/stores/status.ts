@@ -159,6 +159,10 @@ export const useStatusStore = defineStore({
             }
         },
 
+        onClose() {
+            this.socket.close()
+        },
+
         refuseChallenge(id: number) {
             if (this.challenge) {
                 this.socket.emit('refuseChallenge', this.challenge)
