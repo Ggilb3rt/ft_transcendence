@@ -24,6 +24,7 @@ const statusStore = useStatusStore()
 
 window.addEventListener('beforeunload', async (e) => {
   statusStore.refuseChallenge(userStore.user.id)
+  statusStore.onClose()
   const res = await fetch('http://localhost:3000/auth/verify', {
     credentials: "include"
   })
