@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
-import { identity } from "rxjs";
-import { TChannel, TChannelType, TMessage } from "src/users/types";
+import { TChannel, TChannelType, TMessage, TRestrictUserTime } from "src/users/types";
 
 const prisma = new PrismaClient()
 
@@ -13,8 +12,53 @@ export class ChatHelper {
         
     }
 
-    formatChannels(channel) {
-        const { id, name, type, owner } = channel
+    async formatChannels(channel_id: number) {
+
+        const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
+
+        const ChannelTypes = ["public" , "private" , "pass" , "direct"] as const
+        const isChannelType = (type): type is TChannelType => ChannelTypes.includes(type)
+        if (isChannelType(type)) {
+            const userList: number[] = [];
+            const banList: TRestrictUserTime[] = []
+            const muteList: TRestrictUserTime[] = []
+            const adminList: number[] = []
+            const messagesTrimmed: TMessage[] = []
+            users_list.forEach((e) => {
+                userList.push(e.id)
+            });
+            banned.forEach((e) => {
+               banList.push({userId: e.user_id, expire: e.expires})
+            })
+            muted.forEach((e) => {
+                muteList.push({userId: e.muted_id, expire: e.mute_date})
+            })
+            admins.forEach((e) => {
+                adminList.push(e.admin_id)
+            })
+            messages.forEach((e) => {
+                messagesTrimmed.push({
+                    sender: e.sender_id,
+                    receiver: e.channel_id,
+                    isDirect: false,
+                    msg: e.content,
+                    date: e.message_date
+                })
+            })
+            const formated_channel: TChannel = {
+                id,
+                name,
+                type,
+                owner,
+                userList,
+                banList,
+                muteList,
+                adminList,
+                messages: messagesTrimmed
+            }
+            return formated_channel
+        }
+
         // format relations to array
         // return
         // const ret: TChannel = {
@@ -398,7 +442,26 @@ export class ChatHelper {
             })
         } catch (e) {
             console.log(e);
-            throw new Error("Database Chat Error")
+            throw new Error("Error modifying channel passs")
+        }
+    }
+
+    async getChannel(channel_id: number) {
+        try {
+            return await prisma.channels.findUnique({
+                where: {
+                    id: channel_id
+                },
+                include: {
+                    messages: true,
+                    users_list: true,
+                    admins: true,
+                    banned: true,
+                    muted: true
+                }
+            })
+        } catch (error) {
+            throw new Error("error queriying a channel")
         }
     }
 

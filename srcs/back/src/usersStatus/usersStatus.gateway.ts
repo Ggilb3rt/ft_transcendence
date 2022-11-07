@@ -64,7 +64,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
 
     @SubscribeMessage('connectionStatus')
-    async handleConnection2(client: Socket, arg: number) {
+    handleConnection2(client: Socket, arg: number) {
         const alreadyConnected = this.userArr.findIndex((el) => {console.log("el ==== ", el, "id ==== ", arg); return el.userId === arg})
         console.log("handleConnection2")
         if (alreadyConnected != -1) {
