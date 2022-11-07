@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, onUpdated } from "vue";
+import { onBeforeUnmount, onMounted, onUnmounted, onUpdated } from "vue";
 //import { useUsersStore } from '@/stores/users';
 import { useUserStore } from "@/stores/user";
-import { useStatusStore } from "@/stores/status";
+//import { useStatusStore } from "@/stores/status";
 import router from "@/router";
 import { useRoute } from "vue-router";
 import Phaser from "phaser";
@@ -18,10 +18,11 @@ import CatPongGame from "./game/scenes/CatPongGame";
 
 const containerId = "game-container";
 const userStore = useUserStore();
-const usersStatusStore = useStatusStore();
+//const usersStatusStore = useStatusStore();
 const socket = io("http://localhost:3000/game");
+let gameInstance;
 let activeRoomNames = {};
-let key: string;
+let key;
 
 class Game extends Phaser.Game {
   constructor() {
@@ -38,7 +39,10 @@ class Game extends Phaser.Game {
 
 onMounted(() => {
   const route = useRoute();
+  console.log("ROOUTE");
   console.log(route);
+  console.log("QUERY");
+  console.log(route.query.test);
   key = route.params.ourGames;
   socket.emit("getActiveRoomNames");
   socket.on("getActiveRoomNames", (data) => {
@@ -58,34 +62,22 @@ onMounted(() => {
   }
 
   console.log("KEY PARAM URL : " + key);
-  const gameInstance = new Game();
+  gameInstance = new Game();
 });
 
 onUpdated(() => {
   console.log("UNLOADDDDDDD");
   router.push("/game");
 });
-/*
-async function getActiveGames() {
-  try {
-    const response = await fetch(`http://localhost:3000/gamepage/activegames`, {
-      credentials: "include",
-	});
-	let data;
-    console.log("fetching");
-    if (response.status >= 200 && response.status < 300) {
-      data = await response.json();
-	} else {
-      throw new Error(response.statusText);
-    }
-    if (data) {
-      console.log("DATA");
-      console.log(data);
-    }
-  } catch (error: any) {
-    userStore.error = error.body;
-  }
-}*/
+
+onBeforeUnmount(() => {
+	console.log("UNMOUNTTTTTTTTTTTT");
+	//gameInstance.scene.stop("DefaultGame");
+	//gameInstance.scene.stop("CustomizableGame");
+	//gameInstance.scene.stop("CatPongGame");
+	console.log(gameInstance.scene.scenes);
+})
+
 </script>
 
 <template>

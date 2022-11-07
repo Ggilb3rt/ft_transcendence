@@ -30,14 +30,14 @@ async function findGame(event: Event, game: string) {
 
   console.log(url)
   for(let i = 0; i < 4; i++) {
-    await sleep(1000)
+    //await sleep(1000)
     span.innerText = motivational[i]
   }
 
-  await sleep(1000)
+  //await sleep(1000)
   console.log(data);
   btnEl?.removeChild(span)
-  router.push({ path: `/game/${game}`, })
+  router.push({ path: `/game/${game}`, query: {test: "hello"} })
 }
 </script>
 
