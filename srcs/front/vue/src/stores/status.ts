@@ -61,13 +61,14 @@ export const useStatusStore = defineStore({
 
         pushToList(socketStatus: ISocketStatus) {
             console.log("el == ", socketStatus)
-            const el = this.statusList.findIndex((el) => {socketStatus.userId === el.userId})
+            console.log("liste == ", this.statusList.length)
+            const el = this.statusList.findIndex((el) => {console.log(socketStatus.userId, "   ", el.userId);return  socketStatus.userId === el.userId})
+            console.log("TROUVE", el)
             if (el != -1) {
-                console.log("TROUVE")
                 this.statusList.splice(el, 1)
             }
             this.statusList.push(socketStatus)
-            console.log("DANS PUSH TO LIST ", this.statusList)
+            console.log("DANS PUSH TO LIST ", this.statusList.length)
 
         },
 
@@ -84,7 +85,15 @@ export const useStatusStore = defineStore({
             if (this.socket.connected) {
                  //wait for sockets to be instanciated then grab current sockets and Push my instance to list of sockets
 
-                this.socket.emit("findAllStatus", (res: any) => {console.log("res == ", res);this.statusList = res})
+                this.socket.emit("findAllStatus", (res: any) => {
+                    res.forEach((elem: any) => {
+                        console.log("ELEM IN CALLBACK == ", elem);
+                        console.log("LIST IN CB == ", this.statusList)
+                        if (this.statusList.findIndex((el) => {return el.userId === elem.userId}) == -1) {
+                            this.statusList.push(elem)
+                        }
+                    })
+                })
 
                  console.log("FETCHING ALL STATUS ==> ", this.statusList)
 
