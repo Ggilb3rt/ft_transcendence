@@ -75,9 +75,9 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         console.log('client id = ', client.id)
         const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
         this.userArr.push(u)
-        console.log('arr = ', this.userArr)
         this.logger.log(`client connection : ${client.id}`)
         client.broadcast.emit('newStatusConnection', u)
+        console.log('arr = ', this.userArr)
         return this.userArr
     }
 

@@ -60,9 +60,10 @@ export const useStatusStore = defineStore({
         } ,
 
         pushToList(socketStatus: ISocketStatus) {
-            console.log("el == ", socketStatus, "DANS PUSH TO LIST ", this.statusList)
+            console.log("el == ", socketStatus)
             const el = this.statusList.findIndex((el) => {socketStatus.userId === el.userId})
             if (el != -1) {
+                console.log("TROUVE")
                 this.statusList.splice(el, 1)
             }
             this.statusList.push(socketStatus)
@@ -78,17 +79,23 @@ export const useStatusStore = defineStore({
             this.socket.close()
         },
 
-        setupSocket() {
+        async setupSocket() {
             console.log("setup socket condition == ", this.socket.connected)
             if (this.socket.connected) {
                  //wait for sockets to be instanciated then grab current sockets and Push my instance to list of sockets
 
-                 this.socket.emit("findAllStatus", (res: any) => {console.log(res);this.statusList = res})
-                 this.pushToList({
-                     socketId: this.socket.id,
-                     userId: this.id,
-                     userStatus: 'available'
-                 })
+                this.socket.emit("findAllStatus", (res: any) => {console.log("res == ", res);this.statusList = res})
+
+                 console.log("FETCHING ALL STATUS ==> ", this.statusList)
+
+                 setTimeout(() => {
+                    this.pushToList({
+                        socketId: this.socket.id,
+                        userStatus: 'available',
+                        userId: this.id
+                    })   
+                 }, 1000)
+
                 //Change my current status for myself, emit to server i do am connected
                  this.socket.emit('connectionStatus', this.id)
              
@@ -126,8 +133,6 @@ export const useStatusStore = defineStore({
                      this.challenge = null
                      this.changeCurrentUserStatus('available', this.id)
                  })
-             
-             
                 return
             }
             else {
@@ -139,7 +144,7 @@ export const useStatusStore = defineStore({
             // Check to do it only once
             if (this.setuped == false) {
                 this.id = id
-                this.setupSocket()               
+                this.setupSocket()        
                 // console.log("my list after timeout ==> ", this.statusList)
                 this.setuped = true;
             }
