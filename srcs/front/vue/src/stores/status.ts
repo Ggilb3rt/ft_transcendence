@@ -85,6 +85,10 @@ export const useStatusStore = defineStore({
             if (this.socket.connected) {
                  //wait for sockets to be instanciated then grab current sockets and Push my instance to list of sockets
 
+
+                 console.log("FETCHING ALL STATUS ==> ", this.statusList)
+
+
                 this.socket.emit("findAllStatus", (res: any) => {
                     res.forEach((elem: any) => {
                         console.log("ELEM IN CALLBACK == ", elem);
@@ -110,7 +114,7 @@ export const useStatusStore = defineStore({
              
                 //Subscribe to messages from other sockets
                  this.socket.on("newStatusConnection", (res: ISocketStatus) => {
-                     const alreadyConnected = this.statusList.findIndex((el) => {res.userId === el.userId})
+                     const alreadyConnected = this.statusList.findIndex((el) => {return res.userId === el.userId})
                      if (alreadyConnected != -1) {
                          this.statusList.splice(alreadyConnected, 1)
                      }
@@ -161,6 +165,7 @@ export const useStatusStore = defineStore({
 
         onClose() {
             this.socket.close()
+            this.statusList = []
         },
 
         refuseChallenge(id: number) {
