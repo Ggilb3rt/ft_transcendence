@@ -12,7 +12,7 @@ import { useStatusStore } from './stores/status'
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
-
+import ModalChallenge from "@/components/ModalChallenge.vue"
 
 
 
@@ -20,6 +20,7 @@ const route = useRoute()
 const userStore = useUserStore()
 const users = useUsersStore()
 const statusStore = useStatusStore()
+
 
 window.addEventListener('beforeunload', async (e) => {
   statusStore.refuseChallenge(userStore.user.id)
@@ -109,18 +110,22 @@ watch(route, (newRoute) => {
 </script>
 
 <template>
-  <main>
-    <ErrorPopUp></ErrorPopUp>
+	<main>
+		<ErrorPopUp></ErrorPopUp>
 
-    <header v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'">
-      <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
-      <PrimaryNav></PrimaryNav>
-    </header>
+		<header v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'">
+			<img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
+			<PrimaryNav></PrimaryNav>
+		</header>
 
-    <RouterView />
+		<RouterView />
 
-    <!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
-  </main>
+		<ModalChallenge></ModalChallenge>
+
+
+		
+		<!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
+	</main>
 </template>
 
 <style scoped>
