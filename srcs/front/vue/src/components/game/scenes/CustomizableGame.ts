@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import io from "socket.io-client";
 import GamePlay from "../tools/GamePlay";
 
 import eventsCenter from "./EventsCenter";
@@ -11,6 +12,7 @@ export default class CustomizableGame extends Phaser.Scene {
   }
 
   init(data) {
+	this.userId = data.userId;
     this.spectator = data.spectator;
     this.socket = data.socket;
     this.level = 2;
@@ -44,6 +46,9 @@ export default class CustomizableGame extends Phaser.Scene {
     const scene = this;
     let { width, height } = this.sys.game.canvas;
     console.log("customizablegame");
+
+	/* INIT SOCKET */
+	//scene.socket = io("http://localhost:3000/game");
 
     /* GO TO SETTINGS & WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {

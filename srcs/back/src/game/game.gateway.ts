@@ -41,12 +41,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        let connType = client.handshake.query.connType;
-        if (connType === "client") {
+        //let connType = client.handshake.query.connType;
+       // if (connType === "client") {
             this.gameService.handleDisconnect(client, this.server);
-        } else {
-            console.log("DISCO QUERY " + client.handshake.query.connType)
-        }
+        //} else {
+        //    console.log("DISCO QUERY " + client.handshake.query.connType)
+        //}
     }
 
     @SubscribeMessage("joinQueue")
@@ -105,6 +105,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         console.log("go game!!");
         console.log(data);
     }
+
+	@SubscribeMessage("getActiveRoomNames")
+	async handleGetActiveRoomNames(client: Socket) {
+		const roomNames = await this.gameService.getActiveRoomNames();
+		client.emit("getActiveRoomNames", { roomNames });
+	}
 
 
    

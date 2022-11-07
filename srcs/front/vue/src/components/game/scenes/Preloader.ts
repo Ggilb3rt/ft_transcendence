@@ -18,6 +18,7 @@ export default class Preloader extends Phaser.Scene {
   init(data) {
     this.userId = data.userId;
     this.spectator = false;
+    this.level = data.level;
   }
 
   preload() {
@@ -44,7 +45,8 @@ export default class Preloader extends Phaser.Scene {
   create() {
     const scene = this;
     console.log("PRELOAD");
-    console.log("User id " + this.userId);
+    //console.log("User id " + this.userId);
+    //console.log("LEVELLLLL " + this.level);
 
     /* Quand on arrive dans cette page, trois options :
     ** a) joueur seul qui veut se mettre dans une queue : on recupere son userId qui servira pour la db
@@ -68,10 +70,20 @@ export default class Preloader extends Phaser.Scene {
     /* INIT SOCKET */
     //scene.socket = io("http://localhost:3000/game");
 
-    scene.scene.launch("MenuScene", {
-      userId: scene.userId,
-      socket: scene.socket,
-      spectator: scene.specator,
-    });
+    /*if (scene.level === "pong") {
+		console.log("level pong");
+		scene.scene.launch("DefaultGame", {socket: scene.socket, userId: scene.userId, spectator: scene.spectator})
+	} else if (scene.level === "catPong") {
+		console.log("level catpong");
+		scene.scene.launch("CatPongGame", {socket: scene.socket, userId: scene.userId, spectator: scene.spectator})
+	}*/
+
+	
+
+      scene.scene.launch("MenuScene", {
+        userId: scene.userId,
+        spectator: scene.specator,
+		level: scene.level
+      });
   }
 }

@@ -1,4 +1,4 @@
-import { ScaleModes } from "phaser";
+import router from "@/router";
 import eventsCenter from "../scenes/EventsCenter";
 
 export default class GamePlay {
@@ -42,6 +42,7 @@ export default class GamePlay {
       console.log("roomName", data.gameCode);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
+      router.replace({ path: `/game/${scene.roomName}` });
     });
   }
 
@@ -164,7 +165,7 @@ export default class GamePlay {
         alert("YOUR OPPONENT LEFT");
         console.log("a player disconnected");
       } else if (type === 2) {
-        alert("YOUR OPPONENT LEFT")
+        alert("YOUR OPPONENT LEFT");
         console.log("a player quit");
       }
       this.playerNumber = 0;
@@ -180,14 +181,23 @@ export default class GamePlay {
       } else if (scene.level === 3) {
         scene.scene.stop("CatPongGame");
       }
-      scene.scene.start("MenuScene" /*, {socket: scene.socket}*/);
+      scene.scene.start(
+        "MenuScene",
+        {
+          userId: scene.userId,
+          spectator: scene.spectator,
+          level: 0,
+        } /*, {socket: scene.socket}*/
+      );
+      console.log("QUIIIIIIIIIIIIIIIITTT");
+      router.replace({ path: "/game" });
     });
   }
 
   listenRematch(level, width, height, scene) {
     scene.socket.on("rematch", (type) => {
       console.log("REMATCH");
-      scene.scene.launch("WaitingRoom", {rematch: true});
+      scene.scene.launch("WaitingRoom", { rematch: true });
       this.reinitState(level, width, height, scene);
       scene.time.delayedCall(3000, function () {
         eventsCenter.emit("ready");

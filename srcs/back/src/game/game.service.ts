@@ -5,7 +5,9 @@ import { Ball, Player, WR1, WR2, WR3 } from './classes';
 @Injectable()
 export class GameService {
 	private waitingRooms = {};
-    private activeGames = {};
+    private activeGames = {
+		"abcdef": 0,
+	};
     private players = {};
 
 	constructor() {
@@ -35,6 +37,7 @@ export class GameService {
         let wr = this.waitingRooms[level];
 
         this.players[client.id].level = level;
+
 
         // Waiting room is empty
         if (wr.playerOne.id === "" && wr.playerTwo.id === "") {
@@ -103,7 +106,7 @@ export class GameService {
         state.roomName = roomId;
         gameRoom.state = state;
         server.to(roomId).emit("roomComplete", state);
-    }
+	}
 
     createGameState() {
         return {
@@ -116,7 +119,7 @@ export class GameService {
         }
     }
 
-    codeGenerator(length: number) {
+    codeGenerator(length: number) : string {
         var result = "";
         var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         var charactersLength = characters.length;
@@ -135,6 +138,7 @@ export class GameService {
         this.initBall(state.ball);
         //server.to(data.roomName).emit("launchBall", state);
         client.emit("launchBall", state);
+		console.log("garn2 " + this.getActiveRoomNames());
     }
 
     initBall(ball: Ball) {
@@ -192,6 +196,7 @@ export class GameService {
         }
 
         if (this.activeGames[roomName]) {
+			console.log("existing room name");
             let connSockets = await server.in(roomName).fetchSockets();
             connSockets.forEach((s) => {
                 s.emit("leftGame", 1);
@@ -210,11 +215,18 @@ export class GameService {
             }
         }
         Reflect.deleteProperty(this.players, client.id);
+
+		//console.log("ACTIVE GAMES");
+		//console.log(this.activeGames);
+
+		//console.log("WAITING ROOMS");
+		//console.log(this.waitingRooms);
     }
 
     async handleQuitGame(client: Socket, server: Server) {
         const roomName = this.players[client.id].roomId;
         let level = this.players[client.id].level;
+		console.log("level quit " + level)
         
         if (this.players[client.id].spectator) {
             console.log("spectator left");
@@ -254,6 +266,11 @@ export class GameService {
 			client.disconnect();
 			Reflect.deleteProperty(this.players, client.id);
         }
+		//console.log("ACTIVE GAMES");
+		//console.log(this.activeGames);
+
+		//console.log("WAITING ROOMS");
+		//console.log(this.waitingRooms);
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {
@@ -326,6 +343,11 @@ export class GameService {
     handleAnimCollision(client: Socket, data: any, server: Server) {
         server.to(data.roomName).emit("animCollision");
     }
+
+	async getActiveRoomNames() : Promise<string[]> {
+		const roomNames = await Object.keys(this.activeGames);
+		return (roomNames);
+	}
 
 }
 

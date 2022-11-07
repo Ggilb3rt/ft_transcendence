@@ -11,10 +11,12 @@ import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
 import { JwtAuthModule } from './jwt-auth/jwt-auth.module';
 import { testStatusGateway } from './testStatus/testStatus.gateway'
+import { GameController } from './game/game.controller';
+import { GameService } from './game/game.service';
 
 @Module({
   imports: [ UsersModule, AuthModule, GameModule, JwtAuthModule ],
-  controllers: [AppController, UsersController, AuthController],
-  providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway],
+  controllers: [AppController, UsersController, AuthController, GameController],
+  providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway, GameService],
 })
 export class AppModule {}

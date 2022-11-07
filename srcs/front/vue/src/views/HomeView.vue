@@ -37,7 +37,7 @@ async function findGame(event: Event, game: string) {
   await sleep(1000)
   console.log(data);
   btnEl?.removeChild(span)
-  router.push({ path: `/game/${game}/${data}`, })
+  router.push({ path: `/game/${game}`, })
 }
 </script>
 
@@ -57,7 +57,7 @@ async function findGame(event: Event, game: string) {
           </button>
         </li>
         <li>
-          <button id="tong" class="pongLink cant_click">Tong<br>
+			<button id="customizable" @click="findGame($event, 'customizable')" class="pongLink">Customizable<br>
             <img src="../assets/more.jpg" alt="another pong game" srcset="">
           </button>
         </li>
