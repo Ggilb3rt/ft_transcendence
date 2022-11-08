@@ -67,7 +67,7 @@ async function sendCreateChan() {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(channelconst),
+			body: JSON.stringify({channel: channelconst}),
 			credentials: "include"
 		})
 		var data;

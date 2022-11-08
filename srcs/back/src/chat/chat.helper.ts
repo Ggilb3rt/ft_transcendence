@@ -70,7 +70,7 @@ export class ChatHelper {
         try {
             const channel = await prisma.channels.create({
                 data:{
-                    name: chan.name,
+                    name: chan.ChanName,
                     type: chan.type,
                     pass: chan.pass,
                     owner: chan.owner,

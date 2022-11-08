@@ -45,7 +45,7 @@ class TMessage {
 
 class TChannel {
     id: number;
-	name: string;
+	ChanName: string;
 	type: TChannelType;
 	userList: number[];
 	owner: number | null;
