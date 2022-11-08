@@ -35,25 +35,18 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
-        //let connType = client.handshake.query.connType;
-        this.gameService.handleConnection(client, this.server);
-    }
+		this.gameService.handleConnection(client, this.server);
+	}
 
     handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        //let connType = client.handshake.query.connType;
-       // if (connType === "client") {
-            this.gameService.handleDisconnect(client, this.server);
-        //} else {
-        //    console.log("DISCO QUERY " + client.handshake.query.connType)
-        //}
+		this.gameService.handleDisconnect(client, this.server);
     }
 
     @SubscribeMessage("joinQueue")
     handleJoinQueue(client: Socket, data: any) {
         this.gameService.handleJoinQueue(client, data, this.server);
     }
-
     
     @SubscribeMessage("launchBall")
     handleLaunchBall(client: Socket, data: any) {
@@ -111,6 +104,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		const roomNames = await this.gameService.getActiveRoomNames();
 		client.emit("getActiveRoomNames", { roomNames });
 	}
+
+	@SubscribeMessage("pauseGame")
+	handlePauseGame(client: Socket, data: any) {
+		this.server.in(data.roomName).emit("pauseGame");
+	}
+
+	@SubscribeMessage("unpauseGame")
+	handleUnpauseGame(client: Socket, data: any) {
+		this.server.in(data.roomName).emit("unpauseGame");
+	}
+
 
 
    

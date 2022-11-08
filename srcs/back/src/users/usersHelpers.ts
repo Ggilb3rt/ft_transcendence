@@ -200,6 +200,11 @@ class UsersHelper {
       return (friends)
     }
 
+	async addMatch(match) {
+		await prisma.match.create({
+			data: match
+		})
+	}
     async getMatches(id: number) {
 
       const matches = await prisma.match.findMany({

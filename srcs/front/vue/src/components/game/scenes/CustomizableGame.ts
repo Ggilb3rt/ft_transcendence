@@ -14,7 +14,8 @@ export default class CustomizableGame extends Phaser.Scene {
   init(data) {
 	this.userId = data.userId;
     this.spectator = data.spectator;
-    this.socket = data.socket;
+    //this.socket = data.socket;
+	this.socket = null;
     this.level = 2;
     this.playerNumber = 0;
     this.joinQueue = false;
@@ -24,7 +25,7 @@ export default class CustomizableGame extends Phaser.Scene {
     this.playerOne = {};
     this.playerTwo = {};
     this.ball = {};
-    this.roomId = "";
+	this.pauseText = {};
     this.roomName = "";
     this.playerOneScore = 0;
     this.playerTwoScore = 0;
@@ -45,10 +46,11 @@ export default class CustomizableGame extends Phaser.Scene {
   create() {
     const scene = this;
     let { width, height } = this.sys.game.canvas;
+	const game = this.sys.game;
     console.log("customizablegame");
 
 	/* INIT SOCKET */
-	//scene.socket = io("http://localhost:3000/game");
+	scene.socket = io("http://localhost:3000/game");
 
     /* GO TO SETTINGS & WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -71,7 +73,7 @@ export default class CustomizableGame extends Phaser.Scene {
     });
 
     /* EVENT LISTENERS */
-    f.addEventListeners(scene.level, width, height, scene);
+    f.addEventListeners(scene.level, width, height, scene, game);
   }
 
   update() {

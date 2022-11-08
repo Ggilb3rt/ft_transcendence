@@ -5,9 +5,7 @@ import { Ball, Player, WR1, WR2, WR3 } from './classes';
 @Injectable()
 export class GameService {
 	private waitingRooms = {};
-    private activeGames = {
-		"abcdef": 0,
-	};
+    private activeGames = {};
     private players = {};
 
 	constructor() {
@@ -19,12 +17,15 @@ export class GameService {
 	}
 
     handleConnection(client: Socket, server: Server) {
+		//console.log(client.handshake.query.test);
+
         this.players[client.id] = {
             id: client.id,
             socket: client,
             roomId: "",
             level: 0,
             spectator: false,
+			userId: 0,
         }
         //console.log("PLAYERS")
         //console.log(this.players);
@@ -32,11 +33,13 @@ export class GameService {
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
         const level = data.level;
-        //console.log(level);
-        const player = this.players[client.id];
+		const userId = data.userId;
+		const player = this.players[client.id];
+
         let wr = this.waitingRooms[level];
 
         this.players[client.id].level = level;
+		this.players[client.id].userId = userId;
 
 
         // Waiting room is empty
@@ -49,6 +52,7 @@ export class GameService {
             wr.playerOne.socket = player.socket;
             wr.playerOne.roomId = roomId;
 			wr.playerOne.level = level;
+			wr.playerOne.userId = userId;
             wr.level = level;
             this.players[player.id].roomId = wr.roomId;
             //console.log(wr);
@@ -60,6 +64,7 @@ export class GameService {
             wr.playerTwo.socket = player.socket;
             wr.playerTwo.roomId = wr.roomId;
 			wr.playerTwo.level = level;
+			wr.playerTwo.userId = userId;
             this.players[player.id].roomId = wr.roomId;
             // Waiting room has 2 players
             if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
@@ -80,10 +85,12 @@ export class GameService {
                 wr.playerOne.socket = "";
                 wr.playerOne.roomId = "";
 				wr.playerOne.level = 0;
+				wr.playerOne.userId = 0;
                 wr.playerTwo.id = "";
                 wr.playerTwo.socket = "";
                 wr.playerTwo.roomId = "";
 				wr.playerTwo.level = 0;
+				wr.playerTwo.userId = 0;
 				wr.level = 0;
             }
         }
@@ -138,7 +145,6 @@ export class GameService {
         this.initBall(state.ball);
         //server.to(data.roomName).emit("launchBall", state);
         client.emit("launchBall", state);
-		console.log("garn2 " + this.getActiveRoomNames());
     }
 
     initBall(ball: Ball) {
@@ -187,6 +193,8 @@ export class GameService {
     async handleDisconnect(client: Socket, server: Server) {
         const roomName = this.players[client.id].roomId;
         const level = this.players[client.id].level;
+		const userId = this.players[client.id].userId;
+		console.log("USER ID " + userId);
 
         if (this.players[client.id].spectator) {
             console.log("spectator disconnected");
@@ -195,6 +203,8 @@ export class GameService {
             return;
         }
 
+		//console.log(roomName);
+		//console.log(this.activeGames[roomName]);
         if (this.activeGames[roomName]) {
 			console.log("existing room name");
             let connSockets = await server.in(roomName).fetchSockets();
@@ -225,8 +235,10 @@ export class GameService {
 
     async handleQuitGame(client: Socket, server: Server) {
         const roomName = this.players[client.id].roomId;
-        let level = this.players[client.id].level;
+        const level = this.players[client.id].level;
+		const userId = this.players[client.id].userId;
 		console.log("level quit " + level)
+		console.log("USER ID " + userId);
         
         if (this.players[client.id].spectator) {
             console.log("spectator left");
@@ -280,11 +292,13 @@ export class GameService {
             wr.playerOne.socket = wr.playerTwo.socket;
             wr.playerOne.roomId = wr.playerTwo.roomId;
             wr.playerOne.level = wr.playerTwo.level;
+			wr.playerOne.userId = wr.playerTwo.userId;
         } else {
             wr.playerTwo.id = "";
             wr.playerTWo.socket = "";
             wr.playerTwo.roomId = "";
-            wr.playerTwo.level = '0';
+            wr.playerTwo.level = 0;
+			wr.playerTwo.userId = 0;
         }
     }
 

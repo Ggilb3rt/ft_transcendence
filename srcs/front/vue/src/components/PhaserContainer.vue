@@ -19,10 +19,11 @@ import CatPongGame from "./game/scenes/CatPongGame";
 const containerId = "game-container";
 const userStore = useUserStore();
 //const usersStatusStore = useStatusStore();
+const type = "general"
 const socket = io("http://localhost:3000/game");
 let gameInstance;
 let activeRoomNames = {};
-let key;
+let key: string;
 
 class Game extends Phaser.Game {
   constructor() {
@@ -38,27 +39,25 @@ class Game extends Phaser.Game {
 }
 
 onMounted(() => {
-  const route = useRoute();
-  console.log("ROOUTE");
-  console.log(route);
-  console.log("QUERY");
-  console.log(route.query.test);
+	const route = useRoute();
+  //console.log("ROOUTE");
+  //console.log(route);
+  //console.log("QUERY");
+  //console.log(route.query.test);
   key = route.params.ourGames;
   socket.emit("getActiveRoomNames");
   socket.on("getActiveRoomNames", (data) => {
     activeRoomNames = data.roomNames;
-    //console.log("ACTIVE ROOM NAMES" + activeRoomNames);
-	//console.log(typeof activeRoomNames);
   });
 
   if (
     key != "pong" &&
     key != "catPong" &&
-    key != "customizable"
-     && key in activeRoomNames === false
+    key != "customizable" &&
+    key in activeRoomNames === false
   ) {
     router.replace({ path: "/game" });
-	key = "";
+    key = "";
   }
 
   console.log("KEY PARAM URL : " + key);
@@ -66,18 +65,34 @@ onMounted(() => {
 });
 
 onUpdated(() => {
-  console.log("UNLOADDDDDDD");
+  //console.log("UNLOADDDDDDD");
   router.push("/game");
+  
 });
 
 onBeforeUnmount(() => {
-	console.log("UNMOUNTTTTTTTTTTTT");
-	//gameInstance.scene.stop("DefaultGame");
-	//gameInstance.scene.stop("CustomizableGame");
-	//gameInstance.scene.stop("CatPongGame");
-	console.log(gameInstance.scene.scenes);
-})
+  let s = gameInstance.scene.scenes[2].socket;
+  if (s !== null && s !== undefined) {
+    console.log("default socket");
+    console.log(s);
+    s.disconnect();
+  }
+  s = gameInstance.scene.scenes[3].socket;
+  if (s !== null && s !== undefined) {
+    console.log("custom socket");
+    console.log(s);
+    s.disconnect();
+  }
+  s = gameInstance.scene.scenes[4].socket;
+  if (s !== null && s !== undefined) {
+    console.log("catpong socket");
+    console.log(s);
+    s.disconnect();
+  }
+  socket.disconnect();
 
+
+});
 </script>
 
 <template>

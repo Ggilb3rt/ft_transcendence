@@ -1,11 +1,12 @@
 import router from "@/router";
+import { Scene } from "phaser";
 import eventsCenter from "../scenes/EventsCenter";
 
 export default class GamePlay {
   constructor() {}
 
   joinQueue(scene, level) {
-    scene.socket.emit("joinQueue", { level });
+    scene.socket.emit("joinQueue", { level, userId: scene.userId });
   }
 
   watchGame(scene) {
@@ -20,7 +21,7 @@ export default class GamePlay {
 
   /* EVENT LISTENERS */
 
-  addEventListeners(level, width, height, scene) {
+  addEventListeners(level, width, height, scene, game) {
     this.listenInitPlayer(scene);
     this.listenInitGame(scene);
     this.listenInitBallMovement(scene);
@@ -32,8 +33,9 @@ export default class GamePlay {
     this.listenPlayerMoved(width, height, scene);
     this.listenAddPoint(level, width, height, scene);
     this.listenGameResult(width, height, scene);
-    this.listenLeftGame(width, height, scene);
+    this.listenLeftGame(width, height, scene, game);
     this.listenRematch(level, width, height, scene);
+    this.listenPauseGame(scene, game);
   }
 
   listenInitPlayer(scene) {
@@ -159,7 +161,7 @@ export default class GamePlay {
     });
   }
 
-  listenLeftGame(width, height, scene) {
+  listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
       if (type === 1) {
         alert("YOUR OPPONENT LEFT");
@@ -181,15 +183,15 @@ export default class GamePlay {
       } else if (scene.level === 3) {
         scene.scene.stop("CatPongGame");
       }
+	  //scene.socket.disconnect();
       scene.scene.start(
         "MenuScene",
         {
           userId: scene.userId,
           spectator: scene.spectator,
-          level: 0,
+          level: "",
         } /*, {socket: scene.socket}*/
       );
-      console.log("QUIIIIIIIIIIIIIIIITTT");
       router.replace({ path: "/game" });
     });
   }
@@ -206,6 +208,43 @@ export default class GamePlay {
           scene.socket.emit("launchBall", { roomName: scene.roomName });
         }
       });
+    });
+  }
+
+  listenPauseGame(scene, game) {
+    game.events.on(
+      "hidden",
+      function () {
+        if (scene.activeGame) {
+          scene.socket.emit("pauseGame", { roomName: scene.roomName });
+          console.log("hidden");
+          scene.scene.resume();
+        }
+      },
+      scene
+    );
+
+    scene.socket.on("pauseGame", () => {
+      if (scene.activeGame) {
+        scene.pauseText.setVisible(true);
+        scene.scene.pause();
+      }
+    });
+
+    game.events.on(
+      "visible",
+      function () {
+        if (scene.activeGame) {
+          scene.socket.emit("unpauseGame", { roomName: scene.roomName });
+          console.log("visible");
+        }
+      },
+      scene
+    );
+
+    scene.socket.on("unpauseGame", () => {
+      scene.pauseText.setVisible(false);
+      scene.scene.resume();
     });
   }
 
@@ -391,6 +430,7 @@ export default class GamePlay {
     this.initScores(width, height, scene);
     this.initObjectEventListeners(scene);
     this.initUIButtons(width, height, scene);
+    this.initPauseText(width, height, scene);
   }
 
   initBackground(level, width, height, scene) {
@@ -647,6 +687,16 @@ export default class GamePlay {
         console.log("YOU NEED TO FINISH THE GAME BEFORE A REMATCH");
       }
     });
+  }
+
+  initPauseText(width, height, scene) {
+    scene.pauseText = scene.add
+      .text(width / 2 - 60, height / 2, "GAME PAUSED", {
+        fill: "#ffffff",
+        fontSize: "20px",
+        fontStyle: "bold",
+      })
+      .setVisible(false);
   }
 
   reinitState(level, width, height, scene) {
