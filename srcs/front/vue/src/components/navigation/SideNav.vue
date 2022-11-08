@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, onUnmounted, ref, watch } from 'vue'
-import { RouterLink, RouterView } from "vue-router";
+import { onBeforeMount, onBeforeUnmount, ref } from 'vue'
+import { RouterLink } from "vue-router";
 import { useChannelsStore } from '@/stores/channels';
+import { useUsersStore } from '@/stores/users';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
 
@@ -12,6 +13,7 @@ const props = defineProps({
 
 let winWidth = ref(window.innerWidth)
 const channelsStore = useChannelsStore()
+const usersStore = useUsersStore()
 
 function isOpen(index: number) {
 	return props.model.items[index].isOpen
@@ -52,17 +54,23 @@ onBeforeMount(() => {
 	else
 		props.model.isOpen = false
 
-
-	console.log("mounte sideNav model ", props.model)
+	if (props.onRight) {
+		if (channelsStore.currentChan) {
+			if (props.model.items.length > 1) {
+				props.model.items[1].children = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
+			}
+		}
+		else{
+			if (props.model.items.length > 1) {
+				props.model.items[1].children = []
+			}
+		}
+	}
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
 })
-
-// watch(props.model, (newModel) => {
-// 	console.log("model change on sideNavvvvv", props.model, newModel)
-// })
 
 </script>
 
@@ -76,7 +84,6 @@ onBeforeUnmount(() => {
 			<i class="icon_btn">
 				<CarbonClose></CarbonClose>
 			</i>
-			<!-- {{ props.model.name }} -->
 		</button>
 		<li v-for="el, index in model.items" :key="el">
 			<nav

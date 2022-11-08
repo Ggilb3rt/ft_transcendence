@@ -107,16 +107,6 @@ export class CChannel {
 		// return false
 		return false
 	}
-	renameChannel(userId:number, newName:string): boolean {
-		if (this.isOwner(userId)) {
-			if (this.ChanName == newName) {
-				// check with server
-				this.ChanName = newName
-				return true
-			}
-		}
-		return false
-	}
 	changeChannelType(userId:number, newType:TChannelType, newPass?:string): boolean {
 		if (this.isOwner(userId)) {
 			if (newType != this.getType()) {

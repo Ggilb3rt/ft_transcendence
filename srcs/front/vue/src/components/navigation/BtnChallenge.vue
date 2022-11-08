@@ -11,7 +11,7 @@ const props = defineProps({
 })
 
 const showModal = ref(false)
-const gameType = ref("0")
+const gameType = ref(0)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
@@ -26,7 +26,7 @@ async function selecteGameType() {
 
 async function challenge() {
     if (usersStore.user)
-        statusStore.challengeUser(userStore.user.id, Number(gameType.value), props.userId)
+        statusStore.challengeUser(userStore.user.id, gameType.value, props.userId)
 
     if (usersStore.user && statusStore.socketIsAvailable(props.userId)) {
         console.log(`challenge from ${userStore.user.id} to ${props.userId}`)
@@ -58,13 +58,13 @@ async function goSpectate() {
 			</template>
 			<template #body>
 				<select v-model="gameType" id="gameTypeSelector">
-					<option value="0">Pong</option>
-					<option value="1">FancyPong</option>
-					<option value="2">Fong</option>
+					<option value=0>Pong</option>
+					<option value=1>FancyPong</option>
+					<option value=2>Fong</option>
 				</select>
 				<button @click="selecteGameType()">Go !</button>
 				<button @click="showModal = false">Cancel</button>
-				{{ gameType }}
+				{{ gameType}}
 			</template>
 		</Modal>
 	</div>

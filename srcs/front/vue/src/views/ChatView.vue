@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onUpdated, watch, onBeforeMount } from 'vue'
+import { ref, onUpdated, watch, onBeforeMount, onBeforeUpdate } from 'vue'
 import { useRoute } from 'vue-router';
+import router from "@/router"
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
@@ -197,12 +198,17 @@ onBeforeMount(() => {
 	channelsStore.unselectCurrentChan()
 })
 
-onUpdated(() => {
+onBeforeUpdate(() => {
 	childIsmounted()
 	console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
 })
 
-
+watch(route, (newRoute) => {
+	console.log("change route from chat")
+	if (newRoute.name == "channel") {
+		sideNavDataRight.value.items[1].children = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
+	}
+})
 
 
 </script>

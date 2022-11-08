@@ -49,7 +49,6 @@ async function sendCreateChan() {
 	userStore.loading = true
 	//fetch
 	let channelconst: IChannel = {
-		id: 99,
 		ChanName: chanName.value,
 		type: chanType.value,
 		pass: chanPass.value,
@@ -60,8 +59,35 @@ async function sendCreateChan() {
 		muteList: [],
 		messages: []
 	}
-	newChannel.value = channelconst
-	userStore.loading = false
+
+	try {
+		const response = await fetch(`http://localhost:3000/channels/`, {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(channelconst),
+			credentials: "include"
+		})
+		var data;
+		if (response.status >= 200 && response.status < 300) {
+			data = await response.json()
+		}
+		else {
+			throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+		}
+		if (data) {
+			// faire des trucs avec la réponse... genre set le bon id
+			console.log("réponse de create ", data)
+			newChannel.value = data
+		}
+	} catch (error: any) {
+		const tempErr = JSON.parse(error.message)
+		channelsStore.error = tempErr.body
+	} finally {
+		userStore.loading = false
+	}
 }
 
 

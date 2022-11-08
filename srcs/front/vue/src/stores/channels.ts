@@ -57,8 +57,13 @@ export const useChannelsStore = defineStore('channels', () => {
 					data = await response.json()
 				else
 					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
-				if (data)
+				if (data) {
 					chanRestrictList.value = data
+					// chanRestrictList.value = data.availableChannels
+					// data.joinedChannels.forEach((chan: IChannelRestrict) => {
+					// 	// check 
+					// })
+				}
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
@@ -123,7 +128,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			}
 			return []
 		}
-	
+
 	return {
 		chanRestrictList,
 		chanList,
