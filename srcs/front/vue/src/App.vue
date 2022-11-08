@@ -14,6 +14,7 @@ import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
 import ModalChallenge from "@/components/ModalChallenge.vue"
+import Loader from "./components/navigation/loader.vue";
 
 //! Deux problèmes :
   // problème important : il est necessaire de cliquer deux fois sur connection pour se connecter

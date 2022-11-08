@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUnmount, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, RouterView } from "vue-router";
+import { useChannelsStore } from '@/stores/channels';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
 
-let winWidth = ref(window.innerWidth)
 const props = defineProps({
 	model: {type: [Object], required: true},
 	onRight: {type: Boolean, required: true}
 })
+
+let winWidth = ref(window.innerWidth)
+const channelsStore = useChannelsStore()
 
 function isOpen(index: number) {
 	return props.model.items[index].isOpen
@@ -29,12 +32,16 @@ function updateWinWidthValue(e: Event) {
 }
 
 function leaveChannel(link: string) {
-	const id: Array<string> = link.split('/')
+	const id: Array<string> = link.split('/').at(-1)
 	
-	if(confirm(`You want to leave chan ${id.at(-1)} ?`)) {
+	if(id && confirm(`You want to leave chan ${id} ?`)) {
 		// send to server
-		alert("you leave chan")
+		console.log("you leave chan", id)
 	}
+}
+
+function joinChannel(link: string) {
+	alert(`you join channel ${link}`)
 }
 
 onBeforeMount(() => {
@@ -87,7 +94,8 @@ onBeforeUnmount(() => {
 					<li v-for="child in el.children" :key="child">
 						<RouterLink v-if="child.href" :to="child.href" class="channel_link">
 							{{ child.name }}
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.href)" class="btn_leave"><CarbonClose></CarbonClose></button>
+							<button v-if="!onRight && el.canJoin" @click.prevent="joinChannel(child.href)" class="btn_hide btn_join">join</button>
+							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.href)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
 						</RouterLink>
 						<button v-else>{{ child.name }}</button>
 					</li>
@@ -115,19 +123,24 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 	position: relative;
 }
-.channel_link:hover .btn_leave {
+.channel_link:hover .btn_hide {
 	right: 0;
 }
-.btn_leave {
-	/* display: none; */
+
+.btn_hide {
 	position: absolute;
-	background: var(--global-c-red);
 	border: none;
 	color: var(--vt-c-white-mute);
 	width: 25px;
 	height: 25px;
 	right: -25px;
 	transition: right .3s ease-in-out;
+}
+.btn_join {
+	background: var(--global-c-blue);
+}
+.btn_leave {
+	background: var(--global-c-red);
 }
 
 .btn_side {

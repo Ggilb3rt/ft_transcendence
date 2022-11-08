@@ -15,21 +15,21 @@ interface IChannelsStore {
 
 let channelMsgs: TMessage[] = [
 	{
-		sender: 2,
+		sender: 7,
 		receiver: 3,
 		msg: "lol",
 		isDirect: false,
 		date: new Date()
 	},
 	{
-		sender: 3,
+		sender: 8,
 		receiver: 3,
 		msg: "pouet un message tres long pour voir ce que ca fait tout autour, poour pousser le btn challenge et l'img",
 		isDirect: false,
 		date: new Date()
 	},
 	{
-		sender: 3,
+		sender: 9,
 		receiver: 3,
 		msg: "internet",
 		isDirect: false,
@@ -42,7 +42,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	
 	const chanRestrictList =  ref<IChannelRestrict[]>([])
 	const chanList = ref<CChannel[]>([
-		new CChannel(3, "le Premier chan", "public", "", 2, [1,2,7,9], [7], [], [], channelMsgs)
+		new CChannel(3, "le Premier chan", "public", "", 7, [1,2,7,9], [7, 1, 2], [], [], channelMsgs)
 	])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
