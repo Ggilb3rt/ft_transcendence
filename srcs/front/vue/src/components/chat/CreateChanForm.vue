@@ -46,7 +46,7 @@ async function sendCreateChan() {
 	//fetch
 	let channelconst: IChannel = {
 		id: 99,
-		name: chanName.value,
+		chanName: chanName.value,
 		type: chanType.value,
 		pass: chanPass.value,
 		owner: userStore.user.id,

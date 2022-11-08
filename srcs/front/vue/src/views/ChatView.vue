@@ -10,7 +10,13 @@ import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 import CreateChanForm from '@/components/chat/CreateChanForm.vue'
 import Loader from '@/components/navigation/loader.vue'
 
-
+const usersStore = useUsersStore()
+const userStore = useUserStore()
+const channelsStore = useChannelsStore()
+const route = useRoute()
+const childMounted = ref<Object[]>([])
+// let leftIsActive = ref(false);
+// let rightIsActive = ref(false);
 
 /*
  * Routes for the back
@@ -130,7 +136,10 @@ import Loader from '@/components/navigation/loader.vue'
 	// createChannel
 	
 
-
+function childIsmounted() {
+	const ret = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
+	ret ? childMounted.value = ret : childMounted.value = []
+}
 
 const channelList = ref([
 	{ name: 'chan1', href: '/chat/room/1' },
@@ -151,6 +160,7 @@ const sideNavDataLeft = ref({
 		{
 			name: 'All channels',
 			children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			canJoin: true,
 			isOpen: false
 		},
 		{
@@ -162,24 +172,6 @@ const sideNavDataLeft = ref({
 			isOpen: true
 		}
 	]
-})
-
-
-// get the friends from usersStore
-const usersStore = useUsersStore()
-const userStore = useUserStore()
-const channelsStore = useChannelsStore()
-
-
-const currentUserList = ref<object[]>([])
-function changeCurrentUserList(userList: object[]) {
-	console.log('currentUserList from parent in function', userList, currentUserList.value)
-	currentUserList.value = userList
-	console.log("currentUserList avec change ", currentUserList.value)
-}
-
-onUpdated(() => {
-	console.log('currentUserList from parent ', currentUserList.value)
 })
 
 const sideNavDataRight = ref({
@@ -194,15 +186,24 @@ const sideNavDataRight = ref({
 		{
 			name: 'Currents users in channel',
 			// children: currentUserList.value,
-			children: usersStore.getUsersListForChat(channelsStore.getUsersInChannel(2)),
+			// children: childMounted.value,	// marche pas parceque je devrai props au sideNav qu'il doit se mettre à jour
+			children: usersStore.getUsersListForChat(channelsStore.getUsersInChannel()), // bug, la mise à jour se fait en décalé
 			isOpen: true
 		}
 	]
 })
 
-let leftIsActive = ref(false);
-let rightIsActive = ref(false);
-const route = useRoute()
+onBeforeMount(() => {
+	channelsStore.unselectCurrentChan()
+})
+
+onUpdated(() => {
+	childIsmounted()
+	console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
+})
+
+
+
 
 </script>
 
@@ -214,7 +215,7 @@ const route = useRoute()
 
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
-		<router-view v-else @send-list="(data) => changeCurrentUserList(data)"></router-view>		
+		<router-view v-else @im-mounted="childIsmounted"></router-view>		
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
 </template>

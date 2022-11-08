@@ -4,8 +4,10 @@ import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestri
 import type {IOtherUserRestrict} from '../../types'
 import { useUserStore } from "@/stores/user"
 import { useUsersStore } from '@/stores/users'
+import { useChannelsStore } from '@/stores/channels'
 import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 import UserLink from '@/components/user/UserLink.vue'
+import AdminPanel from '@/components/chat/AdminPanel.vue'
 import { CChannel } from '@/helpers/class.channel'
 
 const props = defineProps({
@@ -14,27 +16,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits<{
-  (e: 'send-list', userList: object[]): void
+  (e: 'im-mounted'): void
 }>()
-
-const sendUserList = () => {
-	const currentList = currentChan.getUserList()
-	let newList: object[] = []
-
-	currentList.forEach((el) => {
-		const obj = { name: `${usersStore.getUserNickById(el)}`}
-		newList.push(obj)
-	})
-	emit('send-list', newList)
-}
-
-
-// setup the channel here and emit userList to ChatView
-
 
 const channelIdNumber = Number(props.channelId)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
+const channelsStore = useChannelsStore()
 let msg = ref("")
 
 
@@ -51,9 +39,6 @@ let msg = ref("")
 let currentChan = new CChannel(channelIdNumber, "Lol", "public", "", 9, [7, 8, 9], [9], [], [], [])
 console.log("le channel courant ", currentChan)
 
-onBeforeMount(() => {
-	// fetch Channel
-})
 
 // need to getMessages from channel(props.channelId)
 let channelMsgs: TMessage[] = [
@@ -92,12 +77,26 @@ function submit(e: Event) {
 			isDirect: props.direct,
 			date: new Date()
 		})
+		if (channelsStore.currentChan) {
+			channelsStore.currentChan.sendMessage({
+				sender: userStore.user.id,
+				reciever: channelIdNumber,
+				msg: msg.value,
+				isDirect: props.direct,
+				date: new Date()
+			})
+		}
 	}
 	msg.value = ""
 }
 
+onBeforeMount(() => {
+	// fetch Channel
+	channelsStore.selectCurrentChan(channelIdNumber)
+})
+
 onMounted(() => {
-	sendUserList()
+	// emit('im-mounted')
 })
 
 onUpdated(() => {
@@ -114,12 +113,13 @@ onUpdated(() => {
 </script>
 
 <template>
-	<div class="room">
+	<div class="room" v-if="channelsStore.currentChan">
 		<p>
 			<span v-if="props.direct">/direct/</span>{{ props.channelId }}
 		</p>
+		<AdminPanel></AdminPanel>
 		<div class="chatRoom" id="room-view">
-			<div v-for="msg in channelMsgs" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
+			<div v-for="msg in channelsStore.currentChan.messages" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
 				<div v-if="!userStore.isBan(msg.sender)" class="message">
 					<figure>
 						<UserLink :other-user="usersStore.getUserRestrictById(msg.sender)" remove-status remove-name remove-hover></UserLink>
@@ -158,6 +158,7 @@ onUpdated(() => {
 	height: calc(90vh - 89px);
 	overflow: scroll;
 	padding: 0px;
+	position: relative;
 }
 
 .room:hover ::-webkit-scrollbar {

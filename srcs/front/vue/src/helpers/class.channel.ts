@@ -129,7 +129,7 @@ export class CChannel {
 		return false
 	}
 	changePass(userId:number, newPass:string): boolean {
-		if (this.isAdmin(userId) && this.getType() == "pass") {
+		if (this.isOwner(userId) && this.getType() == "pass") {
 			if (this.pass != newPass && newPass.length > this.passMinLength) {
 				// check with server
 				this.pass = newPass
@@ -181,6 +181,14 @@ export class CChannel {
 			// send message "kicked.name was kicked"
 			const findUser = this.userList.findIndex((el) => el === kicked)
 			this.userList.splice(findUser, 1)
+			return true
+		}
+		return false
+	}
+	sendMessage(message: TMessage): boolean {
+		if (this.isInChannel(message.sender) && !this.isBan(message.sender) && !this.isMute(message.sender)) {
+			// send to back
+			this.messages.push(message)
 			return true
 		}
 		return false
