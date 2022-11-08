@@ -32,6 +32,11 @@ export class ChatController {
         return this.chatService.banUser(channel_id, banned, expires, req)
     }
 
+    @Post(':id/mute')
+    muteUser(@Body('muted', ParseIntPipe) banned: number, @Body('expires') expires, @Body('channel_id', ParseIntPipe) channel_id: number, @Req() req: Request) {
+        return this.chatService.muteUser(channel_id, banned, expires, req)
+    }
+    
     @Post(':id/promote')
     promoteUser(@Body('promoted', ParseIntPipe) id: number, @Body('channel_id', ParseIntPipe) channel_id: number, @Req() req: Request) {
         return this.chatService.promoteAdmin(id, channel_id, req);
