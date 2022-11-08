@@ -116,7 +116,20 @@ export class ChatHelper {
         }
     }
 
+    async kickOne(user_id: number, channel_id: number) {
+        const userList = await prisma.users_list.findFirst({where: {
+            user_id,
+            channel_id
+        }})
+        return await prisma.users_list.delete({
+            where: userList
+        }) 
+    }
+
     async banOne(user_id: number, channel_id: number, expires: Date) {
+        if (await this.isAdmin(channel_id, user_id)) {
+            await this.unAdmin(channel_id, user_id)
+        }
         try {
             const ban = await prisma.ban_channels.create({
                 data: {

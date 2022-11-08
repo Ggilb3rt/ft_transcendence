@@ -80,6 +80,13 @@ export class ChatService {
         return false
     }
 
+    async kickUser(channel_id: number, banned: number, req) {
+        if (await this.banPolicy(channel_id, banned, req) == false){
+            throw new ForbiddenException("Can't kick him")
+        }
+        return (await this.chatHelper.kickOne(banned, channel_id))
+    }
+
     async banUser(channel_id: number, banned: number, expires: Date, req) {
         // check if ban is in admin
         if (await this.banPolicy(channel_id, banned, req) == false)
@@ -109,6 +116,16 @@ export class ChatService {
         else if (channel.type === "public") {
             return await this.chatHelper.joinChannel(channel.id, user_id)
         }
+    }
+
+    async promoteAdmin(id: number, channel_id: number, req) {
+        const token = await this.getToken(req);
+
+        if (!await this.chatHelper.isAdmin(channel_id, token.id) && !await this.chatHelper.isOwner(channel_id, token.id))
+            throw new ForbiddenException("You have no right to promote a user")
+        if (!await this.chatHelper.isInChannel(channel_id, id))
+            throw new ForbiddenException("User needs to join channel before being promoted")
+        return await this.chatHelper.addAdmin(id, channel_id)
     }
 
     async getAvailableChannels(req) {
