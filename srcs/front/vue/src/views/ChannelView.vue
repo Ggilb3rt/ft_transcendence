@@ -140,7 +140,7 @@ onUpdated(() => {
 					<p>You banned this user</p>
 				</div>
 			</div>
-			<form>
+			<form v-if="!channelsStore.currentChan.isBan(userStore.user.id) && !channelsStore.currentChan.isMute(userStore.user.id) ">
 				<textarea v-model="msg" @keyup.enter="submit"></textarea>
 				<button @click="submit" class="send">Send</button>
 			</form>

@@ -3,12 +3,16 @@ import { ref, watch } from 'vue'
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
+import { useChannelsStore } from '@/stores/channels';
 import CarbonArrowLeft from "@/components/icones-bags/CarbonArrowLeft.vue"
 import CarbonArrowRight from "@/components/icones-bags/CarbonArrowRight.vue"
+import { CChannel } from '@/helpers/class.channel';
 
 
 const usersStore = useUsersStore()
 const userStore = useUserStore()
+const channelsStore = useChannelsStore()
+
 const nameErr = ref(false)
 const chanName = ref("")
 const chanType = ref<TChannelType>("public")
@@ -46,7 +50,7 @@ async function sendCreateChan() {
 	//fetch
 	let channelconst: IChannel = {
 		id: 99,
-		chanName: chanName.value,
+		ChanName: chanName.value,
 		type: chanType.value,
 		pass: chanPass.value,
 		owner: userStore.user.id,

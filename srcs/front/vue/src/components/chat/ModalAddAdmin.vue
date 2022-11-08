@@ -6,21 +6,18 @@ import { useChannelsStore } from '@/stores/channels'
 import Modal from '@/components/Modal.vue';
 import CarbonClose from '@/components/icones-bags/CarbonClose.vue'
 
-const minutesInOneYear: number = 525960
 const channelsStore = useChannelsStore()
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-const showRestrictUserModal = ref(false)
+const showModal = ref(false)
 const selectedUser = ref(0)
-const restrictType = ref(false)
-const minuteToAdd = ref(0)
 const formError = ref("")
 
 function valid() {
-	if (channelsStore.currentChan && minuteToAdd.value <= minutesInOneYear) {
-		if (channelsStore.currentChan.restrictUser(userStore.user.id, selectedUser.value, restrictType.value, minuteToAdd.value)) {
+	if (channelsStore.currentChan) {
+		if (channelsStore.currentChan.addAdmin(userStore.user.id, selectedUser.value)) {
 			// send data
-			console.log("send restrict user ", selectedUser.value, restrictType.value)
+			console.log("set admin user ", selectedUser.value)
 			cancel()
 		}
 		else
@@ -30,22 +27,20 @@ function valid() {
 
 function cancel() {
 	selectedUser.value = 0
-	restrictType.value = false
-	minuteToAdd.value = 0
 	formError.value = ""
-	showRestrictUserModal.value = false
+	showModal.value = false
 }
 
 </script>
 
 <template>
 		<div>
-			<button @click="showRestrictUserModal = true">
-				Restrict user
+			<button @click="showModal = true">
+				Add admin
 			</button>
-			<Modal :show="showRestrictUserModal" @close="showRestrictUserModal = false" removeOK>
+			<Modal :show="showModal" @close="showModal = false" removeOK>
 				<template #header>
-					<h3>Restrict a user</h3>
+					<h3>Set a user admin</h3>
 					<p class="red" v-if="formError.length > 0">{{ formError }}</p>
 				</template>
 				<template #body>
@@ -58,15 +53,6 @@ function cancel() {
 								{{ usersStore.getUserNickById(user) }}
 							</option>
 						</select>
-						<select v-model="restrictType">
-								<option value=false>Ban</option>
-								<option value=true>Mute</option>
-						</select>
-						<p>
-							<span v-if="restrictType">Mute</span>
-							<span v-else>Ban</span> 
-							<input type="number" v-model="minuteToAdd" :max="minutesInOneYear"> minutes
-						</p>
 					<button @click="valid()">Go !</button>
 					<button @click="cancel()">Cancel</button>
 				</template>

@@ -43,11 +43,21 @@ export class CChannel {
 	};
 
 	// Helpers
-	addMinutes(date: Date, minutes: number) {
+	addMinutes(date: Date, minutes: number): Date {
 		const dateCopy = new Date(date);
 		dateCopy.setMinutes(date.getMinutes() + minutes);
 
 		return dateCopy;
+	}
+	changeRestrictTime(userId:number, minutes: number, isBan: boolean) {
+		let userRestrict: TRestrictUserTime | undefined = undefined
+		
+		if (isBan)
+			userRestrict = this.banList.find((el) => el.userId == userId)
+		else
+			userRestrict = this.banList.find((el) => el.userId == userId)
+		if (userRestrict != undefined)
+			userRestrict.expire = this.addMinutes(userRestrict.expire, minutes)
 	}
 	async checkWithServer(url: string, option: Object): Promise<boolean> {
 		const response = await fetch(url, { credentials: "include"})
@@ -60,10 +70,9 @@ export class CChannel {
 		}
 		return false
 	}
-
 	// Getters
 	getName(): string { return this.ChanName }
-	getType(): string { return this.type }
+	getType(): TChannelType { return this.type }
 	getMessages(): TMessage[] { return this.messages }
 	getUserList(): number[] { return this.userList }
 	// Checkers
@@ -108,22 +117,18 @@ export class CChannel {
 		}
 		return false
 	}
-	changeChannelType(userId:number, newType:TChannelType, pass?:string): boolean {
+	changeChannelType(userId:number, newType:TChannelType, newPass?:string): boolean {
 		if (this.isOwner(userId)) {
 			if (newType != this.getType()) {
-				if (newType == "pass" && pass && pass.length > this.passMinLength) {
-					// check with server
-					this.type = newType
-					this.pass = pass
-					return true
-				}
-				else if (newType == "direct")
+				if (newType == "direct")
 					return false
-				else {
-					// check with server
-					this.type = newType
-					return true
-				}
+				if (newType == "pass" && ((newPass && this.pass == newPass && newPass.length < this.passMinLength) || !newPass))
+					return false
+				// check with server
+				this.type = newType
+				if (newPass != undefined)
+					this.pass = newPass
+				return true
 			}
 		}
 		return false
@@ -163,11 +168,15 @@ export class CChannel {
 				expire: this.addMinutes(new Date(), timeInMinutes)
 			}
 			if (onlyMute) {
+				if (this.isMute(restricted))
+					this.changeRestrictTime(restricted, timeInMinutes, false)
 				// check with server
 				this.muteList.push(restrict)
 				return true
 			}
 			else {
+				if (this.isBan(restricted))
+					this.changeRestrictTime(restricted, timeInMinutes, true)
 				// check with server
 				this.banList.push(restrict)
 				return true
