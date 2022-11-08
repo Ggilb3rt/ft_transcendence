@@ -30,7 +30,9 @@ export class ChatService {
 
 
     async getGatewayToken(headers, client: Socket) {
+        console.log("--------- HEADERS == ", headers)
         const token = this.extractToken(headers)
+        console.log("--------- token == ", token)
         const verifier = this.validate(token)
         if (verifier.validate.id) {
             client.disconnect()

@@ -13,7 +13,8 @@ import { UsersService } from 'src/users/users.service';
 
 @WebSocketGateway({
 	cors: {
-		origin: '*'
+        credentials: true,
+        origin: /localhost\:[\d]*?\/?[\w]*$/
 	},
     namespace: 'chat',
 })
@@ -32,7 +33,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     async handleConnection(client: Socket, user_id: number) {
 
-        await this.chatService.getGatewayToken(client.handshake.headers, client)
+        await this.chatService.getGatewayToken(client.handshake, client)
 
 
         const ids: number[] = [];

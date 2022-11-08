@@ -39,18 +39,20 @@ let channelMsgs: TMessage[] = [
 
 
 export const useChannelsStore = defineStore('channels', () => {
-	
-	const socket = ref(io('http://localhost:3000/chat'))
+
 
 	// ==> se connecte auto au serveur et declenche handleconnection // cote serveur se fait join ses rooms
 	// --> recupere la liste des rooms ou il est
-	// --> 
+	// --> subscribe aux messages
+	// --> emit depuis le front vers le back selon les actions utilisateur
 	const chanRestrictList =  ref<IChannelRestrict[]>([])
 	const chanList = ref<CChannel[]>([
 		new CChannel(3, "le Premier chan", "public", "", 1, [1,2,3], [1, 2], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
 	])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
+
+	let refsocket;
 
 		// Initialise
 		async function getChanRestrictList() {
@@ -69,6 +71,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// 	// check 
 					// })
 				}
+				refsocket = ref(io('http://localhost:3000/chat', {
+					withCredentials: true
+				}))
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
