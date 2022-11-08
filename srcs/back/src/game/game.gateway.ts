@@ -75,7 +75,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage("quitGame") 
     handleQuitGame(client: Socket, data: any) {
-        this.gameService.handleQuitGame(client, this.server);
+        this.gameService.handleQuitGame(client, data, this.server);
     }
 
     @SubscribeMessage("rematch") 
@@ -101,7 +101,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage("getActiveRoomNames")
 	async handleGetActiveRoomNames(client: Socket) {
-		const roomNames = await this.gameService.getActiveRoomNames();
+		const roomNames = await this.gameService.getActiveRoomNames(client);
 		client.emit("getActiveRoomNames", { roomNames });
 	}
 
@@ -113,6 +113,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage("unpauseGame")
 	handleUnpauseGame(client: Socket, data: any) {
 		this.server.in(data.roomName).emit("unpauseGame");
+	}
+
+	@SubscribeMessage("createGame") 
+	handleCreateGame(client: Socket, data: any) {
+		this.gameService.handleCreateGame(client, data, this.server);
+	}
+	@SubscribeMessage("joinGame")
+	handleJoinGame(client: Socket, data: any) {
+		this.gameService.handleJoinGame(client, data, this.server);
 	}
 
 

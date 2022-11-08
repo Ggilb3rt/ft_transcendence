@@ -29,16 +29,16 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     @WebSocketServer() server: Server;
 
 
-    private logger: Logger = new Logger('usersStatusGateway');
+    //private logger: Logger = new Logger('usersStatusGateway');
     private userArr: IStatus[] = []
 
     afterInit(server: Server) {
-        this.logger.log('Initialized')
+        //this.logger.log('Initialized')
     }
 
 
     async handleDisconnect(client: Socket) {
-        this.logger.log(`client disconnect : ${client.id}`)
+        //this.logger.log(`client disconnect : ${client.id}`)
         let uIndex = this.userArr.findIndex(el => el.socketId == client.id)
         
         if (uIndex != -1) {
@@ -65,7 +65,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     handleConnection2(client: Socket, arg: number) {
-        const alreadyConnected = this.userArr.findIndex((el) => {/*console.log("el ==== ", el, "id ==== ", arg); return el.userId === arg*/})
+        const alreadyConnected = this.userArr.findIndex((el) => {/*console.log("el ==== ", el, "id ==== ", arg);*/ return el.userId === arg})
         //console.log("handleConnection2")
         if (alreadyConnected != -1) {
             //console.log("already connected")
@@ -75,7 +75,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         //console.log('client id = ', client.id)
         const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
         this.userArr.push(u)
-        this.logger.log(`client connection : ${client.id}`)
+        //this.logger.log(`client connection : ${client.id}`)
         client.broadcast.emit('newStatusConnection', u)
         //console.log('arr = ', this.userArr)
         return this.userArr
@@ -92,7 +92,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('refuseChallenge')
     refuseChallenges(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.find((el) => {/*console.log(el); return el.userId === challenge.challenger*/})
+        const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i decline challenge from => ", receiver)
             this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
@@ -101,7 +101,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('abortChallenge')
     abortChallenge(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.find((el) => {/*console.log(el); return el.userId === challenge.challenged*/})
+        const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
         if (receiver) {
             //console.log("i abort challenge to => ", receiver)
             this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
@@ -110,7 +110,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('newChallenge')
     newChallenge(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.find((el) => {/*console.log(el); return el.userId === challenge.challenged*/})
+        const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
         //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
             //console.log("i challenge => ", receiver)
@@ -120,7 +120,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('challengeAccepted')
     acceptChallenge(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.find((el) => {/*console.log(el); return el.userId === challenge.challenger*/})
+        const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i accept challenge from => ", receiver)
             this.server.to(receiver.socketId).emit('challengeAccepted', challenge)

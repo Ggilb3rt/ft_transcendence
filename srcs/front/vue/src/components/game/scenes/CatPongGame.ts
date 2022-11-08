@@ -7,13 +7,13 @@ const f = new GamePlay();
 export default class CatPongGame extends Phaser.Scene {
   constructor() {
     super("CatPongGame");
-	let socket;
+	let socket = null;
   }
 
   init(data) {
 	this.userId = data.userId;
     this.spectator = data.spectator;
-	this.socket = null;
+	//this.socket = null;
     this.level = 3;
     this.playerNumber = 0;
     this.activeGame = false;

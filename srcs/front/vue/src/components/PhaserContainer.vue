@@ -15,15 +15,14 @@ import WaitingRoom from "./game/scenes/WaitingRoom";
 import DefaultGame from "./game/scenes/DefaultGame";
 import CustomizableGame from "./game/scenes/CustomizableGame";
 import CatPongGame from "./game/scenes/CatPongGame";
-import { anyTypeAnnotation } from "@babel/types";
 
 const containerId = "game-container";
 const userStore = useUserStore();
 //const usersStatusStore = useStatusStore();
-//let socket = io("http://localhost:3000/game");
+let socket;
 let gameInstance = null;
 let activeRoomNames = [];
-let key: any;
+let key: string;
 //let challenge = {};
 const data = {
   userId: userStore.user.id,
@@ -46,22 +45,23 @@ class Game extends Phaser.Game {
     this.scene.add("DefaultGame", DefaultGame);
     this.scene.add("CustomizableGame", CustomizableGame);
     this.scene.add("CatPongGame", CatPongGame);
-    // this.scene.start("Preloader", { userId: userStore.user.id, level: key });
     this.scene.start("Preloader", data);
   }
 }
 
 onMounted(() => {
+  socket = io("http://localhost:3000/game");
   const route = useRoute();
   const str = route.query.challenge;
+  //router.replace({ path: "/game" });
   //console.log("QUERY");
   //console.log(str);
 
-  //socket.emit("getActiveRoomNames");
+  socket.emit("getActiveRoomNames");
 
-  //socket.on("getActiveRoomNames", (payload) => {
-  //  activeRoomNames = payload.roomNames;
-    //console.log(activeRoomNames);
+  socket.on("getActiveRoomNames", (payload) => {
+    activeRoomNames = payload.roomNames;
+    console.log(activeRoomNames);
 
     // A CHALLENGE HAS BEEN ACCEPTED
     if (str) {
@@ -73,74 +73,68 @@ onMounted(() => {
       //data.challengeInfo.level = challenge.level;
       data.challengeInfo.level = 1;
       data.challengeInfo.challenged = challenge.challenged;
+      // data.userId = userStore.user.id,
     } else {
       // NO CHALLENGE
       key = route.params.ourGames;
+      //data.userId = userStore.user.id,
       if (
         key != "pong" &&
         key != "catPong" &&
-        key != "customizable"// &&
-       // activeRoomNames.includes(key) === false
+        key != "customizable" &&
+        activeRoomNames.includes(key) === false
       ) {
         console.log("wrong key");
         //key = "";
       } else {
-        data.level = key;
+        data.key = key;
         console.log("KEY");
         console.log(data.key);
       }
     }
-    router.replace({ path: "/game" });
+    //router.replace({ path: "/game" });
     console.log("DATA");
     console.log(data);
     gameInstance = new Game();
- // });
+  });
 });
 
 onUpdated(() => {
   //disconnectSockets();
-  router.replace({ path: "/game" });
+  //
   //console.log("HAHAH");
-  //router.push("/game");
-  const defScene = gameInstance.scene.scenes[3];
-  if (defScene != undefined && defScene != null && "socket" in defScene) {
-    //defScene.socket.disconnect();
-	defScene.socket.disconnect();
-    //console.log("socket exists");
+  router.replace({path: "/game"});
+  if (gameInstance) {
+    disconnectSockets();
   }
-  const custScene = gameInstance.scene.scenes[4];
-  if (custScene != undefined && custScene != null && "socket" in custScene) {
-    custScene.socket.disconnect();
-  }
-  const catScene = gameInstance.scene.scenes[5];
-  if (catScene != undefined && catScene != null &&"socket" in catScene) {
-    catScene.socket.disconnect();
-  }
-  //if (socket) {
-  //  socket.disconnect();
- // }
 });
 
 onBeforeUnmount(() => {
-	console.log(gameInstance.scene.scenes[3]);
-	const defScene = gameInstance.scene.scenes[3];
-  if (defScene != undefined && defScene != null && "socket" in defScene) {
-    //defScene.socket.disconnect();
-	defScene.socket.disconnect();
-    //console.log("socket exists");
-  }
-  const custScene = gameInstance.scene.scenes[4];
-  if (custScene != undefined && custScene != null && "socket" in custScene) {
-    custScene.socket.disconnect();
-  }
-  const catScene = gameInstance.scene.scenes[5];
-  if (catScene != undefined && catScene != null &&"socket" in catScene) {
-    catScene.socket.disconnect();
+  //console.log(gameInstance.scene.scenes[3]);
+  if (gameInstance) {
+    disconnectSockets();
   }
   if (socket) {
     socket.disconnect();
   }
 });
+
+function disconnectSockets() {
+  const defScene = gameInstance.scene.scenes[3];
+  if (defScene != undefined && defScene != null && "socket" in defScene) {
+    //defScene.socket.disconnect();
+    defScene.socket.disconnect();
+    //console.log("socket exists");
+  }
+  const custScene = gameInstance.scene.scenes[4];
+  if (custScene != undefined && custScene != null && "socket" in custScene) {
+    custScene.socket.disconnect();
+  }
+  const catScene = gameInstance.scene.scenes[5];
+  if (catScene != undefined && catScene != null && "socket" in catScene) {
+    catScene.socket.disconnect();
+  }
+}
 </script>
 
 <template>

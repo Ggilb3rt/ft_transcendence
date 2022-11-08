@@ -7,14 +7,17 @@ const f = new GamePlay();
 export default class DefaultGame extends Phaser.Scene {
   constructor() {
     super("DefaultGame");
-	let socket;
+    let socket = null;
   }
 
   init(data) {
-	this.userId = data.userId;
+    this.userId = data.userId;
     this.spectator = data.spectator;
-	this.socket = null;
+	this.challenge = data.challenge;
+	this.challengeInfo = data.challengeInfo;
+    //this.socket = null;
     this.level = 1;
+    this.roomComplete = false;
     this.playerNumber = 0;
     this.activeGame = false;
     this.matchEnded = false;
@@ -23,7 +26,7 @@ export default class DefaultGame extends Phaser.Scene {
     this.playerTwo = {};
     this.ball = {};
     this.roomName = "";
-	this.pauseText = {};
+    this.pauseText = {};
     this.playerOneScore = 0;
     this.playerTwoScore = 0;
     this.playerOneScoreText = {};
@@ -42,11 +45,17 @@ export default class DefaultGame extends Phaser.Scene {
   create() {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
-	const game = this.sys.game;
+    const game = this.sys.game;
     console.log("defaultgame");
 
-	/* INIT SOCKET */
-	scene.socket = io("http://localhost:3000/game");
+    if (scene.spectator) {
+      scene.roomComplete = true;
+    }
+
+    /* INIT SOCKET */
+    if (!scene.roomComplete) {
+      scene.socket = io("http://localhost:3000/game");
+    }
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -56,16 +65,31 @@ export default class DefaultGame extends Phaser.Scene {
     }
 
     /* ADD GAME OBJECTS */
-    f.createGameObjects(scene.level, null, scene.images, width, height, scene);
-
+    if (!scene.roomComplete) {
+      f.createGameObjects(
+        scene.level,
+        null,
+        scene.images,
+        width,
+        height,
+        scene
+      );
+    }
     /* JOIN QUEUE OR WATCH GAME*/
-    if (!scene.spectator) {
-      f.joinQueue(scene, scene.level);
+    if (!scene.spectator && !scene.roomComplete) {
+      if (!scene.challenge) {
+        f.joinQueue(scene, scene.level);
+      } else {
+		console.log("CREATE GAME");
+        scene.socket.emit("createGame", {userId: scene.userId, challengeInfo: scene.challengeInfo} );
+      }
     }
 
     /* EVENT LISTENERS */
-    f.addEventListeners(scene.level, width, height, scene, game);
-}
+    if (!scene.roomComplete) {
+      f.addEventListeners(scene.level, width, height, scene, game);
+    }
+  }
 
   update() {
     const scene = this;
@@ -76,5 +100,5 @@ export default class DefaultGame extends Phaser.Scene {
       f.checkPlayerMovement(scene);
       f.checkPoints(scene.level, width, height, scene);
     }
-}
+  }
 }

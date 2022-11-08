@@ -50,7 +50,8 @@ export default class GamePlay {
 
   listenInitGame(scene) {
     scene.socket.on("roomComplete", (state) => {
-		//router.replace({ path: `/game/${scene.roomName}` });
+      //router.replace({ path: `/game/${scene.roomName}` });
+      scene.roomComplete = true;
       eventsCenter.emit("ready");
       scene.paddleSpeed = state.players[0].speed;
       scene.time.delayedCall(3000, () => {
@@ -165,10 +166,10 @@ export default class GamePlay {
   listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
       if (type === 1) {
-        alert("YOUR OPPONENT LEFT");
+        //alert("YOUR OPPONENT LEFT");
         console.log("a player disconnected");
       } else if (type === 2) {
-        alert("YOUR OPPONENT LEFT");
+        //alert("YOUR OPPONENT LEFT");
         console.log("a player quit");
       }
       this.playerNumber = 0;
@@ -176,23 +177,23 @@ export default class GamePlay {
       this.spectator = false;
       this.activeGame = false;
       this.matchEnded = false;
+	  this.challenge = false;
       eventsCenter.emit("quit");
-      //if (scene.level === 1) {
-        scene.scene.stop("DefaultGame");
-      //} else if (scene.level === 2) {
-        scene.scene.stop("CustomizableGame");
-      //} else if (scene.level === 3) {
-        scene.scene.stop("CatPongGame");
-      //}
-	  //scene.socket.disconnect();
-      scene.scene.start(
-        "MenuScene",
-        {
-          userId: scene.userId,
-          spectator: scene.spectator,
-          level: "",
-        } /*, {socket: scene.socket}*/
-      );
+      scene.scene.stop("DefaultGame");
+
+      scene.scene.stop("CustomizableGame");
+
+      scene.scene.stop("CatPongGame");
+
+      scene.socket.disconnect();
+
+
+      //scene.socket = null;
+      console.log("LALALEILAL");
+      scene.scene.start("MenuScene", {
+        userId: scene.userId,
+		challenge: false,
+      });
       //router.replace({ path: "/game" });
     });
   }
@@ -217,6 +218,7 @@ export default class GamePlay {
       "hidden",
       function () {
         if (scene.activeGame) {
+          console.log("haha");
           scene.socket.emit("pauseGame", { roomName: scene.roomName });
           console.log("hidden");
           scene.scene.resume();
@@ -666,7 +668,11 @@ export default class GamePlay {
     scene.quitButton.setInteractive();
     scene.quitButton.on("pointerdown", () => {
       console.log("quit button clicked");
-      scene.socket.emit("quitGame");
+      scene.activeGame = false;
+      scene.socket.emit("quitGame", {
+        roomName: scene.roomName,
+        level: scene.level,
+      });
     });
 
     scene.rematchButton = scene.add.text(

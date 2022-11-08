@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import io from "socket.io-client";
+//import router from "@/router";
 
 import defaultBall from "../assets/balls/default/ball.png";
 import defaultPaddle from "../assets/paddles/default/paddle.png";
@@ -20,7 +21,7 @@ export default class Preloader extends Phaser.Scene {
     this.userId = data.userId;
     this.spectator = data.spectator;
     this.challenge = data.challenge;
-    this.level = data.level;
+    this.key = data.key;
     this.challengeInfo = data.challengeInfo;
 	this.socket = null;
   }
@@ -51,18 +52,20 @@ export default class Preloader extends Phaser.Scene {
     console.log("PRELOAD");
     console.log(scene.data);
     console.log(scene.level);
+	//router.replace({ path: "/game" });
 
     if (!scene.challenge) {
       scene.scene.start("MenuScene", {
         userId: scene.userId,
         spectator: scene.specator,
-        level: scene.level,
+        key: scene.key,
       });
     } else {
       if (scene.challengeInfo.level === 1) {
         scene.scene.start("DefaultGame", {
           userId: scene.userId,
           spectator: scene.spectator,
+		  challenge: scene.challenge,
           challengeInfo: scene.challengeInfo,
         });
       }
