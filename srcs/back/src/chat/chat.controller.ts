@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req } from '@nestjs/common';
+import { TChannel } from 'src/users/types';
 import { ChatService } from './chat.service';
 
-@Controller('chat')
+@Controller('channels')
 export class ChatController {
     constructor(private chatService: ChatService) {}
 
@@ -11,16 +12,27 @@ export class ChatController {
     //get /chat/available/id
     //get /chat/joined/id
 
-    @Get(':id')
-    getChannel(@Param('id', ParseIntPipe) channelId) {
-        return this.chatService.getChannel(channelId)
+    @Get('')
+    getChannels(@Body('id') id: number) {
+        return this.chatService.getAvailableChannels(id)
     }
 
-    // @Post()
-    // createChannel(@Body('Channel') channel) {
-    //     return this.chatService.createChannel(channel)
-    // }
+    @Get(':id')
+    getChannel(@Param('id', ParseIntPipe) channel_id: number, @Req() req: Request) {
+        return this.chatService.getChannel(channel_id, req)
+    }
 
+    @Post()
+    createChannel(@Body('channel') channel: TChannel) {
+        return this.chatService.createChannel(channel)
+    }
+
+    @Delete(':id')
+    deleteChannel(@Param('id', ParseIntPipe) channel_id: number, @Req() req: Request) {
+        return this.chatService.deleteChannel(channel_id, req)
+    }
+
+    
     // ROUTES FOR SOCKET
 
     // add remove an admin

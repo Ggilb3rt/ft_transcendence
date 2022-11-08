@@ -66,7 +66,7 @@ export class ChatHelper {
         // }
     }
 
-    async createChannel(chan: TChannel) {
+    async createChannel(chan: TChannel,) {
         try {
             const channel = await prisma.channels.create({
                 data:{
@@ -74,9 +74,12 @@ export class ChatHelper {
                     type: chan.type,
                     pass: chan.pass,
                     owner: chan.owner,
+                },
+                select: {
+                    id: true
                 }
             })
-            return channel;
+            return channel.id;
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -97,14 +100,13 @@ export class ChatHelper {
         }
     }
 
-    async muteOne(muted_id: number, channel_id: number) {
+    async muteOne(muted_id: number, channel_id: number, expires: Date) {
         try {
-            const mute_date = new Date()
             const muted = await prisma.muted.create({
                 data: {
                     muted_id,
                     channel_id,
-                    mute_date
+                    mute_date: expires
                 }
             })
             return muted
@@ -114,7 +116,7 @@ export class ChatHelper {
         }
     }
 
-    async banOne(user_id: number, channel_id: number, expires) {
+    async banOne(user_id: number, channel_id: number, expires: Date) {
         try {
             const ban = await prisma.ban_channels.create({
                 data: {
@@ -130,11 +132,11 @@ export class ChatHelper {
         }
     }
 
-    async deleteChannel(chan: TChannel) {
+    async deleteChannel(id: number) {
         try {
             await prisma.channels.delete({
                 where: {
-                    id: chan.id
+                    id
                 }
             })
         } catch (e) {
@@ -216,7 +218,7 @@ export class ChatHelper {
         }
     }
 
-    async getAvailableChannels(id: number) {
+    async getAvailableChannels() {
         try {
             const availableChannels = await prisma.channels.findMany({
                 where: {
@@ -228,6 +230,10 @@ export class ChatHelper {
                             type: 'pass'
                         }
                     ]
+                },
+                select: {
+                    id: true,
+                    name: true
                 }
             })
             return availableChannels
@@ -257,6 +263,7 @@ export class ChatHelper {
                     channel_id
                 }
             })  
+            return admins
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -379,6 +386,14 @@ export class ChatHelper {
         }
     }
 
+    async isAdmin(channel_id: number, user_id: number) {
+        const admin = await this.getAdmin(channel_id, user_id)
+        if (admin) {
+            return true
+        }
+        return false
+    }
+
     async leaveChannel(channel_id: number, user_id: number) {
         try {
             const user = await prisma.users_list.findFirst({
@@ -446,6 +461,14 @@ export class ChatHelper {
         }
     }
 
+    async checkPass(pass: string, channel_id) {
+        const channel = await this.getChannel(channel_id)
+
+        if (channel.pass === pass)
+            return true
+        return false
+    }
+
     async getChannel(channel_id: number) {
         try {
             return await prisma.channels.findUnique({
@@ -464,6 +487,7 @@ export class ChatHelper {
             throw new Error("error queriying a channel")
         }
     }
+
 
     // isInChannel(userId:number): boolean { this.userList.find(el => el == userId) ? true : false }
 	// 	isOwner(userId:number): boolean { userId == this.owner ? true : false }

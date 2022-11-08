@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { config } from 'dotenv';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser'
+import { ValidationPipe } from '@nestjs/common';
 // const fs = require('fs');
 declare const module: any;
 
@@ -27,6 +28,9 @@ async function bootstrap() {
     }
   });
   app.use(cookieParser())
+  app.useGlobalPipes(
+    new ValidationPipe()
+  )
   await app.listen(3000);
   } catch(err) {
     console.log(err);
