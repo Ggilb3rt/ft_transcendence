@@ -9,8 +9,8 @@ export class ChatController {
     constructor(private chatService: ChatService) {}
 
     @Get()
-    getChannels(@Req() req: Request) {
-        return this.chatService.getAvailableChannels(req)
+    async getChannels(@Req() req: Request) {
+        return this.chatService.getAvailableChannels(await this.chatService.getToken(req))
     }
 
     @Post()

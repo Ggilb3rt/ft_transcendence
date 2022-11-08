@@ -20,7 +20,8 @@ type TChallenge = {challenger: Number, level: Number, challenged: Number}
 
 @WebSocketGateway({
 	cors: {
-		origin: '*'
+        credentials: true,
+        origin: /localhost\:[\d]*?\/?[\w]*$/
 	},
     namespace: 'userStatus',
 })

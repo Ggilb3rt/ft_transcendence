@@ -13,11 +13,26 @@ export class ChatService {
     validate(token) {
         // console.log("token in validate in jwt-auth service", token)
         return {
-            validate: this.jwtService.verify(token)
+            validate: this.jwtService.verify(token, {secret: process.env.JWT_SECRET})
         }
       }
 
+
     extractToken = (req) => {
+        let token = null;
+  
+        // console.log("extractJwtfromCookie ", req.cookies)
+        if (req && req.cookie) {
+          token = req.cookie;
+          if (typeof(token) == "string") {
+                const value = token.slice(4)
+                console.log("token in extract  ", value)
+                return value;
+          }
+        }
+      };
+
+      extractTokenFromReq = (req) => {
         let token = null;
   
         // console.log("extractJwtfromCookie ", req.cookies)
@@ -30,11 +45,9 @@ export class ChatService {
 
 
     async getGatewayToken(headers, client: Socket) {
-        console.log("--------- HEADERS == ", headers)
         const token = this.extractToken(headers)
-        console.log("--------- token == ", token)
         const verifier = this.validate(token)
-        if (verifier.validate.id) {
+        if (!verifier.validate.id) {
             client.disconnect()
             throw new ForbiddenException("Token invalid")
         }
@@ -42,10 +55,10 @@ export class ChatService {
     }
 
     async getToken(req) {
-        const token = this.extractToken(req)
+        const token = this.extractTokenFromReq(req)
         const verifier = this.validate(token)
         console.log("Verifier == ", verifier);
-        return verifier.validate
+        return verifier.validate.id
     }
 
     async tokenIdCheck(req, id) {
@@ -190,10 +203,7 @@ export class ChatService {
         return await this.chatHelper.addAdmin(id, channel_id)
     }
 
-    async getAvailableChannels(req) {
-        const token = await this.getToken(req);
-
-        const user_id = token.id
+    async getAvailableChannels(user_id: number) {
         const myChannels = await this.chatHelper.getMyChannels(user_id)
 
         const ids: number[] = []

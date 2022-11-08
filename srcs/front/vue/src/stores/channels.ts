@@ -52,7 +52,10 @@ export const useChannelsStore = defineStore('channels', () => {
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
-	let refsocket;
+	const refsocket = io('http://localhost:3000/chat', {
+		withCredentials: true,
+		
+	});
 
 		// Initialise
 		async function getChanRestrictList() {
@@ -71,9 +74,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// 	// check 
 					// })
 				}
-				refsocket = ref(io('http://localhost:3000/chat', {
-					withCredentials: true
-				}))
+				const toto = refsocket.emit('getMyRooms')
+				console.log("toto ", toto);
+
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body

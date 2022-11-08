@@ -31,14 +31,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         this.logger.log('Chat Gateway Initialized')
     }
 
-    async handleConnection(client: Socket, user_id: number) {
+    async handleConnection(client: Socket) {
 
-        await this.chatService.getGatewayToken(client.handshake, client)
+        // await this.chatService.getGatewayToken(client.handshake, client)
 
+    }
+
+    @SubscribeMessage('getMyRooms')
+    async getMyRooms(client: Socket) {
 
         const ids: number[] = [];
         const rooms: string[] = [];
 
+        const user_id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const friends_id = await this.usersService.getFriends(user_id)
         const { joinedChannels } = await this.chatService.getAvailableChannels(user_id)

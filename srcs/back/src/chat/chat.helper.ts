@@ -229,13 +229,13 @@ export class ChatHelper {
                         select: {
                             name: true,
                             id: true
-                        }
+                        }   
                     }
                 }
             })
             return myChannels
         } catch (e) {
-            console.log(e);
+            console.log("error ", e);
             throw new Error("Database Chat Error")
         }
     }
