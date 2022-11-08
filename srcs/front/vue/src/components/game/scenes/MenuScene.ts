@@ -17,32 +17,25 @@ export default class MenuScene extends Phaser.Scene {
 
   create() {
     const scene = this;
-    //const { width, height } = this.scale;
 
     console.log("MENUSCENE + level = " + this.level);
-
-    /* INIT SOCKET */
-    //scene.socket = io("http://localhost:3000/game");
 
     if (scene.level === "pong") {
       //console.log("level pong");
       scene.scene.start("DefaultGame", {
         userId: scene.userId,
         spectator: scene.spectator,
-        //socket : scene.socket
       });
     } else if (scene.level === "catPong") {
       // console.log("level catpong");
       scene.scene.start("CatPongGame", {
         userId: scene.userId,
         spectator: scene.spectator,
-        //socket : scene.socket
       });
     } else if (scene.level === "customizable") {
       scene.scene.start("CustomizableGame", {
         userId: scene.userId,
         spectator: scene.spectator,
-        //socket : scene.socket
       });
     } else {
       scene.buttons.push(
@@ -74,13 +67,11 @@ export default class MenuScene extends Phaser.Scene {
         scene.scene.start(dest, {
           userId: scene.userId,
           spectator: scene.spectator,
-          //socket: scene.socket,
         });
       } else {
         scene.scene.start(dest, {
           userId: scene.userId,
           spectator: scene.spectator,
-          //socket: scene.socket,
         });
       }
     });

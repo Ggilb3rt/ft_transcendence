@@ -32,7 +32,7 @@ window.addEventListener('beforeunload', async (e) => {
   const res = await fetch('http://localhost:3000/auth/verify', {
     credentials: "include"
   })
-  console.log("res == ", res);
+  //console.log("res == ", res);
   if (res.status < 300) {
     if (userStore.conStatus == setStatus.connected) {
       localStorage.setItem('last_page', route.name.toString());
@@ -43,7 +43,7 @@ window.addEventListener('beforeunload', async (e) => {
 
 async function testConnection() {
   try {
-    console.log("Test Connection premiere ligne")
+    //console.log("Test Connection premiere ligne")
     userStore.loading = true
     const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
     localStorage.clear();
@@ -65,7 +65,7 @@ async function testConnection() {
         userStore.error = null
         userStore.connected = true
         usersStore.getUsers()
-        console.log('userStore.id = ', userStore.user.id)
+        //('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
         channelStore.getChanRestrictList();
       }
@@ -83,14 +83,14 @@ testConnection()
 
 // Socket Status
 watch(route, (newRoute) => {
-  console.log(route.matched)
+ // console.log(route.matched)
   if (usersStore.socketStatus) {
     if (newRoute.name == "game") {
-      console.log(newRoute.name)
+      //console.log(newRoute.name)
       // change my status by 'inGame' and emit it
-      console.log("in watch route user id should be 9 == ", userStore.user.id)
+      //console.log("in watch route user id should be 9 == ", userStore.user.id)
       statusStore.changeCurrentUserStatus("inGame", userStore.user.id)
-      console.log("should be inGame")
+      //console.log("should be inGame")
     }
     else {
       if (statusStore.status == "inGame")

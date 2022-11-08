@@ -46,7 +46,7 @@ onBeforeMount(() => {
 		props.model.isOpen = false
 
 
-	console.log("mounte sideNav model ", props.model)
+	//console.log("mounte sideNav model ", props.model)
 })
 
 onBeforeUnmount(() => {

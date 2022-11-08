@@ -28,7 +28,7 @@ export class ChatService {
     async getToken(req) {
         const token = this.extractToken(req)
         const verifier = this.validate(token)
-        console.log("Verifier == ", verifier);
+        //console.log("Verifier == ", verifier);
         return verifier.validate
     }
 

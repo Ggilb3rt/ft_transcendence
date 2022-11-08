@@ -55,20 +55,20 @@ export const useStatusStore = defineStore({
             const invitedBy= await fetch(`http://localhost:3000/users/${id}/pending`);
             if (!invitedBy)
                 return null
-            console.log("invitedBy = ", invitedBy, "invitedBy.json = ", invitedBy.json)
+            //console.log("invitedBy = ", invitedBy, "invitedBy.json = ", invitedBy.json)
             return invitedBy.json
         } ,
 
         pushToList(socketStatus: ISocketStatus) {
-            console.log("el == ", socketStatus)
-            console.log("liste == ", this.statusList.length)
-            const el = this.statusList.findIndex((el) => {console.log(socketStatus.userId, "   ", el.userId);return  socketStatus.userId === el.userId})
-            console.log("TROUVE", el)
+            //console.log("el == ", socketStatus)
+            //console.log("liste == ", this.statusList.length)
+            const el = this.statusList.findIndex((el) => {/*console.log(socketStatus.userId, "   ", el.userId);return  socketStatus.userId === el.userId*/})
+            //console.log("TROUVE", el)
             if (el != -1) {
                 this.statusList.splice(el, 1)
             }
             this.statusList.push(socketStatus)
-            console.log("DANS PUSH TO LIST ", this.statusList.length)
+            //console.log("DANS PUSH TO LIST ", this.statusList.length)
 
         },
 
@@ -81,25 +81,25 @@ export const useStatusStore = defineStore({
         },
 
         async setupSocket() {
-            console.log("setup socket condition == ", this.socket.connected)
+            //console.log("setup socket condition == ", this.socket.connected)
             if (this.socket.connected) {
                  //wait for sockets to be instanciated then grab current sockets and Push my instance to list of sockets
 
 
-                 console.log("FETCHING ALL STATUS ==> ", this.statusList)
+                 //console.log("FETCHING ALL STATUS ==> ", this.statusList)
 
 
                 this.socket.emit("findAllStatus", (res: any) => {
                     res.forEach((elem: any) => {
-                        console.log("ELEM IN CALLBACK == ", elem);
-                        console.log("LIST IN CB == ", this.statusList)
+                        //console.log("ELEM IN CALLBACK == ", elem);
+                        //console.log("LIST IN CB == ", this.statusList)
                         if (this.statusList.findIndex((el) => {return el.userId === elem.userId}) == -1) {
                             this.statusList.push(elem)
                         }
                     })
                 })
 
-                 console.log("FETCHING ALL STATUS ==> ", this.statusList)
+                 //console.log("FETCHING ALL STATUS ==> ", this.statusList)
 
                  setTimeout(() => {
                     this.pushToList({
@@ -124,7 +124,7 @@ export const useStatusStore = defineStore({
                      this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
                  })
                  this.socket.on("newStatusChange", (res: ISocketStatus) => {
-                     console.log("onChangeStatus", res)
+                    // console.log("onChangeStatus", res)
                      const changedIndex = this.statusList.findIndex((el) => el.socketId == res.socketId)
                      if (changedIndex != -1)
                        this.statusList[changedIndex].userStatus = res.userStatus
@@ -132,15 +132,15 @@ export const useStatusStore = defineStore({
              
                  //Messages for challenges
                  this.socket.on("newChallenge", (challenge: Challenge) => {
-                     console.log("Challenge recu")
+                    // console.log("Challenge recu")
                      if (challenge) {
-                     console.log("Challenge valide", challenge)
+                    // console.log("Challenge valide", challenge)
                          this.challenge = challenge
                          this.changeCurrentUserStatus('challenged', challenge.challenged)
                      }
                  })
                  this.socket.on("challengeAccepted", (challenge: any) => {
-                     router.push({path: "/game", query: {challenge: challenge}})
+                     router.push({path: "/game", query: {challenge: JSON.stringify(challenge)}})
                  })
                  this.socket.on("refuseChallenge", () => {
                      this.challenge = null
@@ -179,7 +179,7 @@ export const useStatusStore = defineStore({
         findSocket(id: Number) {
             const el =  this.statusList.find((el) => el.userId === id)
             if (el === undefined) {
-                console.log("inside error")
+                //console.log("inside error")
                 this.error = "Failed to find current user id in statusList array store on status change";
             }
             return el
@@ -189,27 +189,27 @@ export const useStatusStore = defineStore({
             const challenge: Challenge = {challenger: id, level, challenged}
             const el = this.findSocket(id)
             if (el) {
-                console.log("je suis la ")
+                //console.log("je suis la ")
                 this.socket.emit("newChallenge", challenge)
                 this.challenge = challenge
                 this.changeCurrentUserStatus('challenged', id)
             }
             else {
-                console.log("Noooooooo")
+                //console.log("Noooooooo")
             }
         },
 
         acceptChallenge() {
             this.socket.emit('challengeAccepted', this.challenge)
             let challenge: any = this.challenge
-            router.push({path: "/game", query: {challenge}})
+            router.push({path: "/game", query: {challenge: JSON.stringify(challenge)}})
         },
 
         changeCurrentUserStatus(newStatus: TStatus, id: Number) {
             const el = this.findSocket(id)
             
             if (el) {
-                console.log("----------- CHANGING STATUS -----------\n\n -----EL = ", el, "-----STATUS = ", newStatus)
+                //console.log("----------- CHANGING STATUS -----------\n\n -----EL = ", el, "-----STATUS = ", newStatus)
                 el.userStatus = newStatus
                 this.status = newStatus;
                 this.socket.emit("changeStatus", el)

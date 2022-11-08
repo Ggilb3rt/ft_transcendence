@@ -30,10 +30,10 @@ async function validNickChange(newNick: string) {
 				nickname: newNick
 			})
 			.then((data) => {
-				console.log('data from change nick', data)
+				//console.log('data from change nick', data)
 			})
 		} catch (error: any) {
-			console.log('change nick err', JSON.stringify(error))
+			//console.log('change nick err', JSON.stringify(error))
 			userStore.error = error.body
 			return
 		}

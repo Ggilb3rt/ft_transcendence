@@ -15,7 +15,7 @@ onUpdated(() => {
 	stores.forEach((store) => {
 		if (store.error != null) {
 			if (store.error.statusCode == 401) {
-				console.log("error popup ", store.error.statusCode)
+				//console.log("error popup ", store.error.statusCode)
 				// if (store.hasOwnProperty("connected"))
 				store.connected = false
 				// le reset fonctionne pas pour une raison qui m'échappe, mais en vrai c'est pas obligatoire notamment pour garder le message d'erreur

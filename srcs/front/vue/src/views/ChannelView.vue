@@ -37,7 +37,7 @@ let msg = ref("")
 // }
 
 let currentChan = new CChannel(channelIdNumber, "Lol", "public", "", 9, [7, 8, 9], [9], [], [], [])
-console.log("le channel courant ", currentChan)
+//console.log("le channel courant ", currentChan)
 
 
 // need to getMessages from channel(props.channelId)

@@ -67,7 +67,7 @@ async function changeImg(e: any) {
 				})
 				.then((data) => {
 					if (data) {
-						console.log("return data ", data)
+						//console.log("return data ", data)
 						const fileReader = new FileReader()
 						fileReader.readAsDataURL(img)
 						fileReader.onload = () => {

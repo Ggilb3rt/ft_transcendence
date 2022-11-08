@@ -44,12 +44,13 @@ export default class GamePlay {
       console.log("roomName", data.gameCode);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
-      router.replace({ path: `/game/${scene.roomName}` });
+      //router.replace({ path: `/game/${scene.roomName}` });
     });
   }
 
   listenInitGame(scene) {
     scene.socket.on("roomComplete", (state) => {
+		//router.replace({ path: `/game/${scene.roomName}` });
       eventsCenter.emit("ready");
       scene.paddleSpeed = state.players[0].speed;
       scene.time.delayedCall(3000, () => {
@@ -176,13 +177,13 @@ export default class GamePlay {
       this.activeGame = false;
       this.matchEnded = false;
       eventsCenter.emit("quit");
-      if (scene.level === 1) {
+      //if (scene.level === 1) {
         scene.scene.stop("DefaultGame");
-      } else if (scene.level === 2) {
+      //} else if (scene.level === 2) {
         scene.scene.stop("CustomizableGame");
-      } else if (scene.level === 3) {
+      //} else if (scene.level === 3) {
         scene.scene.stop("CatPongGame");
-      }
+      //}
 	  //scene.socket.disconnect();
       scene.scene.start(
         "MenuScene",
@@ -192,7 +193,7 @@ export default class GamePlay {
           level: "",
         } /*, {socket: scene.socket}*/
       );
-      router.replace({ path: "/game" });
+      //router.replace({ path: "/game" });
     });
   }
 

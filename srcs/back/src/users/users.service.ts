@@ -246,7 +246,7 @@ export class UsersService {
   async getOtherUser(id: number): Promise<otherFormat> {
 
     try {
-      console.log("jesuis la ")
+      //console.log("jesuis la ")
       const user = await prisma.users.findFirst({where:{id}})
 
       const {nickname, first_name, last_name, avatar_url, ranking, wins, loses} = user
@@ -298,17 +298,17 @@ export class UsersService {
     const user = await this.usersHelper.getUser(id);
 
     const myWriteFile = util.promisify(writeFile)
-    console.log("change avatar ", user.id.toString())
+    //("change avatar ", user.id.toString())
     const dest: string = path.join('/app/resources/', (user.id.toString() + '_id.jpeg'))
 
-    console.log("new dest ", dest)
+    //console.log("new dest ", dest)
     try {
       await myWriteFile(dest, file.buffer, 'ascii')
     } catch (e) {
       throw new Error('writing file to fs failed')
     }
     const ret = await this.usersHelper.changeAvatarUrl(id, dest);
-    console.log(ret)
+    //console.log(ret)
     return (dest);
   }
 

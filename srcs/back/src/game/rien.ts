@@ -192,15 +192,13 @@ export class GameService {
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-		//console.log("ALL PLAYERS BEFORE DISCONNECT")
-		//console.log(Object.keys(this.players));
-		console.log("players num a")
-		console.log(Object.keys(this.players).length);
+		console.log("ALL PLAYERS BEFORE DISCONNECT")
+		console.log(Object.keys(this.players));
 		const roomName = this.players[client.id].roomId;
         const level = this.players[client.id].level;
 		const userId = this.players[client.id].userId;
 		console.log("level disconnet " + level);
-		//console.log(client.id);
+		console.log(client.id);
 		//console.log("USER ID " + userId);
 
         if (this.players[client.id].spectator) {
@@ -216,8 +214,8 @@ export class GameService {
 			console.log("existing room name");
             let connSockets = await server.in(roomName).fetchSockets();
             connSockets.forEach((s) => {
-				//console.log("s disconnected");
-				//console.log(s.id);
+				console.log("s disconnected");
+				console.log(s.id);
                 s.emit("leftGame", 1);
                 s.leave(roomName);
 				//s.close();
@@ -235,8 +233,6 @@ export class GameService {
             }
         }
         Reflect.deleteProperty(this.players, client.id);
-		console.log("players num b")
-		console.log(Object.keys(this.players).length);
 
 		console.log("ACTIVE GAMES DISCO");
 		console.log(this.activeGames);

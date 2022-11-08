@@ -199,7 +199,7 @@ onBeforeMount(() => {
 
 onUpdated(() => {
 	childIsmounted()
-	console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
+	//console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
 })
 
 

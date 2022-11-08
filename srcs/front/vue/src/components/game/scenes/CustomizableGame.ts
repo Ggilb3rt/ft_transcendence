@@ -9,12 +9,12 @@ const f = new GamePlay();
 export default class CustomizableGame extends Phaser.Scene {
   constructor() {
     super("CustomizableGame");
+	let socket;
   }
 
   init(data) {
 	this.userId = data.userId;
     this.spectator = data.spectator;
-    //this.socket = data.socket;
 	this.socket = null;
     this.level = 2;
     this.playerNumber = 0;

@@ -26,25 +26,25 @@ async function enable2FA() {
 		})
 		.then((response) => {
 			if (response.status >= 200 && response.status < 300) {
-				console.log("enable 2FA ", response)
+				//console.log("enable 2FA ", response)
 				return response
 			}
 			throw new Error(response.statusText)
 		})
 		.then((data): Blob => {
-			console.log('data from change 2FA', data)
+			//console.log('data from change 2FA', data)
 			return data.blob()
 		})
 		.then((blob: Blob) => {
-			console.log("le blob de fin ", blob)
+			//console.log("le blob de fin ", blob)
 			twoFA_QR.value = URL.createObjectURL(blob)
 			showQr.value = true
-			console.log("j'aimerai changer le store svp")
+			//console.log("j'aimerai changer le store svp")
 			userStore.change2FA()
 			userStore.set2FAConnect(!userStore.twoFactorAuth)
 		})
 	} catch (error: any) {
-		console.log('change 2FA err', error)
+		//console.log('change 2FA err', error)
 		userStore.error = error
 	} finally {
 		// console.log("j'aimerai changer le store svp")
@@ -69,19 +69,19 @@ async function disable2FA() {
 		})
 		.then((response) => {
 			if (response.status >= 200 && response.status < 300) {
-				console.log("disable 2FA", response)
+				//console.log("disable 2FA", response)
 				return response.json
 			}
 			throw new Error(response.statusText)
 		})
 		.then((data) => {
-			console.log('disable 2FA data ', data)
-			console.log("j'aimerai changer le store svp")
+			//console.log('disable 2FA data ', data)
+			//console.log("j'aimerai changer le store svp")
 			userStore.change2FA()
 			userStore.set2FAConnect(!userStore.twoFactorAuth)
 		})
 	} catch (error: any) {
-		console.log('change 2FA err', error)
+		//console.log('change 2FA err', error)
 		userStore.error = error
 	} finally {
 		// console.log("j'aimerai changer le store svp")

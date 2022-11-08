@@ -7,12 +7,12 @@ const f = new GamePlay();
 export default class DefaultGame extends Phaser.Scene {
   constructor() {
     super("DefaultGame");
+	let socket;
   }
 
   init(data) {
 	this.userId = data.userId;
     this.spectator = data.spectator;
-    //this.socket = data.socket;
 	this.socket = null;
     this.level = 1;
     this.playerNumber = 0;
@@ -46,8 +46,7 @@ export default class DefaultGame extends Phaser.Scene {
     console.log("defaultgame");
 
 	/* INIT SOCKET */
-	const test = "hola";
-	scene.socket = io("http://localhost:3000/game", { query: {test}});
+	scene.socket = io("http://localhost:3000/game");
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {

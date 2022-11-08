@@ -28,14 +28,14 @@ async function findGame(event: Event, game: string) {
   btnEl?.appendChild(span)
 
 
-  console.log(url)
+  //console.log(url)
   for(let i = 0; i < 4; i++) {
     //await sleep(1000)
     span.innerText = motivational[i]
   }
 
   //await sleep(1000)
-  console.log(data);
+ // console.log(data);
   btnEl?.removeChild(span)
   router.push({ path: `/game/${game}` })
 }
