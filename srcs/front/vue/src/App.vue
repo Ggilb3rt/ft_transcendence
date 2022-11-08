@@ -8,6 +8,7 @@ import { io } from "socket.io-client"
 import { useUsersStore } from './stores/users';
 import { setStatus, useUserStore } from './stores/user';
 import { useStatusStore } from './stores/status'
+import { useChannelsStore } from './stores/channels'
 // import HelloWorld from "./components/HelloWorld.vue";
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
@@ -19,6 +20,7 @@ import ModalChallenge from "@/components/ModalChallenge.vue"
   // la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
 
 const route = useRoute()
+const channelStore = useChannelsStore()
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
@@ -65,6 +67,7 @@ async function testConnection() {
         usersStore.getUsers()
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
+        channelStore.getChanRestrictList();
       }
   } catch (error: any) {
     // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
@@ -106,8 +109,6 @@ watch(route, (newRoute) => {
 			<img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
 			<PrimaryNav></PrimaryNav>
 		</header>
-
-		<RouterView />
 
 		<ModalChallenge></ModalChallenge>
 

@@ -44,21 +44,21 @@ console.log("le channel courant ", currentChan)
 let channelMsgs: TMessage[] = [
 		{
 			sender: 8,
-			reciever: channelIdNumber,
+			receiver: channelIdNumber,
 			msg: "lol",
 			isDirect: props.direct,
 			date: new Date()
 		},
 		{
 			sender: 9,
-			reciever: channelIdNumber,
+			receiver: channelIdNumber,
 			msg: "pouet un message tres long pour voir ce que ca fait tout autour, poour pousser le btn challenge et l'img",
 			isDirect: props.direct,
 			date: new Date()
 		},
 		{
 			sender: userStore.user.id,
-			reciever: channelIdNumber,
+			receiver: channelIdNumber,
 			msg: "internet",
 			isDirect: props.direct,
 			date: new Date()
@@ -72,7 +72,7 @@ function submit(e: Event) {
 	if (msg.value != "") {
 		channelMsgs.push({
 			sender: userStore.user.id,
-			reciever: channelIdNumber,
+			receiver: channelIdNumber,
 			msg: msg.value,
 			isDirect: props.direct,
 			date: new Date()
@@ -80,7 +80,7 @@ function submit(e: Event) {
 		if (channelsStore.currentChan) {
 			channelsStore.currentChan.sendMessage({
 				sender: userStore.user.id,
-				reciever: channelIdNumber,
+				receiver: channelIdNumber,
 				msg: msg.value,
 				isDirect: props.direct,
 				date: new Date()

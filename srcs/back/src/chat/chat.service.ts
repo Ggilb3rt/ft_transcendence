@@ -1,20 +1,35 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
-import { JwtAuthStrategy } from 'src/jwt-auth/jwt-auth.strategy';
+import { JwtService } from '@nestjs/jwt';
 import { TChannelRestrict } from 'src/users/types';
 import { ChatHelper } from './chat.helper';
 
 @Injectable()
 export class ChatService {
-    constructor(private chatHelper: ChatHelper, private validate: JwtAuthService["validate"], private extractToken: JwtAuthStrategy["extractJwtFromCookie"] ) {}
+    constructor(private chatHelper: ChatHelper, private jwtService: JwtService) {}
+
+    validate(token) {
+        // console.log("token in validate in jwt-auth service", token)
+        return {
+            validate: this.jwtService.verify(token)
+        }
+      }
+
+    extractToken = (req) => {
+        let token = null;
+  
+        // console.log("extractJwtfromCookie ", req.cookies)
+        if (req && req.cookies) {
+          token = req.cookies['jwt'];
+          // console.log(token)
+        }
+        return token;
+      };
 
     async getToken(req) {
         const token = this.extractToken(req)
         const verifier = this.validate(token)
         console.log("Verifier == ", verifier);
-        const payload = verifier.validate.verify(token)
-        console.log("Payload = ", payload)
-        return token
+        return verifier.validate
     }
 
     async tokenIdCheck(req, id) {
@@ -96,7 +111,10 @@ export class ChatService {
         }
     }
 
-    async getAvailableChannels(user_id: number) {
+    async getAvailableChannels(req) {
+        const token = await this.getToken(req);
+
+        const user_id = token.id
         const myChannels = await this.chatHelper.getMyChannels(user_id)
 
         const ids: number[] = []

@@ -13,8 +13,8 @@ export class ChatController {
     //get /chat/joined/id
 
     @Get('')
-    getChannels(@Body('id') id: number) {
-        return this.chatService.getAvailableChannels(id)
+    getChannels(@Req() req: Request) {
+        return this.chatService.getAvailableChannels(req)
     }
 
     @Get(':id')
@@ -32,7 +32,7 @@ export class ChatController {
         return this.chatService.deleteChannel(channel_id, req)
     }
 
-    
+
     // ROUTES FOR SOCKET
 
     // add remove an admin

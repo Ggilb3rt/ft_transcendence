@@ -13,10 +13,13 @@ import { JwtAuthModule } from './jwt-auth/jwt-auth.module';
 import { testStatusGateway } from './testStatus/testStatus.gateway'
 import { GameController } from './game/game.controller';
 import { GameService } from './game/game.service';
+import { ChatController } from './chat/chat.controller';
+import { ChatService } from './chat/chat.service';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
-  imports: [ UsersModule, AuthModule, GameModule, JwtAuthModule ],
-  controllers: [AppController, UsersController, AuthController, GameController],
-  providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway, GameService],
+  imports: [ UsersModule, AuthModule, GameModule, JwtAuthModule, ChatModule ],
+  controllers: [AppController, UsersController, AuthController, GameController, ChatController],
+  providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway, GameService, ChatService],
 })
 export class AppModule {}
