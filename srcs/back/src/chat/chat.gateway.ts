@@ -147,7 +147,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         await this.chatService.kickUser(channel_id, id, id)
         client.broadcast.to(room).emit('quit', {
-            new_client: id,
+            client_quit: id,
             channel_id
         })
         client.leave(room)

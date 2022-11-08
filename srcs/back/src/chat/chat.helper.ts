@@ -47,7 +47,7 @@ export class ChatHelper {
             })
             const formated_channel: TChannel = {
                 id,
-                name,
+                ChanName: name,
                 type,
                 owner,
                 userList,
@@ -78,6 +78,14 @@ export class ChatHelper {
                 select: {
                     id: true
                 }
+            })
+            chan.userList.forEach(async (id) => {
+                await prisma.users_list.create({
+                    data: {
+                        channel_id: channel.id,
+                        user_id: id
+                    }
+                })
             })
             return channel.id;
         } catch (e) {
