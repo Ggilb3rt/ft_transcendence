@@ -134,7 +134,7 @@ export class CChannel {
 		return false
 	}
 	addAdmin(nominator:number, nominated:number): boolean {
-		if (this.isAdmin(nominator) && !this.isAdmin(nominated)) {
+		if ((this.isAdmin(nominator) || this.isOwner(nominator) ) && (!this.isAdmin(nominated) || !this.isOwner(nominated))) {
 			// check with server
 			// send message "nominated.name is a new administrator now, kneel down ! (please don't)"
 			this.adminList.push(nominated)
@@ -152,7 +152,7 @@ export class CChannel {
 		return false
 	}
 	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, timeInMinutes:number): boolean {
-		if (this.isAdmin(restrictor) && !this.isOwner(restricted) && restricted != restrictor) {
+		if ((this.isAdmin(restrictor) || this.isOwner(restrictor)) && !this.isOwner(restricted) && restricted != restrictor) {
 			const restrict: TRestrictUserTime = {
 				userId: restricted,
 				expire: this.addMinutes(new Date(), timeInMinutes)
@@ -175,7 +175,7 @@ export class CChannel {
 		return false
 	}
 	kickUser(kicker:number, kicked:number):boolean {
-		if (this.isAdmin(kicker) && !this.isOwner(kicked) && kicker != kicked && this.isInChannel(kicked)) {
+		if ((this.isAdmin(kicker) || this.isOwner(kicker)) && !this.isOwner(kicked) && kicker != kicked && this.isInChannel(kicked)) {
 			// check with server
 			// send message "kicked.name was kicked"
 			const findUser = this.userList.findIndex((el) => el === kicked)
