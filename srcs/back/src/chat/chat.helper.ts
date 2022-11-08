@@ -330,8 +330,17 @@ export class ChatHelper {
     async getDirectMessages(user_id: number, second_user_id: number) {
         try {
             return await prisma.direct_message.findMany({where: {
-                user_id,
-                second_user_id
+                OR: [
+                    {
+                        user_id,
+                        second_user_id
+                    },
+                    {
+                        user_id: second_user_id,
+                        second_user_id: user_id
+                    }
+                ],
+
             },
             orderBy: {
                 date: "desc"

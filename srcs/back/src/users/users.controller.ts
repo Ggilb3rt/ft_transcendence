@@ -32,37 +32,37 @@ export class UsersController {
 
     @Get(':id/other')
     // @UseGuards(JwtAuthGuard)
-    getOther(@Param('id', ParseIntPipe) id): Promise<otherFormat> {
+    getOther(@Param('id', ParseIntPipe) id: number): Promise<otherFormat> {
        return (this.usersService.getOtherUser(id))
     }
 
     @Get(':id')
     @UseGuards(JwtAuthGuard)
-    getOneUser(@Param('id', ParseIntPipe) id): Promise<userFront> {
+    getOneUser(@Param('id', ParseIntPipe) id: number): Promise<userFront> {
         return (this.usersService.getUserById(id))
     }
 
     @Get(':id/friends')
     @UseGuards(JwtAuthGuard)
-    getFriends(@Param('id', ParseIntPipe) id): Promise<number[]> {
+    getFriends(@Param('id', ParseIntPipe) id: number): Promise<number[]> {
         return (this.usersService.getFriends(id));
     }
 
     @Get(':id/pending')
     @UseGuards(JwtAuthGuard)
-    getPending(@Param('id', ParseIntPipe) id): Promise<number[]> {
+    getPending(@Param('id', ParseIntPipe) id: number): Promise<number[]> {
         return (this.usersService.getPending(id));
     }
 
     @Post(':id/pending')
     @UseGuards(JwtAuthGuard)
-    acceptPending(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend, @Body('valid', ParseBoolPipe) valid): Promise<friends> {
+    acceptPending(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number, @Body('valid', ParseBoolPipe) valid: boolean): Promise<friends> {
        return (this.usersService.acceptFriend(id, friend, valid))
     }
 
     @Post(':id/2fa')
     @UseGuards(JwtAuthGuard)
-    async switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status, @Body('code') code: string | undefined, @Res() response) {
+    async switch2fa(@Param('id', ParseIntPipe) id: number, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string | undefined, @Res() response) {
         console.log("bounjouern sdf", status)
         let isCodeValid: boolean = false
         if (code)
@@ -77,13 +77,13 @@ export class UsersController {
 
     @Post(':id/friends')
     @UseGuards(JwtAuthGuard)
-    addFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend): Promise<friends> {
+    addFriend(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number): Promise<friends> {
        return (this.usersService.addFriend(id, friend))
     }
 
     @Post(':id/friends/remove')
     @UseGuards(JwtAuthGuard)
-    removeFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
+    removeFriend(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number) {
        return (this.usersService.removeFriend(id, friend))
     }
 

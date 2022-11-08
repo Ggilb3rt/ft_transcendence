@@ -43,6 +43,11 @@ class TMessage {
 	date: Date
 }
 
+class TMessageRestrict {
+    msg:string;
+    date: Date;
+}
+
 class TChannel {
     id: number;
 	ChanName: string;
@@ -61,4 +66,4 @@ class TChannelRestrict {
 	id: number;
 }
 
-export { userFront, userRestrict, otherFormat, TChannelType, TMessage, TRestrictUserTime, TChannel, TChannelRestrict }
+export { userFront, userRestrict, otherFormat, TChannelType, TMessage, TRestrictUserTime, TChannel, TChannelRestrict, TMessageRestrict }
