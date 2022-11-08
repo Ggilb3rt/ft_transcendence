@@ -1,12 +1,22 @@
 <script setup lang="ts">
-import { ref, onUpdated } from 'vue'
+import { ref, onUpdated, watch, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router';
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
+import { useChannelsStore } from '@/stores/channels'
 import SideNav from '../components/navigation/SideNav.vue';
 import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
+import CreateChanForm from '@/components/chat/CreateChanForm.vue'
+import Loader from '@/components/navigation/loader.vue'
 
+const usersStore = useUsersStore()
+const userStore = useUserStore()
+const channelsStore = useChannelsStore()
+const route = useRoute()
+const childMounted = ref<Object[]>([])
+// let leftIsActive = ref(false);
+// let rightIsActive = ref(false);
 
 /*
  * Routes for the back
@@ -121,33 +131,36 @@ import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 
 */
 
-
-
 // ChatView need to
 	// getAllRestrictChannel
 	// createChannel
 	
-	
 
-	// getChannel and pas his messages to ChannelView via props ? ==> better to getChannel on ChannelView
+function childIsmounted() {
+	const ret = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
+	ret ? childMounted.value = ret : childMounted.value = []
+}
+
+const channelList = ref([
+	{ name: 'chan1', href: '/chat/room/1' },
+	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
+	{ name: 'chan3', href: '/chat/room/3' },
+	{ name: 'chan4', href: '/chat/room/direct/4' },
+])
 
 const sideNavDataLeft = ref({
 	name: 'Channels',
 	isOpen: false,
 	items: [
-		{
-			name: 'New',
-			children: null,
-			href: '/chat/new'
-		},
+		// {
+		// 	name: 'New',
+		// 	children: null,
+		// 	href: '/chat/new'
+		// },
 		{
 			name: 'All channels',
-			children: [	// need to getAllChannelRestrict [IChannelRestrict]
-				{ name: 'chan1', href: '/chat/room/1' },
-				{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
-				{ name: 'chan3', href: '/chat/room/3' },
-				{ name: 'chan4', href: '/chat/room/direct/4' },
-			],
+			children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			canJoin: true,
 			isOpen: false
 		},
 		{
@@ -161,11 +174,6 @@ const sideNavDataLeft = ref({
 	]
 })
 
-
-// get the friends from usersStore
-const usersStore = useUsersStore()
-const userStore = useUserStore()
-
 const sideNavDataRight = ref({
 	name: 'Friends',
 	isOpen: false,
@@ -177,18 +185,25 @@ const sideNavDataRight = ref({
 		},
 		{
 			name: 'Currents users in channel',
-			children: [	// need to get
-				{ name: 'homer' },
-				{ name: 'roger' },
-			],
+			// children: currentUserList.value,
+			// children: childMounted.value,	// marche pas parceque je devrai props au sideNav qu'il doit se mettre à jour
+			children: usersStore.getUsersListForChat(channelsStore.getUsersInChannel()), // bug, la mise à jour se fait en décalé
 			isOpen: true
 		}
 	]
 })
 
-let leftIsActive = ref(false);
-let rightIsActive = ref(false);
-const route = useRoute()
+onBeforeMount(() => {
+	channelsStore.unselectCurrentChan()
+})
+
+onUpdated(() => {
+	childIsmounted()
+	console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
+})
+
+
+
 
 </script>
 
@@ -197,16 +212,10 @@ const route = useRoute()
 		<button class="btn_side" @click="sideNavDataLeft.isOpen = !sideNavDataLeft.isOpen">{{ sideNavDataLeft.name }}</button>
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav>
-		
-		<div v-if="route.name == 'chat'">
-			<h1>
-				Faire un tuto
-			</h1>
-			<button>Create channel</button>
-			Select ou cree un nouveau channel
-		</div>
-		<router-view v-else></router-view>
-		
+
+		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
+		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
+		<router-view v-else @im-mounted="childIsmounted"></router-view>		
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
 </template>

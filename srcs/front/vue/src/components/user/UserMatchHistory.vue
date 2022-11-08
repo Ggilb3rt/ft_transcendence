@@ -53,7 +53,7 @@ function findOpponent(opponent: number): IOtherUserRestrict | null {
 		<div v-else>
 			<p>No matchs here
 				<router-link to="/" v-if="user.id == userStore.user.id">Make your first game</router-link>
-				<BtnChallenge v-else></BtnChallenge>
+				<BtnChallenge v-else :user-id="user.id"></BtnChallenge>
 			</p>
 		</div>
 	</div>

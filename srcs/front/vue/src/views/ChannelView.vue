@@ -1,12 +1,28 @@
 <script setup lang="ts">
-import { ref, onUpdated } from 'vue'
-import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
+import { ref, onUpdated, onBeforeMount, onMounted } from 'vue'
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
+import type {IOtherUserRestrict} from '../../types'
+import { useUserStore } from "@/stores/user"
+import { useUsersStore } from '@/stores/users'
+import { useChannelsStore } from '@/stores/channels'
+import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
+import UserLink from '@/components/user/UserLink.vue'
+import AdminPanel from '@/components/chat/AdminPanel.vue'
+import { CChannel } from '@/helpers/class.channel'
 
 const props = defineProps({
 	channelId: {type: String, required: true},
-	direct: {type: Boolean, required: true}
+	direct: {type: Boolean, required: true},
 })
+
+const emit = defineEmits<{
+  (e: 'im-mounted'): void
+}>()
+
+const channelIdNumber = Number(props.channelId)
+const userStore = useUserStore()
+const usersStore = useUsersStore()
+const channelsStore = useChannelsStore()
 let msg = ref("")
 
 
@@ -16,24 +32,35 @@ let msg = ref("")
 	// sendNewMessages
 	// manage users
 
+// async function getChannel(id: number) {
+// 	const res = await fetch(`localhost:3000/channel/${id}`, {credentials: "include"})
+// }
+
+let currentChan = new CChannel(channelIdNumber, "Lol", "public", "", 9, [7, 8, 9], [9], [], [], [])
+console.log("le channel courant ", currentChan)
+
+
 // need to getMessages from channel(props.channelId)
 let channelMsgs: TMessage[] = [
 		{
-			tag: "Roger",
-			img: "../../src/assets/avatars/rogerRabbit.png",
-			msg: "Bonjour",
+			sender: 8,
+			reciever: channelIdNumber,
+			msg: "lol",
+			isDirect: props.direct,
 			date: new Date()
 		},
 		{
-			tag: "Homer",
-			img: "../../src/assets/avatars/homer.jpeg",
-			msg: "Bonjour",
+			sender: 9,
+			reciever: channelIdNumber,
+			msg: "pouet un message tres long pour voir ce que ca fait tout autour, poour pousser le btn challenge et l'img",
+			isDirect: props.direct,
 			date: new Date()
 		},
 		{
-			tag: "Homer",
-			img: "../../src/assets/avatars/homer.jpeg",
-			msg: "J'adore les pommes",
+			sender: userStore.user.id,
+			reciever: channelIdNumber,
+			msg: "internet",
+			isDirect: props.direct,
 			date: new Date()
 		},
 ]
@@ -44,14 +71,33 @@ function submit(e: Event) {
 	// fetch to server
 	if (msg.value != "") {
 		channelMsgs.push({
-			tag: "Homer",
-			img: "src/assets/avatars/homer.jpeg",
+			sender: userStore.user.id,
+			reciever: channelIdNumber,
 			msg: msg.value,
+			isDirect: props.direct,
 			date: new Date()
 		})
+		if (channelsStore.currentChan) {
+			channelsStore.currentChan.sendMessage({
+				sender: userStore.user.id,
+				reciever: channelIdNumber,
+				msg: msg.value,
+				isDirect: props.direct,
+				date: new Date()
+			})
+		}
 	}
 	msg.value = ""
 }
+
+onBeforeMount(() => {
+	// fetch Channel
+	channelsStore.selectCurrentChan(channelIdNumber)
+})
+
+onMounted(() => {
+	// emit('im-mounted')
+})
 
 onUpdated(() => {
 	const room = document.getElementById('room-view')
@@ -67,41 +113,52 @@ onUpdated(() => {
 </script>
 
 <template>
-	<div class="room">
+	<div class="room" v-if="channelsStore.currentChan">
 		<p>
 			<span v-if="props.direct">/direct/</span>{{ props.channelId }}
 		</p>
+		<AdminPanel></AdminPanel>
 		<div class="chatRoom" id="room-view">
-			<div v-for="msg in channelMsgs" :key="msg.tag" class="message">
-				<figure>
-					<img :src="msg.img" :alt="msg.tag + ' avatar'">
-					<BtnChallenge></BtnChallenge>
-				</figure>
-				<p>
-					<span class="tag">{{ msg.tag }}</span> | 
-					<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span>
-					<br>
-					<span>{{ msg.msg }}</span>
-				</p>
+			<div v-for="msg in channelsStore.currentChan.messages" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
+				<div v-if="!userStore.isBan(msg.sender)" class="message">
+					<figure>
+						<UserLink :other-user="usersStore.getUserRestrictById(msg.sender)" remove-status remove-name remove-hover></UserLink>
+					</figure>
+					<p>
+						<span class="tag">
+							{{ usersStore.getUserNickById(msg.sender) }}
+							<span v-if="currentChan.isBan(msg.sender)"> (is ban)</span>
+							<span v-if="currentChan.isMute(msg.sender)"> (is mute)</span>
+						</span> |
+						<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span>
+						<br>
+						<span>{{ msg.msg }}</span>
+					</p>
+					<BtnChallenge :user-id="msg.sender"></BtnChallenge>
+				</div>
+				<div v-else class="message">
+					<p>You banned this user</p>
+				</div>
 			</div>
-			<form @keyup.enter="submit">
-				<textarea v-model="msg"></textarea>
-				<input type="submit" class="send" @click="submit">
+			<form>
+				<textarea v-model="msg" @keyup.enter="submit"></textarea>
+				<button @click="submit" class="send">Send</button>
 			</form>
 		</div>
 	</div>
 </template>
 
 
-<style scoped>
+<style>
 
 
 .room {
 	align-self: flex-start;
 	width: 100%;
-	height: calc(90vh - 126px);
-	overflow: hidden;
-	/* padding: 20px; */
+	height: calc(90vh - 89px);
+	overflow: scroll;
+	padding: 0px;
+	position: relative;
 }
 
 .room:hover ::-webkit-scrollbar {
@@ -114,7 +171,7 @@ onUpdated(() => {
 
 .room .chatRoom {
 	width: 100%;
-	height: 99%;
+	height: 100%;
 	overflow: auto;
 	scrollbar-color: var(--global-c-blue);
 	scrollbar-width: thin;
@@ -130,7 +187,7 @@ onUpdated(() => {
 	font-size: .8em;
 }
 
-.room .message:nth-child(2n) {
+.room .message-wrapper:nth-child(2n) {
 	background: var(--color-background-mute);
 }
 .room .message {
@@ -140,9 +197,20 @@ onUpdated(() => {
 	word-break: break-all;
 }
 
+.room .message figure {
+	min-width: 50px;
+	align-self: center;
+}
+
+/* .room .message p {
+	flex-grow: 2;
+} */
+
 .room .message img{
 	max-width: 50px;
 	min-height: 50px;
+	max-height: 50px;
+	object-fit: cover;
 	/* border-radius: 50px; */
 }
 

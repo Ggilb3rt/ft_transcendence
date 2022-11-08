@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import { onBeforeMount, onBeforeUnmount, ref } from "vue";
+import router from "@/router/index"
 import { useUserStore } from '@/stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
 import IconSupport from "@/components/icons/IconSupport.vue"
-import router from "@/router/index"
+import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
+import CarbonLogout from "@/components/icones-bags/CarbonLogout.vue"
 
 const userStore = useUserStore();
 let	isActive = ref(false);
@@ -43,7 +45,11 @@ onBeforeUnmount(() => {
 				<span class="bar ball"></span>
 				<span class="bar pong"></span>
 			</div>
-			<span v-else>X</span>
+			<span v-else>
+				<i class="btn_icon">
+					<CarbonClose></CarbonClose>
+				</i>
+			</span>
 		</button>
 		<nav :class="{open: isActive, side_menu: winWidth < 768}" class="side-left">
 			<button class="btn-menu" @click="isActive = (isActive) ? false : true" v-if="winWidth < 768">
@@ -52,7 +58,11 @@ onBeforeUnmount(() => {
 					<span class="bar ball"></span>
 					<span class="bar pong"></span>
 				</div>
-				<span v-else>X</span>
+				<span v-else>
+					<i class="icon_btn">
+						<CarbonClose></CarbonClose>
+					</i>
+				</span>
 			</button>
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
@@ -62,7 +72,11 @@ onBeforeUnmount(() => {
 				<span v-else>Account</span>
 			</RouterLink>
 			<ModalSearch></ModalSearch>
-			<button @click="disconnect()" title="disconnect"><IconSupport /></button>
+			<button @click="disconnect()" title="disconnect">
+				<i class="icon_btn">
+					<CarbonLogout></CarbonLogout>
+				</i>
+			</button>
 		</nav>
 	</div>
 </template>

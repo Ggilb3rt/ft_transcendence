@@ -68,3 +68,7 @@ by ORMARTIN && GGILBERT && PTROGER
   If it works, your test passes, if not it failed.
 
 OH HI Maaarc !!
+
+
+
+Un bug étrange pendant un reload sur dashOther, l'img width est de 100% car il ne prends pas en compte les @media screen etc

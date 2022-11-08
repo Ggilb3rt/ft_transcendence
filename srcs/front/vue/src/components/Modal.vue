@@ -1,35 +1,39 @@
 <script setup lang="ts">
 const props = defineProps({
-    show: Boolean
+	show: Boolean,
+	removeOK: Boolean
 })
 </script>
 
 <template>
-    <Transition name="modal">
-    <div v-if="show" class="modal-mask" @keyup.esc="$emit('close')">
-        <div class="modal-wrapper">
-            <div class="modal-container">
-                <div class="modal-header">
-                <slot name="header">default header</slot>
-                </div>
+	<!-- <Teleport to="body"> -->
+		<Transition name="modal">
+			<div v-if="show" class="modal-mask" @keyup.esc="$emit('close')">
+				<div class="modal-wrapper">
+					<div class="modal-container">
+						<div class="modal-header">
+						<slot name="header">default header</slot>
+						</div>
 
-                <div class="modal-body">
-                <slot name="body">default body</slot>
-                </div>
+						<div class="modal-body">
+						<slot name="body">default body</slot>
+						</div>
 
-                <div class="modal-footer">
-                <slot name="footer">
-                    default footer
-                    <button
-                    class="modal-default-button"
-                    @click="$emit('close')"
-                    >OK</button>
-                </slot>
-                </div>
-            </div>
-        </div>
-    </div>
-    </Transition>
+						<div class="modal-footer">
+						<slot name="footer">
+							<button
+								v-if="!removeOK"
+								class="modal-default-button"
+								@click="$emit('close')"
+							>OK
+							</button>
+						</slot>
+						</div>
+					</div>
+				</div>
+			</div>
+		</Transition>
+	<!-- </Teleport> -->
 </template>
 
 <style>

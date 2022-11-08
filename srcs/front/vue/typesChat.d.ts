@@ -6,17 +6,21 @@ export type TRestrictUserTime = {
 	expire: Date;
 }
 
+export type TChannelUser = {
+	id: number;
+	isAdmin: boolean;
+}
+
 export interface IChannel {
 	id: number;
-	// href: string; // equivalent of id ??
-	name: string;
+	ChanName: string;
 	type: TChannelType;
-	userList: number[];
+	pass?: string;
 	owner: number | null;
+	userList: number[];
 	adminList: number[];
 	banList: TRestrictUserTime[];
 	muteList: TRestrictUserTime[];
-	pass?: string;
 	messages: TMessage[];
 }
 
