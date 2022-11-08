@@ -28,8 +28,9 @@ export interface IChannelRestrict {
 // remplacer tag et img par userId, permet de le retrouver dans le store usersList
 // en vrai pas sur parceque ça va faire plein d'appel au store... je sais pas trop en vrai
 export type TMessage = {
-	tag: string,
-	img: string,
+	sender: number,
+	receiver: number,
 	msg: string,
+	isDirect: boolean,
 	date: Date
 }

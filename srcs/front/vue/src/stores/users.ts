@@ -1,14 +1,7 @@
-import { defineStore } from "pinia";
-import type { Ref } from "vue";
-import type {
-  IUser,
-  IOtherUserRestrict,
-  IOtherUser,
-  IMatchHistory,
-  status,
-  ISocketStatus,
-} from "../../types";
-import type { io, Socket } from "socket.io-client";
+import { defineStore } from "pinia"
+import type { Ref } from "vue"
+import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, TStatus, ISocketStatus } from '../../types'
+import type { io, Socket } from "socket.io-client"
 
 export interface IUsersStoreState {
   userList: IOtherUserRestrict[];
@@ -216,43 +209,99 @@ export const useUsersStore = defineStore({
         }
       });
     },
-    getUserWinRate(): string {
-      if (this.user) return (this.user.wins / this.user.loses).toPrecision(2);
-      return "0";
-    },
-    async getUsers() {
-      this.loading = true;
-      try {
-        await fetch("http://localhost:3000/users/restrict", {
-          credentials: "include",
-        })
-          .then((response) => {
-            if (response.status >= 200 && response.status < 300) {
-              return response.json();
-            }
-            throw new Error(response.statusText);
-          })
-          .then((data) => {
-            this.userList = data;
-            this.userList.forEach((el) => {
-              el.avatar_url = `http://localhost:3000/users/${el.id}/avatar`;
-            });
-            this.error = null;
-          });
-      } catch (error) {
-        this.error = "getUsers " + error;
-      } finally {
-        this.loading = false;
-      }
-    },
-    async getOtherUser(id: number) {
-      this.loading = true;
-      const url = `http://localhost:3000/users/${id}/other`;
-      try {
-        await fetch(url, { credentials: "include" })
-          .then((response) => {
-            if (response.status >= 200 && response.status < 300) {
-              return response.json();
+    actions: {
+        setSocket(socket: ISocketStatus[]) {    // change the name
+            this.socketStatus = socket
+            console.log("socket in store", this.socketStatus)
+        },
+        socketIs(userId: number, type: TStatus): boolean {
+            const findIndex = this.socketStatus.findIndex((el) => el.userId == userId)
+            if (findIndex != -1)
+                if (this.socketStatus[findIndex].userStatus == type)
+                    return true
+            return false
+        },
+        socketIsAvailable(userId: number): boolean {
+            return this.socketIs(userId, "available")
+        },
+        // getUserStatus(id: number): status {
+        //     let ret: ISocketStatus | undefined = undefined;
+            
+        //     console.log("start socketStatus", this.socketStatus)
+        //     if (this.socketStatus) {
+        //         this.socketStatus.forEach((el: any) => {
+        //             console.log(`mon tableau de fou \n\t${el.userId[0]}\n\t${el.userStatus}`)
+        //         })
+        //         ret = this.socketStatus.includes((el: any) => {
+        //             el.userId[0] == id;
+        //             console.log("ref el", el)
+        //         })
+        //     }
+        //     console.log("return of socketStatus", ret)
+        //     if (ret == undefined)
+        //         return 'disconnected'
+        //     console.log("get userStatus ", ret)
+        //     return ret.userStatus
+        // },
+        
+        // je devrai plutot return string[] et adapter si besoin dans les composents
+        getUsersListForChat(idList: number[]): Object[] | null {
+            let list: Object[] = []
+            if (!idList)
+                return null
+            idList.forEach((el) => {
+                const findUser = this.userList.find((user) => user.id == el)
+                if (findUser != undefined) {
+                    list.push({
+                        name: `${findUser.nickname}`,
+                        href: `/chat/room/direct/${findUser.id}`
+                    })
+                }
+            })
+            return list
+        },
+        changUserNick(id: number, newNick: string) {
+            this.userList.some((el) => {
+                if (el.id == id && el.nickname != newNick) {
+                    el.nickname = newNick
+                    return
+                }
+            })
+        },
+        changeUserAvatar(id: number, newAvatar: string) {
+            this.userList.some((el) => {
+                if (el.id == id) {
+                    el.avatar_url = newAvatar
+                    return
+                }
+            })
+        },
+        getUserWinRate(): string {
+            if (this.user)
+                return (this.user.wins / this.user.loses).toPrecision(2)
+            return '0'
+        },
+        async getUsers() {
+            this.loading = true
+            try {
+                await fetch('http://localhost:3000/users/restrict', {credentials: "include"})
+                    .then((response) => {
+                        if (response.status >= 200 && response.status < 300) {
+                            return response.json()
+                          }
+                          throw new Error(response.statusText)
+                    })
+                    .then((data) => {
+                        this.userList = data
+                        this.userList.forEach((el) => {
+                            el.avatar_url = `http://localhost:3000/users/${el.id}/avatar`
+                        })
+                        this.error = null
+                    })
+            } catch (error) {
+                this.error = "getUsers " + error
+            } finally {
+                this.loading = false
             }
             throw new Error(response.statusText);
           })

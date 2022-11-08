@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { IOtherUserRestrict, status, ISocketStatus } from '@/types'
 import { useUsersStore } from '@/stores/users';
+import { useStatusStore } from '@/stores/status';
 import { watch, ref } from 'vue';
 
 const props = defineProps<{
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>()
 
 const usersStore = useUsersStore()
+const statusStore = useStatusStore()
 
 const userStatus: status = ref("disconnected")
 
@@ -23,11 +25,11 @@ const userStatus: status = ref("disconnected")
 
 function filterStatus(id: number): status {
     // console.log("filterStatus start ", usersStore.socketStatus)
-    if (usersStore.socketStatus) {
-        for (let i = 0; i < usersStore.socketStatus.length; i++) {
-            if (usersStore.socketStatus[i].userId == id) {
-                // console.log("good old for loop ", usersStore.socketStatus[i].userStatus)
-                return usersStore.socketStatus[i].userStatus
+    if (statusStore.statusList) {
+        for (let i = 0; i < statusStore.statusList.length; i++) {
+            if (statusStore.statusList[i].userId == id) {
+                // console.log("good old for loop ", usersStore.statusList[i].userStatus)
+                return statusStore.statusList[i].userStatus
             }
         }
         // usersStore.socketStatus.forEach(el => {

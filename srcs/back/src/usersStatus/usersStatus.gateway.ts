@@ -42,6 +42,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (uIndex != -1) {
             client.broadcast.emit('newStatusDisconnection', this.userArr[uIndex])
             this.userArr.splice(uIndex, 1)
+            console.log("this.user.arr after splice = ", this.userArr)
         }
     }
 
@@ -62,6 +63,12 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     async handleConnection2(client: Socket, arg: number) {
+        const alreadyConnected = this.userArr.findIndex((el) => {el.userId === arg})
+        console.log("handleConnection2")
+        if (alreadyConnected != -1) {
+            console.log("already connected")
+            this.userArr.splice(alreadyConnected, 1)
+        }
         console.log("id = ", arg)
         console.log('client id = ', client.id)
         const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
@@ -82,16 +89,18 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('newChallenge')
     newChallenge(client: Socket, challenge: {challenger: Number, level: Number, challenged: Number}) {
-        const receiver = this.userArr.find((el) => {el.userId === challenge.challenger}) 
+        const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenged})
+        console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
+            console.log("i challenge => ", receiver)
             this.server.to(receiver.socketId).emit('newChallenge', challenge)
         }
     }
-
-    // @SubscribeMessage('findAllStatus')
-    // handleFindAll() {
-    //     return this.userArr
-    // }
+//
+    @SubscribeMessage('findAllStatus')
+    handleFindAll() {
+        return this.userArr
+    }
     // @SubscribeMessage('chatToServer')
     // handleMessage(client: any, payload: { sender: string, room: string, payload: string }) {
     //     // Le to() permet d'emit a une room specifique et non pas a tout le namespace

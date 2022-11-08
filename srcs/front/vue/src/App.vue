@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onUpdated, onBeforeUpdate, watch, onMounted, onBeforeMount } from "vue"
 import type { Ref } from "vue"
-import type { IUser, status, ISocketStatus } from "../types"
+import type { IUser, TStatus, ISocketStatus } from "../types"
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
 import { io } from "socket.io-client"
@@ -21,10 +21,17 @@ const userStore = useUserStore()
 const users = useUsersStore()
 const statusStore = useStatusStore()
 
-window.addEventListener('beforeunload', () => {
-  if (userStore.conStatus == setStatus.connected) {
-    localStorage.setItem('last_page', route.name.toString());
+window.addEventListener('beforeunload', async (e) => {
+  const res = await fetch('http://localhost:3000/auth/verify', {
+    credentials: "include"
+  })
+  console.log("res == ", res);
+  if (res.status < 300) {
+    if (userStore.conStatus == setStatus.connected) {
+      localStorage.setItem('last_page', route.name.toString());
+    }
   }
+  localStorage.setItem('log', res.toString());
 })
 
 async function testConnection() {
@@ -44,8 +51,7 @@ async function testConnection() {
         //! au final les autres requettes integrent le cookie...
       }
     })
-    localStorage.clear();
-    document.cookie
+    // localStorage.clear();
     var data;
     if (response.status == 412) {
         userStore.changeStatus(setStatus.need2fa)

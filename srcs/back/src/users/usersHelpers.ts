@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { match, PrismaClient, users } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

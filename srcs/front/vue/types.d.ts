@@ -1,6 +1,3 @@
-export type status = "available" | "disconnected" | "inGame" | "challenged"
-
-
 export type Challenge = {
   challenger: Number,
   level: Number,
@@ -69,7 +66,7 @@ export interface IMatch {
 
 
 /// Socket Status ///
-export type TStatus = "available" | "disconnected" | "inGame"
+export type TStatus = "available" | "disconnected" | "inGame" | "challenged"
 
 // Status of each users, use to allowed or not some actions
 export interface ISocketStatus {

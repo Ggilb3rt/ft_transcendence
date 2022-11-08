@@ -2,7 +2,6 @@
 import { ref } from "vue"
 import router from "../router";
 import { setStatus, useUserStore } from '../stores/user'
-import { mande, defaults } from 'mande'
 import Loader from '../components/navigation/loader.vue';
 
 const userStore = useUserStore()
