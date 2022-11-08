@@ -6,9 +6,9 @@ import UserEditableAvatar from './UserEditableAvatar.vue'
 
 <template>
 	<div class="userBasics">
-	<UserEditableAvatar></UserEditableAvatar>
-	<UserEditableNick></UserEditableNick>
-	<UserInvite></UserInvite>
+		<UserEditableAvatar></UserEditableAvatar>
+		<UserEditableNick></UserEditableNick>
+		<UserInvite></UserInvite>
 	</div>
 </template>
 

@@ -32,7 +32,7 @@ const usersStore = useUsersStore()
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnBan</button>
             
-            <BtnChallenge></BtnChallenge>
+            <BtnChallenge :user-id="usersStore.user.id"></BtnChallenge>
         </div>
     </div>
 </template>

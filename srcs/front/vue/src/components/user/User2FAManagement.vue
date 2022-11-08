@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/user';
 import Modal from '../Modal.vue';
+import CarbonTwoFactorAuthentication from '@/components/icones-bags/CarbonTwoFactorAuthentication.vue'
 
 const userStore = useUserStore()
 
@@ -92,7 +93,12 @@ async function disable2FA() {
 
 <template>
 	<div class="security">
-		<h1>Security</h1>
+		<h1>
+			<i class="icon_btn">
+				<CarbonTwoFactorAuthentication></CarbonTwoFactorAuthentication>
+			</i>
+			Security
+		</h1>
 		<div v-if="userStore.user.two_factor_auth">
 			<p>Use your code to disable 2FA</p>
 			<input type="text" v-model="disable2FACode">
@@ -112,3 +118,10 @@ async function disable2FA() {
 		</Modal>
 	</div>
 </template>
+
+<style scoped>
+.security {
+	margin-bottom: 10px;
+}
+
+</style>

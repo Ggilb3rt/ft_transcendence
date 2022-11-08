@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, users } from "@prisma/client";
+import { CreateUserDto } from "./createUserDto";
+import { userRestrict } from "./types";
 
 const prisma = new PrismaClient();
 
@@ -74,130 +76,175 @@ class UsersHelper {
 
     async getBan(id: number, ban: number) {
 
-      return (await prisma.ban_users.findFirst({
-        where:{
-          OR: [
-            {
-              user_id:id,
-              banned_id:ban
-            },
-            {
-              user_id:ban,
-              banned_id:id
-            }
-          ]
-        }
-      }))
+      try {
+        return (await prisma.ban_users.findFirst({
+          where:{
+            OR: [
+              {
+                user_id:id,
+                banned_id:ban
+              },
+              {
+                user_id:ban,
+                banned_id:id
+              }
+            ]
+          }
+        }))
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async getBans(id: number) {
-
-      return (await prisma.ban_users.findMany({
-        where:{
-          user_id:id
-        }
-      }))
+      try {
+        return (await prisma.ban_users.findMany({
+          where:{
+            user_id:id
+          }
+        }))
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async getBanned(id: number) {
-      return (await prisma.ban_users.findMany({
-        where: {
-          banned_id: id
-        }
-      }))
+      try {
+        return (await prisma.ban_users.findMany({
+          where: {
+            banned_id: id
+          }
+        }))
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async getFriendship(id: number, friend: number) {
-
-      return (await prisma.friends.findFirst({
-        where:{
-          OR: [
-            {
-              user_id:id,
-              friend_id:friend
-            },
-            {
-              user_id:friend,
-              friend_id:id
-            }
-          ]
-        }
-      }))
+      try {
+        return (await prisma.friends.findFirst({
+          where:{
+            OR: [
+              {
+                user_id:id,
+                friend_id:friend
+              },
+              {
+                user_id:friend,
+                friend_id:id
+              }
+            ]
+          }
+        }))
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async getFriendships(id: number) {
-
-      return (await prisma.friends.findMany({
-        where:{
-          OR: [
-            {
-              user_id:id,
-            },
-            {
-              friend_id:id
-            }
-          ]
-        }
-      }))
+      try {
+        return (await prisma.friends.findMany({
+          where:{
+            OR: [
+              {
+                user_id:id,
+              },
+              {
+                friend_id:id
+              }
+            ]
+          }
+        }))
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async getUser(id: number) {
-      const user = await prisma.users.findFirst({where:{id}});
-      if (!user) {
-        throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+      try {
+        const user = await prisma.users.findFirst({where:{id}});
+        if (!user) {
+          throw new HttpException("User not found", HttpStatus.NOT_FOUND)
+        }
+        return (user);
+      } catch (e) {
+        throw new Error(e)
       }
-      return (user);
     }
 
     async unBan(ban) {
-      await prisma.ban_users.delete({where:{id:ban.id}})
+      try {
+        await prisma.ban_users.delete({where:{id:ban.id}})
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async unFriend(friendship) {
-      await prisma.friends.delete({where:{id: friendship.id}})
+
+      try {
+        await prisma.friends.delete({where:{id: friendship.id}})
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async testNickname(nickname: string) {
-      var regex = /^([0-9]|[a-z])+([0-9a-z])$/i;
+
+      try {
+        var regex = /^([0-9]|[a-z])+([0-9a-z])$/i;
         if (nickname.length >= 10) {
           nickname = nickname.slice(0, 10);
         }
         if (!nickname.match(regex)) {
           throw new HttpException("Only alphanumeric characters", HttpStatus.NOT_ACCEPTABLE)
         }
-        const test = await prisma.users.findFirst({where:{nickname}})
+        const test = await prisma.users.findUnique({where:{nickname}})
         console.log("test == ", test)
         if (test) {
           throw new HttpException("nickname already taken", HttpStatus.CONFLICT);
         }
+      } catch (e) {
+        console.log("catch == ", e);
+        throw new Error(e)
+      }
     }
 
     async getPending(id: number) {
-      const friends = await prisma.friends.findMany({
-        where: {
-          friend_id:id,
-          status: false
-        }
-      })
-      // console.log("friends == ", friends)
-      return (friends)
+      try {
+        const friends = await prisma.friends.findMany({
+          where: {
+            friend_id:id,
+            status: false
+          }
+        })
+        // console.log("friends == ", friends)
+        return (friends)
+      } catch (e) {
+        throw new Error(e)
+      }
+
     }
 
     async getFriends(id:number) {
-      const friends = await prisma.friends.findMany({
-        where:{
-          OR: [
-            {
-              user_id:id,
-            },
-            {
-              friend_id:id
-            }
-          ],
-          status: true
-        }
-      })
-      return (friends)
+      try {
+        const friends = await prisma.friends.findMany({
+          where:{
+            OR: [
+              {
+                user_id:id,
+              },
+              {
+                friend_id:id
+              }
+            ],
+            status: true
+          }
+        })
+        return (friends)
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
 	async addMatch(match) {
@@ -206,35 +253,78 @@ class UsersHelper {
 		})
 	}
     async getMatches(id: number) {
-
-      const matches = await prisma.match.findMany({
-        where:{
-          OR: [
-            {
-              player_left_id:id
-            },
-            {
-              player_right_id:id
-            }
-          ]
-        },
-        orderBy: {
-          date: 'desc'
-        },
-        take: 10
-      })
-      
-      return (matches)
+      try {
+        const matches = await prisma.match.findMany({
+          where:{
+            OR: [
+              {
+                player_left_id:id
+              },
+              {
+                player_right_id:id
+              }
+            ]
+          },
+          orderBy: {
+            date: 'desc'
+          },
+          take: 10
+        })
+        
+        return (matches)
+      } catch (e) {
+        throw new Error(e)
+      }
     }
 
     async changeAvatarUrl(id: number, dest: string) {
-      const user = await prisma.users.update({
-        where: {id},
-        data:{
-          avatar_url: dest
+      try {
+        const user = await prisma.users.update({
+          where: {id},
+          data:{
+            avatar_url: dest
+          }
+        })
+        return (user)
+      }
+      catch (e) {
+        throw new Error(e)
+      }
+    }
+
+    async postOneUser(user: CreateUserDto): Promise<users> {
+      try {
+        await this.testNickname(user.nickname);
+        const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
+        if (existsAlready) {
+          throw new HttpException("42 account already binded to a user", HttpStatus.CONFLICT)
         }
-      })
-      return (user)
+        const ret = await prisma.users.create( {data: user })
+        return ret;
+      } catch (e) {
+        throw new Error(e)
+      }
+    }
+
+    async setSecret(id: number, secret: string) {
+      try {
+        const user = await this.getUser(id);
+  
+        await prisma.users.update({where:{id}, data:{
+          two_factor_secret: secret
+        }})
+      } catch (e) {
+        throw new Error(e)
+      }
+    }
+
+    async getUsersRestrict(): Promise<userRestrict[]> {
+      const users = await prisma.users.findMany({select:{
+        id:true,
+        nickname:true,
+        avatar_url:true
+      }})
+      return (users);
     }
 }
 

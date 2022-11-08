@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, onUnmounted, ref } from 'vue'
+import { onBeforeMount, onBeforeUnmount, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, RouterView } from "vue-router";
+import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
 
 let winWidth = ref(window.innerWidth)
@@ -27,6 +28,15 @@ function updateWinWidthValue(e: Event) {
 			props.model.isOpen = false
 }
 
+function leaveChannel(link: string) {
+	const id: Array<string> = link.split('/')
+	
+	if(confirm(`You want to leave chan ${id.at(-1)} ?`)) {
+		// send to server
+		alert("you leave chan")
+	}
+}
+
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue(e));
 	// check on start
@@ -34,11 +44,18 @@ onBeforeMount(() => {
 		props.model.isOpen = true
 	else
 		props.model.isOpen = false
+
+
+	console.log("mounte sideNav model ", props.model)
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
 })
+
+// watch(props.model, (newModel) => {
+// 	console.log("model change on sideNavvvvv", props.model, newModel)
+// })
 
 </script>
 
@@ -49,7 +66,9 @@ onBeforeUnmount(() => {
 			class="btn_side"
 			@click="props.model.isOpen = !props.model.isOpen"
 		>
-			X
+			<i class="icon_btn">
+				<CarbonClose></CarbonClose>
+			</i>
 			<!-- {{ props.model.name }} -->
 		</button>
 		<li v-for="el, index in model.items" :key="el">
@@ -66,8 +85,9 @@ onBeforeUnmount(() => {
 			<nav>
 				<ul v-show="isOpen(index)" v-if="isFolder(index)">
 					<li v-for="child in el.children" :key="child">
-						<RouterLink v-if="child.href" :to="child.href">
+						<RouterLink v-if="child.href" :to="child.href" class="channel_link">
 							{{ child.name }}
+							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.href)" class="btn_leave"><CarbonClose></CarbonClose></button>
 						</RouterLink>
 						<button v-else>{{ child.name }}</button>
 					</li>
@@ -88,6 +108,31 @@ onBeforeUnmount(() => {
 	right: 0;
 	z-index: 10;
 	padding: 20px;
+}
+
+.channel_link {
+	/* display: flex; */
+	overflow: hidden;
+	position: relative;
+}
+.channel_link:hover .btn_leave {
+	right: 0;
+}
+.btn_leave {
+	/* display: none; */
+	position: absolute;
+	background: var(--global-c-red);
+	border: none;
+	color: var(--vt-c-white-mute);
+	width: 25px;
+	height: 25px;
+	right: -25px;
+	transition: right .3s ease-in-out;
+}
+
+.btn_side {
+	font-size: 1.5rem;
+	display: inline-flex;
 }
 
 .side_left.open {

@@ -8,44 +8,43 @@ type userFront = users & {
     invites: number[]
   }
 
-type userRestrict = {
-    id: number,
-    avatar_url: string,
-    nickname: string
+class userRestrict {
+    id: number;
+    avatar_url: string;
+    nickname: string;
 }
 
-type otherFormat = {
-    id: number,
-    avatar_url: string,
-    nickname: string,
-    first_name: string,
-    last_name: string,
-    ranking: number,
-    wins: number,
-    loses: number,
-    friends: number[],
-    matches: match[],
+class otherFormat {
+    id: number;
+    avatar_url: string;
+    nickname: string;
+    first_name: string;
+    last_name: string;
+    ranking: number;
+    wins: number;
+    loses: number;
+    friends: number[];
+    matches: match[];
 }
 
 type TChannelType = "public" | "private" | "pass" | "direct"
 
 
-type TRestrictUserTime = {
+class TRestrictUserTime {
 	userId: number;
 	expire: Date;
 }
 
-type TMessage = {
-	sender: number,
-	receiver: number,
-	msg: string,
-	isDirect: boolean,
+class TMessage {
+	sender: number;
+	receiver: number;
+	msg: string;
+	isDirect: boolean;
 	date: Date
 }
 
-type TChannel = {
+class TChannel {
     id: number;
-	// href: string; // equivalent of id ??
 	name: string;
 	type: TChannelType;
 	userList: number[];
@@ -57,5 +56,9 @@ type TChannel = {
 	messages: TMessage[];
 }
 
+class TChannelRestrict {
+	name: string;
+	id: number;
+}
 
-export { userFront, userRestrict, otherFormat, TChannelType, TMessage, TRestrictUserTime, TChannel}
+export { userFront, userRestrict, otherFormat, TChannelType, TMessage, TRestrictUserTime, TChannel, TChannelRestrict }

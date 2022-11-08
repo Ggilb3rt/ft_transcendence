@@ -37,7 +37,7 @@ async function findGame(event: Event, game: string) {
   //await sleep(1000)
   console.log(data);
   btnEl?.removeChild(span)
-  router.push({ path: `/game/${game}`, query: {test: "hello"} })
+  router.push({ path: `/game/${game}` })
 }
 </script>
 

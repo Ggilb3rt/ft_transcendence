@@ -35,6 +35,7 @@ const usersStore = useUsersStore()
 	</div>
 	<div v-else class="vue_wrapper dashboard">
 		<h1>Nobody here, <router-link to="/">let's pong !</router-link></h1>
+		<img src="/src/assets/avatars/mark.jpg" alt="">
 		<p v-if="usersStore.error">{{ usersStore.error }}</p>
 	</div>
 </template>

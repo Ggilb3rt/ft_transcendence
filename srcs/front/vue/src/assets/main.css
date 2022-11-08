@@ -9,6 +9,10 @@
 	align-items: center;
 }
 
+.icon_btn {
+  display: inline-flex;
+}
+
 .bold {
   font-weight: bold;
 }
@@ -98,7 +102,7 @@ button.cant_click:hover {
 User status
 cf type TStatus
 */
-.available::after, .disconnected::after, .inGame::after {
+.available::after, .disconnected::after, .inGame::after, .challenged::after {
   content: " ";
   display: block;
   width: 20%;
@@ -121,6 +125,9 @@ cf type TStatus
 }
 .inGame::after {
   background: orange; /* vomi */
+}
+.challenged::after {
+  background: rgb(95, 7, 176); /* vomi */
 }
 
 
