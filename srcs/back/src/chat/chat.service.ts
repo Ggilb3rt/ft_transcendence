@@ -1,11 +1,13 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TChannelRestrict } from 'src/users/types';
+import { UsersService } from 'src/users/users.service';
+import { UsersHelper } from 'src/users/usersHelpers';
 import { ChatHelper } from './chat.helper';
 
 @Injectable()
 export class ChatService {
-    constructor(private chatHelper: ChatHelper, private jwtService: JwtService) {}
+    constructor(private chatHelper: ChatHelper, private jwtService: JwtService, private usersHelper: UsersHelper) {}
 
     validate(token) {
         // console.log("token in validate in jwt-auth service", token)
@@ -101,7 +103,51 @@ export class ChatService {
         return await this.chatHelper.muteOne(muted, channel_id, expires)
     }
 
+    async canJoin(user_id: number, channel, pass?: string) {
+        const isBan = await this.chatHelper.getBan(user_id, channel.id)
+        if (isBan && isBan.expires > new Date()) {
+            return false
+        }
+        else if (isBan) {
+            this.chatHelper.unBan(user_id, channel.id)
+        }
+        return true
+    }
+
+    async canSend(user_id: number, channel_id: number) {
+        if (!await this.chatHelper.isInChannel(channel_id, user_id)) {
+            return false
+        }
+        if (!await this.canJoin(user_id, await this.chatHelper.getChannel(channel_id))) {
+            return false
+        }
+        const mute = await this.chatHelper.getMute(channel_id, user_id)
+        if (mute && mute.mute_date > new Date()) {
+            return false
+        }
+        else if (mute) {
+            this.chatHelper.unMute(user_id, channel_id)
+        }
+        return true
+    }
+
+    async sendMessageToChannel(user_id: number, channel_id: number, content: string, date: Date) {
+        if (!this.canSend(user_id, channel_id)) {
+            throw new UnauthorizedException("You can't send a message to this channel")
+        }
+        await this.chatHelper.sendMessageToChannel(channel_id, user_id, content, date)
+    }
+
+    async sendDirectMessage(user_id: number, receiver: number, content: string, date: Date) {
+        if (!await this.usersHelper.getFriendship(user_id, receiver)) {
+            throw new ForbiddenException("Can't send message if you are not friends")
+        }
+        await this.chatHelper.sendDirectMessage(receiver, user_id, content, date)
+    }
+
     async joinChannel(user_id: number, channel, pass?: string) {
+        if (!this.canJoin(user_id, channel, pass))
+            throw new ForbiddenException("You have no right to join this channel")
         if (channel.type === "private") {
             throw new HttpException("You have no right to join this channel", HttpStatus.FORBIDDEN)
         }
