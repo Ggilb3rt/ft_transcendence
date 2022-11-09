@@ -159,10 +159,7 @@ const sideNavDataLeft = ref({
 		},
 		{
 			name: 'My channels',
-			children: [
-				{ name: 'chan1', href: '/chat/room/1' },
-				{ name: 'chan3', href: '/chat/room/3' },
-			],
+			children: channelsStore.joinedChannels,
 			isOpen: true
 		}
 	]

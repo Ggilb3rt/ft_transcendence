@@ -54,6 +54,11 @@ export const useChannelsStore = defineStore('channels', () => {
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
+	const refsocket = io('http://localhost:3000/chat', {
+		withCredentials: true,
+		
+	});
+
 		// Initialise
 		async function getChansLists() {
 			try {
@@ -74,6 +79,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// 	openChan.value.push(newChan)
 					// })
 				}
+				refsocket.emit('getMyRooms', (res: any) => {
+					console.log("res ", res);
+				})
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
@@ -147,7 +155,10 @@ export const useChannelsStore = defineStore('channels', () => {
 		// initSocket()
 
 	return {
-		chanRestrictList,
+		// ! probablement pas necessaire de les ouvrirs
+		availableChannels,
+		joinedChannels,
+		// ! fin
 		openChan,
 		currentChan,
 		error,

@@ -98,9 +98,9 @@ model muted {
 
 model users {
   id                                         Int            @id @default(autoincrement())
-  first_name                                 String
-  last_name                                  String
-  nickname                                   String   @unique
+  first_name                                 String?
+  last_name                                  String?
+  nickname                                   String?   @unique
   nick_fourtytwo                             String   @unique          
   avatar_url                                 String?  @default("/app/resources/default.jpg")       
   ranking                                    Int? @default(0)
