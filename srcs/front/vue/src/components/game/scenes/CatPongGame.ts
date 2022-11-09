@@ -7,6 +7,8 @@ const f = new GamePlay();
 
 export default class CatPongGame extends Phaser.Scene {
 	socket: Socket;
+	roomName: number;
+	level: number;
 
   constructor() {
     super("CatPongGame");
@@ -73,10 +75,11 @@ export default class CatPongGame extends Phaser.Scene {
       scene.scene.launch("WaitingRoom", { level: "default" });
     } else {
       f.watchGame(scene);
+	  scene.roomComplete = true;
     }
 
     /* ADD GAME OBJECTS */
-    if (!scene.roomComplete) {
+    //if (!scene.roomComplete) {
       f.createGameObjects(
         scene.level,
         null,
@@ -85,12 +88,12 @@ export default class CatPongGame extends Phaser.Scene {
         height,
         scene
       );
-    }
+    //}
 
     /* JOIN QUEUE OR WATCH GAME*/
     if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
       f.joinQueue(scene, scene.level);
-    } else if (!scene.spectator && scene.challenge) {
+    } else if (!scene.spectator && scene.challenge && !scene.roomComplete && scene.playerNumber === 0) {
       scene.socket.emit("createGame", {
         userId: scene.userId,
         challengeInfo: scene.challengeInfo,
@@ -98,9 +101,9 @@ export default class CatPongGame extends Phaser.Scene {
     }
 
     /* EVENT LISTENERS */
-    if (!scene.roomComplete) {
+    //if (!scene.roomComplete) {
       f.addEventListeners(scene.level, width, height, scene, game);
-    }
+    //}
   }
 
   update() {

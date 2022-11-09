@@ -174,7 +174,7 @@ export default class GamePlay {
       this.activeGame = false;
       this.matchEnded = false;
 	  this.challenge = false;
-      eventsCenter.emit("quit");
+      //eventsCenter.emit("quit");
       scene.scene.stop("DefaultGame");
 
       scene.scene.stop("CustomizableGame");

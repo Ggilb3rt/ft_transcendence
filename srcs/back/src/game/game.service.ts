@@ -41,6 +41,10 @@ export class GameService {
 
         let wr = this.waitingRooms[level];
 
+		console.log('JOINING QUEUE level ' + level)
+		console.log(client.id);
+		console.log(wr);
+
         this.players[client.id].level = level;
 		this.players[client.id].userId = userId;
 
@@ -222,7 +226,8 @@ export class GameService {
 
 		if (level !== 0) {
             const wr = this.waitingRooms[level];
-			if (level < 0 && level >= 3) {
+			console.log(level);
+			if (level === 1 || level === 2 || level === 3) {
            		if (wr.playerOne.id === client.id) {
                 	this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
             	} else if (wr.playerTwo.id === client.id) {
@@ -230,6 +235,7 @@ export class GameService {
             	}
 			}
 			else {
+				console.log("DELETING WR");
 				Reflect.deleteProperty(this.waitingRooms, level);
 			}
 			client.emit("leftGame", 1);
@@ -423,7 +429,7 @@ export class GameService {
 
 			this.initGame(wr.roomId, server);
 
-			//Reflect.deleteProperty(this.waitingRooms, this.i);
+			Reflect.deleteProperty(this.waitingRooms, this.i);
 			//++this.i;
 		}
 	}

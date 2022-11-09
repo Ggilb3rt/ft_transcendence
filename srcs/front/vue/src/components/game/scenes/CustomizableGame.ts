@@ -9,6 +9,8 @@ const f = new GamePlay();
 
 export default class CustomizableGame extends Phaser.Scene {
   socket: Socket;
+  roomName: number;
+  level: number;
 
   constructor() {
     super("CustomizableGame");
@@ -61,15 +63,17 @@ export default class CustomizableGame extends Phaser.Scene {
       scene.socket = io("http://localhost:3000/game");
     }
 
+	
     /* GO TO SETTINGS & WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
       scene.scene.launch("WaitingRoom", { level: "customizable" });
-    } else {
+	} else {
       f.watchGame(scene);
+	  scene.roomComplete = true;
     }
 
     /* ADD GAME OBJECTS */
-    if (!scene.roomComplete) {
+    //if (!scene.roomComplete) {
       eventsCenter.on("settingsOK", (settings) => {
         scene.settingsOK = true;
         f.createGameObjects(
@@ -81,22 +85,22 @@ export default class CustomizableGame extends Phaser.Scene {
           scene
         );
       });
-    }
+    //}
 
     /* EVENT LISTENERS */
-    if (!scene.roomComplete) {
+    //if (!scene.roomComplete) {
       f.addEventListeners(scene.level, width, height, scene, game);
-    }
+    //}
   }
 
   update() {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
 
-    if (scene.settingsOK && !scene.joinQueue && !scene.challenge) {
+    if (scene.settingsOK && !scene.joinQueue && !scene.challenge && !scene.spectator && !scene.roomComplete) {
       f.joinQueue(scene, scene.level);
       scene.joinQueue = true;
-    } else if (scene.settingsOK && scene.challenge) {
+    } else if (scene.settingsOK && scene.challenge && !scene.spectator && scene.playerNumber === 0) {
       console.log("CREATE GAME");
       scene.socket.emit("createGame", {
         userId: scene.userId,

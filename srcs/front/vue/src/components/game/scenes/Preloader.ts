@@ -21,9 +21,10 @@ export default class Preloader extends Phaser.Scene {
     this.userId = data.userId;
     this.spectator = data.spectator;
     this.challenge = data.challenge;
-    this.key = data.key;
+    //this.key = data.key;
+    this.level = data.level;
     this.challengeInfo = data.challengeInfo;
-	this.socket = null;
+    this.socket = null;
   }
 
   preload() {
@@ -52,20 +53,35 @@ export default class Preloader extends Phaser.Scene {
     console.log("PRELOAD");
     console.log(scene.data);
     console.log(scene.level);
-	//router.replace({ path: "/game" });
+    //router.replace({ path: "/game" });
 
     if (!scene.challenge) {
       scene.scene.start("MenuScene", {
         userId: scene.userId,
-        spectator: scene.specator,
-        key: scene.key,
+        spectator: scene.spectator,
+        level: scene.level,
+        challenge: scene.challenge,
       });
     } else {
       if (scene.challengeInfo.level === 1) {
         scene.scene.start("DefaultGame", {
           userId: scene.userId,
           spectator: scene.spectator,
-		  challenge: scene.challenge,
+          challenge: scene.challenge,
+          challengeInfo: scene.challengeInfo,
+        });
+      } else if (scene.challengeInfo.level === 2) {
+        scene.scene.start("CatPongGame", {
+          userId: scene.userId,
+          spectator: scene.spectator,
+          challenge: scene.challenge,
+          challengeInfo: scene.challengeInfo,
+        });
+      } else if (scene.challengeInfo.level === 3) {
+        scene.scene.start("CustomizableGame", {
+          userId: scene.userId,
+          spectator: scene.spectator,
+          challenge: scene.challenge,
           challengeInfo: scene.challengeInfo,
         });
       }

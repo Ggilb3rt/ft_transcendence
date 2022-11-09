@@ -8,6 +8,7 @@ export default class DefaultGame extends Phaser.Scene {
   socket: Socket;
   roomName: number;
   level: number;
+
   constructor() {
     super("DefaultGame");
     //this.socket = null;
@@ -53,13 +54,11 @@ export default class DefaultGame extends Phaser.Scene {
     console.log("defaultgame");
     console.log("socket " + this.socket);
 
-    if (scene.spectator) {
-      scene.roomComplete = true;
-    }
-
+	
     /* INIT SOCKET */
     if (!scene.roomComplete) {
-      scene.socket = io("http://localhost:3000/game");
+		console.log('init socket here');
+		scene.socket = io("http://localhost:3000/game");
     }
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
@@ -67,10 +66,11 @@ export default class DefaultGame extends Phaser.Scene {
       scene.scene.launch("WaitingRoom", { level: "default" });
     } else {
       f.watchGame(scene);
+	  scene.roomComplete = true;
     }
 
     /* ADD GAME OBJECTS */
-    if (!scene.roomComplete) {
+    //if (!scene.roomComplete) {
       f.createGameObjects(
         scene.level,
         null,
@@ -79,8 +79,12 @@ export default class DefaultGame extends Phaser.Scene {
         height,
         scene
       );
-    }
+    //}
     /* JOIN QUEUE OR WATCH GAME*/
+	console.log("spectator " + scene.spectator)
+	console.log("roomComplete " + scene.roomComplete)
+	console.log("challenge " + scene.challenge)
+	
     if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
       f.joinQueue(scene, scene.level);
     } else if (
@@ -97,9 +101,9 @@ export default class DefaultGame extends Phaser.Scene {
     }
 
     /* EVENT LISTENERS */
-    if (!scene.roomComplete) {
+    //if (!scene.roomComplete) {
       f.addEventListeners(scene.level, width, height, scene, game);
-    }
+    //}
   }
 
   update() {
