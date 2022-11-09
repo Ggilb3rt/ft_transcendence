@@ -1,5 +1,6 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
+import { JwtPayload } from 'src/jwt-auth/jwt-auth.strategy';
 
 @Injectable()
 export class AuthService {
@@ -10,11 +11,14 @@ export class AuthService {
             return (-1)
           }
         const {validate} = await this.jwtAuthService.validate(token);
-        if (!validate.id) {
+        if (!validate || !validate.id) {
           throw new ForbiddenException("Invalid Token")
         }
-        if (validate.isAuth)
+        if (validate.isAuth || !validate.two_factor_auth) {
+          console.log("Need 2fa")
           return 0
+        }
+        console.log('Authorized')
         return 1
     }
 }

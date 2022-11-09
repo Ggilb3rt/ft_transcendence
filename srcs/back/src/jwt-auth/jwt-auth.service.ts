@@ -18,7 +18,7 @@ export class JwtAuthService {
         nick_fourtytwo:true
       }
     })
-    const payload: JwtPayload = { username: nick_fourtytwo, id: user.id, isAuth };
+    const payload: JwtPayload = { username: nick_fourtytwo, id: user.id, isAuth, two_factor_auth };
     console.log("\n\n--------\n\npayload == ", payload)
     return {
       accessToken: this.jwtService.sign(payload),
