@@ -9,6 +9,7 @@ import { Socket, Server } from 'socket.io';
 import { ForbiddenException, Logger, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { UsersService } from 'src/users/users.service';
+import { TMessage } from 'src/users/types';
 
 
 @WebSocketGateway({
@@ -32,7 +33,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     async handleConnection(client: Socket) {
-        
+
     }
 
     @SubscribeMessage('getMyRooms')
@@ -63,16 +64,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('sendMessageToChannel')
-    async sendMessageToChannel(client: Socket, room: string, user_id: number, content: string, date: Date) {
+    async sendMessageToChannel(client: Socket, room: string, content: string, date: Date) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         await this.chatService.sendMessageToChannel(parseInt(room), content, date, id)
-        client.broadcast.to(room).emit('messageSentToChannel', {
-            channel_id: parseInt(room),
-            content,
+
+        const message: TMessage = {
+            receiver: parseInt(room),
+            sender: id,
+            msg: content,
+            isDirect: false,
             date,
-            sender: id
-        })
+        }
+        client.broadcast.to(room).emit('messageSentToChannel', message)
     }
 
     @SubscribeMessage('sendDirectMessage')
@@ -81,11 +85,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         await this.chatService.sendDirectMessage(user_id, content, date, id)
-        client.broadcast.to(room).emit('directMessageSent', {
+
+        const message: TMessage = {
+            receiver: user_id,
             sender: id,
-            content,
-            date
-        })
+            msg: content,
+            isDirect: true,
+            date,
+        }
+        client.broadcast.to(room).emit('directMessageSent', message)
     }
 
     @SubscribeMessage('promote')
