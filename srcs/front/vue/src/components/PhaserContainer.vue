@@ -50,12 +50,17 @@ class Game extends Phaser.Game {
 }
 
 onMounted(() => {
+  alert("MOUNT");
   socket = io("http://localhost:3000/game");
   const route = useRoute();
   const str = route.query.challenge;
-  //router.replace({ path: "/game" });
   //console.log("QUERY");
   //console.log(str);
+
+ console.log("GI MOUN");
+  if (gameInstance) {
+    console.log(gameInstance.scene.scenes);
+  }
 
   socket.emit("getActiveRoomNames");
 
@@ -97,22 +102,32 @@ onMounted(() => {
     console.log(data);
     gameInstance = new Game();
   });
+
+  //window.addEventListener('beforeunload', function() {
+  //event.returnValue = 'Write something'
+  //		 alert("UNMOUNT2");
+  //    })
 });
 
 onUpdated(() => {
+  alert("UPDATE");
   //disconnectSockets();
   //
   //console.log("HAHAH");
-  router.replace({path: "/game"});
   if (gameInstance) {
-    disconnectSockets();
-  }
+  	  disconnectSockets();
+  //gameInstance.destroy();
+  	}
+  //router.replace({path: "/game"});
 });
 
 onBeforeUnmount(() => {
-  //console.log(gameInstance.scene.scenes[3]);
+  alert("UNMOUNT");
   if (gameInstance) {
+    console.log("GI UN");
     disconnectSockets();
+    //console.log(gameInstance.scene.scenes);
+    //gameInstance.destroy();
   }
   if (socket) {
     socket.disconnect();
@@ -120,19 +135,38 @@ onBeforeUnmount(() => {
 });
 
 function disconnectSockets() {
-  const defScene = gameInstance.scene.scenes[3];
-  if (defScene != undefined && defScene != null && "socket" in defScene) {
-    //defScene.socket.disconnect();
-    defScene.socket.disconnect();
-    //console.log("socket exists");
-  }
-  const custScene = gameInstance.scene.scenes[4];
-  if (custScene != undefined && custScene != null && "socket" in custScene) {
-    custScene.socket.disconnect();
-  }
-  const catScene = gameInstance.scene.scenes[5];
-  if (catScene != undefined && catScene != null && "socket" in catScene) {
-    catScene.socket.disconnect();
+  console.log("GAME INSTANCE UNM " + gameInstance);
+  if (gameInstance) {
+	console.log(gameInstance.scene.scenes);
+	let roomId: number;
+	let level: number;
+	const defScene = gameInstance.scene.scenes[3].socket;
+    if (defScene !== undefined /*&& defScene !== null*//* && "socket" in defScene*/) {
+      //defScene.socket.disconnect();
+	  roomId = gameInstance.scene.scenes[3].roomName;
+	  level = gameInstance.scene.scenes[3].level;
+	  console.log("ROOM ID " + roomId + " LEVEL " + level);
+	  //defScene.emit("quitGame", {roomName: roomId, level});
+      defScene.disconnect();
+	  //socket.emit("quitGame", {roomName: roomId, level: 0})
+	  //router.replace({ path: "/game" }); 
+	  //console.log("socket exists");
+    }
+    const custScene = gameInstance.scene.scenes[4].socket;
+	console.log("CUST SCENE " + custScene);
+    if (custScene !== undefined /*&& custScene !== null*//* && "socket" in custScene*/) {
+      custScene.disconnect();
+	  roomId = gameInstance.scene.scenes[3].roomId;
+	  console.log(roomId);
+	  socket.emit("quitGame", {roomName: roomId, level: 0})
+    }
+    const catScene = gameInstance.scene.scenes[5].socket;
+    if (catScene !== undefined/* && catScene !== null*//* && "socket" in catScene*/) {
+      catScene.disconnect();
+	  roomId = gameInstance.scene.scenes[3].roomId;
+	  console.log(roomId);
+	  socket.emit("quitGame", {roomName: roomId, level: 0})
+    }
   }
 }
 </script>

@@ -31,7 +31,7 @@ export class UsersController {
     }
 
     @Get(':id/other')
-    // @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard)
     getOther(@Param('id', ParseIntPipe) id): Promise<otherFormat> {
        return (this.usersService.getOtherUser(id))
     }

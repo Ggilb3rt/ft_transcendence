@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
 			</button>
 			<RouterLink to="/" @click="isActive = false">Play</RouterLink>
 			<RouterLink to="/chat" @click="isActive = false">Chat</RouterLink>
-			<RouterLink to="/game" @click="isActive = false">Game</RouterLink>
+			<!-- <RouterLink to="/game" @click="isActive = false">Game</RouterLink> -->
 			<RouterLink to="/dashboard" @click="isActive = false">
 				<img v-if="userStore.user" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>

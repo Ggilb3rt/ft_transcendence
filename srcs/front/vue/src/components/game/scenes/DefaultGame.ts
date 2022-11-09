@@ -5,19 +5,23 @@ import GamePlay from "../tools/GamePlay";
 const f = new GamePlay();
 
 export default class DefaultGame extends Phaser.Scene {
+  socket: Socket;
+  roomName: number;
+  level: number;
   constructor() {
     super("DefaultGame");
-    let socket = null;
+    //this.socket = null;
   }
 
   init(data) {
     this.userId = data.userId;
     this.spectator = data.spectator;
-	this.challenge = data.challenge;
-	this.challengeInfo = data.challengeInfo;
+    this.challenge = data.challenge;
+    this.challengeInfo = data.challengeInfo;
     //this.socket = null;
     this.level = 1;
     this.roomComplete = false;
+    this.playerInit = false;
     this.playerNumber = 0;
     this.activeGame = false;
     this.matchEnded = false;
@@ -47,6 +51,7 @@ export default class DefaultGame extends Phaser.Scene {
     const { width, height } = this.sys.game.canvas;
     const game = this.sys.game;
     console.log("defaultgame");
+    console.log("socket " + this.socket);
 
     if (scene.spectator) {
       scene.roomComplete = true;
@@ -76,13 +81,19 @@ export default class DefaultGame extends Phaser.Scene {
       );
     }
     /* JOIN QUEUE OR WATCH GAME*/
-    if (!scene.spectator && !scene.roomComplete) {
-      if (!scene.challenge) {
-        f.joinQueue(scene, scene.level);
-      } else {
-		console.log("CREATE GAME");
-        scene.socket.emit("createGame", {userId: scene.userId, challengeInfo: scene.challengeInfo} );
-      }
+    if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
+      f.joinQueue(scene, scene.level);
+    } else if (
+      !scene.spectator &&
+      !scene.roomComplete &&
+      scene.challenge &&
+      scene.playerNumber === 0
+    ) {
+      console.log("CREATE GAME");
+      scene.socket.emit("createGame", {
+        userId: scene.userId,
+        challengeInfo: scene.challengeInfo,
+      });
     }
 
     /* EVENT LISTENERS */

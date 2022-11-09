@@ -1,5 +1,6 @@
 import router from "@/router";
 import { Scene } from "phaser";
+import { Socket } from "socket.io-client";
 import eventsCenter from "../scenes/EventsCenter";
 
 export default class GamePlay {
@@ -44,6 +45,7 @@ export default class GamePlay {
       console.log("roomName", data.gameCode);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
+	  scene.playerInit = true;
       //router.replace({ path: `/game/${scene.roomName}` });
     });
   }
@@ -166,13 +168,7 @@ export default class GamePlay {
   listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
       if (type === 1) {
-        //alert("YOUR OPPONENT LEFT");
-        console.log("a player disconnected");
-      } else if (type === 2) {
-        //alert("YOUR OPPONENT LEFT");
-        console.log("a player quit");
-      }
-      this.playerNumber = 0;
+		this.playerNumber = 0;
       this.roomName = "";
       this.spectator = false;
       this.activeGame = false;
@@ -187,14 +183,37 @@ export default class GamePlay {
 
       scene.socket.disconnect();
 
+        //alert("YOUR OPPONENT LEFT");
+        console.log("a player disconnected");
+		router.push("/");
+      } else if (type === 2) {
+        //alert("YOUR OPPONENT LEFT");
+        console.log("a player quit");
+      }
+      /*this.playerNumber = 0;
+      this.roomName = "";
+      this.spectator = false;
+      this.activeGame = false;
+      this.matchEnded = false;
+	  this.challenge = false;
+      eventsCenter.emit("quit");
+      scene.scene.stop("DefaultGame");
+
+      scene.scene.stop("CustomizableGame");
+
+      scene.scene.stop("CatPongGame");
+
+      scene.socket.disconnect();*/
+
 
       //scene.socket = null;
-      console.log("LALALEILAL");
+      /*console.log("LALALEILAL");
       scene.scene.start("MenuScene", {
         userId: scene.userId,
 		challenge: false,
-      });
-      //router.replace({ path: "/game" });
+      });*/
+      //router.push("/");
+	  //console.log("HELLOHELLO");
     });
   }
 
@@ -432,7 +451,7 @@ export default class GamePlay {
     this.initColliders(level, scene);
     this.initScores(width, height, scene);
     this.initObjectEventListeners(scene);
-    this.initUIButtons(width, height, scene);
+    //this.initUIButtons(width, height, scene);
     this.initPauseText(width, height, scene);
   }
 
@@ -658,7 +677,7 @@ export default class GamePlay {
     // Init KEY EVENT listeners
     scene.cursors = scene.input.keyboard.createCursorKeys();
   }
-
+/*
   initUIButtons(width, height, scene) {
     scene.quitButton = scene.add.text(width / 2 - 60, height - 40, "QUIT", {
       fill: "#ffffff",
@@ -668,7 +687,13 @@ export default class GamePlay {
     scene.quitButton.setInteractive();
     scene.quitButton.on("pointerdown", () => {
       console.log("quit button clicked");
-      scene.activeGame = false;
+	  this.playerNumber = 0;
+      this.roomName = "";
+      this.spectator = false;
+      this.activeGame = false;
+      this.matchEnded = false;
+	  this.challenge = false;
+	  scene.scene.pause();
       scene.socket.emit("quitGame", {
         roomName: scene.roomName,
         level: scene.level,
@@ -694,7 +719,7 @@ export default class GamePlay {
         console.log("YOU NEED TO FINISH THE GAME BEFORE A REMATCH");
       }
     });
-  }
+  }*/
 
   initPauseText(width, height, scene) {
     scene.pauseText = scene.add

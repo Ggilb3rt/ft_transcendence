@@ -115,6 +115,8 @@ export class GameService {
         state.players[1].id = gameRoom.playerTwo.id;
         state.roomName = roomId;
         gameRoom.state = state;
+		console.log("GAMEROOM");
+		console.log(gameRoom);
         server.to(roomId).emit("roomComplete", state);
 	}
 
@@ -203,55 +205,48 @@ export class GameService {
 		console.log("roomName " + roomName);
 		console.log("level  " +level);
 
+		console.log("ACTIVE GAMES 1")
+		console.log(this.activeGames);
+
 		if (spectator) {
 			client.emit("leftGame", 1)
 			Reflect.deleteProperty(this.players, client.id);
 		}
 
 		if (roomName) {
+			console.log("DISCONNECTING")
 			server.in(roomName).emit("leftGame", 1)
+			//client.emit("leftGame");
 			Reflect.deleteProperty(this.activeGames, roomName);
 		}
 
 		if (level !== 0) {
             const wr = this.waitingRooms[level];
-			if (wr) {
-            if (wr.playerOne.id === client.id) {
-                this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
-            } else if (wr.playerTwo.id === client.id) {
-                this.switchPlayers(null, null, wr, 2)
-            }
-			client.emit("leftGame", 1);
-		}
-        } 
-		Reflect.deleteProperty(this.players, client.id);
-
-
-/*		if (level < 0 && level >= 3) {
-            const wr = this.waitingRooms[level];
-            if (wr.playerOne.id === client.id) {
-                this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
-            } else if (wr.playerTwo.id === client.id) {
-                this.switchPlayers(null, null, wr, 2)
-            }
-			client.emit("leftGame", 1);
-        } else if (level < 4) {
-			client.emit("leftGame", 1);
-				Reflect.deleteProperty(this.waitingRooms, level);
+			if (level < 0 && level >= 3) {
+           		if (wr.playerOne.id === client.id) {
+                	this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
+            	} else if (wr.playerTwo.id === client.id) {
+                	this.switchPlayers(null, null, wr, 2)
+            	}
 			}
 			else {
-				client.emit("leftGame", 1);
+				Reflect.deleteProperty(this.waitingRooms, level);
 			}
+			client.emit("leftGame", 1);
+			//Reflect.deleteProperty(this.waitingRooms, level);
+		}
+        
+		Reflect.deleteProperty(this.players, client.id);
 
-		Reflect.deleteProperty(this.players, client.id);*/
+		console.log("ACTIVE GAMES2")
+		console.log(this.activeGames);
 
-		//console.log("PLAYERS DISCO")
-		//console.log(Object.keys(this.players));
-
+		console.log(this.waitingRooms);
     }
 
     async handleQuitGame(client: Socket, data: any, server: Server) {
 		console.log("CLIENT QUIT " + client.id);
+		console.log(Object.keys(this.activeGames));
 	
 
 		const roomName = data.roomName;
@@ -287,36 +282,7 @@ export class GameService {
 				}
 			} 
 		}
-
-
-		/*if (level < 0 && level >= 3) {
-			const wr = this.waitingRooms[level];
-			
-			if (wr) {
-			if (wr.playerOne.id === client.id) {
-				   this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
-			   } else if (wr.playerTwo.id === client.id) {
-				   this.switchPlayers(null, null, wr, 2);
-			   }
-			}
-			   client.emit("leftGame", 2);
-			   client.disconnect();
-		} else if (level < 3) {
-			const wr = this.waitingRooms[level];
-			if (wr) {
-				wr.playerOne.socket.emit("leftGame", 2);
-				wr.playerOne.socket.disconnect();
-				wr.playerTwo.socket.emit("leftGame", 2);
-				wr.playerTwo.socket.disconnect();
-			}
-		} else {
-			client.emit("leftGame", 2);
-			client.disconnect();
-		}*/
-	
-
-		//console.log("PLAYERS QUIT")
-		//console.log(Object.keys(this.players));
+		console.log(this.waitingRooms);
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {
@@ -338,8 +304,12 @@ export class GameService {
 
     handleRematch(client: Socket, data: any, server: Server) {
         //console.log(Object.keys(this.players).length);
-        const roomId = this.players[client.id].roomId;
-        const room = this.activeGames[roomId];
+		console.log("REMATCH")
+        //const roomId = this.players[client.id].roomId;
+        const roomId = data.roomName;
+		const room = this.activeGames[roomId];
+		
+		console.log(room);
         let player;
         let opponent;
         let playerNum;
@@ -405,6 +375,11 @@ export class GameService {
 
 		this.waitingRooms[this.i] = WR4;
 		let wr = this.waitingRooms[this.i];
+		/*if ((wr.playerOne.id === "" && wr.playerTwo.id === "") 
+			|| (wr.playerOne === userId || wr.playerTwo === userId)
+			|| (wr.playerTwo === userId || wr.playerTwo === userId)) {
+				wr = this.waitingRooms[this.i];
+			}*/
 
 		console.log("USER ID CREATE " + userId)
 
@@ -417,7 +392,7 @@ export class GameService {
 			wr.playerOne.level = this.i;
 			wr.playerOne.userId = userId;
             wr.level = this.i;
-		}  else {
+		} else if (player.userId === data.challengeInfo.challenged) {
 			wr.playerTwo.id = player.id;
 			wr.playerTwo.socket = player.socket;
 			wr.playerTwo.level = this.i;
@@ -425,21 +400,31 @@ export class GameService {
 			wr.level = this.i;
 		}
 
+		console.log("WROOM4");
+		console.log(this.waitingRooms[this.i]);
+
 		if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
+			console.log("room CREATION COMPLETE")
 			const roomId = this.codeGenerator(5);
 			wr.roomId = roomId;
 			wr.playerOne.roomId = roomId;
 			wr.playerTwo.roomId = roomId;
 			wr.level = this.i;
+			this.players[wr.playerOne.id].roomId = roomId;
+			this.players[wr.playerTwo.id].roomId = roomId;
+			this.players[wr.playerOne.id].level = wr.level;
+			this.players[wr.playerTwo.id].level = wr.level;
 			this.activeGames[roomId] = {
 				playerOne: wr.playerOne,
 				playerTwo: wr.playerTwo,
 				level: this.i,
 			}
+			console.log(this.activeGames[roomId]);
 
 			this.initGame(wr.roomId, server);
 
-			Reflect.deleteProperty(this.waitingRooms, this.i);
+			//Reflect.deleteProperty(this.waitingRooms, this.i);
+			//++this.i;
 		}
 	}
 
