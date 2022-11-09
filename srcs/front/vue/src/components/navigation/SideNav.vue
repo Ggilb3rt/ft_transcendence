@@ -44,6 +44,7 @@ function leaveChannel(link: string) {
 
 function joinChannel(link: string) {
 	alert(`you join channel ${link}`)
+	// emit sur join et attendre la réponse
 }
 
 onBeforeMount(() => {
@@ -102,9 +103,10 @@ onBeforeUnmount(() => {
 				<ul v-show="isOpen(index)" v-if="isFolder(index)">
 					<li v-for="child in el.children" :key="child">
 						<!-- je pourrai preventDefault le routerLink si el.canJoin pour lancer canJoin -->
-						<RouterLink v-if="child.id" :to="child.id" class="channel_link">
+						<RouterLink v-if="child.id && el.canJoin" :to="child.id" @click.prevent="joinChannel(child.id)">{{ child.name }}</RouterLink>
+						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
 							{{ child.name }}
-							<button v-if="!onRight && el.canJoin" @click.prevent="joinChannel(child.id)" class="btn_hide btn_join">join</button>
+							<!-- <button v-if="!onRight && el.canJoin" @click.prevent="joinChannel(child.id)" class="btn_hide btn_join">join</button> -->
 							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
 						</RouterLink>
 						<button v-else>{{ child.name }}</button>

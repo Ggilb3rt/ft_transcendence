@@ -36,12 +36,13 @@ window.addEventListener('beforeunload', (e) => {
   // console.log("res == ", res);
   // if (res.status < 300) {
   //   if (userStore.conStatus == setStatus.connected) {
-  //     // if (route.name)
-        localStorage.setItem('last_page', route.name.toString());
+  if (route.name)
+    localStorage.setItem('last_page', route.name.toString());
     // }
   // }
   // localStorage.setItem('log', res.toString());
 })
+
 
 async function testConnection() {
   try {

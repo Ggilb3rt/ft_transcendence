@@ -6,8 +6,6 @@ import { AuthService } from './auth.service';
 import { TwoFactorGuard } from './two-factor.guard';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
-import { users } from '@prisma/client';
-
 
 @Controller('auth')
 export class AuthController {
@@ -59,8 +57,7 @@ export class AuthController {
 
   @Get('verify')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
-  async verif(@Req() req): Promise<users> {
+  async verif(@Req() req): Promise<number> {
     return (this.authService.verify(req.cookies.jwt))
   }
 

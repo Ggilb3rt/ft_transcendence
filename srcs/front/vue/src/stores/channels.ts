@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { io } from "socket.io-client"
 import { CChannel } from "@/helpers/class.channel"
 import type { IChannel, IChannelRestrict, TMessage } from "../../typesChat"
+import { useUserStore } from "./user";
 
 interface IChannelsStore {
 	availableChannels: IChannelRestrict[]
@@ -47,6 +48,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	// --> recupere la liste des rooms ou il est
 	// -->
 	const usersStore = useUsersStore();
+	const userStore = useUserStore();
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
 	const openChan = ref<CChannel[]>([
@@ -74,16 +76,29 @@ export const useChannelsStore = defineStore('channels', () => {
 		openChan.value[index].messages.push(msg)
 	}
 
-	function createCustomMessage(admin: number, did: string, to: number, type: number): TMessage {
-		const admin_nick = usersStore.getUserNickById(admin);
-		const user_nick = usersStore.getUserNickById(to);
-		const msg = `${admin_nick} ` + did + ` ${user_nick} !`
-		return {
-			sender: type,
-			receiver: String(to),
-			msg,
-			isDirect: false,
-			date: new Date()
+	function createCustomMessage(admin: number, did: string, type: number, to: number): TMessage {
+		if (type > -5) {
+			const admin_nick: string = admin === userStore.user.id ? 'You' : usersStore.getUserNickById(admin);
+			const user_nick: string = to === userStore.user.id ? 'you' : usersStore.getUserNickById(to);
+			const msg = `${admin_nick} ` + did + ` ${user_nick} !`;
+			return {
+				sender: type,
+				receiver: to.toString(),
+				msg,
+				isDirect: false,
+				date: new Date()
+			}
+		}
+		else {
+			const user_nick: string = admin === userStore.user.id ? 'You' : usersStore.getUserNickById(admin)
+			const msg = `${user_nick}  ${did} the channel`
+			return {
+				sender: type,
+				receiver: to.toString(),
+				msg,
+				isDirect: false,
+				date: new Date()
+			}
 		}
 	}
 
@@ -116,15 +131,75 @@ export const useChannelsStore = defineStore('channels', () => {
 			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_by, -2))
 		}
 
-	async function setup(refsocket: any) {
+	function handleMute(args: {
+		banned_id: number,
+		banned_by: number,
+		expires: Date,
+		channel_id: string
+		}) 
+		{
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			openChan.value[index].muteList.push({userId: args.banned_id, expire: args.expires})
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_by, -3))
+		}
+		
+	function handleKick(args: {
+		banned_id: number,
+		banned_by: number,
+		channel_id: string
+		}) 
+		{
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			// openChan.value[index].banList.push()
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'kicked', args.banned_by, -4))
+		}
+
+	function handleJoin(args: {
+		new_client: number,
+		channel_id: string
+		}) {
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			openChan.value[index].userList.push(args.new_client)
+			openChan.value[index].messages.push(createCustomMessage(args.new_client, 'joined', parseInt(args.channel_id), -5))
+		}
+
+	function handleQuit(args: {
+		client_quit: number,
+		channel_id: string
+	})
+		{
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			openChan.value[index].userList.push(args.client_quit)
+			openChan.value[index].messages.push(createCustomMessage(args.client_quit, 'left', parseInt(args.channel_id), -6))
+		}
+
+	async function setup() {
 		refsocket.value.emit('getMyRooms', (res: any) => {
 			res.forEach((elem: string) => {
 				myRooms.push(elem)
 				console.log('Adding room id: ', elem)
 			})
 		})
-		refsocket.value.on(['messageSentToChannel', 'directMessageSent'], handleMessage)
+		refsocket.value.on('messageSentToChannel', handleMessage)
+		refsocket.value.on('directMessageSent', handleMessage)
 		refsocket.value.on('promote', handlePromotion)
+		refsocket.value.on('ban', handleBan)
+		refsocket.value.on('kick', handleKick)
+		refsocket.value.on('mute', handleMute)
+		refsocket.value.on('join', handleJoin)
+		refsocket.value.on('quit', handleQuit)
 	}
 		// Initialise
 		async function getChansLists() {
@@ -141,6 +216,7 @@ export const useChannelsStore = defineStore('channels', () => {
 					joinedChannels.value = data.joinedChannels
 					joinedChannels.value.push({name: "fake", id: "10"})
 				}
+			setup()
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
