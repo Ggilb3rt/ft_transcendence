@@ -80,14 +80,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('sendDirectMessage')
-    async sendDirectMessage(client: Socket, room: string, user_id: number, content: string, date: Date) {
+    async sendDirectMessage(client: Socket, room: string, content: string, date: Date) {
     
+        
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        await this.chatService.sendDirectMessage(user_id, content, date, id)
+        await this.chatService.sendDirectMessage(parseInt(room), content, date, id)
 
         const message: TMessage = {
-            receiver: user_id,
+            receiver: parseInt(room),
             sender: id,
             msg: content,
             isDirect: true,

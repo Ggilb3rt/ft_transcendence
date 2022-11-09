@@ -33,7 +33,7 @@ export interface IChannelRestrict {
 // en vrai pas sur parceque ça va faire plein d'appel au store... je sais pas trop en vrai
 export type TMessage = {
 	sender: number,
-	receiver: number,
+	receiver: string,
 	msg: string,
 	isDirect: boolean,
 	date: Date

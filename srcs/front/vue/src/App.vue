@@ -26,7 +26,6 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
 
-
 window.addEventListener('beforeunload', async (e) => {
   statusStore.refuseChallenge(userStore.user.id)
   statusStore.onClose()
@@ -42,6 +41,7 @@ window.addEventListener('beforeunload', async (e) => {
   }
   localStorage.setItem('log', res.toString());
 })
+
 
 async function testConnection() {
   try {

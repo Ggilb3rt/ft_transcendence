@@ -51,10 +51,10 @@ export class AuthController {
       httpOnly:true,
     })
     if (two_factor_auth == false) {
-      return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
+      return true
     }
     else
-      return res.redirect(process.env.URL_LOGIN_2FA)
+      return false
   }
 
   @Get('verify')
