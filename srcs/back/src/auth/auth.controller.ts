@@ -51,15 +51,14 @@ export class AuthController {
       httpOnly:true,
     })
     if (two_factor_auth == false) {
-      return true
+      return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
     }
     else
-      return false
+      return res.redirect(process.env.URL_LOGIN_2FA)
   }
 
   @Get('verify')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
   async verif(@Req() req): Promise<users> {
     return (this.authService.verify(req.cookies.jwt))
   }
