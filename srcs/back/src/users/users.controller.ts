@@ -8,7 +8,6 @@ import { createReadStream } from 'fs';
 import { ban_users, friends, users } from '@prisma/client';
 import { otherFormat, userFront, userRestrict } from './types';
 
-
 @Controller('users')
 export class UsersController {
     constructor(private usersService: UsersService) {}
@@ -31,7 +30,6 @@ export class UsersController {
     }
 
     @Get(':id/other')
-    // @UseGuards(JwtAuthGuard)
     getOther(@Param('id', ParseIntPipe) id: number): Promise<otherFormat> {
        return (this.usersService.getOtherUser(id))
     }

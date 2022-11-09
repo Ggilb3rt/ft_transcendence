@@ -212,10 +212,18 @@ export class ChatService {
         })
         
         const availables = await this.chatHelper.getAvailableChannels()
+        const privateC = await this.chatHelper.getMyPrivateChannels(user_id)
 
         const availableChannels: TChannelRestrict[] = [];
         const channels: TChannelRestrict[] = [];
-        const privateChannels: TChannelRestrict[] = []
+        const privateChannels: TChannelRestrict[] = [];
+
+
+        privateC.forEach((elem) => {
+            elem.channels.forEach((elem) => {
+                privateChannels.push(elem)
+            })
+        })
 
         availables.forEach((elem) => {
             if (ids.includes(elem.id)) {
