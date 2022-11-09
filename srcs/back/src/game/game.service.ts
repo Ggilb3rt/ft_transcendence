@@ -5,7 +5,10 @@ import { Ball, Player, WR1, WR2, WR3, WR4 } from './classes';
 @Injectable()
 export class GameService {
 	private waitingRooms = {};
-    private activeGames = {};
+    private activeGames = {
+		'abcdef': {},
+		'ku3heg3': {}
+	};
     private players = {};
 	private i = 4;
 
@@ -179,7 +182,7 @@ export class GameService {
 
     handleAddPoint(client: Socket, data: any, server: Server) {
         let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
-        if (score === 3) {
+        if (score === 11) {
             server.to(data.roomName).emit('gameResult', { winner: data.player });
         } else {
             server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
@@ -199,7 +202,7 @@ export class GameService {
         }   
     }
 
-    async handleDisconnect(client: Socket, server: Server) {
+    handleDisconnect(client: Socket, server: Server) {
 		console.log("CLIENT DISCONNECTED " + client.id);
 		
 		const roomName = this.players[client.id].roomId;

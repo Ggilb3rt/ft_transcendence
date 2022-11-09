@@ -105,7 +105,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:ourGames?/:id?",
+      path: "/game/:ourGames/:id?",
       name: "game",
       component: Game,
     },
@@ -141,7 +141,16 @@ router.beforeEach(async (to, from) => {
     const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
     if (response.status == 401) {
       return { name: 'login' }
-    }
+    } else if (localStorage.getItem('toto') == 'true') {
+		console.log("je suis dans a condition a laide")
+		return ({name: '/'});
+	}
+	/*else {
+		const temp = localStorage.getItem('last_page')?.toString()
+		console.log('TEMP ' + temp);
+       setTimeout(() => {return {name : temp}} , 1000);
+	   //return ({name: '/'});
+	}*/
     // else {
     //   const temp = localStorage.getItem('last_page')?.toString()
     //   setTimeout(() => {return {name : temp}} , 1000);

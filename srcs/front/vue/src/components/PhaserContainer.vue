@@ -16,7 +16,7 @@ import CatPongGame from "./game/scenes/CatPongGame";
 
 const containerId = "game-container";
 const userStore = useUserStore();
-let socket;
+let socket = io("http://localhost:3000/game");
 let gameInstance = null;
 let activeRoomNames = [];
 let key: string;
@@ -24,6 +24,7 @@ const data = {
   userId: userStore.user.id,
   spectator: false,
   challenge: false,
+  key: "",
   level: "",
   challengeInfo: {
     challenger: "",
@@ -31,6 +32,24 @@ const data = {
     challenged: "",
   },
 };
+
+window.addEventListener("beforeunload", async (e) => {
+  console.log("BEFORE UNLOAAAAD");
+  //localStorage.setItem("last_page", "/");
+  //router.push('/');
+  if (gameInstance) {
+    disconnectSockets();
+    //if (socket) {
+    //	socket.disconnect();
+  }
+  //gameInstance.destroy();
+  //}
+  localStorage.setItem("toto", "true");
+  //if (socket) {
+  // socket.disconnect();
+  //}
+  //router.push('/');
+});
 
 class Game extends Phaser.Game {
   constructor() {
@@ -46,8 +65,8 @@ class Game extends Phaser.Game {
 }
 
 onMounted(() => {
-  alert("MOUNT");
-  socket = io("http://localhost:3000/game");
+  //alert("MOUNT");
+  //socket = io("http://localhost:3000/game");
   const route = useRoute();
   const str = route.query.challenge;
 
@@ -68,18 +87,15 @@ onMounted(() => {
     } else {
       // NO CHALLENGE
       key = route.params.ourGames;
-      if (
-        key != "pong" &&
-        key != "catPong" &&
-        key != "customizable" //&&
-        /*activeRoomNames.includes(key) === false*/
-      ) {
-        console.log("wrong key");
-        key = "";
-      } else {
+      if (key === "pong" || key === "catPong" || key === "customizable") {
         data.level = key;
         console.log("KEY");
         console.log(data.level);
+      } else if (activeRoomNames.includes(key)) {
+        console.log("key coorect");
+        data.key = key;
+      } else {
+        router.replace("/game");
       }
     }
     //router.replace({ path: "/game" });
@@ -87,21 +103,25 @@ onMounted(() => {
     console.log(data);
     gameInstance = new Game();
   });
+
+  window.addEventListener("beforeunload", async (e) => {
+    console.log("BEFORE UNLOAAAAD");
+    router.push("/");
+  });
 });
 
 onUpdated(() => {
-  alert("UPDATE");
+  //alert("UPDATE");
   if (gameInstance) {
     disconnectSockets();
     //gameInstance.destroy();
   }
-  //router.replace({path: "/game"});
+  router.push("/");
 });
 
 onBeforeUnmount(() => {
   alert("UNMOUNT");
   if (gameInstance) {
-    console.log("GI UN");
     disconnectSockets();
     gameInstance.destroy();
   }

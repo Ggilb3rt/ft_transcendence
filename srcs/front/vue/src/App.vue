@@ -35,8 +35,10 @@ window.addEventListener('beforeunload', async (e) => {
   //console.log("res == ", res);
   if (res.status < 300) {
     if (userStore.conStatus == setStatus.connected) {
-      localStorage.setItem('last_page', route.name.toString());
-    }
+		if (!localStorage.getItem('last_page')) {
+		localStorage.setItem('last_page', route.name.toString());
+		}
+	}
   }
   localStorage.setItem('log', res.toString());
 })

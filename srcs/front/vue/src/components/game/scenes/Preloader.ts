@@ -21,7 +21,7 @@ export default class Preloader extends Phaser.Scene {
     this.userId = data.userId;
     this.spectator = data.spectator;
     this.challenge = data.challenge;
-    //this.key = data.key;
+    this.key = data.key;
     this.level = data.level;
     this.challengeInfo = data.challengeInfo;
     this.socket = null;
@@ -52,17 +52,25 @@ export default class Preloader extends Phaser.Scene {
     const scene = this;
     console.log("PRELOAD");
     console.log(scene.data);
-    console.log(scene.level);
+    console.log("LEVELLL " + scene.level);
+    console.log("KEYY " + scene.key);
     //router.replace({ path: "/game" });
 
-    if (!scene.challenge) {
+    if (!scene.challenge && !scene.spectator) {
       scene.scene.start("MenuScene", {
         userId: scene.userId,
         spectator: scene.spectator,
         level: scene.level,
         challenge: scene.challenge,
       });
-    } else {
+    } /*else if (!scene.challenge && scene.spectator) {
+      scene.scene.start("MenuScene", {
+        userId: scene.userId,
+        spectator: scene.spectator,
+        level: scene.level,
+        challenge: scene.challenge,
+      });
+    } */else {
       if (scene.challengeInfo.level === 1) {
         scene.scene.start("DefaultGame", {
           userId: scene.userId,
