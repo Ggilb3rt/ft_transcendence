@@ -78,7 +78,7 @@ export class ChatHelper {
                 }
             })
             chan.userList.forEach(async (id) => {
-                await prisma.users_list.create({
+                const user = await prisma.users_list.create({
                     data: {
                         channel_id: channel.id,
                         user_id: id
@@ -89,6 +89,12 @@ export class ChatHelper {
                 data: {
                     channel_id: channel.id,
                     user_id: chan.owner
+                }
+            })
+            await prisma.admins.create({
+                data: {
+                    channel_id: channel.id,
+                    admin_id: chan.owner
                 }
             })
             return channel.id;

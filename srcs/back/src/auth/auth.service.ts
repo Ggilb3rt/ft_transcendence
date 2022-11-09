@@ -15,10 +15,8 @@ export class AuthService {
           throw new ForbiddenException("Invalid Token")
         }
         if (validate.isAuth || !validate.two_factor_auth) {
-          console.log("Need 2fa")
           return 0
         }
-        console.log('Authorized')
         return 1
     }
 }
