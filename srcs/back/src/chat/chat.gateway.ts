@@ -56,7 +56,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         })
 
         friends_id.forEach((friend) => {
-            rooms.push('users/' + friend.toString())
+            rooms.push('u' + friend.toString())
         })
 
         client.join(rooms)
@@ -76,7 +76,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: false,
             date,
         }
-        client.broadcast.to(room).emit('messageSentToChannel', message)
+        client.broadcast.to(room).emit('messageSentToChannel', message, room)
     }
 
     @SubscribeMessage('sendDirectMessage')
@@ -93,17 +93,19 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: true,
             date,
         }
-        client.broadcast.to(room).emit('directMessageSent', message)
+        client.broadcast.to(room).emit('directMessageSent', message, room)
     }
 
     @SubscribeMessage('promote')
-    async promoteUser(client: Socket, promoted_id: number, channel_id: number, room: string) {
+    async promoteUser(client: Socket, promoted_id: number, room: string) {
+
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        await this.chatService.promoteAdmin(promoted_id, channel_id, id);
+        await this.chatService.promoteAdmin(promoted_id, parseInt(room), id);
+
         client.broadcast.to(room).emit('promoted', {
             promoted_id,
-            promoted_by: id
+            channel_id: room
         })
     }
 
@@ -114,7 +116,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         await this.chatService.kickUser(channel_id, kicked_id, id)
         client.broadcast.to(room).emit('kick', {
             kicked_id,
-            kicked_by: id
+            kicked_by: id,
+            channel_id: room
         })
     }
 
@@ -126,7 +129,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         client.broadcast.to(room).emit('ban', {
             banned_id,
             banned_by: id,
-            expires
+            expires,
+            channel_id: room
         })
     }
 
@@ -138,7 +142,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         client.broadcast.to(room).emit('mute', {
             banned_id,
             banned_by: id,
-            expires
+            expires,
+            channel_id: room
         })
     }
 

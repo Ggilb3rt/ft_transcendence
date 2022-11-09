@@ -12,7 +12,7 @@ export type TChannelUser = {
 }
 
 export interface IChannel {
-	id?: number;
+	id?: string;
 	ChanName: string;
 	type: TChannelType;
 	pass?: string;
@@ -26,7 +26,7 @@ export interface IChannel {
 
 export interface IChannelRestrict {
 	name: string;
-	href: string;
+	id: string;
 }
 
 // remplacer tag et img par userId, permet de le retrouver dans le store usersList

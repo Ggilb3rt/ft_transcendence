@@ -136,10 +136,10 @@ const route = useRoute()
 	// createChannel
 
 const channelList = ref([
-	{ name: 'chan1', href: '/chat/room/1' },
-	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
-	{ name: 'chan3', href: '/chat/room/3' },
-	{ name: 'chan4', href: '/chat/room/direct/4' },
+	{ name: 'chan1', id: '/chat/room/1' },
+	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', id: '/chat/room/2' },
+	{ name: 'chan3', id: '/chat/room/3' },
+	{ name: 'chan4', id: '/chat/room/direct/4' },
 ])
 
 const sideNavDataLeft = ref({
@@ -149,17 +149,17 @@ const sideNavDataLeft = ref({
 		// {
 		// 	name: 'New',
 		// 	children: null,
-		// 	href: '/chat/new'
+		// 	id '/chat/new'
 		// },
 		{
-			name: 'All channels',
+			name: 'All channels2',
 			children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
 			canJoin: true,
 			isOpen: false
 		},
 		{
 			name: 'My channels',
-			children: channelsStore.joinedChannels,
+			children: channelsStore.joinedChannels.value,
 			isOpen: true
 		}
 	]

@@ -1,4 +1,4 @@
-import { defineStore } from "pinia";
+import { defineStore, mapGetters } from "pinia";
 import { useUsersStore } from "./users";
 import { ref } from 'vue'
 import { io } from "socket.io-client"
@@ -49,7 +49,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
 	const openChan = ref<CChannel[]>([
-		new CChannel(10, "le Premier chan", "public", "", 1, [1,2,3], [1, 2], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
+		new CChannel("10", "le Premier chan", "public", "", 1, [1,2,3], [1, 2], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
 	])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
@@ -60,10 +60,40 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	const myRooms: string[] = [];
 
-
-	async function handleChannelMessage(msg: TMessage) {
-		
+	function getChanIndex(rhs: string): number {
+		return openChan.value.findIndex((elem) => {
+			return elem.getId() === rhs
+		})
 	}
+
+	function handleMessage(msg: TMessage, roomId: string) {
+		const index : number = msg.isDirect ? getChanIndex('u' + roomId) : getChanIndex(roomId)
+		if (index === -1)
+			return
+		openChan.value[index].messages.push(msg)
+	}
+
+	function handlePromotion(args: {
+		promoted: number,
+		channel_id: string,
+		promoted_by: number	}) {
+		const index: number = getChanIndex(args.channel_id)
+		if (index === -1) {
+			return
+		}
+		openChan.value[index].adminList.push(args.promoted)
+		openChan.value[index].messages.push({
+			sender: -1,
+			
+		})
+	}
+
+	function handleBan(args: {
+		banned_id,
+		banned_by: id,
+		expires,
+		channel_id: room
+	})
 
 	async function setup(refsocket: any) {
 		refsocket.value.emit('getMyRooms', (res: any) => {
@@ -72,7 +102,8 @@ export const useChannelsStore = defineStore('channels', () => {
 				console.log('Adding room id: ', elem)
 			})
 		})
-		refsocket.value.on('messageSentToChannel')
+		refsocket.value.on(['messageSentToChannel', 'directMessageSent'], handleMessage)
+		refsocket.value.on('promote', handlePromotion)
 	}
 		// Initialise
 		async function getChansLists() {
@@ -85,21 +116,15 @@ export const useChannelsStore = defineStore('channels', () => {
 				else
 					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 				if (data) {
-					// chanRestrictList.value = data
 					availableChannels.value = data.availableChannels
 					joinedChannels.value = data.joinedChannels
-					// data.joinedChannels.forEach((chan: IChannelRestrict) => {
-					// 	// create chan instance with default values
-					// 	let newChan = new CChannel(Number(chan.href), chan.name, "public", "", 0, [], [], [], [], [])
-					// 	openChan.value.push(newChan)
-					// })
 				}
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
 			}
 		}
-		async function getChan(id: number) {
+		async function getChan(id: string) {
 			if (isChanInList(id))
 				return
 			try {
@@ -112,10 +137,10 @@ export const useChannelsStore = defineStore('channels', () => {
 				if (data) {
 					// check if chan exist
 						// update data
-					const chanIndex = joinedChannels.value.find((el) => Number(el.href) == data.id)
+					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
 					if (chanIndex != undefined) {
 						let newChan = new CChannel(
-							data.id || 0, 
+							data.id || "", 
 							data.ChanName, 
 							data.type,
 							data.pass || "",
@@ -135,11 +160,11 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 
 		// Checker
-		function isChanInList(id: number): boolean {
+		function isChanInList(id: string): boolean {
 			return openChan.value.find((el) => el.id == id) ? true : false
 		}
 		// Getter
-		function selectCurrentChan(id: number) {
+		function selectCurrentChan(id: string) {
 			if (!isChanInList(id))
 				return
 			const finded = openChan.value.find((el) => el.id == id)

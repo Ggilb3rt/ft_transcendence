@@ -66,6 +66,7 @@ onBeforeMount(() => {
 			}
 		}
 	}
+	// console.log("la side nav ", props.model.items)
 })
 
 onBeforeUnmount(() => {
@@ -85,11 +86,11 @@ onBeforeUnmount(() => {
 				<CarbonClose></CarbonClose>
 			</i>
 		</button>
-		<li v-for="el, index in model.items" :key="el">
+		<li v-for="el, index in model.items.value" :key="el">
 			<nav
 				:class="{ bold: isFolder(index) }"
 				@click="toggle(index)">
-				<RouterLink v-if="el.href" :to="el.href">
+				<RouterLink v-if="el.id" :to="el.id">
 					{{ el.name }}
 				</RouterLink>
 				<button v-else>{{ el.name }}
@@ -99,10 +100,10 @@ onBeforeUnmount(() => {
 			<nav>
 				<ul v-show="isOpen(index)" v-if="isFolder(index)">
 					<li v-for="child in el.children" :key="child">
-						<RouterLink v-if="child.href" :to="child.href" class="channel_link">
+						<RouterLink v-if="child.id" :to="child.id" class="channel_link">
 							{{ child.name }}
-							<button v-if="!onRight && el.canJoin" @click.prevent="joinChannel(child.href)" class="btn_hide btn_join">join</button>
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.href)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
+							<button v-if="!onRight && el.canJoin" @click.prevent="joinChannel(child.id)" class="btn_hide btn_join">join</button>
+							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
 						</RouterLink>
 						<button v-else>{{ child.name }}</button>
 					</li>

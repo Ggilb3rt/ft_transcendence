@@ -2,7 +2,7 @@ import type { IChannel, TChannelType, TRestrictUserTime, TMessage } from "typesC
 
 // must protect if channel type is direct (remove possibility of add or remove user, ban, kick, change type, etc)
 export class CChannel {
-	id: number;
+	id: string;
 	ChanName: string;
 	type: TChannelType;
 	pass: string;
@@ -16,7 +16,7 @@ export class CChannel {
 	maxUser: number;
 
 	constructor(
-		id:number,
+		id:string,
 		name: string,
 		type: TChannelType,
 		pass: string,
@@ -71,7 +71,7 @@ export class CChannel {
 		return false
 	}
 	// Getters
-	getId(): number { return this.id }
+	getId(): string { return this.id }
 	getName(): string { return this.ChanName }
 	getType(): TChannelType { return this.type }
 	getMessages(): TMessage[] { return this.messages }
