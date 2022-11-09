@@ -135,12 +135,12 @@ const route = useRoute()
 	// getAllRestrictChannel
 	// createChannel
 
-const channelList = ref([
-	{ name: 'chan1', id: '/chat/room/1' },
-	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', id: '/chat/room/2' },
-	{ name: 'chan3', id: '/chat/room/3' },
-	{ name: 'chan4', id: '/chat/room/direct/4' },
-])
+// const channelList = ref([
+// 	{ name: 'chan1', id: '/chat/room/1' },
+// 	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', id: '/chat/room/2' },
+// 	{ name: 'chan3', id: '/chat/room/3' },
+// 	{ name: 'chan4', id: '/chat/room/direct/4' },
+// ])
 
 const sideNavDataLeft = ref({
 	name: 'Channels',
@@ -152,14 +152,15 @@ const sideNavDataLeft = ref({
 		// 	id '/chat/new'
 		// },
 		{
-			name: 'All channels2',
-			children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			name: 'All channels3',
+			// children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			children: channelsStore.getChanListForSideBar(false),
 			canJoin: true,
 			isOpen: false
 		},
 		{
 			name: 'My channels',
-			children: channelsStore.joinedChannels.value,
+			children: channelsStore.getChanListForSideBar(true),
 			isOpen: true
 		}
 	]

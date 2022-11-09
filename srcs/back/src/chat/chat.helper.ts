@@ -87,6 +87,12 @@ export class ChatHelper {
                     }
                 })
             })
+            await prisma.users_list.create({
+                data: {
+                    channel_id: channel.id,
+                    user_id: chan.owner
+                }
+            })
             return channel.id;
         } catch (e) {
             console.log(e);
