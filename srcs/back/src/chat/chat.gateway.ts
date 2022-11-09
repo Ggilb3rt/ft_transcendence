@@ -32,9 +32,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     async handleConnection(client: Socket) {
-
-        // await this.chatService.getGatewayToken(client.handshake, client)
-
+        
     }
 
     @SubscribeMessage('getMyRooms')

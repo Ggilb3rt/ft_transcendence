@@ -74,9 +74,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// 	// check 
 					// })
 				}
-				const toto = refsocket.emit('getMyRooms')
-				console.log("toto ", toto);
-
+				refsocket.emit('getMyRooms', (res: any) => {
+					console.log("res ", res);
+				})
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
