@@ -48,7 +48,7 @@ async function testConnection() {
   try {
     console.log("Test Connection premiere ligne")
     userStore.loading = true
-    const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
+    const response = await fetch(`http://localhost:3000/users/current`, {credentials: "include"})
     localStorage.clear();
     var data;
     if (response.status == 412) {
