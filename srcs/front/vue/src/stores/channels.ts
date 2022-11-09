@@ -3,11 +3,12 @@ import { useUsersStore } from "./users";
 import { ref } from 'vue'
 import { io } from "socket.io-client"
 import { CChannel } from "@/helpers/class.channel"
-import type { IChannelRestrict, TMessage } from "../../typesChat"
+import type { IChannel, IChannelRestrict, TMessage } from "../../typesChat"
 
 interface IChannelsStore {
-	chanRestrictList: IChannelRestrict[]
-	chanList: CChannel[]
+	availableChannels: IChannelRestrict[]
+	joinedChannels: IChannelRestrict[]
+	openChan: CChannel[]
 	currentChan: CChannel | null
 	error: any
 }
@@ -40,20 +41,21 @@ let channelMsgs: TMessage[] = [
 
 export const useChannelsStore = defineStore('channels', () => {
 	
-	const socket = ref(io('http://localhost:3000/chat'))
+	// const socket = ref(io('http://localhost:3000/chat'))
 
 	// ==> se connecte auto au serveur et declenche handleconnection // cote serveur se fait join ses rooms
 	// --> recupere la liste des rooms ou il est
-	// --> 
-	const chanRestrictList =  ref<IChannelRestrict[]>([])
-	const chanList = ref<CChannel[]>([
-		new CChannel(3, "le Premier chan", "public", "", 1, [1,2,3], [1, 2], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
+	// -->
+	const availableChannels = ref<IChannelRestrict[]>([])
+	const joinedChannels = ref<IChannelRestrict[]>([])
+	const openChan = ref<CChannel[]>([
+		new CChannel(10, "le Premier chan", "public", "", 1, [1,2,3], [1, 2], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
 	])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
 		// Initialise
-		async function getChanRestrictList() {
+		async function getChansLists() {
 			try {
 				// la reponse va être un obj avec deux tableaux, un avaec les chanRestrict dispo et un avec ceux dans lequel je me trouve
 				const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
@@ -63,10 +65,13 @@ export const useChannelsStore = defineStore('channels', () => {
 				else
 					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 				if (data) {
-					chanRestrictList.value = data
-					// chanRestrictList.value = data.availableChannels
+					// chanRestrictList.value = data
+					availableChannels.value = data.availableChannels
+					joinedChannels.value = data.joinedChannels
 					// data.joinedChannels.forEach((chan: IChannelRestrict) => {
-					// 	// check 
+					// 	// create chan instance with default values
+					// 	let newChan = new CChannel(Number(chan.href), chan.name, "public", "", 0, [], [], [], [], [])
+					// 	openChan.value.push(newChan)
 					// })
 				}
 			} catch (error: any) {
@@ -79,24 +84,29 @@ export const useChannelsStore = defineStore('channels', () => {
 				return
 			try {
 				const response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
-				let data;
+				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)
 					data = await response.json()
 				else
 					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 				if (data) {
-					let newChan = new CChannel(
-						data.id, 
-						data.name, 
-						data.type,
-						data.pass,
-						data.owner,
-						data.userList,
-						data.adminList,
-						data.banList,
-						data.muteList,
-						data.messages)
-					chanList.value.push(newChan)
+					// check if chan exist
+						// update data
+					const chanIndex = joinedChannels.value.find((el) => Number(el.href) == data.id)
+					if (chanIndex != undefined) {
+						let newChan = new CChannel(
+							data.id || 0, 
+							data.ChanName, 
+							data.type,
+							data.pass || "",
+							data.owner,
+							data.userList,
+							data.adminList,
+							data.banList,
+							data.muteList,
+							data.messages)
+							openChan.value.push(newChan)
+					}
 				}
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
@@ -106,13 +116,13 @@ export const useChannelsStore = defineStore('channels', () => {
 
 		// Checker
 		function isChanInList(id: number): boolean {
-			return chanList.value.find((el) => el.id == id) ? true : false
+			return openChan.value.find((el) => el.id == id) ? true : false
 		}
 		// Getter
 		function selectCurrentChan(id: number) {
 			if (!isChanInList(id))
 				return
-			const finded = chanList.value.find((el) => el.id == id)
+			const finded = openChan.value.find((el) => el.id == id)
 			if (finded)
 				currentChan.value = finded
 		}
@@ -138,10 +148,10 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	return {
 		chanRestrictList,
-		chanList,
+		openChan,
 		currentChan,
 		error,
-		getChanRestrictList,
+		getChansLists,
 		getChan,
 		selectCurrentChan,
 		unselectCurrentChan,

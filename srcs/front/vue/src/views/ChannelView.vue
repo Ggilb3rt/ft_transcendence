@@ -15,10 +15,6 @@ const props = defineProps({
 	direct: {type: Boolean, required: true},
 })
 
-const emit = defineEmits<{
-  (e: 'im-mounted'): void
-}>()
-
 const channelIdNumber = Number(props.channelId)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
@@ -37,8 +33,6 @@ let msg = ref("")
 // }
 
 let currentChan = new CChannel(channelIdNumber, "Lol", "public", "", 9, [7, 8, 9], [9], [], [], [])
-console.log("le channel courant ", currentChan)
-
 
 // need to getMessages from channel(props.channelId)
 let channelMsgs: TMessage[] = [

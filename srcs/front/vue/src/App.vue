@@ -36,7 +36,8 @@ window.addEventListener('beforeunload', async (e) => {
   console.log("res == ", res);
   if (res.status < 300) {
     if (userStore.conStatus == setStatus.connected) {
-      localStorage.setItem('last_page', route.name.toString());
+      // if (route.name)
+        localStorage.setItem('last_page', route.name.toString());
     }
   }
   localStorage.setItem('log', res.toString());
@@ -68,7 +69,7 @@ async function testConnection() {
         usersStore.getUsers()
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
-        channelStore.getChanRestrictList();
+        channelStore.getChansLists();
       }
   } catch (error: any) {
     // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection

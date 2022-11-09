@@ -71,6 +71,7 @@ export class CChannel {
 		return false
 	}
 	// Getters
+	getId(): number { return this.id }
 	getName(): string { return this.ChanName }
 	getType(): TChannelType { return this.type }
 	getMessages(): TMessage[] { return this.messages }

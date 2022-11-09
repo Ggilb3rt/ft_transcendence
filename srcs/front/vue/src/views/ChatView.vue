@@ -15,7 +15,6 @@ const usersStore = useUsersStore()
 const userStore = useUserStore()
 const channelsStore = useChannelsStore()
 const route = useRoute()
-const childMounted = ref<Object[]>([])
 // let leftIsActive = ref(false);
 // let rightIsActive = ref(false);
 
@@ -135,12 +134,6 @@ const childMounted = ref<Object[]>([])
 // ChatView need to
 	// getAllRestrictChannel
 	// createChannel
-	
-
-function childIsmounted() {
-	const ret = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
-	ret ? childMounted.value = ret : childMounted.value = []
-}
 
 const channelList = ref([
 	{ name: 'chan1', href: '/chat/room/1' },
@@ -198,18 +191,6 @@ onBeforeMount(() => {
 	channelsStore.unselectCurrentChan()
 })
 
-onBeforeUpdate(() => {
-	childIsmounted()
-	console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
-})
-
-watch(route, (newRoute) => {
-	console.log("change route from chat")
-	if (newRoute.name == "channel") {
-		sideNavDataRight.value.items[1].children = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
-	}
-})
-
 
 </script>
 
@@ -221,7 +202,7 @@ watch(route, (newRoute) => {
 
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
-		<router-view v-else @im-mounted="childIsmounted"></router-view>		
+		<router-view v-else></router-view>
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
 </template>
