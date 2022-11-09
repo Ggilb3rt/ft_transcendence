@@ -100,7 +100,7 @@ export class UsersService {
       throw new NotFoundException({msg: "No user at this ID", status: false})
     }
 
-    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, two_factor_secret} = user
+    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth } = user
 
     const friends = await this.getFriends(id);
     const bannedBy = await this.getBannedMe(id);
@@ -119,7 +119,7 @@ export class UsersService {
       wins,
       loses,
       two_factor_auth,
-      two_factor_secret,
+      two_factor_secret: null,
       friends,
       bannedBy,
       bans,

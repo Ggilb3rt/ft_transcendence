@@ -24,11 +24,6 @@ let gameInstance;
 let activeRoomNames = {};
 let key;
 
-
-window.addEventListener('beforeunload', () => {
-  localStorage.setItem('second listener', 'true')
-})
-
 class Game extends Phaser.Game {
   constructor() {
     super(config);

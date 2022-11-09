@@ -18,21 +18,21 @@ interface IChannelsStore {
 let channelMsgs: TMessage[] = [
 	{
 		sender: 2,
-		receiver: 3,
+		receiver: "3",
 		msg: "lol",
 		isDirect: false,
 		date: new Date()
 	},
 	{
 		sender: 1,
-		receiver: 3,
+		receiver: '3',
 		msg: "pouet un message tres long pour voir ce que ca fait tout autour, poour pousser le btn challenge et l'img",
 		isDirect: false,
 		date: new Date()
 	},
 	{
 		sender: 3,
-		receiver: 3,
+		receiver: '3',
 		msg: "internet",
 		isDirect: false,
 		date: new Date()
@@ -76,17 +76,29 @@ export const useChannelsStore = defineStore('channels', () => {
 		openChan.value[index].messages.push(msg)
 	}
 
-	function createCustomMessage(admin: number, did: string, to: number, type: number): TMessage {
-		const admin_nick: string = admin === userStore.user.id ? 'You' : usersStore.getUserNickById(admin);
-		const user_nick: string = to === userStore.user.id ? 'you' : usersStore.getUserNickById(to);
-		const msg = `${admin_nick} ` + did + ` ${user_nick} !`
-
-		return {
-			sender: type,
-			receiver: to,
-			msg,
-			isDirect: false,
-			date: new Date()
+	function createCustomMessage(admin: number, did: string, type: number, to: number): TMessage {
+		if (type > -5) {
+			const admin_nick: string = admin === userStore.user.id ? 'You' : usersStore.getUserNickById(admin);
+			const user_nick: string = to === userStore.user.id ? 'you' : usersStore.getUserNickById(to);
+			const msg = `${admin_nick} ` + did + ` ${user_nick} !`;
+			return {
+				sender: type,
+				receiver: to.toString(),
+				msg,
+				isDirect: false,
+				date: new Date()
+			}
+		}
+		else {
+			const user_nick: string = admin === userStore.user.id ? 'You' : usersStore.getUserNickById(admin)
+			const msg = `${user_nick}  ${did} the channel`
+			return {
+				sender: type,
+				receiver: to.toString(),
+				msg,
+				isDirect: false,
+				date: new Date()
+			}
 		}
 	}
 
@@ -144,8 +156,33 @@ export const useChannelsStore = defineStore('channels', () => {
 			if (index === -1) {
 				return
 			}
-			openChan.value[index].banList.push()
+			// openChan.value[index].banList.push()
 			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'kicked', args.banned_by, -4))
+		}
+
+	function handleJoin(args: {
+		new_client: number,
+		channel_id: string
+		}) {
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			openChan.value[index].userList.push(args.new_client)
+			openChan.value[index].messages.push(createCustomMessage(args.new_client, 'joined', parseInt(args.channel_id), -5))
+		}
+
+	function handleQuit(args: {
+		client_quit: number,
+		channel_id: string
+	})
+		{
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			openChan.value[index].userList.push(args.client_quit)
+			openChan.value[index].messages.push(createCustomMessage(args.client_quit, 'left', parseInt(args.channel_id), -6))
 		}
 
 	async function setup() {
@@ -161,6 +198,8 @@ export const useChannelsStore = defineStore('channels', () => {
 		refsocket.value.on('ban', handleBan)
 		refsocket.value.on('kick', handleKick)
 		refsocket.value.on('mute', handleMute)
+		refsocket.value.on('join', handleJoin)
+		refsocket.value.on('quit', handleQuit)
 	}
 		// Initialise
 		async function getChansLists() {

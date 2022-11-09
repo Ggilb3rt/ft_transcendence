@@ -2,16 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 import { TChannel, TChannelType, TMessage, TRestrictUserTime } from "src/users/types";
 
+const bcrypt = require('bcrypt');
+
 const prisma = new PrismaClient()
 
 @Injectable()
 export class ChatHelper {
     // TODO: hash all passwords
-
-    formatRestrictTime(ban) {
-        
-    }
-
     async formatChannels(channel_id: number) {
 
         const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
@@ -28,7 +25,7 @@ export class ChatHelper {
                 userList.push(e.id)
             });
             banned.forEach((e) => {
-               banList.push({userId: e.user_id, expire: e.expires})
+               banList.push({userId: e.user_id, expire: e.expires, })
             })
             muted.forEach((e) => {
                 muteList.push({userId: e.muted_id, expire: e.mute_date})
@@ -68,11 +65,12 @@ export class ChatHelper {
 
     async createChannel(chan: TChannel,) {
         try {
+            const hash: string = chan.pass? await bcrypt.hash(chan.pass, 10) : ""
             const channel = await prisma.channels.create({
                 data:{
                     name: chan.ChanName,
                     type: chan.type,
-                    pass: chan.pass,
+                    pass: hash,
                     owner: chan.owner,
                 },
                 select: {
@@ -218,6 +216,29 @@ export class ChatHelper {
         }
     }
 
+    async getMyPrivateChannels(id: number) {
+        try {
+            const myPrivateChannels = await prisma.users.findMany({
+                where: {id},
+                select: {
+                    channels: {
+                        where: {
+                            type: 'private'
+                        },
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    }
+                }
+            })
+            return (myPrivateChannels)
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
+    }
+
     async getMyChannels(id: number) {
         try {
             const myChannels = await prisma.users.findUnique({
@@ -239,6 +260,10 @@ export class ChatHelper {
             throw new Error("Database Chat Error")
         }
     }
+
+    // async getPrivateChannels() {
+       
+    // }
 
     async getAvailableChannels() {
         try {
@@ -507,7 +532,7 @@ export class ChatHelper {
     async checkPass(pass: string, channel_id) {
         const channel = await this.getChannel(channel_id)
 
-        if (channel.pass === pass)
+        if (await bcrypt.compare(pass, channel.pass))
             return true
         return false
     }
