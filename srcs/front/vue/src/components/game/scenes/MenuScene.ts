@@ -10,7 +10,7 @@ export default class MenuScene extends Phaser.Scene {
     this.buttons = [];
 	this.level = data.level;
 	this.challenge = data.challenge;
-   //this.key = data.key;
+   this.key = data.key;
     this.userId = data.userId;
     this.spectator = data.spectator;
   }
@@ -28,6 +28,8 @@ export default class MenuScene extends Phaser.Scene {
         userId: scene.userId,
         spectator: scene.spectator,
 		challenge: scene.challenge,
+		key: scene.key
+		
       });
     } else if (scene.level === "catPong") {
       // console.log("level catpong");
@@ -35,12 +37,14 @@ export default class MenuScene extends Phaser.Scene {
         userId: scene.userId,
         spectator: scene.spectator,
 		challenge: scene.challenge,
+		key: scene.key
       });
     } else if (scene.level === "customizable") {
       scene.scene.start("CustomizableGame", {
         userId: scene.userId,
         spectator: scene.spectator,
 		challenge: scene.challenge,
+		key: scene.key
       });
     } else {
       scene.buttons.push(

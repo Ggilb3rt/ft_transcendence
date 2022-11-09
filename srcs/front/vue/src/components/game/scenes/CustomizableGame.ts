@@ -1,4 +1,3 @@
-
 import Phaser from "phaser";
 import io, { Socket } from "socket.io-client";
 import GamePlay from "../tools/GamePlay";
@@ -14,7 +13,7 @@ export default class CustomizableGame extends Phaser.Scene {
 
   constructor() {
     super("CustomizableGame");
-	console.log("constructor socket custom");
+    console.log("constructor socket custom");
     //this.socket = null;
   }
 
@@ -23,6 +22,7 @@ export default class CustomizableGame extends Phaser.Scene {
     this.spectator = data.spectator;
     this.challenge = data.challenge;
     this.challengeInfo = data.challengeInfo;
+    this.key = data.key;
     //this.socket = null;
     this.level = 2;
     this.playerNumber = 0;
@@ -63,33 +63,41 @@ export default class CustomizableGame extends Phaser.Scene {
       scene.socket = io("http://localhost:3000/game");
     }
 
-	
     /* GO TO SETTINGS & WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
       scene.scene.launch("WaitingRoom", { level: "customizable" });
-	} else {
+    } else {
       f.watchGame(scene);
-	  scene.roomComplete = true;
+      scene.roomComplete = true;
+      scene.settingsOK = true;
+      f.createGameObjects(
+        scene.level,
+        scene.settings,
+        scene.images,
+        width,
+        height,
+        scene
+      );
     }
 
     /* ADD GAME OBJECTS */
     //if (!scene.roomComplete) {
-      eventsCenter.on("settingsOK", (settings) => {
-        scene.settingsOK = true;
-        f.createGameObjects(
-          scene.level,
-          settings,
-          scene.images,
-          width,
-          height,
-          scene
-        );
-      });
+    eventsCenter.on("settingsOK", (settings) => {
+      scene.settingsOK = true;
+      f.createGameObjects(
+        scene.level,
+        settings,
+        scene.images,
+        width,
+        height,
+        scene
+      );
+    });
     //}
 
     /* EVENT LISTENERS */
     //if (!scene.roomComplete) {
-      f.addEventListeners(scene.level, width, height, scene, game);
+    f.addEventListeners(scene.level, width, height, scene, game);
     //}
   }
 
@@ -97,14 +105,26 @@ export default class CustomizableGame extends Phaser.Scene {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
 
-    if (scene.settingsOK && !scene.joinQueue && !scene.challenge && !scene.spectator && !scene.roomComplete) {
+    if (
+      scene.settingsOK &&
+      !scene.joinQueue &&
+      !scene.challenge &&
+      !scene.spectator &&
+      !scene.roomComplete
+    ) {
       f.joinQueue(scene, scene.level);
       scene.joinQueue = true;
-    } else if (scene.settingsOK && scene.challenge && !scene.spectator && scene.playerNumber === 0) {
+    } else if (
+      scene.settingsOK &&
+      scene.challenge &&
+      !scene.spectator &&
+      scene.playerNumber === 0
+    ) {
       console.log("CREATE GAME");
       scene.socket.emit("createGame", {
         userId: scene.userId,
         challengeInfo: scene.challengeInfo,
+        level: scene.level,
       });
       scene.challenge = false;
     }

@@ -108,12 +108,13 @@ onBeforeUnmount(() => {
     <h1>Let's watch a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
-		<p v-for="room in activeRoomNames" :key="room">
-		<button
+		<!-- <p v-for="room in activeRoomNames" :key="room"> -->
+		<p v-for="(value) in activeRoomNames" :key="value">
+			<button
             id="customizable"
-            @click="findGame($event, `${room}`)"
+            @click="findGame($event, `${value.level}/${value.id}`)"
             class="pongLink"
-          >{{ room }}</button></p>
+          >{{value.id}} {{ value.level }}</button></p>
       </ul>
     </nav>
   </div>

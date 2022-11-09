@@ -63,14 +63,15 @@ export default class Preloader extends Phaser.Scene {
         level: scene.level,
         challenge: scene.challenge,
       });
-    } /*else if (!scene.challenge && scene.spectator) {
+    } else if (scene.spectator) {
       scene.scene.start("MenuScene", {
         userId: scene.userId,
         spectator: scene.spectator,
         level: scene.level,
         challenge: scene.challenge,
+		key: scene.key
       });
-    } */else {
+    } else {
       if (scene.challengeInfo.level === 1) {
         scene.scene.start("DefaultGame", {
           userId: scene.userId,

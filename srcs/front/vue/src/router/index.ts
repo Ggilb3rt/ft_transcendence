@@ -105,7 +105,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:ourGames/:id?",
+      path: "/game/:ourGames?/:id?",
       name: "game",
       component: Game,
     },

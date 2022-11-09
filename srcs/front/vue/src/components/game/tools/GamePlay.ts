@@ -11,7 +11,7 @@ export default class GamePlay {
   }
 
   watchGame(scene) {
-    scene.socket.emit("watchGame" /*, {roomName: "abcdef"}*/);
+    scene.socket.emit("watchGame", { roomName: scene.key });
     scene.socket.on("upDateInfo", (data) => {
       scene.playerNumber = 3;
       scene.roomName = data.roomName;
@@ -45,7 +45,7 @@ export default class GamePlay {
       console.log("roomName", data.gameCode);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
-	  scene.playerInit = true;
+      scene.playerInit = true;
       //router.replace({ path: `/game/${scene.roomName}` });
     });
   }
@@ -167,13 +167,12 @@ export default class GamePlay {
 
   listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
-      if (type === 1) {
-		this.playerNumber = 0;
+      this.playerNumber = 0;
       this.roomName = "";
       this.spectator = false;
       this.activeGame = false;
       this.matchEnded = false;
-	  this.challenge = false;
+      this.challenge = false;
       //eventsCenter.emit("quit");
       scene.scene.stop("DefaultGame");
 
@@ -183,37 +182,9 @@ export default class GamePlay {
 
       scene.socket.disconnect();
 
-        //alert("YOUR OPPONENT LEFT");
-        console.log("a player disconnected");
-		router.push("/");
-      } else if (type === 2) {
-        //alert("YOUR OPPONENT LEFT");
-        console.log("a player quit");
-      }
-      /*this.playerNumber = 0;
-      this.roomName = "";
-      this.spectator = false;
-      this.activeGame = false;
-      this.matchEnded = false;
-	  this.challenge = false;
-      eventsCenter.emit("quit");
-      scene.scene.stop("DefaultGame");
-
-      scene.scene.stop("CustomizableGame");
-
-      scene.scene.stop("CatPongGame");
-
-      scene.socket.disconnect();*/
-
-
-      //scene.socket = null;
-      /*console.log("LALALEILAL");
-      scene.scene.start("MenuScene", {
-        userId: scene.userId,
-		challenge: false,
-      });*/
-      //router.push("/");
-	  //console.log("HELLOHELLO");
+      //alert("YOUR OPPONENT LEFT");
+      console.log("a player disconnected");
+      router.push("/");
     });
   }
 
@@ -677,7 +648,7 @@ export default class GamePlay {
     // Init KEY EVENT listeners
     scene.cursors = scene.input.keyboard.createCursorKeys();
   }
-/*
+  /*
   initUIButtons(width, height, scene) {
     scene.quitButton = scene.add.text(width / 2 - 60, height - 40, "QUIT", {
       fill: "#ffffff",

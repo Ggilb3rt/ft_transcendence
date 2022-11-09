@@ -18,8 +18,9 @@ const containerId = "game-container";
 const userStore = useUserStore();
 let socket = io("http://localhost:3000/game");
 let gameInstance = null;
-let activeRoomNames = [];
+let activeRoomNames;
 let key: string;
+let level: string;
 const data = {
   userId: userStore.user.id,
   spectator: false,
@@ -74,8 +75,13 @@ onMounted(() => {
 
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = payload.roomNames;
+    const array = Object.keys(activeRoomNames);
     console.log(activeRoomNames);
+    console.log(typeof activeRoomNames);
 
+	/* if no str and no level {
+		push /game 
+	}*/
     // A CHALLENGE HAS BEEN ACCEPTED
     if (str) {
       data.challenge = true;
@@ -86,14 +92,24 @@ onMounted(() => {
       data.challengeInfo.challenged = challenge.challenged;
     } else {
       // NO CHALLENGE
-      key = route.params.ourGames;
-      if (key === "pong" || key === "catPong" || key === "customizable") {
-        data.level = key;
-        console.log("KEY");
+      level = route.params.ourGames;
+      key = route.params.id;
+      console.log("KEY");
+      console.log(key);
+      if (level === "pong" || level === "catPong" || level === "customizable") {
+        data.level = level;
+        console.log("LEVEL");
         console.log(data.level);
-      } else if (activeRoomNames.includes(key)) {
-        console.log("key coorect");
-        data.key = key;
+        if (key) {
+          if (array.includes(key)) {
+            console.log("key coorect");
+            data.key = key;
+            //data.level = activeRoomNames[key].level;
+            data.spectator = true;
+          } else {
+            router.replace("/game");
+          }
+        }
       } else {
         router.replace("/game");
       }
@@ -121,6 +137,8 @@ onUpdated(() => {
 
 onBeforeUnmount(() => {
   alert("UNMOUNT");
+  console.log("GAME INSTANCE UNMOUNT")
+  console.log(gameInstance);
   if (gameInstance) {
     disconnectSockets();
     gameInstance.destroy();

@@ -6,8 +6,8 @@ import { Ball, Player, WR1, WR2, WR3, WR4 } from './classes';
 export class GameService {
 	private waitingRooms = {};
     private activeGames = {
-		'abcdef': {},
-		'ku3heg3': {}
+		'abcdef': {level: 1},
+		'ku3heg3': {level: 2}
 	};
     private players = {};
 	private i = 4;
@@ -21,8 +21,6 @@ export class GameService {
 	}
 
     handleConnection(client: Socket, server: Server) {
-		//console.log(client.handshake.query.test);
-
 		console.log('CLIENT CONNECTED')
         this.players[client.id] = {
             id: client.id,
@@ -182,7 +180,7 @@ export class GameService {
 
     handleAddPoint(client: Socket, data: any, server: Server) {
         let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
-        if (score === 11) {
+        if (score === 22) {
             server.to(data.roomName).emit('gameResult', { winner: data.player });
         } else {
             server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
@@ -190,8 +188,8 @@ export class GameService {
     }
 
     handleWatchGame(client: Socket, data: any, server: Server) {
-        //console.log("WATCH GAME");
-        //console.log(data.roomName);
+        console.log("WATCH GAME");
+        console.log(data.roomName);
 		const roomName = data.roomName;
         this.players[client.id].level = 0;
         this.players[client.id].spectator = true;
@@ -216,8 +214,11 @@ export class GameService {
 		console.log(this.activeGames);
 
 		if (spectator) {
+			console.log("SPECTATOR QUITTING")
+			client.leave(roomName);
 			client.emit("leftGame", 1)
 			Reflect.deleteProperty(this.players, client.id);
+			return;
 		}
 
 		if (roomName) {
@@ -371,14 +372,47 @@ export class GameService {
         server.to(data.roomName).emit("animCollision");
     }
 
-	async getActiveRoomNames(client: Socket) : Promise<string[]> {
+	async getActiveRoomNames(client: Socket) /*: Promise<string[]> */{
 		this.players[client.id].type = "general";
-		const roomNames = await Object.keys(this.activeGames);
+		let roomNames = {};
+		let room;
+		let level;
+		let levelname;
+		
+		console.log('GET ACTIVE ROOM NAMES');
+		for (var key in this.activeGames) {
+			level = this.activeGames[key].level;
+			if (level === 1) {
+				levelname = "pong"
+			} else if (level === 2) {
+				levelname = "catPong"
+			} else if (level === 3) {
+				levelname = "customizable"
+			} else if (level === 4) {
+				console.log("LEVEL 4")
+				console.log(this.activeGames[key])
+				if (level === 1) {
+					levelname = "pong"
+				} else if (level === 2) {
+					levelname = "catPong"
+				} else if (level === 3) {
+					levelname = "customizable"
+				}
+			}
+			room = {
+				id: key,
+				level: levelname
+			};
+			roomNames[key] = room;
+			//roomNames.push(room);*/
+		}
+		console.log(roomNames);
+		//const roomNames = await Object.keys(this.activeGames);
 		return (roomNames);
 	}
 
 	handleCreateGame(client:Socket, data: any, server: Server ) {
-		//const level = data.challengeInfo.level;
+		const level = data.challengeInfo.level;
 		const userId = data.userId;
 		const player = this.players[client.id];
 
@@ -393,20 +427,20 @@ export class GameService {
 		console.log("USER ID CREATE " + userId)
 
 		player.userId = userId;
-		player.level = this.i;
+		player.level = level;
 
 		if (player.userId === data.challengeInfo.challenger ) {
 			wr.playerOne.id = player.id;
 			wr.playerOne.socket = player.socket;
-			wr.playerOne.level = this.i;
+			wr.playerOne.level = level;
 			wr.playerOne.userId = userId;
-            wr.level = this.i;
+            wr.level = level;
 		} else if (player.userId === data.challengeInfo.challenged) {
 			wr.playerTwo.id = player.id;
 			wr.playerTwo.socket = player.socket;
-			wr.playerTwo.level = this.i;
+			wr.playerTwo.level = level;
 			wr.playerTwo.userId = userId;
-			wr.level = this.i;
+			wr.level = level;
 		}
 
 		console.log("WROOM4");
@@ -418,7 +452,7 @@ export class GameService {
 			wr.roomId = roomId;
 			wr.playerOne.roomId = roomId;
 			wr.playerTwo.roomId = roomId;
-			wr.level = this.i;
+			wr.level = level;
 			this.players[wr.playerOne.id].roomId = roomId;
 			this.players[wr.playerTwo.id].roomId = roomId;
 			this.players[wr.playerOne.id].level = wr.level;
@@ -426,7 +460,7 @@ export class GameService {
 			this.activeGames[roomId] = {
 				playerOne: wr.playerOne,
 				playerTwo: wr.playerTwo,
-				level: this.i,
+				level: level,
 			}
 			console.log(this.activeGames[roomId]);
 

@@ -19,6 +19,7 @@ export default class DefaultGame extends Phaser.Scene {
     this.spectator = data.spectator;
     this.challenge = data.challenge;
     this.challengeInfo = data.challengeInfo;
+	this.key = data.key;
     //this.socket = null;
     this.level = 1;
     this.roomComplete = false;
@@ -97,6 +98,7 @@ export default class DefaultGame extends Phaser.Scene {
       scene.socket.emit("createGame", {
         userId: scene.userId,
         challengeInfo: scene.challengeInfo,
+		level: scene.level
       });
     }
 

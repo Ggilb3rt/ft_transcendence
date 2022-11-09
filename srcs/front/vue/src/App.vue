@@ -1,127 +1,139 @@
 <script setup lang="ts">
-import { ref, onUpdated, onBeforeUpdate, watch, onMounted, onBeforeMount } from "vue"
-import type { Ref } from "vue"
-import type { IUser, TStatus, ISocketStatus } from "../types"
+import {
+  ref,
+  onUpdated,
+  onBeforeUpdate,
+  watch,
+  onMounted,
+  onBeforeMount,
+} from "vue";
+import type { Ref } from "vue";
+import type { IUser, TStatus, ISocketStatus } from "../types";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
-import { io } from "socket.io-client"
-import { useUsersStore } from './stores/users';
-import { setStatus, useUserStore } from './stores/user';
-import { useStatusStore } from './stores/status'
-import { useChannelsStore } from './stores/channels'
+import { io } from "socket.io-client";
+import { useUsersStore } from "./stores/users";
+import { setStatus, useUserStore } from "./stores/user";
+import { useStatusStore } from "./stores/status";
+import { useChannelsStore } from "./stores/channels";
 // import HelloWorld from "./components/HelloWorld.vue";
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
-import ModalChallenge from "@/components/ModalChallenge.vue"
+import ModalChallenge from "@/components/ModalChallenge.vue";
 
 //! Deux problèmes :
-  // problème important : il est necessaire de cliquer deux fois sur connection pour se connecter
-  // la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
+// problème important : il est necessaire de cliquer deux fois sur connection pour se connecter
+// la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
 
-const route = useRoute()
-const channelStore = useChannelsStore()
-const userStore = useUserStore()
-const usersStore = useUsersStore()
-const statusStore = useStatusStore()
+const route = useRoute();
+const channelStore = useChannelsStore();
+const userStore = useUserStore();
+const usersStore = useUsersStore();
+const statusStore = useStatusStore();
 
-
-window.addEventListener('beforeunload', async (e) => {
-  statusStore.refuseChallenge(userStore.user.id)
-  statusStore.onClose()
-  const res = await fetch('http://localhost:3000/auth/verify', {
-    credentials: "include"
-  })
+window.addEventListener("beforeunload", async (e) => {
+  statusStore.refuseChallenge(userStore.user.id);
+  statusStore.onClose();
+  const res = await fetch("http://localhost:3000/auth/verify", {
+    credentials: "include",
+  });
   //console.log("res == ", res);
   if (res.status < 300) {
     if (userStore.conStatus == setStatus.connected) {
-		if (!localStorage.getItem('last_page')) {
-		localStorage.setItem('last_page', route.name.toString());
-		}
-	}
+      if (!localStorage.getItem("last_page")) {
+        localStorage.setItem("last_page", route.name.toString());
+      }
+    }
   }
-  localStorage.setItem('log', res.toString());
-})
+  localStorage.setItem("log", res.toString());
+});
 
 async function testConnection() {
   try {
     //console.log("Test Connection premiere ligne")
-    userStore.loading = true
-    const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
+    userStore.loading = true;
+    const response = await fetch(`http://localhost:3000/auth/verify`, {
+      credentials: "include",
+    });
     localStorage.clear();
     var data;
     if (response.status == 412) {
-        userStore.changeStatus(setStatus.need2fa)
-        router.push('/2fa')
-      }
-    else if (response.status >= 200 && response.status < 300) {
-        userStore.changeStatus(setStatus.connected)
-        data = await response.json()
-    }
-    else {
-      throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+      userStore.changeStatus(setStatus.need2fa);
+      router.push("/2fa");
+    } else if (response.status >= 200 && response.status < 300) {
+      userStore.changeStatus(setStatus.connected);
+      data = await response.json();
+    } else {
+      throw new Error(
+        JSON.stringify({
+          response: response,
+          body: { statusCode: response.status, message: response.statusText },
+        })
+      );
     }
     if (data) {
-        userStore.user = data
-        userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
-        userStore.error = null
-        userStore.connected = true
-        usersStore.getUsers()
-        //('userStore.id = ', userStore.user.id)
-        statusStore.setup(userStore.user.id);
-        channelStore.getChanRestrictList();
-      }
+      userStore.user = data;
+      userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`;
+      userStore.error = null;
+      userStore.connected = true;
+      usersStore.getUsers();
+      //('userStore.id = ', userStore.user.id)
+      statusStore.setup(userStore.user.id);
+      channelStore.getChanRestrictList();
+    }
   } catch (error: any) {
     // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
-    const tempErr = JSON.parse(error.message)
-    userStore.error = tempErr.body
+    const tempErr = JSON.parse(error.message);
+    userStore.error = tempErr.body;
   } finally {
-    userStore.loading = false
+    userStore.loading = false;
   }
 }
 
-testConnection()
-
+testConnection();
 
 // Socket Status
 watch(route, (newRoute) => {
- // console.log(route.matched)
+  // console.log(route.matched)
   if (usersStore.socketStatus) {
     if (newRoute.name == "game") {
       //console.log(newRoute.name)
       // change my status by 'inGame' and emit it
       //console.log("in watch route user id should be 9 == ", userStore.user.id)
-      statusStore.changeCurrentUserStatus("inGame", userStore.user.id)
+      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
       //console.log("should be inGame")
-    }
-    else {
+    } else {
       if (statusStore.status == "inGame")
-        statusStore.changeCurrentUserStatus("available", userStore.user.id)
+        statusStore.changeCurrentUserStatus("available", userStore.user.id);
     }
   }
-})
-
+});
 </script>
 
 <template>
-	<main>
-		<ErrorPopUp></ErrorPopUp>
+  <main>
+    <ErrorPopUp></ErrorPopUp>
 
-		<header v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'">
-			<img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
-			<PrimaryNav></PrimaryNav>
-		</header>
+    <header
+      v-if="
+        router.currentRoute.value.path != '/login' &&
+        router.currentRoute.value.path != '/2fa'
+      "
+    >
+      <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
+      <PrimaryNav></PrimaryNav>
+    </header>
 
-		<ModalChallenge></ModalChallenge>
+    <ModalChallenge></ModalChallenge>
 
     <div v-if="userStore.loading">
       <Loader></Loader>
     </div>
-    <RouterView v-else/>
+    <RouterView v-else />
 
-		
-		<!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
-	</main>
+    <!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
+  </main>
 </template>
 
 <style scoped>
@@ -180,7 +192,6 @@ nav a:first-of-type {
 } */
 
 @media screen and (min-width: 1024px) {
-
   header {
   }
   header .wrapper {
@@ -188,8 +199,6 @@ nav a:first-of-type {
     place-items: flex-start;
     flex-wrap: wrap; */
   }
-
-
 }
 
 @media screen and (min-width: 768px) {
@@ -208,5 +217,4 @@ nav a:first-of-type {
     margin-top: 1rem;
   }
 }
-
 </style>
