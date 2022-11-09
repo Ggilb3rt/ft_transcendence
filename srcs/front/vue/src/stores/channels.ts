@@ -46,6 +46,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	// ==> se connecte auto au serveur et declenche handleconnection // cote serveur se fait join ses rooms
 	// --> recupere la liste des rooms ou il est
 	// -->
+	const usersStore = useUsersStore();
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
 	const openChan = ref<CChannel[]>([
@@ -73,27 +74,47 @@ export const useChannelsStore = defineStore('channels', () => {
 		openChan.value[index].messages.push(msg)
 	}
 
+	function createCustomMessage(admin: number, did: string, to: number, type: number): TMessage {
+		const admin_nick = usersStore.getUserNickById(admin);
+		const user_nick = usersStore.getUserNickById(to);
+		const msg = `${admin_nick} ` + did + ` ${user_nick} !`
+		return {
+			sender: type,
+			receiver: to,
+			msg,
+			isDirect: false,
+			date: new Date()
+		}
+	}
+
 	function handlePromotion(args: {
 		promoted: number,
 		channel_id: string,
-		promoted_by: number	}) {
+		promoted_by: number	})
+		
+		{
 		const index: number = getChanIndex(args.channel_id)
 		if (index === -1) {
 			return
 		}
 		openChan.value[index].adminList.push(args.promoted)
-		openChan.value[index].messages.push({
-			sender: -1,
-			
-		})
+		openChan.value[index].messages.push(createCustomMessage(args.promoted_by, 'promoted', args.promoted, -1))
 	}
 
 	function handleBan(args: {
-		banned_id,
-		banned_by: id,
-		expires,
-		channel_id: room
-	})
+		banned_id: number,
+		banned_by: number,
+		expires: Date,
+		channel_id: string
+		}) 
+		{
+			const index: number = getChanIndex(args.channel_id)
+			if (index === -1) {
+				return
+			}
+			openChan.value[index].banList.push({userId: args.banned_id, expire: args.expires})
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_by, -2))
+		}
 
 	async function setup(refsocket: any) {
 		refsocket.value.emit('getMyRooms', (res: any) => {
