@@ -54,11 +54,26 @@ export const useChannelsStore = defineStore('channels', () => {
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
-	const refsocket = io('http://localhost:3000/chat', {
+	const refsocket = ref(io('http://localhost:3000/chat', {
 		withCredentials: true,
-		
-	});
+	}));
 
+	const myRooms: string[] = [];
+
+
+	async function handleChannelMessage(msg: TMessage) {
+		
+	}
+
+	async function setup(refsocket: any) {
+		refsocket.value.emit('getMyRooms', (res: any) => {
+			res.forEach((elem: string) => {
+				myRooms.push(elem)
+				console.log('Adding room id: ', elem)
+			})
+		})
+		refsocket.value.on('messageSentToChannel')
+	}
 		// Initialise
 		async function getChansLists() {
 			try {
@@ -79,9 +94,6 @@ export const useChannelsStore = defineStore('channels', () => {
 					// 	openChan.value.push(newChan)
 					// })
 				}
-				refsocket.emit('getMyRooms', (res: any) => {
-					console.log("res ", res);
-				})
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
