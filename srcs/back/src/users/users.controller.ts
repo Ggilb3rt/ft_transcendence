@@ -36,9 +36,10 @@ export class UsersController {
        return (this.usersService.getOtherUser(id))
     }
 
-    @Get(':id')
+    @Get('/current')
     @UseGuards(JwtAuthGuard)
-    getOneUser(@Param('id', ParseIntPipe) id: number): Promise<userFront> {
+    async getOneUser(@Req() req): Promise<userFront> {
+        const id = await this.usersService.verify(req.cookies.jwt)
         return (this.usersService.getUserById(id))
     }
 
