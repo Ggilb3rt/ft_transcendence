@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import router from '@/router';
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
@@ -81,6 +82,7 @@ async function sendCreateChan() {
 			// faire des trucs avec la réponse... genre set le bon id
 			console.log("réponse de create ", data)
 			newChannel.value = data
+			await channelsStore.createChan(newChannel.value)
 		}
 	} catch (error: any) {
 		const tempErr = JSON.parse(error.message)

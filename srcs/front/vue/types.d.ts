@@ -88,7 +88,7 @@ export interface ISideNavData {
 
 export interface ISideNavDataItem {
 	name: string;
-	id string;
+	id: string;
 	children?: [ISideNavDataItem] | null
 	isOpen?: boolean;
 }

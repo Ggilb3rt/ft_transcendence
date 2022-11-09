@@ -26,20 +26,21 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
 
-window.addEventListener('beforeunload', async (e) => {
+
+window.addEventListener('beforeunload', (e) => {
   statusStore.refuseChallenge(userStore.user.id)
   statusStore.onClose()
-  const res = await fetch('http://localhost:3000/auth/verify', {
-    credentials: "include"
-  })
-  console.log("res == ", res);
-  if (res.status < 300) {
-    if (userStore.conStatus == setStatus.connected) {
-      if (!localStorage.getItem('last_page'))
+  // const res = await fetch('http://localhost:3000/auth/verify', {
+  //   credentials: "include"
+  // })
+  // console.log("res == ", res);
+  // if (res.status < 300) {
+  //   if (userStore.conStatus == setStatus.connected) {
+  //     // if (route.name)
         localStorage.setItem('last_page', route.name.toString());
-    }
-  }
-  localStorage.setItem('log', res.toString());
+    // }
+  // }
+  // localStorage.setItem('log', res.toString());
 })
 
 

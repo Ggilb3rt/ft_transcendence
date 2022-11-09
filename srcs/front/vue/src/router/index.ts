@@ -107,7 +107,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:ourGames?/:id?",
+      path: "/game/:ourGames/:id?",
       name: "game",
       component: Game,
     },
@@ -131,6 +131,8 @@ const router = createRouter({
 
 
 //! need to add a canAccess global guad naviguation with token
+
+// ? -1 == non, 0 == OK, 1 == 2FA
 router.beforeEach(async (to, from) => {
   const userStore = useUserStore()
   console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)

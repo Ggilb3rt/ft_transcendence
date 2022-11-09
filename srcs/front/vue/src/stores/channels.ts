@@ -25,14 +25,14 @@ let channelMsgs: TMessage[] = [
 	},
 	{
 		sender: 1,
-		receiver: '3',
+		receiver: "3",
 		msg: "pouet un message tres long pour voir ce que ca fait tout autour, poour pousser le btn challenge et l'img",
 		isDirect: false,
 		date: new Date()
 	},
 	{
 		sender: 3,
-		receiver: '3',
+		receiver: "3",
 		msg: "internet",
 		isDirect: false,
 		date: new Date()
@@ -52,7 +52,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
 	const openChan = ref<CChannel[]>([
-		new CChannel("10", "le Premier chan", "public", "", 1, [1,2,3], [1, 2], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
+		new CChannel("10", "fake", "public", "", 1, [1,2,3, 7, 8, 9], [1, 2, 7, 8], [{userId: 3, expire: new Date(2023,0,1)}], [], channelMsgs)
 	])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
@@ -214,6 +214,7 @@ export const useChannelsStore = defineStore('channels', () => {
 				if (data) {
 					availableChannels.value = data.availableChannels
 					joinedChannels.value = data.joinedChannels
+					joinedChannels.value.push({name: "fake", id: "10"})
 				}
 			setup()
 			} catch (error: any) {
@@ -246,14 +247,26 @@ export const useChannelsStore = defineStore('channels', () => {
 							data.adminList,
 							data.banList,
 							data.muteList,
-							data.messages)
-							openChan.value.push(newChan)
+							data.messages
+						)
+						openChan.value.push(newChan)
 					}
 				}
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
 			}
+		}
+		async function createChan(newChan: IChannel): Promise<boolean> {
+			if (newChan.id) {
+				joinedChannels.value.push({
+					name: newChan.ChanName,
+					id: newChan.id
+				})
+				await getChan(newChan.id)
+				return true
+			}
+			return false
 		}
 
 		// Checker
@@ -270,6 +283,30 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 		function unselectCurrentChan() {
 			currentChan.value = null
+		}
+		function getChanListForSideBar(isJoin: boolean): IChannelRestrict[] {
+			let list: IChannelRestrict[] = []
+			console.log("create side navbar info oooooooooooo", isJoin )
+			if (isJoin) {
+				joinedChannels.value.forEach((el: IChannelRestrict) => {
+					console.log("inJoin")
+					list.push({
+						name: el.name,
+						id: `/chat/room/${el.id}`
+					})
+				})
+			}
+			else {
+				availableChannels.value.forEach((el: IChannelRestrict) => {
+					console.log("inAvailable")
+					list.push({
+						name: el.name,
+						id: `/chat/room/${el.id}`
+					})
+				})
+			}
+			console.log("la liiiiiiiiiiiiiiiiiiiiistetteeeteeteeee ", list)
+			return list
 		}
 		function getUsersInChannel(): number[] {
 			// const usersStore = useUsersStore()
@@ -298,8 +335,10 @@ export const useChannelsStore = defineStore('channels', () => {
 		error,
 		getChansLists,
 		getChan,
+		createChan,
 		selectCurrentChan,
 		unselectCurrentChan,
 		getUsersInChannel,
+		getChanListForSideBar,
 	}
 })
