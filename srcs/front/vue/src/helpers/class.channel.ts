@@ -58,6 +58,7 @@ export class CChannel {
 			userRestrict = this.banList.find((el) => el.userId == userId)
 		if (userRestrict != undefined)
 			userRestrict.expire = this.addMinutes(userRestrict.expire, minutes)
+			
 	}
 	async checkWithServer(url: string, option: Object): Promise<boolean> {
 		const response = await fetch(url, { credentials: "include"})
