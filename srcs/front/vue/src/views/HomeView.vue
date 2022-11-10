@@ -1,7 +1,52 @@
 <script setup lang="ts">
-import UserInvite from "@/components/user/UserInvite.vue";
 import router from "@/router";
-import { ref } from "vue";
+import { onBeforeMount, onUpdated, ref } from "vue";
+import { useChannelsStore } from "../stores/channels";
+import { useStatusStore } from "../stores/status";
+import { setStatus, useUserStore } from "../stores/user";
+import { useUsersStore } from "../stores/users";
+
+const channelStore = useChannelsStore()
+const userStore = useUserStore()
+const usersStore = useUsersStore()
+const statusStore = useStatusStore()
+
+async function testConnection() {
+  try {
+    console.log("Test Connection premiere ligne")
+    // userStore.loading = true
+    const response = await fetch(`http://localhost:3000/users/current`, {credentials: "include"})
+    localStorage.clear();
+    var data;
+    if (response.status >= 200 && response.status < 300) {
+        userStore.changeStatus(setStatus.connected)
+        data = await response.json()
+    }
+    else {
+      throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+    }
+    if (data) {
+        userStore.user = data
+        userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
+        userStore.error = null
+        userStore.connected = true
+        usersStore.getUsers()
+        console.log('userStore.id = ', userStore.user.id)
+        statusStore.setup(userStore.user.id);
+        channelStore.getChansLists();
+      }
+  } catch (error: any) {
+    // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
+    const tempErr = JSON.parse(error.message)
+    userStore.error = tempErr.body
+  } finally {
+    console.log("me repetes-je?")
+    userStore.loading = false
+  }
+}
+
+// onBeforeMount(testConnection)
+
 
 // simule server timing
 function sleep(ms: number) {

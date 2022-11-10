@@ -1,6 +1,5 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { users_list } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { TChannelRestrict } from 'src/users/types';
 import { UsersService } from 'src/users/users.service';
@@ -21,8 +20,9 @@ export class ChatService {
 
     extractToken = (req) => {
         let token = null;
-  
-        // console.log("extractJwtfromCookie ", req.cookies)
+
+        console.log("req == ", req)
+        console.log("extractJwtfromCookie ", req.cookies)
         if (req && req.cookie) {
           token = req.cookie;
           if (typeof(token) == "string") {
@@ -48,6 +48,7 @@ export class ChatService {
     async getGatewayToken(headers, client: Socket) {
         const token = this.extractToken(headers)
         const verifier = this.validate(token)
+        console.log("verifier == ", verifier)
         if (!verifier.validate.id) {
             client.disconnect()
             throw new ForbiddenException("Token invalid")
@@ -58,7 +59,6 @@ export class ChatService {
     async getToken(req) {
         const token = this.extractTokenFromReq(req)
         const verifier = this.validate(token)
-        console.log("Verifier == ", verifier);
         return verifier.validate.id
     }
 
@@ -102,7 +102,7 @@ export class ChatService {
         if (isBannedByOwner) {
             return true
         }
-        else if (this.chatHelper.isAdmin(channel_id, bannedBy)) {
+        else if (this.chatHelper.isAdmin(channel_id, bannedBy) && !this.chatHelper.isAdmin(channel_id, banned)) {
             return true
         }
         return false
@@ -176,19 +176,16 @@ export class ChatService {
         return await this.chatHelper.getDirectMessages(user_id, friend)
     }
     
-    async joinChannel(user_id: number, channel_id: number, pass?: string): Promise<users_list | null> {
+    async joinChannel(user_id: number, channel_id: number, pass?: string) {
         if (!this.canJoin(user_id, channel_id, pass))
-            return null
-            // throw new ForbiddenException("You have no right to join this channel")
+            throw new ForbiddenException("You have no right to join this channel")
         const {type} = await this.chatHelper.getChannel(channel_id)
         if (type === "private") {
-            return null
-            // throw new HttpException("You have no right to join this channel", HttpStatus.FORBIDDEN)
+            throw new HttpException("You have no right to join this channel", HttpStatus.FORBIDDEN)
         }
         else if (type === "pass") {
             if (!pass) {
-                return null
-                // throw new HttpException("Need a password to join this channel", HttpStatus.FORBIDDEN)
+                throw new HttpException("Need a password to join this channel", HttpStatus.FORBIDDEN)
             }
             else if (this.chatHelper.checkPass(pass, channel_id)) {
                 return await this.chatHelper.joinChannel(channel_id, user_id)
@@ -212,33 +209,28 @@ export class ChatService {
         const myChannels = await this.chatHelper.getMyChannels(user_id)
 
         const ids: number[] = []
-        myChannels.channels.forEach((elem) => {
-            ids.push(elem.id)
+        myChannels.forEach((elem) => {
+            ids.push(elem.channel_id)
         })
         
         const availables = await this.chatHelper.getAvailableChannels()
         const privateC = await this.chatHelper.getMyPrivateChannels(user_id)
 
         const availableChannels: TChannelRestrict[] = [];
-        const channels: TChannelRestrict[] = [];
-        const privateChannels: TChannelRestrict[] = [];
+        const joinedChannels: TChannelRestrict[] = [];
 
-
-        privateC.forEach((elem) => {
-            elem.channels.forEach((elem) => {
-                privateChannels.push(elem)
-            })
-        })
         availables.forEach((elem) => {
             if (ids.includes(elem.id)) {
-                channels.push(elem)
+                joinedChannels.push(elem)
             }
             else
                 availableChannels.push(elem)
         })
         
-        const joinedChannels: TChannelRestrict[] = channels.concat(privateChannels)
-console.log("oieryeriluhgeriugherigu", joinedChannels, privateChannels)
+        privateC.forEach((elem) => {
+            joinedChannels.push(elem.channels)
+        })
+
         return ({availableChannels, joinedChannels})
     }
 }

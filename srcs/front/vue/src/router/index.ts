@@ -138,26 +138,26 @@ router.beforeEach(async (to, from) => {
   console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
-  if (to.name == 'success')
-    console.log("le success est apparu")
-  else if (localStorage.getItem('last_page') != undefined) {
-    console.log("localStorage found on router", localStorage.getItem('last_page'), "\nneed to go to ", to.name, "\ncome from ", from.name)
-    const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
-    if (response.status == 401) {
+  try {
+  const res = await fetch(`http://localhost:3000/auth/verify`, {
+			method: 'GET',
+			credentials: "include",
+		})
+
+    const {status} = await res.json();
+    userStore.conStatus = status
+    if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
+      console.log('userStore.conStatus === ', userStore.conStatus)
+      return { name: "2fa"}
+    }
+    else if (userStore.conStatus == setStatus.needLogin && to.name != 'login') {
+      console.log('userStore.conStatus je need login === ', userStore.conStatus)
       return { name: 'login' }
     }
-    // else {
-    //   const temp = localStorage.getItem('last_page')?.toString()
-    //   setTimeout(() => {return {name : temp}} , 1000);
-    // }
+  } catch(err) {
+    return {name: 'login'}
   }
-  else if (userStore.conStatus == setStatus.needLogin && to.name != 'login' && to.name != "2fa") {
-    console.log('userStore.conStatus === ', userStore.conStatus)
-    return { name: 'login' }
-  }
-  else if (userStore.conStatus == setStatus.need2fa && to.name != "2fa")
-    return { name: "2fa" }
-
+  // return { name: to.name}
 })
 
 

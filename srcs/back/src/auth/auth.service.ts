@@ -6,17 +6,18 @@ import { JwtPayload } from 'src/jwt-auth/jwt-auth.strategy';
 export class AuthService {
     constructor(private jwtAuthService: JwtAuthService) {}
 
-    async verify(token: string | null): Promise<number> {
+    async verify(token: string | null) {
         if (!token) {
-            return (-1)
+          console.log("je n'ai pas de cookie")
+            return {status: 2}
           }
         const {validate} = await this.jwtAuthService.validate(token);
         if (!validate || !validate.id) {
           throw new ForbiddenException("Invalid Token")
         }
         if (validate.isAuth || !validate.two_factor_auth) {
-          return 0
+          return {status: 0}
         }
-        return 1
+        return {status: 1}
     }
 }

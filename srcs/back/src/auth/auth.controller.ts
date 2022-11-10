@@ -57,7 +57,7 @@ export class AuthController {
 
   @Get('verify')
   @HttpCode(200)
-  async verif(@Req() req): Promise<number> {
+  async verif(@Req() req) {
     return (this.authService.verify(req.cookies.jwt))
   }
 

@@ -6,8 +6,6 @@ import {
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import cluster from 'cluster';
-
 
 function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
@@ -89,9 +87,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         //     console.log("already connected")
         //     this.userArr.splice(alreadyConnected, 1)
         // }
-        console.log("id = ", arg)
-        console.log('ARR = ', this.userArr)
-        console.log('client id = ', client.id)
         const index = this.userArr.findIndex((e) => {
             return e.userId == arg;
         })
@@ -105,6 +100,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
         else {
             this.userArr[index].socketId.push(client.id)
+            client.join("user_" + index)
         }
         this.logger.log(`client connection : ${client.id}`)
         return this.userArr
@@ -113,12 +109,10 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     @SubscribeMessage('changeStatus')
     handleChangeStatus(client: Socket, arg: IStatus) {
         const index = getUser(this.userArr, client.id)
-        console.log("---------IN HANDLER---------\n\nuser == ", this.userArr[index])
         if (index == -1) {
             return
         }
         this.userArr[index].userStatus = arg.userStatus
-        console.log("---------IN HANDLER---------\n\nuser == ", this.userArr[index])
         client.broadcast.emit("newStatusChange", arg)
     }
 
@@ -146,16 +140,18 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
             console.log("i challenge => ", receiver)
-            this.server.to(receiver.socketId).emit('newChallenge', challenge)
+            this.server.to("user_" + receiver.userId).emit('newChallenge', challenge)
         }
     }
 
     @SubscribeMessage('challengeAccepted')
     acceptChallenge(client: Socket, challenge: TChallenge) {
+        const sender = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
         const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
         if (receiver) {
             console.log("i accept challenge from => ", receiver)
             this.server.to(receiver.socketId).emit('challengeAccepted', challenge)
+            this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
         }
     }
 //
