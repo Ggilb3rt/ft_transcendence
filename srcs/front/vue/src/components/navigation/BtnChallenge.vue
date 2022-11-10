@@ -21,7 +21,7 @@ const statusStore = useStatusStore()
 async function selecteGameType() {
 	await challenge()
 	showModal.value = false
-	console.log("le choix est : ", gameType.value)
+	//("le choix est : ", gameType.value)
 }
 
 async function challenge() {
@@ -29,14 +29,14 @@ async function challenge() {
         statusStore.challengeUser(userStore.user.id, gameType.value, props.userId)
 
     if (usersStore.user && statusStore.socketIsAvailable(props.userId)) {
-        console.log(`challenge from ${userStore.user.id} to ${props.userId}`)
+        //console.log(`challenge from ${userStore.user.id} to ${props.userId}`)
         // put invitation in a modal in the other side
     }
 }
 
 async function goSpectate() {
     if (usersStore.user && statusStore.socketIs(usersStore.user.id, 'inGame')) {
-        console.log("go to game with user ", usersStore.user.id)
+       // console.log("go to game with user ", usersStore.user.id)
     // fetch gameId from back
     // router.push(/game/${gameId})
     }

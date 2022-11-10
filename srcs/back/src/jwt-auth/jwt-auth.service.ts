@@ -11,7 +11,7 @@ export class JwtAuthService {
 
   async login(user, isAuth = false) {
     // console.log("debut login")
-    console.log("user ", user)
+    //console.log("user ", user)
     const {two_factor_auth, nick_fourtytwo} = await prisma.users.findFirst({where:{id:user.id},
       select: {
         two_factor_auth:true,

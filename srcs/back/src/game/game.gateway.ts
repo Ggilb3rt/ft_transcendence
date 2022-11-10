@@ -1,13 +1,10 @@
 import {
     WebSocketGateway,
     SubscribeMessage,
-    MessageBody,
     WebSocketServer,
-    ConnectedSocket,
     OnGatewayInit,
     OnGatewayConnection,
     OnGatewayDisconnect,
-    WsResponse
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { Server, Socket } from 'socket.io';
@@ -35,25 +32,18 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     
     handleConnection(client: Socket, ...args: any[]) {
         this.logger.log(`Client connected: ${client.id}`);
-        //let connType = client.handshake.query.connType;
-        this.gameService.handleConnection(client, this.server);
-    }
+		this.gameService.handleConnection(client, this.server);
+	}
 
-    handleDisconnect(client: Socket) {
+    async handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        //let connType = client.handshake.query.connType;
-       // if (connType === "client") {
-            this.gameService.handleDisconnect(client, this.server);
-        //} else {
-        //    console.log("DISCO QUERY " + client.handshake.query.connType)
-        //}
+		await this.gameService.handleDisconnect(client, this.server);
     }
 
     @SubscribeMessage("joinQueue")
     handleJoinQueue(client: Socket, data: any) {
         this.gameService.handleJoinQueue(client, data, this.server);
     }
-
     
     @SubscribeMessage("launchBall")
     handleLaunchBall(client: Socket, data: any) {
@@ -82,7 +72,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
     @SubscribeMessage("quitGame") 
     handleQuitGame(client: Socket, data: any) {
-        this.gameService.handleQuitGame(client, this.server);
+        this.gameService.handleQuitGame(client, data, this.server);
     }
 
     @SubscribeMessage("rematch") 
@@ -107,10 +97,30 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
 	@SubscribeMessage("getActiveRoomNames")
-	async handleGetActiveRoomNames(client: Socket) {
-		const roomNames = await this.gameService.getActiveRoomNames();
+	async handleGetActiveRoomNames(client: Socket, data: any) {
+		const roomNames = await this.gameService.getActiveRoomNames(client, data);
 		client.emit("getActiveRoomNames", { roomNames });
 	}
+
+	@SubscribeMessage("pauseGame")
+	handlePauseGame(client: Socket, data: any) {
+		this.server.in(data.roomName).emit("pauseGame");
+	}
+
+	@SubscribeMessage("unpauseGame")
+	handleUnpauseGame(client: Socket, data: any) {
+		this.server.in(data.roomName).emit("unpauseGame");
+	}
+
+	@SubscribeMessage("createGame") 
+	handleCreateGame(client: Socket, data: any) {
+		this.gameService.handleCreateGame(client, data, this.server);
+	}
+	@SubscribeMessage("joinGame")
+	handleJoinGame(client: Socket, data: any) {
+		this.gameService.handleJoinGame(client, data, this.server);
+	}
+
 
 
    

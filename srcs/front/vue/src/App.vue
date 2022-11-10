@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ref, onUpdated, onBeforeUpdate, watch, onMounted, onBeforeMount } from "vue"
-import type { Ref } from "vue"
-import type { IUser, TStatus, ISocketStatus } from "../types"
+import {
+  ref,
+  onUpdated,
+  onBeforeUpdate,
+  watch,
+  onMounted,
+  onBeforeMount,
+} from "vue";
+import type { Ref } from "vue";
+import type { IUser, TStatus, ISocketStatus } from "../types";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import router from "./router";
-import { io } from "socket.io-client"
-import { useUsersStore } from './stores/users';
-import { setStatus, useUserStore } from './stores/user';
-import { useStatusStore } from './stores/status'
-import { useChannelsStore } from './stores/channels'
+import { io } from "socket.io-client";
+import { useUsersStore } from "./stores/users";
+import { setStatus, useUserStore } from "./stores/user";
+import { useStatusStore } from "./stores/status";
+import { useChannelsStore } from "./stores/channels";
 // import HelloWorld from "./components/HelloWorld.vue";
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
@@ -17,8 +24,8 @@ import ModalChallenge from "@/components/ModalChallenge.vue"
 import Loader from "./components/navigation/loader.vue";
 
 //! Deux problèmes :
-  // problème important : il est necessaire de cliquer deux fois sur connection pour se connecter
-  // la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
+// problème important : il est necessaire de cliquer deux fois sur connection pour se connecter
+// la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
 
 const route = useRoute()
 const channelStore = useChannelsStore()
@@ -59,15 +66,15 @@ async function testConnection() {
   }
   } catch (error: any) {
     // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
-    const tempErr = JSON.parse(error.message)
-    userStore.error = tempErr.body
+    const tempErr = JSON.parse(error.message);
+    userStore.error = tempErr.body;
   } finally {
     console.log("me repetes-je?")
     userStore.loading = false
   }
 }
 
-router.beforeResolve(testConnection)
+router.beforeResolve((to) => {testConnection(); return true})
 
 window.addEventListener('beforeunload', (e) => {
   statusStore.refuseChallenge(userStore.user.id)
@@ -87,43 +94,45 @@ window.addEventListener('beforeunload', (e) => {
 
 // Socket Status
 watch(route, (newRoute) => {
-  console.log(route.matched)
+  // console.log(route.matched)
   if (usersStore.socketStatus) {
     if (newRoute.name == "game") {
-      console.log(newRoute.name)
+      //console.log(newRoute.name)
       // change my status by 'inGame' and emit it
-      console.log("in watch route user id should be 9 == ", userStore.user.id)
-      statusStore.changeCurrentUserStatus("inGame", userStore.user.id)
-      console.log("should be inGame")
-    }
-    else {
+      //console.log("in watch route user id should be 9 == ", userStore.user.id)
+      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
+      //console.log("should be inGame")
+    } else {
       if (statusStore.status == "inGame")
-        statusStore.changeCurrentUserStatus("available", userStore.user.id)
+        statusStore.changeCurrentUserStatus("available", userStore.user.id);
     }
   }
-})
-
+});
 </script>
 
 <template>
-	<main>
-		<ErrorPopUp></ErrorPopUp>
+  <main>
+    <ErrorPopUp></ErrorPopUp>
 
-		<header v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'">
-			<img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
-			<PrimaryNav></PrimaryNav>
-		</header>
+    <header
+      v-if="
+        router.currentRoute.value.path != '/login' &&
+        router.currentRoute.value.path != '/2fa'
+      "
+    >
+      <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
+      <PrimaryNav></PrimaryNav>
+    </header>
 
-		<ModalChallenge></ModalChallenge>
+    <ModalChallenge></ModalChallenge>
 
     <div v-if="userStore.loading">
       <Loader></Loader>
     </div>
-    <RouterView v-else/>
+    <RouterView v-else />
 
-		
-		<!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
-	</main>
+    <!-- <Footer v-if="router.currentRoute.value.path != '/login'"></Footer> -->
+  </main>
 </template>
 
 <style scoped>
@@ -182,7 +191,6 @@ nav a:first-of-type {
 } */
 
 @media screen and (min-width: 1024px) {
-
   header {
   }
   header .wrapper {
@@ -190,8 +198,6 @@ nav a:first-of-type {
     place-items: flex-start;
     flex-wrap: wrap; */
   }
-
-
 }
 
 @media screen and (min-width: 768px) {
@@ -210,5 +216,4 @@ nav a:first-of-type {
     margin-top: 1rem;
   }
 }
-
 </style>

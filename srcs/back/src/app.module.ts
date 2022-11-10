@@ -11,7 +11,6 @@ import { AuthModule } from './auth/auth.module';
 import { AuthService } from './auth/auth.service';
 import { JwtAuthModule } from './jwt-auth/jwt-auth.module';
 import { testStatusGateway } from './testStatus/testStatus.gateway'
-import { GameController } from './game/game.controller';
 import { GameService } from './game/game.service';
 import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
@@ -19,7 +18,7 @@ import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [ UsersModule, AuthModule, GameModule, JwtAuthModule, ChatModule ],
-  controllers: [AppController, UsersController, AuthController, GameController, ChatController],
+  controllers: [AppController, UsersController, AuthController, ChatController],
   providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway, GameService, ChatService],
 })
 export class AppModule {}

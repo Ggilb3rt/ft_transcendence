@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { PrismaClient, users } from "@prisma/client";
 import { CreateUserDto } from "./createUserDto";
+import { CreateMatchDto } from "./createMatchDto";
 import { userRestrict } from "./types";
 
 const prisma = new PrismaClient();
@@ -200,12 +201,12 @@ class UsersHelper {
           throw new HttpException("Only alphanumeric characters", HttpStatus.NOT_ACCEPTABLE)
         }
         const test = await prisma.users.findUnique({where:{nickname}})
-        console.log("test == ", test)
+        //console.log("test == ", test)
         if (test) {
           throw new HttpException("nickname already taken", HttpStatus.CONFLICT);
         }
       } catch (e) {
-        console.log("catch == ", e);
+        //console.log("catch == ", e);
         throw new Error(e)
       }
     }
@@ -247,6 +248,10 @@ class UsersHelper {
       }
     }
 
+	async addMatch(match: CreateMatchDto) {
+		await prisma.match.create({ data: match })
+	}
+	
     async getMatches(id: number) {
       try {
         const matches = await prisma.match.findMany({

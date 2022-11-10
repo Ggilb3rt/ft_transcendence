@@ -135,7 +135,7 @@ const router = createRouter({
 // ? -1 == non, 0 == OK, 1 == 2FA
 router.beforeEach(async (to, from) => {
   const userStore = useUserStore()
-  console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
+  //console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
   try {

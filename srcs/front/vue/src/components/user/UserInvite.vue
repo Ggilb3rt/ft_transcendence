@@ -9,7 +9,7 @@ const usersStore = useUsersStore()
 
 function resInvite(sayYes: boolean, id: number) {
 	if (sayYes) {
-		console.log(id)
+		//console.log(id)
 		userStore.addFriend(id)
 	}
 	else {

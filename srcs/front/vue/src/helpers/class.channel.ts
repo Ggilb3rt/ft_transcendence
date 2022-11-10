@@ -199,7 +199,7 @@ export class CChannel {
 	sendMessage(message: TMessage): boolean {
 		if (this.isInChannel(message.sender) && !this.isBan(message.sender) && !this.isMute(message.sender)) {
 			// send to back
-			console.log("message send to CChanel", message.msg)
+			//console.log("message send to CChanel", message.msg)
 			this.messages.push(message)
 			return true
 		}

@@ -80,11 +80,11 @@ export const useUserStore = defineStore({
       if (this.user) this.user.nickname = newTag;
     },
     set2FAConnect(value: boolean) {
-      console.log("in store set connection 2FA to ", value);
+      //console.log("in store set connection 2FA to ", value);
       this.twoFactorAuth = value;
     },
     change2FA() {
-      console.log("in store change user 2FA");
+      //console.log("in store change user 2FA");
       this.user.two_factor_auth = !this.user.two_factor_auth;
     },
     getStatus(): constatus {
@@ -154,7 +154,7 @@ export const useUserStore = defineStore({
       return false;
     },
     isInvite(id: number): boolean {
-      console.log("is in invite list", id);
+      //console.log("is in invite list", id);
       if (this.user.invites) return this.user.invites.includes(id);
       return false;
     },
@@ -170,10 +170,10 @@ export const useUserStore = defineStore({
             valid: false,
           })
           .then((data) => {
-            console.log("data refuse friend invite", data);
+            //console.log("data refuse friend invite", data);
           });
       } catch (error: any) {
-        console.log("refuse friend invite err ", error.message);
+        //console.log("refuse friend invite err ", error.message);
         this.error = error.body;
         return;
       }
@@ -198,10 +198,10 @@ export const useUserStore = defineStore({
               valid: true,
             })
             .then((data) => {
-              console.log("data add friend", data);
+              //console.log("data add friend", data);
             });
         } catch (error: any) {
-          console.log("add friend err ", error.message);
+          //console.log("add friend err ", error.message);
           this.error = error.body;
           return;
         }
@@ -230,7 +230,7 @@ export const useUserStore = defineStore({
               console.log("data ban", data);
             });
         } catch (error: any) {
-          console.log("ban err ", error);
+          //console.log("ban err ", error);
           this.error = error.body;
           return;
         }
@@ -252,11 +252,11 @@ export const useUserStore = defineStore({
                 friend: String(id),
               })
               .then((data) => {
-                console.log("remove friend ", data);
+                //console.log("remove friend ", data);
                 this.user.friends.splice(index, 1);
               });
           } catch (error: any) {
-            console.log("remove friend err ", error);
+            //console.log("remove friend err ", error);
             this.error = error.body;
             return;
           }
@@ -277,11 +277,11 @@ export const useUserStore = defineStore({
                 ban: String(id),
               })
               .then((data) => {
-                console.log("remove ban", data);
+                //console.log("remove ban", data);
                 this.user.bans.splice(indexBan, 1);
               });
           } catch (error: any) {
-            console.log("remove ban err ", error);
+            //console.log("remove ban err ", error);
             this.error = error.body;
             return;
           }

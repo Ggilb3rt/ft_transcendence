@@ -15,7 +15,7 @@ export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStra
   
         if (req && req.cookies) {
           token = req.cookies['jwt'];
-          console.log(token)
+          //console.log(token)
         }
         return token;
       };
@@ -28,7 +28,7 @@ export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStra
 
   async validate( payload: JwtPayload) {
 
-  console.log(payload);
+  //console.log(payload);
   const {username, id} = payload;
 
   const user = await prisma.users.findFirst({where:{id}})

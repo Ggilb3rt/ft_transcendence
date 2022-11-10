@@ -4,11 +4,13 @@ export const WR1 = {
         id: "",
         socket: "",
         roomId: "",
+		userId: 0,
     },
     playerTwo: {
         id: "",
         socket: "",
-        roomId: ""
+        roomId: "",
+		userId: 0,
     },
     roomId: ""
 }
@@ -19,11 +21,13 @@ export const WR2 = {
         id: "",
         socket: "",
         roomId: "",
+		userId: 0,
     },
     playerTwo: {
         id: "",
         socket: "",
-        roomId: ""
+        roomId: "",
+		userId: 0,
     },
     roomId: ""
 }
@@ -34,11 +38,31 @@ export const WR3 = {
         id: "",
         socket: "",
         roomId: "",
+		userId: 0,
     },
     playerTwo: {
         id: "",
         socket: "",
-        roomId: ""
+        roomId: "",
+		userId: 0,
+    },
+    roomId: ""
+}
+
+
+export const WR4 = {
+    level: 0,
+    playerOne: {
+        id: "",
+        socket: "",
+        roomId: "",
+		userId: 0,
+    },
+    playerTwo: {
+        id: "",
+        socket: "",
+        roomId: "",
+		userId: 0,
     },
     roomId: ""
 }

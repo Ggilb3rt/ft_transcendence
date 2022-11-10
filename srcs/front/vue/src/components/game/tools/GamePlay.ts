@@ -1,15 +1,17 @@
 import router from "@/router";
+import { Scene } from "phaser";
+import { Socket } from "socket.io-client";
 import eventsCenter from "../scenes/EventsCenter";
 
 export default class GamePlay {
   constructor() {}
 
   joinQueue(scene, level) {
-    scene.socket.emit("joinQueue", { level });
+    scene.socket.emit("joinQueue", { level, userId: scene.userId });
   }
 
   watchGame(scene) {
-    scene.socket.emit("watchGame" /*, {roomName: "abcdef"}*/);
+    scene.socket.emit("watchGame", { roomName: scene.key });
     scene.socket.on("upDateInfo", (data) => {
       scene.playerNumber = 3;
       scene.roomName = data.roomName;
@@ -20,7 +22,7 @@ export default class GamePlay {
 
   /* EVENT LISTENERS */
 
-  addEventListeners(level, width, height, scene) {
+  addEventListeners(level, width, height, scene, game) {
     this.listenInitPlayer(scene);
     this.listenInitGame(scene);
     this.listenInitBallMovement(scene);
@@ -32,8 +34,9 @@ export default class GamePlay {
     this.listenPlayerMoved(width, height, scene);
     this.listenAddPoint(level, width, height, scene);
     this.listenGameResult(width, height, scene);
-    this.listenLeftGame(width, height, scene);
+    this.listenLeftGame(width, height, scene, game);
     this.listenRematch(level, width, height, scene);
+    this.listenPauseGame(scene, game);
   }
 
   listenInitPlayer(scene) {
@@ -42,12 +45,15 @@ export default class GamePlay {
       console.log("roomName", data.gameCode);
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
-      router.replace({ path: `/game/${scene.roomName}` });
+      scene.playerInit = true;
+      //router.replace({ path: `/game/${scene.roomName}` });
     });
   }
 
   listenInitGame(scene) {
     scene.socket.on("roomComplete", (state) => {
+      //router.replace({ path: `/game/${scene.roomName}` });
+      scene.roomComplete = true;
       eventsCenter.emit("ready");
       scene.paddleSpeed = state.players[0].speed;
       scene.time.delayedCall(3000, () => {
@@ -147,7 +153,7 @@ export default class GamePlay {
       }
       scene.resultText = scene.add
         .text(
-          width / 2 - 115,
+          width / 2 - 135,
           height / 2,
           "PLAYER " + data.winner + " WINS !",
           {
@@ -159,38 +165,31 @@ export default class GamePlay {
     });
   }
 
-  listenLeftGame(width, height, scene) {
+  listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
-      if (type === 1) {
-        alert("YOUR OPPONENT LEFT");
-        console.log("a player disconnected");
-      } else if (type === 2) {
-        alert("YOUR OPPONENT LEFT");
-        console.log("a player quit");
-      }
       this.playerNumber = 0;
       this.roomName = "";
       this.spectator = false;
       this.activeGame = false;
       this.matchEnded = false;
-      eventsCenter.emit("quit");
-      if (scene.level === 1) {
-        scene.scene.stop("DefaultGame");
-      } else if (scene.level === 2) {
-        scene.scene.stop("CustomizableGame");
-      } else if (scene.level === 3) {
-        scene.scene.stop("CatPongGame");
-      }
-      scene.scene.start(
-        "MenuScene",
-        {
-          userId: scene.userId,
-          spectator: scene.spectator,
-          level: 0,
-        } /*, {socket: scene.socket}*/
-      );
-      console.log("QUIIIIIIIIIIIIIIIITTT");
-      router.replace({ path: "/game" });
+      this.challenge = false;
+      //eventsCenter.emit("quit");
+      scene.scene.stop("DefaultGame");
+
+      scene.scene.stop("CustomizableGame");
+
+      scene.scene.stop("CatPongGame");
+
+      scene.socket.disconnect();
+
+      //alert("YOUR OPPONENT LEFT");
+	  if (type === 1) {
+		alert("THE OTHER PLAYER LEFT THE GAME");
+	  } else if (type === 2) {
+		alert("YOU CAN'T PLAY AGAINST YOURSELF");
+	  }
+		//console.log("a player disconnected");
+      router.push("/");
     });
   }
 
@@ -209,6 +208,44 @@ export default class GamePlay {
     });
   }
 
+  listenPauseGame(scene, game) {
+    game.events.on(
+      "hidden",
+      function () {
+        if (scene.activeGame) {
+          console.log("haha");
+          scene.socket.emit("pauseGame", { roomName: scene.roomName });
+          console.log("hidden");
+          scene.scene.resume();
+        }
+      },
+      scene
+    );
+
+    scene.socket.on("pauseGame", () => {
+      if (scene.activeGame) {
+        scene.pauseText.setVisible(true);
+        scene.scene.pause();
+      }
+    });
+
+    game.events.on(
+      "visible",
+      function () {
+        if (scene.activeGame) {
+          scene.socket.emit("unpauseGame", { roomName: scene.roomName });
+          console.log("visible");
+        }
+      },
+      scene
+    );
+
+    scene.socket.on("unpauseGame", () => {
+      scene.pauseText.setVisible(false);
+      scene.scene.resume();
+    });
+  }
+
   /* GAMEPLAY FUNCTIONS */
 
   startGame(scene) {
@@ -221,6 +258,8 @@ export default class GamePlay {
   launchBall(data, scene) {
     scene.ball.setVelocityX(data.ball.initialVelocity.x);
     scene.ball.setVelocityY(data.ball.initialVelocity.y);
+	//scene.ball.setVelocityX(1 * 500);
+    //scene.ball.setVelocityY(0.1 * 500);
   }
 
   checkPoints(level, width, height, scene) {
@@ -390,7 +429,8 @@ export default class GamePlay {
     this.initColliders(level, scene);
     this.initScores(width, height, scene);
     this.initObjectEventListeners(scene);
-    this.initUIButtons(width, height, scene);
+    //this.initUIButtons(width, height, scene);
+    this.initPauseText(width, height, scene);
   }
 
   initBackground(level, width, height, scene) {
@@ -562,8 +602,55 @@ export default class GamePlay {
   }
 
   initColliders(level, scene) {
-    scene.physics.add.collider(scene.ball, scene.playerOne);
-    scene.physics.add.collider(scene.ball, scene.playerTwo);
+    // scene.physics.add.collider(scene.ball, scene.playerOne, () => {
+	// 	if (scene.ball.y + (scene.ball.body.y / 2) < scene.playerOne.y + (scene.playerOne.body.y / 2)) {
+	// 		console.log("up");
+	// 		//console.log(scene.ball.body.angle);
+	// 		console.log(scene.ball.body.velocity.x);
+	// 		console.log(scene.ball.body.velocity.y);
+	// 		//scene.ball.body.angle(Math.sin(scene.ball.body.angle));
+	// 		//console.log(scene.ball.body.angle);
+	// 		scene.ball.body.setVelocityY(-10 * (scene.playerOne.y - scene.ball.y));
+	// 	} else if (scene.ball.y + (scene.ball.body.y / 2) > scene.playerOne.y + (scene.playerOne.body.y / 2)) {
+	// 		console.log("down")
+	// 		console.log(scene.ball.body.velocity.x);
+	// 		console.log(scene.ball.body.velocity.y);
+	// 		scene.ball.body.setVelocityY(10 * (scene.playerTwo.y - scene.ball.y));
+	// 	} else {
+	// 		console.log("middle")
+	// 	}
+	// 	//console.log(scene.ball.y)
+	// 	//console.log(scene.playerOne.y);
+	// 	//console.log(scene.playerOne.body.y);
+	// 	//console.log(scene.playerOne.y + (scene.playerOne.body.y / 2))
+	// 	//console.log(scene.ball.body.angle);
+	// });
+    // scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
+	// 	if (scene.ball.y + (scene.ball.body.y / 2) < scene.playerTwo.y + (scene.playerTwo.body.y / 2)) {
+	// 		console.log("up");
+	// 		console.log(scene.ball.body.angle);
+	// 		console.log(scene.ball.body.velocityX);
+	// 		console.log(scene.ball.body.velocityY);
+	// 		//scene.ball.body.angle(Math.sin(scene.ball.body.angle));
+	// 		//console.log(scene.ball.body.angle);
+	// 		scene.ball.body.setVelocityY(-10 * (scene.playerTwo.y - scene.ball.y));
+	// 	} else if (scene.ball.y + (scene.ball.body.y / 2) > scene.playerTwo.y + (scene.playerTwo.body.y / 2)) {
+	// 		console.log("down")
+	// 		console.log(scene.ball.body.velocity.x);
+	// 		console.log(scene.ball.body.velocity.y);
+	// 		scene.ball.body.setVelocityY(10 * (scene.playerTwo.y - scene.ball.y));
+	// 	} else {
+	// 		console.log("middle")
+	// 	}
+	// 	//console.log(scene.ball.y)
+	// 	//console.log(scene.playerTwo.y);
+	// 	//console.log(scene.playerTwo.body.y);
+	// 	//console.log(scene.playerTwo.y + (scene.playerTwo.body.y / 2))
+	// 	//console.log(scene.ball.body.angle)
+	// });
+	scene.physics.add.collider(scene.ball, scene.playerOne);
+	scene.physics.add.collider(scene.ball, scene.playerTwo);
+
     if (level === 3) {
       scene.physics.add.collider(scene.ball, scene.fox, () => {
         if (scene.ball.body.velocity.x < 0) {
@@ -615,7 +702,7 @@ export default class GamePlay {
     // Init KEY EVENT listeners
     scene.cursors = scene.input.keyboard.createCursorKeys();
   }
-
+  /*
   initUIButtons(width, height, scene) {
     scene.quitButton = scene.add.text(width / 2 - 60, height - 40, "QUIT", {
       fill: "#ffffff",
@@ -625,7 +712,17 @@ export default class GamePlay {
     scene.quitButton.setInteractive();
     scene.quitButton.on("pointerdown", () => {
       console.log("quit button clicked");
-      scene.socket.emit("quitGame");
+	  this.playerNumber = 0;
+      this.roomName = "";
+      this.spectator = false;
+      this.activeGame = false;
+      this.matchEnded = false;
+	  this.challenge = false;
+	  scene.scene.pause();
+      scene.socket.emit("quitGame", {
+        roomName: scene.roomName,
+        level: scene.level,
+      });
     });
 
     scene.rematchButton = scene.add.text(
@@ -647,6 +744,16 @@ export default class GamePlay {
         console.log("YOU NEED TO FINISH THE GAME BEFORE A REMATCH");
       }
     });
+  }*/
+
+  initPauseText(width, height, scene) {
+    scene.pauseText = scene.add
+      .text(width / 2 - 60, height / 2, "GAME PAUSED", {
+        fill: "#ffffff",
+        fontSize: "20px",
+        fontStyle: "bold",
+      })
+      .setVisible(false);
   }
 
   reinitState(level, width, height, scene) {

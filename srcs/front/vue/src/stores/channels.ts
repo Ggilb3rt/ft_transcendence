@@ -119,7 +119,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handleMessage(msg: TMessage, roomId: string) {
 		console.log("la roome id quand je recois un message", roomId)
 		const roomIds = parseInt(roomId)
-		const index : number = msg.isDirect ? getChanIndex('u' + roomIds) : getChanIndex(roomIds)
+		const index : number = msg.isDirect ? getChanIndex('u' + roomIds) : getChanIndex("" + roomIds)
 		console.log("son index", index)
 		if (index === -1)
 			return

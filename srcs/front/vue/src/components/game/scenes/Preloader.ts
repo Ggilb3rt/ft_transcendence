@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import io from "socket.io-client";
+//import router from "@/router";
 
 import defaultBall from "../assets/balls/default/ball.png";
 import defaultPaddle from "../assets/paddles/default/paddle.png";
@@ -16,9 +17,14 @@ export default class Preloader extends Phaser.Scene {
   }
 
   init(data) {
+    this.data = data;
     this.userId = data.userId;
-    this.spectator = false;
+    this.spectator = data.spectator;
+    this.challenge = data.challenge;
+    this.key = data.key;
     this.level = data.level;
+    this.challengeInfo = data.challengeInfo;
+    this.socket = null;
   }
 
   preload() {
@@ -45,8 +51,50 @@ export default class Preloader extends Phaser.Scene {
   create() {
     const scene = this;
     console.log("PRELOAD");
-    //console.log("User id " + this.userId);
-    //console.log("LEVELLLLL " + this.level);
+    console.log(scene.data);
+    console.log("LEVELLL " + scene.level);
+    console.log("KEYY " + scene.key);
+    //router.replace({ path: "/game" });
+
+    if (!scene.challenge && !scene.spectator) {
+      scene.scene.start("MenuScene", {
+        userId: scene.userId,
+        spectator: scene.spectator,
+        level: scene.level,
+        challenge: scene.challenge,
+      });
+    } else if (scene.spectator) {
+      scene.scene.start("MenuScene", {
+        userId: scene.userId,
+        spectator: scene.spectator,
+        level: scene.level,
+        challenge: scene.challenge,
+		key: scene.key
+      });
+    } else {
+      if (scene.challengeInfo.level === 1) {
+        scene.scene.start("DefaultGame", {
+          userId: scene.userId,
+          spectator: scene.spectator,
+          challenge: scene.challenge,
+          challengeInfo: scene.challengeInfo,
+        });
+      } else if (scene.challengeInfo.level === 2) {
+        scene.scene.start("CatPongGame", {
+          userId: scene.userId,
+          spectator: scene.spectator,
+          challenge: scene.challenge,
+          challengeInfo: scene.challengeInfo,
+        });
+      } else if (scene.challengeInfo.level === 3) {
+        scene.scene.start("CustomizableGame", {
+          userId: scene.userId,
+          spectator: scene.spectator,
+          challenge: scene.challenge,
+          challengeInfo: scene.challengeInfo,
+        });
+      }
+    }
 
     /* Quand on arrive dans cette page, trois options :
     ** a) joueur seul qui veut se mettre dans une queue : on recupere son userId qui servira pour la db
@@ -77,13 +125,5 @@ export default class Preloader extends Phaser.Scene {
 		console.log("level catpong");
 		scene.scene.launch("CatPongGame", {socket: scene.socket, userId: scene.userId, spectator: scene.spectator})
 	}*/
-
-	
-
-      scene.scene.launch("MenuScene", {
-        userId: scene.userId,
-        spectator: scene.specator,
-		level: scene.level
-      });
   }
 }

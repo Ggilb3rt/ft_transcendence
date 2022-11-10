@@ -29,7 +29,7 @@ async function submitCode() {
           })
           .then((data) => {
             if (data) {
-            	console.log("return data ", data)
+            	//console.log("return data ", data)
 				userStore.changeStatus(setStatus.connected)
 				userStore.loading = false
 				userStore.twoFactorAuth = true
@@ -38,7 +38,7 @@ async function submitCode() {
               }
           })
     } catch (error: any) {
-		console.log(error)
+		//console.log(error)
         userStore.error = error.body
 		userStore.loading = false
     }

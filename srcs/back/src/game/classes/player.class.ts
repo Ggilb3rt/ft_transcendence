@@ -4,6 +4,7 @@ export class Player {
     id = null;
     game_scores = [];
     match_score = 0;
+	userId = 0;
     //level = "";
 }
   
