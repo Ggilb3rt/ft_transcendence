@@ -5,7 +5,6 @@ import {
     OnGatewayInit,
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { Logger } from '@nestjs/common';
 
 function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
@@ -52,31 +51,18 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             return
         }
         if (this.userArr[uIndex].socketId.length == 1) {
-            client.broadcast.emit('newStatusDisconnection', this.userArr[uIndex])
+            client.broadcast.emit('newStatusDisconnection', {ISocket: this.userArr[uIndex], ExistsAlready: false, sender: client.id})
             this.userArr.splice(uIndex, 1)
         } else {
+            console.log("je retire mon client")
            const index = this.userArr[uIndex].socketId.findIndex((e) => {
             e === client.id;
            })
+           client.broadcast.emit('newStatusDisconnection', {ISocket: this.userArr[uIndex], ExistsAlready: true, sender: client.id})
            this.userArr[uIndex].socketId.splice(index, 1)
         }
             
     }
-
-    // async handleConnection(client: Socket, ...args: any[]) {
-    //     console.log("HandleConnection2");
-    //     const sockets = await this.server.fetchSockets()
-    //     sockets.forEach(element => {
-    //         console.log("id == ", element.id)
-    //     });
-    //     const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
-    //     this.userArr.push(u)
-    //     this.logger.log(`client connection : ${client.id}`)
-    //     // nsp.emit('newStatusConnection', u)
-    //     this.server.emit('newStatusConnection', u)
-    //     return this.userArr
-    // }
-
 
     @SubscribeMessage('connectionStatus')
     handleConnection2(client: Socket, arg: number) {
@@ -99,20 +85,26 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
         else {
             this.userArr[index].socketId.push(client.id)
-            client.join("user_" + index)
-            console.log("user_" + index);
+            client.join("user_" + u.userId)
+            console.log("user_" + u.userId);
             client.broadcast.emit('newStatusConnection', {ISocket: u, ExistsAlready: true, sender: client.id})
         }
-        return this.userArr
+        this.server.to(client.id).emit('takeThat', this.userArr)
     }
 
     @SubscribeMessage('changeStatus')
     handleChangeStatus(client: Socket, arg: IStatus) {
-        const index = getUser(this.userArr, client.id)
+        console.log("\n\n------JE RENTRE DANS CHANGE STATUS")
+        const index = this.userArr.findIndex((elem) => {
+            if (elem.socketId.findIndex((e) => {return e == client.id}) != -1)
+                return true
+        })
+        // const index = getUser(this.userArr, client.id)
         if (index == -1) {
             return
         }
         this.userArr[index].userStatus = arg.userStatus
+        console.log("\n\n----------------- THIS USER ARR-------------\n\n", this.userArr)
         client.broadcast.emit("newStatusChange", arg)
     }
 
@@ -121,7 +113,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i decline challenge from => ", receiver)
-            this.server.to("user_" + receiver.userId.toString()).emit('refuseChallenge', challenge)
+            this.server.to("user_" + receiver.userId).emit('refuseChallenge', challenge)
         }
     }
 
@@ -130,7 +122,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
         if (receiver) {
             //console.log("i abort challenge to => ", receiver)
-            this.server.to("user_" + receiver.userId.toString()).emit('refuseChallenge', challenge)
+            this.server.to("user_" + receiver.userId).emit('refuseChallenge', challenge)
         }
     }
 
@@ -140,7 +132,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
             console.log("i challenge => ", receiver)
-            this.server.to("user_" + receiver.userId.toString()).emit('newChallenge', challenge)
+            this.server.to("user_" + receiver.userId).emit('newChallenge', challenge)
         }
     }
 
@@ -150,14 +142,10 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i accept challenge from => ", receiver)
-            this.server.to("user_" + sender.userId.toString()).emit('challengeAccepted', challenge)
+            this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
         }
     }
 //
-    @SubscribeMessage('findAllStatus')
-    handleFindAll() {
-        return this.userArr
-    }
     // @SubscribeMessage('chatToServer')
     // handleMessage(client: any, payload: { sender: string, room: string, payload: string }) {
     //     // Le to() permet d'emit a une room specifique et non pas a tout le namespace

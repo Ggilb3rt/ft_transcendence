@@ -21,13 +21,10 @@ export class ChatService {
     extractToken = (req) => {
         let token = null;
 
-        console.log("req == ", req)
-        console.log("extractJwtfromCookie ", req.cookies)
         if (req && req.cookie) {
           token = req.cookie;
           if (typeof(token) == "string") {
                 const value = token.slice(4)
-                console.log("token in extract  ", value)
                 return value;
           }
         }
@@ -48,7 +45,6 @@ export class ChatService {
     async getGatewayToken(headers, client: Socket) {
         const token = this.extractToken(headers)
         const verifier = this.validate(token)
-        console.log("verifier == ", verifier)
         if (!verifier.validate.id) {
             client.disconnect()
             throw new ForbiddenException("Token invalid")

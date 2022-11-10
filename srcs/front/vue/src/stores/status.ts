@@ -81,31 +81,11 @@ export const useStatusStore = defineStore({
     },
 
     async setupSocket() {
-      //console.log("setup socket condition == ", this.socket.connected)
       if (this.socket.connected) {
-        //wait for sockets to be instanciated then grab current sockets and Push my instance to list of sockets
-
-        //console.log("FETCHING ALL STATUS ==> ", this.statusList)
-
-        this.socket.emit("findAllStatus", (res: any) => {
-          res.forEach((elem: any) => {
-            //console.log("ELEM IN CALLBACK == ", elem);
-            //console.log("LIST IN CB == ", this.statusList)
-            if (
-              this.statusList.findIndex((el) => {
-                return el.userId === elem.userId;
-              }) == -1
-            ) {
-              this.statusList.push(elem);
-            }
-          });
-        });
-
-        //console.log("FETCHING ALL STATUS ==> ", this.statusList)
-                //Change my current status for myself, emit to server i do am connected
                  this.socket.emit('connectionStatus', this.id)
-             
-                //Subscribe to messages from other sockets
+                 this.socket.on('takeThat', ((arr:any) => {
+                    this.statusList = arr
+                 })) 
                  this.socket.on("newStatusConnection", (res: {ISocket: ISocketStatus, ExistsAlready: boolean, sender: string}) => {
                     if (res.ExistsAlready) {
                         const index = this.statusList.findIndex((e) => {return e.userId === res.ISocket.userId})
@@ -115,8 +95,15 @@ export const useStatusStore = defineStore({
                         this.statusList.push(res.ISocket)
                     }
                  })
-                 this.socket.on("newStatusDisconnection", (res: ISocketStatus) => {
-                     this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.userId), 1)
+                 this.socket.on("newStatusDisconnection", (res: {ISocket: ISocketStatus, ExistsAlready: boolean, sender: string}) => {
+                    console.log("res === ", res)
+                    if (res.ExistsAlready) {
+                        const index = this.statusList.findIndex((e) => {return e.userId === res.ISocket.userId})
+                        this.statusList[index].socketId.splice(index, 1)
+                    }
+                    else {
+                        this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.ISocket.userId), 1)
+                    }
                  })
                  this.socket.on("newStatusChange", (res: ISocketStatus) => {
                      console.log("onChangeStatus", res)
@@ -157,8 +144,8 @@ export const useStatusStore = defineStore({
             // Check to do it only once
             if (this.setuped == false) {
                 this.id = id
-                this.setupSocket()        
-                // console.log("my list after timeout ==> ", this.statusList)
+                this.setupSocket()
+                this.status = 'available'
                 this.setuped = true;
             }
         },
