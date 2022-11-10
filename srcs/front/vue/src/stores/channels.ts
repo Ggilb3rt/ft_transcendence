@@ -69,6 +69,16 @@ export const useChannelsStore = defineStore('channels', () => {
 		})
 	}
 
+	// sockets emiters
+	function emitJoin(chanId: string): boolean {
+		let emitRes: boolean = false
+		refsocket.value.emit("join", Number(chanId), chanId, (res: any) => {
+			emitRes = res.status
+		})
+		return emitRes
+	}
+
+	// sockets handlers
 	function handleMessage(msg: TMessage, roomId: string) {
 		const index : number = msg.isDirect ? getChanIndex('u' + roomId) : getChanIndex(roomId)
 		if (index === -1)
@@ -340,5 +350,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		unselectCurrentChan,
 		getUsersInChannel,
 		getChanListForSideBar,
+		// emits
+		emitJoin
 	}
 })

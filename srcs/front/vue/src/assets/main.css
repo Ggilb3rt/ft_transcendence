@@ -42,7 +42,13 @@ nav a.router-link-exact-active:hover {
   background-color: transparent;
 }
 
-a, .blue {
+.like-link {
+  border: none;
+  display: block;
+  background: none;
+}
+
+a, .blue, .like-link {
   text-decoration: none;
   color: var(--global-c-blue);
   transition: 0.4s;
@@ -133,7 +139,7 @@ cf type TStatus
 
 
 @media screen and (hover: hover) {
-  a:hover {
+  a:hover, .like-link:hover {
     background: var(--global-c-blue-hover) !important;
   }
 }

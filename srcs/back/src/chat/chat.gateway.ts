@@ -10,6 +10,7 @@ import { ForbiddenException, Logger, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { UsersService } from 'src/users/users.service';
 import { TMessage } from 'src/users/types';
+import { users_list } from '@prisma/client';
 
 
 @WebSocketGateway({
@@ -152,11 +153,14 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async joinChannel(client: Socket, channel_id: number, room: string, pass?) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        await this.chatService.joinChannel(id, channel_id, pass)
+        const res: users_list | null = await this.chatService.joinChannel(id, channel_id, pass)
         client.broadcast.to(room).emit('join', {
             new_client: id,
             channel_id
         })
+        
+        console.log()
+        return {status: Boolean(res)}
     }
 
     @SubscribeMessage('quit')

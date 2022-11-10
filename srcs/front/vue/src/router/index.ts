@@ -157,6 +157,7 @@ router.beforeEach(async (to, from) => {
   }
   else if (userStore.conStatus == setStatus.need2fa && to.name != "2fa")
     return { name: "2fa" }
+
 })
 
 

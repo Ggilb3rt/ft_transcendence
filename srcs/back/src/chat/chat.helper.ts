@@ -22,7 +22,7 @@ export class ChatHelper {
             const adminList: number[] = []
             const messagesTrimmed: TMessage[] = []
             users_list.forEach((e) => {
-                userList.push(e.id)
+                userList.push(e.user_id)
             });
             banned.forEach((e) => {
                banList.push({userId: e.user_id, expire: e.expires, })
