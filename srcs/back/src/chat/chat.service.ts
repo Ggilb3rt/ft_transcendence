@@ -101,7 +101,7 @@ export class ChatService {
         if (isBannedByOwner) {
             return true
         }
-        else if (this.chatHelper.isAdmin(channel_id, bannedBy)) {
+        else if (this.chatHelper.isAdmin(channel_id, bannedBy) && this.chatHelper.isAdmin(channel_id, banned)) {
             return true
         }
         return false
