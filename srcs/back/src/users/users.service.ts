@@ -3,6 +3,7 @@ import { friends, match, PrismaClient, users } from '@prisma/client'
 import { UsersHelper } from './usersHelpers';
 import { CreateUserDto } from './createUserDto';
 const path = require('path');
+import * as base32 from 'hi-base32'
 const util = require('util');
 import { writeFile } from 'fs';
 import { otherFormat, userFront, userRestrict } from './types';
@@ -325,16 +326,22 @@ export class UsersService {
 
 
   async isCodeValid(code: string, id: number) {
-    const {two_factor_secret} = await this.getUserById(id)
+    const {two_factor_secret} = await prisma.users.findFirst({
+      where:{id}
+    })
     try {
       console.log("token == ", code)
+
+      console.log('2fa secret', two_factor_secret)
+
       const verify = authenticator.verify({
-        token: code,
+        token: base32.encode('toto'),
         secret: two_factor_secret
       })
       return verify
     } catch (e) {
-      throw new Error(e)
+      console.error("error in back ", e);
+      throw new Error (e);
     }
   }
 
@@ -347,16 +354,11 @@ export class UsersService {
     const secret = authenticator.generateSecret()
     const otpauthUrl = authenticator.keyuri(user.nick_fourtytwo, "Transcendance", secret);
 
-
     await this.setSecret(user.id, secret);
     return {
         secret,
         otpauthUrl
     }
-  }
-
-  async hashPassowrd() {
-
   }
 
   async switch2fa(id: number, status: boolean, response) {

@@ -45,7 +45,7 @@ async function testConnection() {
   }
 }
 
-onBeforeMount(testConnection)
+// onBeforeMount(testConnection)
 
 
 // simule server timing
