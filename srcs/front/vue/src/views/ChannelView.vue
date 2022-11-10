@@ -15,7 +15,7 @@ const props = defineProps({
 	direct: {type: Boolean, required: true},
 })
 
-const channelIdNumber = props.channelId
+const channelIdNumber = Number(props.channelId)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const channelsStore = useChannelsStore()
