@@ -70,7 +70,6 @@ export type TStatus = "available" | "disconnected" | "inGame" | "challenged"
 
 // Status of each users, use to allowed or not some actions
 export interface ISocketStatus {
-  socketId: string[];
   userStatus: TStatus;
   userId: number;
 }

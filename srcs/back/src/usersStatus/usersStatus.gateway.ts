@@ -25,6 +25,8 @@ interface IStatus {
 
 type TChallenge = {challenger: Number, level: Number, challenged: Number}
 
+type TSend = {userId: number, userStatus: TStatus}
+
 @WebSocketGateway({
 	cors: {
         credentials: true,
@@ -39,6 +41,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     //private logger: Logger = new Logger('usersStatusGateway');
     private userArr: IStatus[] = []
+    private toSend: TSend[] = []
 
     afterInit(server: Server) {
         //this.logger.log('Initialized')
@@ -53,12 +56,12 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (this.userArr[uIndex].socketId.length == 1) {
             client.broadcast.emit('newStatusDisconnection', {ISocket: this.userArr[uIndex], ExistsAlready: false, sender: client.id})
             this.userArr.splice(uIndex, 1)
+            this.toSend.splice(uIndex, 1)
         } else {
             console.log("je retire mon client")
            const index = this.userArr[uIndex].socketId.findIndex((e) => {
             e === client.id;
            })
-           client.broadcast.emit('newStatusDisconnection', {ISocket: this.userArr[uIndex], ExistsAlready: true, sender: client.id})
            this.userArr[uIndex].socketId.splice(index, 1)
         }
             
@@ -66,30 +69,24 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     handleConnection2(client: Socket, arg: number) {
-        // const alreadyConnected = this.userArr.findIndex((el) => {console.log("el ==== ", el, "id ==== ", arg); return el.userId === arg})
-        // console.log("handleConnection2")
-        // if (alreadyConnected != -1) {
-        //     console.log("already connected")
-        //     this.userArr.splice(alreadyConnected, 1)
-        // }
         const index = this.userArr.findIndex((e) => {
             return e.userId == arg;
         })
 
         const newClients : string[] = []
         const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg}
+        const msg: TSend = {userStatus: 'available', userId: arg}
         if (index == -1) {
             newClients.push(client.id)
             this.userArr.push(u)
-            client.broadcast.emit('newStatusConnection', {ISocket: u, ExistsAlready: false, sender: client.id})
+            this.toSend.push(msg)
+            client.broadcast.emit('newStatusConnection', {ISocket: msg, ExistsAlready: false})
         }
         else {
             this.userArr[index].socketId.push(client.id)
             client.join("user_" + u.userId)
-            console.log("user_" + u.userId);
-            client.broadcast.emit('newStatusConnection', {ISocket: u, ExistsAlready: true, sender: client.id})
         }
-        this.server.to(client.id).emit('takeThat', this.userArr)
+        this.server.to(client.id).emit('takeThat', this.toSend)
     }
 
     @SubscribeMessage('changeStatus')
@@ -104,6 +101,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             return
         }
         this.userArr[index].userStatus = arg.userStatus
+        this.toSend[index].userStatus = arg.userStatus
         console.log("\n\n----------------- THIS USER ARR-------------\n\n", this.userArr)
         client.broadcast.emit("newStatusChange", arg)
     }

@@ -87,21 +87,13 @@ export const useStatusStore = defineStore({
                     this.statusList = arr
                  })) 
                  this.socket.on("newStatusConnection", (res: {ISocket: ISocketStatus, ExistsAlready: boolean, sender: string}) => {
-                    if (res.ExistsAlready) {
-                        const index = this.statusList.findIndex((e) => {return e.userId === res.ISocket.userId})
-                        this.statusList[index].socketId.push(res.sender)
-                    }
-                    else {
+                    if (res.ExistsAlready == false) {
                         this.statusList.push(res.ISocket)
                     }
                  })
                  this.socket.on("newStatusDisconnection", (res: {ISocket: ISocketStatus, ExistsAlready: boolean, sender: string}) => {
                     console.log("res === ", res)
-                    if (res.ExistsAlready) {
-                        const index = this.statusList.findIndex((e) => {return e.userId === res.ISocket.userId})
-                        this.statusList[index].socketId.splice(index, 1)
-                    }
-                    else {
+                    if (!res.ExistsAlready) {
                         this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.ISocket.userId), 1)
                     }
                  })
