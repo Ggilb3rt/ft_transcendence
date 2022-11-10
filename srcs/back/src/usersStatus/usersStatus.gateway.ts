@@ -9,9 +9,19 @@ import { Logger } from '@nestjs/common';
 import cluster from 'cluster';
 
 
+function getUser(arr: IStatus[], i: string) {
+    return arr.findIndex((e) => {return e.socketId.includes(i)})
+}
+
+
+function countInArray(arr: IStatus[], i: number) {
+    return arr.filter(item => item.userId == i).length
+}
+
 type TStatus = "available" | "disconnected" | "inGame"
+
 interface IStatus {
-    socketId: string;
+    socketId: string[];
     userId: number;
     userStatus: TStatus;
 }
@@ -40,13 +50,20 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     async handleDisconnect(client: Socket) {
         this.logger.log(`client disconnect : ${client.id}`)
-        let uIndex = this.userArr.findIndex(el => el.socketId == client.id)
-        
-        if (uIndex != -1) {
+        const uIndex = getUser(this.userArr, client.id)
+        if (uIndex == -1) {
+            return
+        }
+        if (this.userArr[uIndex].socketId.length == 1) {
             client.broadcast.emit('newStatusDisconnection', this.userArr[uIndex])
             this.userArr.splice(uIndex, 1)
-            console.log("this.user.arr after splice = ", this.userArr)
+        } else {
+           const index = this.userArr[uIndex].socketId.findIndex((e) => {
+            e === client.id;
+           })
+           this.userArr[uIndex].socketId.splice(index, 1)
         }
+            
     }
 
     // async handleConnection(client: Socket, ...args: any[]) {
@@ -66,29 +83,43 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     handleConnection2(client: Socket, arg: number) {
-        const alreadyConnected = this.userArr.findIndex((el) => {console.log("el ==== ", el, "id ==== ", arg); return el.userId === arg})
-        console.log("handleConnection2")
-        if (alreadyConnected != -1) {
-            console.log("already connected")
-            this.userArr.splice(alreadyConnected, 1)
-        }
+        // const alreadyConnected = this.userArr.findIndex((el) => {console.log("el ==== ", el, "id ==== ", arg); return el.userId === arg})
+        // console.log("handleConnection2")
+        // if (alreadyConnected != -1) {
+        //     console.log("already connected")
+        //     this.userArr.splice(alreadyConnected, 1)
+        // }
         console.log("id = ", arg)
+        console.log('ARR = ', this.userArr)
         console.log('client id = ', client.id)
-        const u: IStatus = {socketId: client.id, userStatus: "available", userId: arg}
-        this.userArr.push(u)
+        const index = this.userArr.findIndex((e) => {
+            return e.userId == arg;
+        })
+
+        const newClients : string[] = []
+        if (index == -1) {
+            newClients.push(client.id)
+            const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg}
+            this.userArr.push(u)
+            client.broadcast.emit('newStatusConnection', u)
+        }
+        else {
+            this.userArr[index].socketId.push(client.id)
+        }
         this.logger.log(`client connection : ${client.id}`)
-        client.broadcast.emit('newStatusConnection', u)
-        console.log('arr = ', this.userArr)
         return this.userArr
     }
 
     @SubscribeMessage('changeStatus')
     handleChangeStatus(client: Socket, arg: IStatus) {
-        const changedIndex = this.userArr.findIndex((el) => el.socketId == client.id)
-        if (changedIndex != -1) {
-            this.userArr[changedIndex].userStatus = arg.userStatus
-            client.broadcast.emit("newStatusChange", this.userArr[changedIndex])
+        const index = getUser(this.userArr, client.id)
+        console.log("---------IN HANDLER---------\n\nuser == ", this.userArr[index])
+        if (index == -1) {
+            return
         }
+        this.userArr[index].userStatus = arg.userStatus
+        console.log("---------IN HANDLER---------\n\nuser == ", this.userArr[index])
+        client.broadcast.emit("newStatusChange", arg)
     }
 
     @SubscribeMessage('refuseChallenge')

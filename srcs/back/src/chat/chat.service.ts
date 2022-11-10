@@ -176,25 +176,26 @@ export class ChatService {
         return await this.chatHelper.getDirectMessages(user_id, friend)
     }
     
-    async joinChannel(user_id: number, channel, pass?: string): Promise<users_list | null> {
-        if (!this.canJoin(user_id, channel, pass))
+    async joinChannel(user_id: number, channel_id: number, pass?: string): Promise<users_list | null> {
+        if (!this.canJoin(user_id, channel_id, pass))
             return null
             // throw new ForbiddenException("You have no right to join this channel")
-        if (channel.type === "private") {
+        const {type} = await this.chatHelper.getChannel(channel_id)
+        if (type === "private") {
             return null
             // throw new HttpException("You have no right to join this channel", HttpStatus.FORBIDDEN)
         }
-        else if (channel.type === "pass") {
+        else if (type === "pass") {
             if (!pass) {
                 return null
                 // throw new HttpException("Need a password to join this channel", HttpStatus.FORBIDDEN)
             }
-            else if (this.chatHelper.checkPass(pass, channel.id)) {
-                return await this.chatHelper.joinChannel(channel.id, user_id)
+            else if (this.chatHelper.checkPass(pass, channel_id)) {
+                return await this.chatHelper.joinChannel(channel_id, user_id)
             }
         }
-        else if (channel.type === "public") {
-            return await this.chatHelper.joinChannel(channel.id, user_id)
+        else if (type === "public") {
+            return await this.chatHelper.joinChannel(channel_id, user_id)
         }
     }
 
@@ -221,6 +222,16 @@ export class ChatService {
         const availableChannels: TChannelRestrict[] = [];
         const channels: TChannelRestrict[] = [];
         const privateChannels: TChannelRestrict[] = [];
+<<<<<<< HEAD
+=======
+
+
+        privateC.forEach((elem) => {
+            elem.channels.forEach((elem) => {
+                privateChannels.push(elem)
+            })
+        })
+>>>>>>> origin/Chat
 
 
         privateC.forEach((elem) => {

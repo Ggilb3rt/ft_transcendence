@@ -72,7 +72,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	// sockets emiters
 	function emitJoin(chanId: string): boolean {
 		let emitRes: boolean = false
-		refsocket.value.emit("join", availableChannels.value.find((el) => el.id == ) chanId, (res: any) => {
+		refsocket.value.emit("join", Number(chanId), chanId, (res: any) => {
 			emitRes = res.status
 		})
 		return emitRes
