@@ -153,7 +153,7 @@ export default class GamePlay {
       }
       scene.resultText = scene.add
         .text(
-          width / 2 - 115,
+          width / 2 - 135,
           height / 2,
           "PLAYER " + data.winner + " WINS !",
           {
@@ -258,6 +258,8 @@ export default class GamePlay {
   launchBall(data, scene) {
     scene.ball.setVelocityX(data.ball.initialVelocity.x);
     scene.ball.setVelocityY(data.ball.initialVelocity.y);
+	//scene.ball.setVelocityX(1 * 500);
+    //scene.ball.setVelocityY(0.1 * 500);
   }
 
   checkPoints(level, width, height, scene) {
@@ -600,8 +602,55 @@ export default class GamePlay {
   }
 
   initColliders(level, scene) {
-    scene.physics.add.collider(scene.ball, scene.playerOne);
-    scene.physics.add.collider(scene.ball, scene.playerTwo);
+    // scene.physics.add.collider(scene.ball, scene.playerOne, () => {
+	// 	if (scene.ball.y + (scene.ball.body.y / 2) < scene.playerOne.y + (scene.playerOne.body.y / 2)) {
+	// 		console.log("up");
+	// 		//console.log(scene.ball.body.angle);
+	// 		console.log(scene.ball.body.velocity.x);
+	// 		console.log(scene.ball.body.velocity.y);
+	// 		//scene.ball.body.angle(Math.sin(scene.ball.body.angle));
+	// 		//console.log(scene.ball.body.angle);
+	// 		scene.ball.body.setVelocityY(-10 * (scene.playerOne.y - scene.ball.y));
+	// 	} else if (scene.ball.y + (scene.ball.body.y / 2) > scene.playerOne.y + (scene.playerOne.body.y / 2)) {
+	// 		console.log("down")
+	// 		console.log(scene.ball.body.velocity.x);
+	// 		console.log(scene.ball.body.velocity.y);
+	// 		scene.ball.body.setVelocityY(10 * (scene.playerTwo.y - scene.ball.y));
+	// 	} else {
+	// 		console.log("middle")
+	// 	}
+	// 	//console.log(scene.ball.y)
+	// 	//console.log(scene.playerOne.y);
+	// 	//console.log(scene.playerOne.body.y);
+	// 	//console.log(scene.playerOne.y + (scene.playerOne.body.y / 2))
+	// 	//console.log(scene.ball.body.angle);
+	// });
+    // scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
+	// 	if (scene.ball.y + (scene.ball.body.y / 2) < scene.playerTwo.y + (scene.playerTwo.body.y / 2)) {
+	// 		console.log("up");
+	// 		console.log(scene.ball.body.angle);
+	// 		console.log(scene.ball.body.velocityX);
+	// 		console.log(scene.ball.body.velocityY);
+	// 		//scene.ball.body.angle(Math.sin(scene.ball.body.angle));
+	// 		//console.log(scene.ball.body.angle);
+	// 		scene.ball.body.setVelocityY(-10 * (scene.playerTwo.y - scene.ball.y));
+	// 	} else if (scene.ball.y + (scene.ball.body.y / 2) > scene.playerTwo.y + (scene.playerTwo.body.y / 2)) {
+	// 		console.log("down")
+	// 		console.log(scene.ball.body.velocity.x);
+	// 		console.log(scene.ball.body.velocity.y);
+	// 		scene.ball.body.setVelocityY(10 * (scene.playerTwo.y - scene.ball.y));
+	// 	} else {
+	// 		console.log("middle")
+	// 	}
+	// 	//console.log(scene.ball.y)
+	// 	//console.log(scene.playerTwo.y);
+	// 	//console.log(scene.playerTwo.body.y);
+	// 	//console.log(scene.playerTwo.y + (scene.playerTwo.body.y / 2))
+	// 	//console.log(scene.ball.body.angle)
+	// });
+	scene.physics.add.collider(scene.ball, scene.playerOne);
+	scene.physics.add.collider(scene.ball, scene.playerTwo);
+
     if (level === 3) {
       scene.physics.add.collider(scene.ball, scene.fox, () => {
         if (scene.ball.body.velocity.x < 0) {

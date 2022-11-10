@@ -146,8 +146,8 @@ onUpdated(() => {
 });*/
 
 onBeforeUnmount(() => {
-  alert("UNMOUNT");
-  console.log("GAME INSTANCE UNMOUNT");
+  //alert("UNMOUNT");
+  //console.log("GAME INSTANCE UNMOUNT");
   console.log(gameInstance);
   if (gameInstance) {
     disconnectSockets();
@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
 });
 
 function disconnectSockets() {
-  console.log("GAME INSTANCE UNM " + gameInstance);
+  //console.log("GAME INSTANCE UNM " + gameInstance);
   if (gameInstance) {
     console.log(gameInstance.scene.scenes);
     let roomId: number;

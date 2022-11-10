@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { PrismaClient, users } from "@prisma/client";
 import { CreateUserDto } from "./createUserDto";
+import { CreateMatchDto } from "./createMatchDto";
 import { userRestrict } from "./types";
 
 const prisma = new PrismaClient();
@@ -247,11 +248,10 @@ class UsersHelper {
       }
     }
 
-	async addMatch(match) {
-		await prisma.match.create({
-			data: match
-		})
+	async addMatch(match: CreateMatchDto) {
+		await prisma.match.create({ data: match })
 	}
+	
     async getMatches(id: number) {
       try {
         const matches = await prisma.match.findMany({

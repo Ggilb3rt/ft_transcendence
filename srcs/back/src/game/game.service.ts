@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { Ball, Player, WR1, WR2, WR3, WR4 } from './classes';
+import { UsersHelper } from '../users/usersHelpers';
+import { CreateMatchDto } from 'src/users/createMatchDto';
 
 @Injectable()
 export class GameService {
@@ -9,7 +11,7 @@ export class GameService {
     private players = {};
 	private i = 4;
 
-	constructor() {
+	constructor(private readonly usersHelper: UsersHelper) {
 		this.waitingRooms[1] = WR1;
 		this.waitingRooms[2] = WR2;
 		this.waitingRooms[3] = WR3;
@@ -112,17 +114,19 @@ export class GameService {
     initGame(roomId: any, server: Server) {
         const gameRoom = this.activeGames[roomId];
 		const level = gameRoom.level;
-        const playerOne = gameRoom.playerOne.socket;
-        const playerTwo = gameRoom.playerTwo.socket;
+        const playerOne = gameRoom.playerOne;
+        const playerTwo = gameRoom.playerTwo;
        
-        playerOne.join(roomId);
-        playerOne.emit("init", { playerNumber: 1, gameCode: roomId, level: gameRoom.level });
-        playerTwo.join(roomId);
-        playerTwo.emit("init", { playerNumber: 2, gameCode: roomId, level: gameRoom.level });
+        playerOne.socket.join(roomId);
+        playerOne.socket.emit("init", { playerNumber: 1, gameCode: roomId, level: gameRoom.level });
+        playerTwo.socket.join(roomId);
+        playerTwo.socket.emit("init", { playerNumber: 2, gameCode: roomId, level: gameRoom.level });
 
         const state = this.createGameState();
-        state.players[0].id = gameRoom.playerOne.id;
-        state.players[1].id = gameRoom.playerTwo.id;
+        state.players[0].id = gameRoom.playerOne.socket.id;
+		state.players[0].userId = gameRoom.playerOne.userId;
+        state.players[1].id = gameRoom.playerTwo.socket.id;
+		state.players[1].userId = gameRoom.playerTwo.userId;
         state.roomName = roomId;
         gameRoom.state = state;
 		//console.log("GAMEROOM");
@@ -200,12 +204,38 @@ export class GameService {
 
     handleAddPoint(client: Socket, data: any, server: Server) {
         let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
-        if (score === 22) {
+        if (score === 10) {
             server.to(data.roomName).emit('gameResult', { winner: data.player });
-        } else {
+			this.injectScoresDB(this.activeGames[data.roomName], null);
+		} else {
             server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
         }
     }
+
+	async injectScoresDB(room: any, client: Socket) {
+
+		// Player disconnected before the end of the game
+		if (client !== null) {
+			if (room.state.players[0].match_score !== 10 && room.state.players[1].match_score !== 10) {
+				if (client.id === room.state.players[0].id) {
+					room.state.players[0].match_score = 0;
+					room.state.players[1].match_score = 10;
+				} else {
+					room.state.players[0].match_score = 10;
+					room.state.players[1].match_score = 0;
+				}
+			}
+		}
+		
+		const matchDto: CreateMatchDto = {
+			player_left_id: room.state.players[0].userId,
+			player_right_id: room.state.players[1].userId,
+			score_left: room.state.players[0].match_score,
+			score_right: room.state.players[1].match_score,
+			date: new Date()
+		}
+		await this.usersHelper.addMatch(matchDto);
+	}
 
     handleWatchGame(client: Socket, data: any, server: Server) {
         //console.log("WATCH GAME");
@@ -220,7 +250,7 @@ export class GameService {
         }   
     }
 
-    handleDisconnect(client: Socket, server: Server) {
+    async handleDisconnect(client: Socket, server: Server) {
 		console.log("CLIENT DISCONNECTED " + client.id);
 		
 		const roomName = this.players[client.id].roomId;
@@ -234,7 +264,6 @@ export class GameService {
 		//console.log(this.activeGames);
 
 		if (spectator) {
-			//console.log("SPECTATOR QUITTING")
 			client.leave(roomName);
 			client.emit("leftGame", 1)
 			Reflect.deleteProperty(this.players, client.id);
@@ -242,16 +271,16 @@ export class GameService {
 		}
 
 		if (roomName) {
-			//console.log("DISCONNECTING")
-			server.in(roomName).emit("leftGame", 1)
-			//client.emit("leftGame");
+			if (this.activeGames[roomName] !== undefined) {
+				await this.injectScoresDB(this.activeGames[roomName], client);
+			}
 			Reflect.deleteProperty(this.activeGames, roomName);
+			server.in(roomName).emit("leftGame", 1)
 			this.updateActiveRoomNames();
 		}
 
 		if (level !== 0) {
 			if (this.players[client.id].challengeId !== 0) {
-				console.log("DELETING WR");
 				Reflect.deleteProperty(this.waitingRooms, level);
 			} else {
             	let wr = this.waitingRooms[level];
