@@ -116,16 +116,18 @@ export const useStatusStore = defineStore({
                  this.socket.on("newStatusConnection", (res: ISocketStatus) => {
                      const alreadyConnected = this.statusList.findIndex((el) => {return res.userId === el.userId})
                      if (alreadyConnected != -1) {
-                         this.statusList.splice(alreadyConnected, 1)
+                        this.statusList[alreadyConnected].socketId.push(res.socketId)
                      }
-                     this.statusList.push(res)
+                     else {
+                         this.statusList.push(res)
+                     }
                  })
                  this.socket.on("newStatusDisconnection", (res: ISocketStatus) => {
-                     this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.socketId == res.socketId), 1)
+                     this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.userId), 1)
                  })
                  this.socket.on("newStatusChange", (res: ISocketStatus) => {
                      console.log("onChangeStatus", res)
-                     const changedIndex = this.statusList.findIndex((el) => el.socketId == res.socketId)
+                     const changedIndex = this.statusList.findIndex((el) => el.userId == res.userId)
                      if (changedIndex != -1)
                        this.statusList[changedIndex].userStatus = res.userStatus
                  })
@@ -140,7 +142,12 @@ export const useStatusStore = defineStore({
                      }
                  })
                  this.socket.on("challengeAccepted", (challenge: any) => {
-                     router.push({path: "/game", query: {challenge: challenge}})
+                    if (challenge.challenged == this.id) {
+                        this.challengeAccepted = true
+                    }
+                    else if (challenge.challenger == this.id){
+                        router.push({path: "/game", query: {challenge: challenge}})
+                    }
                  })
                  this.socket.on("refuseChallenge", () => {
                      this.challenge = null
@@ -217,7 +224,6 @@ export const useStatusStore = defineStore({
         },
 
         finishChallenge() {
-            this.challenge = null,
             this.challengeAccepted = false
         }
     } ,

@@ -32,7 +32,8 @@ async function submitCode() {
             	console.log("return data ", data)
 				userStore.changeStatus(setStatus.connected)
 				userStore.loading = false
-				router.push("/success")
+				userStore.twoFactorAuth = true
+				router.push("/")
 
               }
           })

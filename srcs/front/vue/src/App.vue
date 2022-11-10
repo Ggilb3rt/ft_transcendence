@@ -21,7 +21,6 @@ import Loader from "./components/navigation/loader.vue";
   // la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
 
 const route = useRoute()
-const channelStore = useChannelsStore()
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
@@ -42,47 +41,6 @@ window.addEventListener('beforeunload', (e) => {
   // }
   // localStorage.setItem('log', res.toString());
 })
-
-
-async function testConnection() {
-  try {
-    console.log("Test Connection premiere ligne")
-    userStore.loading = true
-    const response = await fetch(`http://localhost:3000/users/current`, {credentials: "include"})
-    localStorage.clear();
-    var data;
-    if (response.status == 412) {
-        userStore.changeStatus(setStatus.need2fa)
-        router.push('/2fa')
-      }
-    else if (response.status >= 200 && response.status < 300) {
-        userStore.changeStatus(setStatus.connected)
-        data = await response.json()
-    }
-    else {
-      throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
-    }
-    if (data) {
-        userStore.user = data
-        userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
-        userStore.error = null
-        userStore.connected = true
-        usersStore.getUsers()
-        console.log('userStore.id = ', userStore.user.id)
-        statusStore.setup(userStore.user.id);
-        channelStore.getChansLists();
-      }
-  } catch (error: any) {
-    // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
-    const tempErr = JSON.parse(error.message)
-    userStore.error = tempErr.body
-  } finally {
-    userStore.loading = false
-  }
-}
-
-testConnection()
-
 
 // Socket Status
 watch(route, (newRoute) => {

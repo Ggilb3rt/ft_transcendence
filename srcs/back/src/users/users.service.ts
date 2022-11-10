@@ -327,7 +327,8 @@ export class UsersService {
   async isCodeValid(code: string, id: number) {
     const {two_factor_secret} = await this.getUserById(id)
     try {
-      const verify = await authenticator.verify({
+      console.log("token == ", code)
+      const verify = authenticator.verify({
         token: code,
         secret: two_factor_secret
       })

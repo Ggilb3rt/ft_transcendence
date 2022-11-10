@@ -60,11 +60,15 @@ export class UsersController {
     }
 
     @Post(':id/2fa')
-    @UseGuards(JwtAuthGuard)
-    async switch2fa(@Param('id', ParseIntPipe) id: number, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string | undefined, @Res() response) {
+    // @UseGuards(JwtAuthGuard)
+    async switch2fa(@Param('id', ParseIntPipe) id: number, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
         let isCodeValid: boolean = false
-        if (code)
-            isCodeValid = await this.usersService.isCodeValid(code, id)
+        if (code) {
+            const toto: string = "toto"
+            console.log("dans controller code = ", code)
+            isCodeValid = await this.usersService.isCodeValid(toto, id)
+        }
+        console.log("je suis apres")
         if (status == false && isCodeValid == false) {
             throw new UnauthorizedException('Wrong authentication code');
         }
