@@ -153,7 +153,7 @@ export class CChannel {
 		return false
 	}
 	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, timeInMinutes:number): boolean {
-		if ((this.isAdmin(restrictor) || this.isOwner(restrictor)) && !this.isOwner(restricted) && restricted != restrictor) {
+		if ((this.isAdmin(restrictor) || this.isOwner(restrictor)) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor) {
 			const restrict: TRestrictUserTime = {
 				userId: restricted,
 				expire: this.addMinutes(new Date(), timeInMinutes)

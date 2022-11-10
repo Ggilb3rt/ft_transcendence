@@ -63,6 +63,7 @@ let channelMsgs: TMessage[] = [
 function submit(e: Event) {
 	e.preventDefault()
 	// emit to server
+	channelsStore.emitMessage(channelIdNumber, msg.value)
 	if (msg.value != "") {
 		channelMsgs.push({
 			sender: userStore.user.id,
@@ -126,7 +127,8 @@ onUpdated(() => {
 							<span v-if="currentChan.isBan(msg.sender)"> (is ban)</span>
 							<span v-if="currentChan.isMute(msg.sender)"> (is mute)</span>
 						</span> |
-						<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span>
+						<span class="time"> {{ msg.date }} (pas de type date)</span>
+						<!-- <span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span> -->
 						<br>
 						<span>{{ msg.msg }}</span>
 					</p>

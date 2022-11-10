@@ -17,17 +17,20 @@ const adminPanel = ref(false)
 </script>
 
 <template>
-	<div v-if="channelsStore.currentChan?.isAdmin(userStore.user.id)" >
+	<div v-if="channelsStore.currentChan?.isAdmin(userStore.user.id) || channelsStore.currentChan?.isOwner(userStore.user.id)" >
 		<button @click="adminPanel = true">
 			Open admin panel
 		</button>
-		<div class="admin-bar" v-if="channelsStore.currentChan.isAdmin(userStore.user.id)" v-show="adminPanel">
+		<div 
+			class="admin-bar"
+			v-if="channelsStore.currentChan.isAdmin(userStore.user.id) || channelsStore.currentChan.isOwner(userStore.user.id)"
+			v-show="adminPanel"
+		>
 			<button @click="adminPanel = false"><i class="icon_btn"><CarbonClose></CarbonClose></i></button>
 			<p>As admin</p>
 			<ModalRestrictUser></ModalRestrictUser>
 			<ModalAddAdmin></ModalAddAdmin>
 			<ModalKickUser></ModalKickUser>
-			<button>Kick user</button>
 			<div class="owner-bar" v-if="channelsStore.currentChan.isOwner(userStore.user.id)">
 				<p>As owner</p>
 				<ModalRemoveAdmin></ModalRemoveAdmin>

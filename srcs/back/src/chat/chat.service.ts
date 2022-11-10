@@ -222,16 +222,6 @@ export class ChatService {
         const availableChannels: TChannelRestrict[] = [];
         const channels: TChannelRestrict[] = [];
         const privateChannels: TChannelRestrict[] = [];
-<<<<<<< HEAD
-=======
-
-
-        privateC.forEach((elem) => {
-            elem.channels.forEach((elem) => {
-                privateChannels.push(elem)
-            })
-        })
->>>>>>> origin/Chat
 
 
         privateC.forEach((elem) => {

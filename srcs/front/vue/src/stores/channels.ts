@@ -72,10 +72,17 @@ export const useChannelsStore = defineStore('channels', () => {
 	// sockets emiters
 	function emitJoin(chanId: string): boolean {
 		let emitRes: boolean = false
-		refsocket.value.emit("join", Number(chanId), chanId, (res: any) => {
+		refsocket.value.emit("join", {channel_id: Number(chanId), room: chanId}, (res: any) => {
 			emitRes = res.status
 		})
+		console.log("la reponse du join ", emitRes)
+		// ici emitRes est false alors que le back me renvoi un status: true
 		return emitRes
+	}
+
+	function emitMessage(chanId: string, content: string) {
+		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
+		refsocket.value.emit("sendMessageToChannel", {room: chanId, content: content, date: new Date()})
 	}
 
 	// sockets handlers
@@ -351,6 +358,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		getUsersInChannel,
 		getChanListForSideBar,
 		// emits
-		emitJoin
+		emitJoin,
+		emitMessage,
 	}
 })

@@ -34,8 +34,12 @@ function updateWinWidthValue(e: Event) {
 			props.model.isOpen = false
 }
 
+function getChanIdFromLink(link: string): string {
+	return link.split('/').at(-1)
+}
+
 function leaveChannel(link: string) {
-	const id: Array<string> = link.split('/').at(-1)
+	const id: string = getChanIdFromLink(link)
 	
 	if(id && confirm(`You want to leave chan ${id} ?`)) {
 		// emit to server
@@ -45,11 +49,11 @@ function leaveChannel(link: string) {
 
 function joinChannel(e: Event, link: string) {
 	e.preventDefault()
-	alert(`you join channel ${link}`)
+	const id: string = getChanIdFromLink(link)
 	// emit sur join et attendre la réponse
-	if (channelsStore.emitJoin(link)) {
-		router.push(link)
-	}
+	if (confirm(`join channel '${id}' from '${link}' ?`))
+		if (channelsStore.emitJoin(id))
+			router.push(link)
 }
 
 onBeforeMount(() => {

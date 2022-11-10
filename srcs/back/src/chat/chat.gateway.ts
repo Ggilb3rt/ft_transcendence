@@ -65,9 +65,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('sendMessageToChannel')
-    async sendMessageToChannel(client: Socket, room: string, content: string, date: Date) {
+    async sendMessageToChannel(client: Socket, arg: {room: string, content: string, date: Date}) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
+        const {room, content, date} = arg
         await this.chatService.sendMessageToChannel(parseInt(room), content, date, id)
 
         const message: TMessage = {
@@ -99,10 +100,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('promote')
-    async promoteUser(client: Socket, promoted_id: number, room: string) {
+    async promoteUser(client: Socket, arg: {promoted_id: number, room: string}) {
 
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
+        const { promoted_id, room} = arg
         await this.chatService.promoteAdmin(promoted_id, parseInt(room), id);
 
         client.broadcast.to(room).emit('promoted', {
@@ -112,8 +114,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('kick')
-    async kickUser(client: Socket, kicked_id: number, channel_id: number, room: string) {
+    async kickUser(client: Socket, arg: { channel_id: number, room: string, kicked_id: number }) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        const { channel_id, room, kicked_id } = arg
 
         await this.chatService.kickUser(channel_id, kicked_id, id)
         client.broadcast.to(room).emit('kick', {
@@ -124,8 +128,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('ban')
-    async banUser(client: Socket, banned_id: number, channel_id: number, expires: Date, room: string) {
+    async banUser(client: Socket, arg: { channel_id: number, room: string, banned_id: number, expires: Date }) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        const { channel_id, room, banned_id, expires} = arg
 
         await this.chatService.banUser(channel_id, banned_id, expires, id)
         client.broadcast.to(room).emit('ban', {
@@ -137,9 +143,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('mute')
-    async muteUser(client: Socket, banned_id: number, channel_id: number, expires: Date, room: string) {
+    async muteUser(client: Socket, arg: { channel_id: number, room: string, banned_id: number, expires: Date }) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
+        const { channel_id, room, banned_id, expires} = arg
         await this.chatService.muteUser(channel_id, banned_id, expires, id)
         client.broadcast.to(room).emit('mute', {
             banned_id,
@@ -150,23 +157,25 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('join')
-    async joinChannel(client: Socket, channel_id: number, room: string, pass?) {
+    async joinChannel(client: Socket, basicJoin: {room: string, channel_id: number, pass?: string}) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
+        const {channel_id, room, pass} = basicJoin
         const res: users_list | null = await this.chatService.joinChannel(id, channel_id, pass)
         client.broadcast.to(room).emit('join', {
             new_client: id,
             channel_id
         })
         
-        console.log()
-        return {status: Boolean(res)}
+        console.log("bonjour le join de ", room, res, Boolean(res))
+        return await {status: Boolean(res)}
     }
 
     @SubscribeMessage('quit')
-    async quitChannel(client: Socket, channel_id: number, room: string) {
+    async quitChannel(client: Socket, arg: { channel_id: number, room: string }) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
+        const {channel_id, room} = arg
         await this.chatService.kickUser(channel_id, id, id)
         client.broadcast.to(room).emit('quit', {
             client_quit: id,
