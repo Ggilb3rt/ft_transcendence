@@ -55,10 +55,20 @@ export class CChannel {
 		if (isBan)
 			userRestrict = this.banList.find((el) => el.userId == userId)
 		else
-			userRestrict = this.banList.find((el) => el.userId == userId)
+			userRestrict = this.muteList.find((el) => el.userId == userId)
 		if (userRestrict != undefined)
 			userRestrict.expire = this.addMinutes(userRestrict.expire, minutes)
-			
+	}
+	getRestrictTime(userId:number, isBan: boolean, minutes?: number,): Date | undefined {
+		let userRestrict: TRestrictUserTime | undefined = undefined
+		
+		if (isBan)
+			userRestrict = this.banList.find((el) => el.userId == userId)
+		else
+			userRestrict = this.muteList.find((el) => el.userId == userId)
+		if (userRestrict != undefined && minutes)
+			return this.addMinutes(userRestrict.expire, minutes)
+		return userRestrict ? userRestrict.expire : undefined
 	}
 	async checkWithServer(url: string, option: Object): Promise<boolean> {
 		const response = await fetch(url, { credentials: "include"})
