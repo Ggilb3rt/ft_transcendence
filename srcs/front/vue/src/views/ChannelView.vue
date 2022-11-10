@@ -87,6 +87,7 @@ function submit(e: Event) {
 
 onBeforeMount(async() => {
 	// fetch Channel
+	console.log(`----------before mount getChan id '${channelIdNumber}'`)
 	await channelsStore.getChan(channelIdNumber)
 	channelsStore.selectCurrentChan(channelIdNumber)
 })
@@ -117,6 +118,9 @@ onUpdated(() => {
 		<div class="chatRoom" id="room-view">
 			<div v-for="msg in channelsStore.currentChan.messages" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
 				<!-- if msg.sender < 0 ===> print as server info -->
+				<div v-if="msg.sender < 0" class="message robot-message">
+					{{ msg.msg }}
+				</div>
 				<div v-if="!userStore.isBan(msg.sender)" class="message">
 					<figure>
 						<UserLink :other-user="usersStore.getUserRestrictById(msg.sender)" remove-status remove-name remove-hover></UserLink>
@@ -176,6 +180,10 @@ onUpdated(() => {
 	overflow: auto;
 	scrollbar-color: var(--global-c-blue);
 	scrollbar-width: thin;
+}
+
+.room .robot-message {
+	background: olive;
 }
 
 .room .message .tag {

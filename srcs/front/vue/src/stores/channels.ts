@@ -84,11 +84,19 @@ export const useChannelsStore = defineStore('channels', () => {
 		refsocket.value.emit("kick", {channel_id: channel_id, room: room, kicked_id: kicked_id})
 	}
 
-	function emitRestrictUser(isMute: boolean, channel_id: number, room: string, banned_id: number, expires: Date) {
-		if (isMute)
-			refsocket.value.emit("mute", {channel_id: channel_id, room: room, banned_id: banned_id, expires: expires})
+	function emitRestrictUser(isMute: boolean, channel_id: number, room: string, banned_id: number, expires?: number) {
+		// si le user est déjà ban il faut remplacer avec la nouvelle date
+		let localExpires: Date | undefined
+		if (expires)
+			localExpires = currentChan.value?.getRestrictTime(banned_id, !isMute, expires)
 		else
-			refsocket.value.emit("ban", {channel_id: channel_id, room: room, banned_id: banned_id, expires: expires})
+			localExpires = currentChan.value?.getRestrictTime(banned_id, !isMute)
+		if (localExpires == undefined)
+			localExpires = new Date()
+		if (isMute)
+			refsocket.value.emit("mute", {channel_id: channel_id, room: room, banned_id: banned_id, expires: localExpires})
+		else
+			refsocket.value.emit("ban", {channel_id: channel_id, room: room, banned_id: banned_id, expires: localExpires})
 	}
 
 	function emitJoin(chanId: string): boolean {
