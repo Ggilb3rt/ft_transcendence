@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, onUpdated, watch, onBeforeMount } from 'vue'
+import { ref, onUpdated, watch, onBeforeMount, onBeforeUpdate } from 'vue'
 import { useRoute } from 'vue-router';
+import router from "@/router"
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
@@ -14,7 +15,6 @@ const usersStore = useUsersStore()
 const userStore = useUserStore()
 const channelsStore = useChannelsStore()
 const route = useRoute()
-const childMounted = ref<Object[]>([])
 // let leftIsActive = ref(false);
 // let rightIsActive = ref(false);
 
@@ -134,19 +134,13 @@ const childMounted = ref<Object[]>([])
 // ChatView need to
 	// getAllRestrictChannel
 	// createChannel
-	
 
-function childIsmounted() {
-	const ret = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
-	ret ? childMounted.value = ret : childMounted.value = []
-}
-
-const channelList = ref([
-	{ name: 'chan1', href: '/chat/room/1' },
-	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', href: '/chat/room/2' },
-	{ name: 'chan3', href: '/chat/room/3' },
-	{ name: 'chan4', href: '/chat/room/direct/4' },
-])
+// const channelList = ref([
+// 	{ name: 'chan1', id: '/chat/room/1' },
+// 	{ name: 'unNomDeChanBienTropLongSansEspacesEnPlusCommeCaJeFouBienLaMerde', id: '/chat/room/2' },
+// 	{ name: 'chan3', id: '/chat/room/3' },
+// 	{ name: 'chan4', id: '/chat/room/direct/4' },
+// ])
 
 const sideNavDataLeft = ref({
 	name: 'Channels',
@@ -155,20 +149,18 @@ const sideNavDataLeft = ref({
 		// {
 		// 	name: 'New',
 		// 	children: null,
-		// 	href: '/chat/new'
+		// 	id '/chat/new'
 		// },
 		{
-			name: 'All channels',
-			children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			name: 'All channels3',
+			// children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			children: channelsStore.getChanListForSideBar(false),
 			canJoin: true,
 			isOpen: false
 		},
 		{
 			name: 'My channels',
-			children: [
-				{ name: 'chan1', href: '/chat/room/1' },
-				{ name: 'chan3', href: '/chat/room/3' },
-			],
+			children: channelsStore.getChanListForSideBar(true),
 			isOpen: true
 		}
 	]
@@ -197,13 +189,6 @@ onBeforeMount(() => {
 	channelsStore.unselectCurrentChan()
 })
 
-onUpdated(() => {
-	childIsmounted()
-	//console.log("Users iin channennnnnneelllll", channelsStore.getUsersInChannel())
-})
-
-
-
 
 </script>
 
@@ -215,7 +200,7 @@ onUpdated(() => {
 
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
-		<router-view v-else @im-mounted="childIsmounted"></router-view>		
+		<router-view v-else></router-view>
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
 </template>

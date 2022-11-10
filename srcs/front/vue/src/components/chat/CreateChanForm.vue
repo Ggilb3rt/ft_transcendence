@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import router from '@/router';
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../../typesChat'
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
+import { useChannelsStore } from '@/stores/channels';
 import CarbonArrowLeft from "@/components/icones-bags/CarbonArrowLeft.vue"
 import CarbonArrowRight from "@/components/icones-bags/CarbonArrowRight.vue"
+import { CChannel } from '@/helpers/class.channel';
 
 
 const usersStore = useUsersStore()
 const userStore = useUserStore()
+const channelsStore = useChannelsStore()
+
 const nameErr = ref(false)
 const chanName = ref("")
 const chanType = ref<TChannelType>("public")
@@ -45,8 +50,7 @@ async function sendCreateChan() {
 	userStore.loading = true
 	//fetch
 	let channelconst: IChannel = {
-		id: 99,
-		chanName: chanName.value,
+		ChanName: chanName.value,
 		type: chanType.value,
 		pass: chanPass.value,
 		owner: userStore.user.id,
@@ -56,8 +60,36 @@ async function sendCreateChan() {
 		muteList: [],
 		messages: []
 	}
-	newChannel.value = channelconst
-	userStore.loading = false
+
+	try {
+		const response = await fetch(`http://localhost:3000/channels/`, {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({channel: channelconst}),
+			credentials: "include"
+		})
+		var data;
+		if (response.status >= 200 && response.status < 300) {
+			data = await response.json()
+		}
+		else {
+			throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+		}
+		if (data) {
+			// faire des trucs avec la réponse... genre set le bon id
+			console.log("réponse de create ", data)
+			newChannel.value = data
+			await channelsStore.createChan(newChannel.value)
+		}
+	} catch (error: any) {
+		const tempErr = JSON.parse(error.message)
+		channelsStore.error = tempErr.body
+	} finally {
+		userStore.loading = false
+	}
 }
 
 

@@ -52,6 +52,7 @@ const props = defineProps({
 .modal-wrapper {
     display: table-cell;
     vertical-align: middle;
+    color: var(--vt-c-text-light-1);
 }
 
 .modal-container {

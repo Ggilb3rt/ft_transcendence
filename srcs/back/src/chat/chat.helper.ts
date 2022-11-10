@@ -2,16 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 import { TChannel, TChannelType, TMessage, TRestrictUserTime } from "src/users/types";
 
+const bcrypt = require('bcrypt');
+
 const prisma = new PrismaClient()
 
 @Injectable()
 export class ChatHelper {
     // TODO: hash all passwords
-
-    formatRestrictTime(ban) {
-        
-    }
-
     async formatChannels(channel_id: number) {
 
         const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
@@ -28,7 +25,7 @@ export class ChatHelper {
                 userList.push(e.id)
             });
             banned.forEach((e) => {
-               banList.push({userId: e.user_id, expire: e.expires})
+               banList.push({userId: e.user_id, expire: e.expires, })
             })
             muted.forEach((e) => {
                 muteList.push({userId: e.muted_id, expire: e.mute_date})
@@ -47,7 +44,7 @@ export class ChatHelper {
             })
             const formated_channel: TChannel = {
                 id,
-                name,
+                ChanName: name,
                 type,
                 owner,
                 userList,
@@ -68,17 +65,23 @@ export class ChatHelper {
 
     async createChannel(chan: TChannel,) {
         try {
+            const hash: string = chan.pass? await bcrypt.hash(chan.pass, 10) : ""
             const channel = await prisma.channels.create({
                 data:{
-                    name: chan.name,
+                    name: chan.ChanName,
                     type: chan.type,
-                    pass: chan.pass,
+                    pass: hash,
                     owner: chan.owner,
                 },
                 select: {
                     id: true
                 }
             })
+            chan.userList.forEach(async (id) => {
+                this.joinChannel(channel.id, id)
+            })
+            this.joinChannel(channel.id, chan.owner)
+            this.addAdmin(chan.owner, channel.id)
             return channel.id;
         } catch (e) {
             console.log(e);
@@ -124,6 +127,31 @@ export class ChatHelper {
         return await prisma.users_list.delete({
             where: userList
         }) 
+    }
+
+    async findUserInChan(user_id: number, channel_id: number) {
+        try {
+            const userList = await prisma.users_list.findFirst({where: {
+                user_id,
+                channel_id
+            }})
+            return userList
+        } catch(e) {
+            console.log(e)
+            throw new Error(`Error querying id:${user_id} in channel[${channel_id}]`)
+        }
+    }
+
+    async removeUser(user_id: number, channel_id: number) {
+        const user = await this.findUserInChan(user_id, channel_id)
+        try {
+            await prisma.users_list.delete({
+                where: user
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error(`Error removing id:${user_id} in channel[${channel_id}]`)
+        }
     }
 
     async banOne(user_id: number, channel_id: number, expires: Date) {
@@ -184,25 +212,24 @@ export class ChatHelper {
             throw new Error("Database Chat Error")
         }
     }
-    
-    async postMessage(message: TMessage) {
+
+    async getMyPrivateChannels(id: number) {
         try {
-            if (message.isDirect) {
-                await prisma.messages.create({data: {
-                    content: message.msg,
-                    relation: message.receiver,
-                    sender_id: message.sender,
-                    message_date: message.date
-                }})
-            }
-            else {
-                await prisma.messages.create({data: {
-                    content: message.msg,
-                    relation: message.receiver,
-                    channel_id: message.sender,
-                    message_date: message.date
-                }})
-            }
+            const myPrivateChannels = await prisma.users.findMany({
+                where: {id},
+                select: {
+                    channels: {
+                        where: {
+                            type: 'private'
+                        },
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    }
+                }
+            })
+            return (myPrivateChannels)
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -220,16 +247,20 @@ export class ChatHelper {
                         select: {
                             name: true,
                             id: true
-                        }
+                        }   
                     }
                 }
             })
             return myChannels
         } catch (e) {
-            console.log(e);
+            console.log("error ", e);
             throw new Error("Database Chat Error")
         }
     }
+
+    // async getPrivateChannels() {
+       
+    // }
 
     async getAvailableChannels() {
         try {
@@ -311,25 +342,46 @@ export class ChatHelper {
         }
     }
 
-    async getMessages(channel_id: number, isDirect: boolean) {
+    async getChannelMessages(channel_id: number, isDirect: boolean) {
         try {
-            if (isDirect) {
-                return await prisma.messages.findMany({where: {
-                    relation: channel_id
-                }})
+            return await prisma.messages.findMany({where: {
+                channel_id
+            },
+            orderBy:{
+                message_date:'desc'
             }
-            else {
-                return await prisma.messages.findMany({where: {
-                    channel_id
-                }})
-            }
+        })
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
         }
     }
 
-    async unMute(channel_id: number, muted, number) {
+    async getDirectMessages(user_id: number, second_user_id: number) {
+        try {
+            return await prisma.direct_message.findMany({where: {
+                OR: [
+                    {
+                        user_id,
+                        second_user_id
+                    },
+                    {
+                        user_id: second_user_id,
+                        second_user_id: user_id
+                    }
+                ],
+
+            },
+            orderBy: {
+                date: "desc"
+            }
+        })
+        } catch (e) {
+
+        }
+    }
+
+    async unMute(channel_id: number, muted) {
         try {
             const mute = await this.getMute(channel_id, muted)
             await prisma.muted.delete({
@@ -477,9 +529,41 @@ export class ChatHelper {
     async checkPass(pass: string, channel_id) {
         const channel = await this.getChannel(channel_id)
 
-        if (channel.pass === pass)
+        if (await bcrypt.compare(pass, channel.pass))
             return true
         return false
+    }
+
+    async sendMessageToChannel(channel_id: number, sender: number, content: string, date: Date) {
+        try {
+            await prisma.messages.create({
+                data: {
+                    channel_id,
+                    sender_id: sender,
+                    content,
+                    message_date: date
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error(`Message from ${sender} to channel ${channel_id} failed`)
+        }
+    }
+
+    async sendDirectMessage(receiver: number, sender: number, content: string, date: Date) {
+        try {
+            await prisma.direct_message.create({
+                data: {
+                    user_id: sender,
+                    second_user_id: receiver,
+                    content,
+                    date,
+                }
+            })
+        } catch (e) {
+            console.log(e);
+            throw new Error(`Message from ${sender} to ${receiver} failed`)
+        }
     }
 
     async getChannel(channel_id: number) {

@@ -125,7 +125,7 @@ export const useUsersStore = defineStore({
                 if (findUser != undefined) {
                     list.push({
                         name: `${findUser.nickname}`,
-                        href: `/chat/room/direct/${findUser.id}`
+                        id: `/chat/room/direct/${findUser.id}`
                     })
                 }
             })

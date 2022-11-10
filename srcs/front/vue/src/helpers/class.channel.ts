@@ -2,7 +2,7 @@ import type { IChannel, TChannelType, TRestrictUserTime, TMessage } from "typesC
 
 // must protect if channel type is direct (remove possibility of add or remove user, ban, kick, change type, etc)
 export class CChannel {
-	id: number;
+	id: string;
 	ChanName: string;
 	type: TChannelType;
 	pass: string;
@@ -16,7 +16,7 @@ export class CChannel {
 	maxUser: number;
 
 	constructor(
-		id:number,
+		id:string,
 		name: string,
 		type: TChannelType,
 		pass: string,
@@ -43,11 +43,21 @@ export class CChannel {
 	};
 
 	// Helpers
-	addMinutes(date: Date, minutes: number) {
+	addMinutes(date: Date, minutes: number): Date {
 		const dateCopy = new Date(date);
 		dateCopy.setMinutes(date.getMinutes() + minutes);
 
 		return dateCopy;
+	}
+	changeRestrictTime(userId:number, minutes: number, isBan: boolean) {
+		let userRestrict: TRestrictUserTime | undefined = undefined
+		
+		if (isBan)
+			userRestrict = this.banList.find((el) => el.userId == userId)
+		else
+			userRestrict = this.banList.find((el) => el.userId == userId)
+		if (userRestrict != undefined)
+			userRestrict.expire = this.addMinutes(userRestrict.expire, minutes)
 	}
 	async checkWithServer(url: string, option: Object): Promise<boolean> {
 		const response = await fetch(url, { credentials: "include"})
@@ -60,10 +70,10 @@ export class CChannel {
 		}
 		return false
 	}
-
 	// Getters
+	getId(): string { return this.id }
 	getName(): string { return this.ChanName }
-	getType(): string { return this.type }
+	getType(): TChannelType { return this.type }
 	getMessages(): TMessage[] { return this.messages }
 	getUserList(): number[] { return this.userList }
 	// Checkers
@@ -98,32 +108,18 @@ export class CChannel {
 		// return false
 		return false
 	}
-	renameChannel(userId:number, newName:string): boolean {
-		if (this.isOwner(userId)) {
-			if (this.ChanName == newName) {
-				// check with server
-				this.ChanName = newName
-				return true
-			}
-		}
-		return false
-	}
-	changeChannelType(userId:number, newType:TChannelType, pass?:string): boolean {
+	changeChannelType(userId:number, newType:TChannelType, newPass?:string): boolean {
 		if (this.isOwner(userId)) {
 			if (newType != this.getType()) {
-				if (newType == "pass" && pass && pass.length > this.passMinLength) {
-					// check with server
-					this.type = newType
-					this.pass = pass
-					return true
-				}
-				else if (newType == "direct")
+				if (newType == "direct")
 					return false
-				else {
-					// check with server
-					this.type = newType
-					return true
-				}
+				if (newType == "pass" && ((newPass && this.pass == newPass && newPass.length < this.passMinLength) || !newPass))
+					return false
+				// check with server
+				this.type = newType
+				if (newPass != undefined)
+					this.pass = newPass
+				return true
 			}
 		}
 		return false
@@ -139,7 +135,7 @@ export class CChannel {
 		return false
 	}
 	addAdmin(nominator:number, nominated:number): boolean {
-		if (this.isAdmin(nominator) && !this.isAdmin(nominated)) {
+		if ((this.isAdmin(nominator) || this.isOwner(nominator) ) && (!this.isAdmin(nominated) || !this.isOwner(nominated))) {
 			// check with server
 			// send message "nominated.name is a new administrator now, kneel down ! (please don't)"
 			this.adminList.push(nominated)
@@ -157,17 +153,21 @@ export class CChannel {
 		return false
 	}
 	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, timeInMinutes:number): boolean {
-		if (this.isAdmin(restrictor) && !this.isOwner(restricted) && restricted != restrictor) {
+		if ((this.isAdmin(restrictor) || this.isOwner(restrictor)) && !this.isOwner(restricted) && restricted != restrictor) {
 			const restrict: TRestrictUserTime = {
 				userId: restricted,
 				expire: this.addMinutes(new Date(), timeInMinutes)
 			}
 			if (onlyMute) {
+				if (this.isMute(restricted))
+					this.changeRestrictTime(restricted, timeInMinutes, false)
 				// check with server
 				this.muteList.push(restrict)
 				return true
 			}
 			else {
+				if (this.isBan(restricted))
+					this.changeRestrictTime(restricted, timeInMinutes, true)
 				// check with server
 				this.banList.push(restrict)
 				return true
@@ -176,7 +176,7 @@ export class CChannel {
 		return false
 	}
 	kickUser(kicker:number, kicked:number):boolean {
-		if (this.isAdmin(kicker) && !this.isOwner(kicked) && kicker != kicked && this.isInChannel(kicked)) {
+		if ((this.isAdmin(kicker) || this.isOwner(kicker)) && !this.isOwner(kicked) && kicker != kicked && this.isInChannel(kicked)) {
 			// check with server
 			// send message "kicked.name was kicked"
 			const findUser = this.userList.findIndex((el) => el === kicked)
