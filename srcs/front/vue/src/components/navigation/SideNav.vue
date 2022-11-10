@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUnmount, ref } from 'vue'
 import { RouterLink } from "vue-router";
+import router from '@/router';
 import { useChannelsStore } from '@/stores/channels';
 import { useUsersStore } from '@/stores/users';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
@@ -37,14 +38,18 @@ function leaveChannel(link: string) {
 	const id: Array<string> = link.split('/').at(-1)
 	
 	if(id && confirm(`You want to leave chan ${id} ?`)) {
-		// send to server
+		// emit to server
 		console.log("you leave chan", id)
 	}
 }
 
-function joinChannel(link: string) {
+function joinChannel(e: Event, link: string) {
+	e.preventDefault()
 	alert(`you join channel ${link}`)
 	// emit sur join et attendre la réponse
+	if (channelsStore.emitJoin(link)) {
+		router.push(link)
+	}
 }
 
 onBeforeMount(() => {
@@ -102,11 +107,9 @@ onBeforeUnmount(() => {
 			<nav>
 				<ul v-show="isOpen(index)" v-if="isFolder(index)">
 					<li v-for="child in el.children" :key="child">
-						<!-- je pourrai preventDefault le routerLink si el.canJoin pour lancer canJoin -->
-						<RouterLink v-if="child.id && el.canJoin" :to="child.id" @click.prevent="joinChannel(child.id)">{{ child.name }}</RouterLink>
+						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
 						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
 							{{ child.name }}
-							<!-- <button v-if="!onRight && el.canJoin" @click.prevent="joinChannel(child.id)" class="btn_hide btn_join">join</button> -->
 							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
 						</RouterLink>
 						<button v-else>{{ child.name }}</button>
@@ -168,7 +171,7 @@ onBeforeUnmount(() => {
 	display: block;
 }
 
-ul a {
+ul a, .like-link {
 	word-break: break-all;
 }
 
@@ -177,7 +180,7 @@ ul li ul {
 	margin: 10px 0;
 }
 
-ul li ul li a {
+ul li ul li a, .like-link {
 	padding: 5px;
 	display: block;
 }
