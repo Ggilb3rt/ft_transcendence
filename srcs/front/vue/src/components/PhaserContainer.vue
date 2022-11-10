@@ -19,8 +19,9 @@ const userStore = useUserStore();
 let socket = io("http://localhost:3000/game");
 let gameInstance = null;
 let activeRoomNames;
-let key: string;
-let level: string;
+let error = false;
+//let key: string;
+//let level: string;
 const data = {
   userId: userStore.user.id,
   spectator: false,
@@ -31,6 +32,7 @@ const data = {
     challenger: "",
     level: 0,
     challenged: "",
+	id: 0,
   },
 };
 
@@ -43,9 +45,10 @@ window.addEventListener("beforeunload", async (e) => {
     //if (socket) {
     //	socket.disconnect();
   }
+  //router.go(-3);
   //gameInstance.destroy();
   //}
-  localStorage.setItem("toto", "true");
+  //localStorage.setItem("toto", "true");
   //if (socket) {
   // socket.disconnect();
   //}
@@ -67,11 +70,14 @@ class Game extends Phaser.Game {
 
 onMounted(() => {
   //alert("MOUNT");
-  //socket = io("http://localhost:3000/game");
   const route = useRoute();
   const str = route.query.challenge;
 
-  socket.emit("getActiveRoomNames");
+  const level = route.params.ourGames;
+  console.log('level "' + level + '"');
+  const key = route.params.id;
+
+  socket.emit("getActiveRoomNames", {type: 2});
 
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = payload.roomNames;
@@ -79,9 +85,6 @@ onMounted(() => {
     console.log(activeRoomNames);
     console.log(typeof activeRoomNames);
 
-	/* if no str and no level {
-		push /game 
-	}*/
     // A CHALLENGE HAS BEEN ACCEPTED
     if (str) {
       data.challenge = true;
@@ -90,10 +93,8 @@ onMounted(() => {
       data.challengeInfo.challenger = challenge.challenger;
       data.challengeInfo.level = ++challenge.level;
       data.challengeInfo.challenged = challenge.challenged;
-    } else {
+    } else if (level !== "") {
       // NO CHALLENGE
-      level = route.params.ourGames;
-      key = route.params.id;
       console.log("KEY");
       console.log(key);
       if (level === "pong" || level === "catPong" || level === "customizable") {
@@ -107,25 +108,34 @@ onMounted(() => {
             //data.level = activeRoomNames[key].level;
             data.spectator = true;
           } else {
-            router.replace("/game");
+            error = true;
+            console.log("key incorrect");
+            router.replace("/");
           }
         }
       } else {
-        router.replace("/game");
+        error = true;
+        console.log("level incorrect");
+        router.replace("/");
       }
+    } else {
+      error = true;
+      console.log("/game direct access unauthorized");
+      router.replace("/");
     }
-    //router.replace({ path: "/game" });
-    console.log("DATA");
-    console.log(data);
-    gameInstance = new Game();
+    if (!error) {
+      console.log("DATA");
+      console.log(data);
+      gameInstance = new Game();
+    }
   });
 
-  window.addEventListener("beforeunload", async (e) => {
+  /*window.addEventListener("beforeunload", async (e) => {
     console.log("BEFORE UNLOAAAAD");
     router.push("/");
-  });
+  });*/
 });
-
+/*
 onUpdated(() => {
   //alert("UPDATE");
   if (gameInstance) {
@@ -133,11 +143,11 @@ onUpdated(() => {
     //gameInstance.destroy();
   }
   router.push("/");
-});
+});*/
 
 onBeforeUnmount(() => {
   alert("UNMOUNT");
-  console.log("GAME INSTANCE UNMOUNT")
+  console.log("GAME INSTANCE UNMOUNT");
   console.log(gameInstance);
   if (gameInstance) {
     disconnectSockets();

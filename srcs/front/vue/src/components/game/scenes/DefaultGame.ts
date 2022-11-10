@@ -54,6 +54,7 @@ export default class DefaultGame extends Phaser.Scene {
     const game = this.sys.game;
     console.log("defaultgame");
     console.log("socket " + this.socket);
+	console.log("userId " + scene.userId)
 
 	
     /* INIT SOCKET */
@@ -64,7 +65,7 @@ export default class DefaultGame extends Phaser.Scene {
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
-      scene.scene.launch("WaitingRoom", { level: "default" });
+      scene.scene.launch("WaitingRoom", { level: "default", spectator: scene.spectator });
     } else {
       f.watchGame(scene);
 	  scene.roomComplete = true;
@@ -81,11 +82,7 @@ export default class DefaultGame extends Phaser.Scene {
         scene
       );
     //}
-    /* JOIN QUEUE OR WATCH GAME*/
-	console.log("spectator " + scene.spectator)
-	console.log("roomComplete " + scene.roomComplete)
-	console.log("challenge " + scene.challenge)
-	
+    /* JOIN QUEUE OR CREATE GAME*/	
     if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
       f.joinQueue(scene, scene.level);
     } else if (

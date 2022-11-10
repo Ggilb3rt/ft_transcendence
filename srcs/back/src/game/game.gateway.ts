@@ -1,13 +1,10 @@
 import {
     WebSocketGateway,
     SubscribeMessage,
-    MessageBody,
     WebSocketServer,
-    ConnectedSocket,
     OnGatewayInit,
     OnGatewayConnection,
     OnGatewayDisconnect,
-    WsResponse
 } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { Server, Socket } from 'socket.io';
@@ -100,8 +97,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
 
 	@SubscribeMessage("getActiveRoomNames")
-	async handleGetActiveRoomNames(client: Socket) {
-		const roomNames = await this.gameService.getActiveRoomNames(client);
+	async handleGetActiveRoomNames(client: Socket, data: any) {
+		const roomNames = await this.gameService.getActiveRoomNames(client, data);
 		client.emit("getActiveRoomNames", { roomNames });
 	}
 

@@ -11,6 +11,7 @@ export default class WaitingRoom extends Phaser.Scene {
 
   init(data) {
     this.level = data.level;
+    this.spectator = data.spectator;
     this.rematch = data.rematch;
     this.doneOK = false;
     this.settingsOK = false;
@@ -36,17 +37,19 @@ export default class WaitingRoom extends Phaser.Scene {
     });
 
     if (scene.level === "default" && !scene.rematch) {
-      scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
-      eventsCenter.on(
-        "ready",
-        () => {
-          scene.message.setText("GAME IS ABOUT TO START !");
-          scene.time.delayedCall(2000, function () {
-            scene.scene.stop("WaitingRoom");
-          });
-        },
-        scene
-      );
+      if (!scene.spectator) {
+        scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
+        eventsCenter.on(
+          "ready",
+          () => {
+            scene.message.setText("GAME IS ABOUT TO START !");
+            scene.time.delayedCall(2000, function () {
+              scene.scene.stop("WaitingRoom");
+            });
+          },
+          scene
+        );
+      }
     }
 
     if (scene.level === "customizable" && !scene.rematch) {
@@ -93,7 +96,9 @@ export default class WaitingRoom extends Phaser.Scene {
     const { width, height } = scene.sys.canvas;
     if (scene.doneOK === true && scene.settingsOK === false && !scene.rematch) {
       scene.settingsOK = true;
-      scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
+      if (!scene.spectator) {
+        scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
+      }
       eventsCenter.emit("settingsOK", scene.settings);
       scene.panel.destroy();
       scene.buttons.forEach((b) => {

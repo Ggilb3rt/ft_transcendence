@@ -44,7 +44,7 @@ async function findGame(event: Event, game: string) {
   router.push({ path: `/game/${game}` });
 }
 
-socket.emit("getActiveRoomNames");
+socket.emit("getActiveRoomNames", {type: 1});
 
 const activeRoomNames = ref([]);
 socket.on("getActiveRoomNames", (payload) => {

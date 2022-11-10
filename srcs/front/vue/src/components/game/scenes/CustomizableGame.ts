@@ -63,8 +63,13 @@ export default class CustomizableGame extends Phaser.Scene {
       scene.socket = io("http://localhost:3000/game");
     }
 
+	if (scene.spectator) {
+		f.watchGame(scene);
+	}
+	scene.scene.launch("WaitingRoom", { level: "customizable", spectator: scene.spectator });
+
     /* GO TO SETTINGS & WAITING ROOM UNLESS SPECTATOR*/
-    if (!scene.spectator) {
+    /*if (!scene.spectator) {
       scene.scene.launch("WaitingRoom", { level: "customizable" });
     } else {
       f.watchGame(scene);
@@ -78,7 +83,7 @@ export default class CustomizableGame extends Phaser.Scene {
         height,
         scene
       );
-    }
+    }*/
 
     /* ADD GAME OBJECTS */
     //if (!scene.roomComplete) {
@@ -116,6 +121,7 @@ export default class CustomizableGame extends Phaser.Scene {
       scene.joinQueue = true;
     } else if (
       scene.settingsOK &&
+	  !scene.joinQueue &&
       scene.challenge &&
       !scene.spectator &&
       scene.playerNumber === 0
@@ -126,7 +132,7 @@ export default class CustomizableGame extends Phaser.Scene {
         challengeInfo: scene.challengeInfo,
         level: scene.level,
       });
-      scene.challenge = false;
+      scene.joinQueue = true;
     }
 
     if (scene.activeGame) {

@@ -73,7 +73,7 @@ export default class CatPongGame extends Phaser.Scene {
 
     /* GO TO SETTINGS & WAITING ROOM */
     if (!scene.spectator) {
-      scene.scene.launch("WaitingRoom", { level: "default" });
+      scene.scene.launch("WaitingRoom", { level: "default", spectator: scene.spectator });
     } else {
       f.watchGame(scene);
 	  scene.roomComplete = true;

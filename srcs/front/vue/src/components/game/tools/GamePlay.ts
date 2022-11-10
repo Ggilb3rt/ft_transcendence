@@ -183,7 +183,12 @@ export default class GamePlay {
       scene.socket.disconnect();
 
       //alert("YOUR OPPONENT LEFT");
-      console.log("a player disconnected");
+	  if (type === 1) {
+		alert("THE OTHER PLAYER LEFT THE GAME");
+	  } else if (type === 2) {
+		alert("YOU CAN'T PLAY AGAINST YOURSELF");
+	  }
+		//console.log("a player disconnected");
       router.push("/");
     });
   }
