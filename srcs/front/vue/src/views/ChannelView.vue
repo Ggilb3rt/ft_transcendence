@@ -89,6 +89,7 @@ onBeforeMount(async() => {
 	// fetch Channel
 	console.log(`----------before mount getChan id '${channelIdNumber}'`)
 	await channelsStore.getChan(channelIdNumber)
+	console.log(`----------before mount getChan id 2 '${channelIdNumber}'`)
 	channelsStore.selectCurrentChan(channelIdNumber)
 })
 

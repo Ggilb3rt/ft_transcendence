@@ -17,6 +17,7 @@ function valid() {
 	if (channelsStore.currentChan) {
 		if (channelsStore.currentChan.addAdmin(userStore.user.id, selectedUser.value)) {
 			// send data
+			channelsStore.emitPromoteUser(selectedUser.value, channelsStore.currentChan.getId())
 			console.log("set admin user ", selectedUser.value)
 			cancel()
 		}

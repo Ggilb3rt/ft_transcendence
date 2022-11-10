@@ -43,6 +43,8 @@ function leaveChannel(link: string) {
 	
 	if(id && confirm(`You want to leave chan ${id} ?`)) {
 		// emit to server
+		if (channelsStore.currentChan)
+			channelsStore.emitQuitChannel(Number(channelsStore.currentChan?.getId()), channelsStore.currentChan?.getId())
 		console.log("you leave chan", id)
 	}
 }
