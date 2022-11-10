@@ -25,6 +25,8 @@ const channelStore = useChannelsStore()
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const statusStore = useStatusStore()
+let isSetupStoreChannel = false
+
 
 async function testConnection() {
   try {
@@ -49,7 +51,10 @@ async function testConnection() {
         usersStore.getUsers()
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
-        channelStore.getChansLists();
+        if (!isSetupStoreChannel) {
+          channelStore.getChansLists();
+          isSetupStoreChannel = true
+        }
       }
   }
   } catch (error: any) {

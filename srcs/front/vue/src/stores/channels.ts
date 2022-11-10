@@ -109,7 +109,10 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	// sockets handlers
 	function handleMessage(msg: TMessage, roomId: string) {
-		const index : number = msg.isDirect ? getChanIndex('u' + roomId) : getChanIndex(roomId)
+		console.log("la roome id quand je recois un message", roomId)
+		const roomIds = parseInt(roomId)
+		const index : number = msg.isDirect ? getChanIndex('u' + roomIds) : getChanIndex(roomIds)
+		console.log("son index", index)
 		if (index === -1)
 			return
 		openChan.value[index].messages.push(msg)

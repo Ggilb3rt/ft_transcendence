@@ -78,6 +78,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: false,
             date,
         }
+        console.log("\n\navant le broadcast", id, client.id)
         client.broadcast.to(room).emit('messageSentToChannel', message, room)
         return (true)
     }
