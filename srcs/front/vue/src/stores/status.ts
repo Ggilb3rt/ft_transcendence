@@ -102,27 +102,18 @@ export const useStatusStore = defineStore({
         });
 
         //console.log("FETCHING ALL STATUS ==> ", this.statusList)
-
-        setTimeout(() => {
-          this.pushToList({
-            socketId: this.socket.id,
-            userStatus: "available",
-            userId: this.id,
-          });
-        }, 1000);
-
                 //Change my current status for myself, emit to server i do am connected
                  this.socket.emit('connectionStatus', this.id)
              
                 //Subscribe to messages from other sockets
-                 this.socket.on("newStatusConnection", (res: ISocketStatus) => {
-                     const alreadyConnected = this.statusList.findIndex((el) => {return res.userId === el.userId})
-                     if (alreadyConnected != -1) {
-                        this.statusList[alreadyConnected].socketId.push(res.socketId)
-                     }
-                     else {
-                         this.statusList.push(res)
-                     }
+                 this.socket.on("newStatusConnection", (res: {ISocket: ISocketStatus, ExistsAlready: boolean, sender: string}) => {
+                    if (res.ExistsAlready) {
+                        const index = this.statusList.findIndex((e) => {return e.userId === res.ISocket.userId})
+                        this.statusList[index].socketId.push(res.sender)
+                    }
+                    else {
+                        this.statusList.push(res.ISocket)
+                    }
                  })
                  this.socket.on("newStatusDisconnection", (res: ISocketStatus) => {
                      this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.userId), 1)
@@ -148,7 +139,7 @@ export const useStatusStore = defineStore({
                         this.challengeAccepted = true
                     }
                     else if (challenge.challenger == this.id){
-                        router.push({path: "/game", query: {challenge: challenge}})
+                        router.push({path: "/game", query: {challenge: JSON.stringify(challenge)}})
                     }
                  })
                  this.socket.on("refuseChallenge", () => {

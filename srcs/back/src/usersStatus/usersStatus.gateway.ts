@@ -47,7 +47,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
 
     async handleDisconnect(client: Socket) {
-        this.logger.log(`client disconnect : ${client.id}`)
         const uIndex = getUser(this.userArr, client.id)
         if (uIndex == -1) {
             return
@@ -92,17 +91,18 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         })
 
         const newClients : string[] = []
+        const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg}
         if (index == -1) {
             newClients.push(client.id)
-            const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg}
             this.userArr.push(u)
-            client.broadcast.emit('newStatusConnection', u)
+            client.broadcast.emit('newStatusConnection', {ISocket: u, ExistsAlready: false, sender: client.id})
         }
         else {
             this.userArr[index].socketId.push(client.id)
             client.join("user_" + index)
+            console.log("user_" + index);
+            client.broadcast.emit('newStatusConnection', {ISocket: u, ExistsAlready: true, sender: client.id})
         }
-        this.logger.log(`client connection : ${client.id}`)
         return this.userArr
     }
 
@@ -121,7 +121,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i decline challenge from => ", receiver)
-            this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+            this.server.to("user_" + receiver.userId.toString()).emit('refuseChallenge', challenge)
         }
     }
 
@@ -130,7 +130,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
         if (receiver) {
             //console.log("i abort challenge to => ", receiver)
-            this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+            this.server.to("user_" + receiver.userId.toString()).emit('refuseChallenge', challenge)
         }
     }
 
@@ -140,7 +140,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
             console.log("i challenge => ", receiver)
-            this.server.to("user_" + receiver.userId).emit('newChallenge', challenge)
+            this.server.to("user_" + receiver.userId.toString()).emit('newChallenge', challenge)
         }
     }
 
@@ -150,8 +150,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i accept challenge from => ", receiver)
-            this.server.to(receiver.socketId).emit('challengeAccepted', challenge)
-            this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
+            this.server.to("user_" + sender.userId.toString()).emit('challengeAccepted', challenge)
         }
     }
 //
