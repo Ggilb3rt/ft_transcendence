@@ -70,6 +70,27 @@ export const useChannelsStore = defineStore('channels', () => {
 	}
 
 	// sockets emiters
+	function emitMessage(chanId: string, content: string) {
+		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
+		// date que je recois n'est pas de type date (peut etre dû aux sockets)
+		refsocket.value.emit("sendMessageToChannel", {room: chanId, content: content, date: new Date()})
+	}
+
+	function emitPromoteUser(promoted_id: number, room: string) {
+		refsocket.value.emit("promote", {promoted_id: promoted_id, room: room})
+	}
+
+	function emitKickUser(channel_id: number, room: string, kicked_id: number) {
+		refsocket.value.emit("kick", {channel_id: channel_id, room: room, kicked_id: kicked_id})
+	}
+
+	function emitRestrictUser(isMute: boolean, channel_id: number, room: string, banned_id: number, expires: Date) {
+		if (isMute)
+			refsocket.value.emit("mute", {channel_id: channel_id, room: room, banned_id: banned_id, expires: expires})
+		else
+			refsocket.value.emit("ban", {channel_id: channel_id, room: room, banned_id: banned_id, expires: expires})
+	}
+
 	function emitJoin(chanId: string): boolean {
 		let emitRes: boolean = false
 		refsocket.value.emit("join", {channel_id: Number(chanId), room: chanId}, (res: any) => {
@@ -77,12 +98,13 @@ export const useChannelsStore = defineStore('channels', () => {
 		})
 		console.log("la reponse du join ", emitRes)
 		// ici emitRes est false alors que le back me renvoi un status: true
+		// je peux pas me rediriger correctement si ok
+		// je suis bien ajouté dans la bdd mais pas dans en vrai
 		return emitRes
 	}
-
-	function emitMessage(chanId: string, content: string) {
-		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
-		refsocket.value.emit("sendMessageToChannel", {room: chanId, content: content, date: new Date()})
+	
+	function emitQuitChannel(channel_id: number, room: string) {
+		refsocket.value.emit("quit", {channel_id: channel_id, room: room})
 	}
 
 	// sockets handlers
@@ -358,7 +380,11 @@ export const useChannelsStore = defineStore('channels', () => {
 		getUsersInChannel,
 		getChanListForSideBar,
 		// emits
-		emitJoin,
 		emitMessage,
+		emitPromoteUser,
+		emitJoin,
+		emitKickUser,
+		emitRestrictUser,
+		emitQuitChannel
 	}
 })

@@ -12,15 +12,15 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 const showRestrictUserModal = ref(false)
 const selectedUser = ref(0)
-const restrictType = ref(false)
+const isMute = ref(false)
 const minuteToAdd = ref(0)
 const formError = ref("")
 
 function valid() {
 	if (channelsStore.currentChan && minuteToAdd.value <= minutesInOneYear) {
-		if (channelsStore.currentChan.restrictUser(userStore.user.id, selectedUser.value, restrictType.value, minuteToAdd.value)) {
+		if (channelsStore.currentChan.restrictUser(userStore.user.id, selectedUser.value, isMute.value, minuteToAdd.value)) {
 			// send data
-			console.log("send restrict user ", selectedUser.value, restrictType.value)
+			console.log("send restrict user ", selectedUser.value, isMute.value)
 			cancel()
 		}
 		else
@@ -30,7 +30,7 @@ function valid() {
 
 function cancel() {
 	selectedUser.value = 0
-	restrictType.value = false
+	isMute.value = false
 	minuteToAdd.value = 0
 	formError.value = ""
 	showRestrictUserModal.value = false
@@ -58,12 +58,12 @@ function cancel() {
 								{{ usersStore.getUserNickById(user) }}
 							</option>
 						</select>
-						<select v-model="restrictType">
+						<select v-model="isMute">
 								<option value=false>Ban</option>
 								<option value=true>Mute</option>
 						</select>
 						<p>
-							<span v-if="restrictType">Mute</span>
+							<span v-if="isMute">Mute</span>
 							<span v-else>Ban</span> 
 							<input type="number" v-model="minuteToAdd" :max="minutesInOneYear"> minutes
 						</p>

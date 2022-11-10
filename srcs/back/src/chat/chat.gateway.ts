@@ -168,7 +168,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         })
         
         console.log("bonjour le join de ", room, res, Boolean(res))
-        return await {status: Boolean(res)}
+        return {status: Boolean(res)}
     }
 
     @SubscribeMessage('quit')
