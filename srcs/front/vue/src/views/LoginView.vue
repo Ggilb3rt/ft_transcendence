@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import Loader from '@/components/navigation/loader.vue';
 
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('second listener', 'true')
+})
+
 </script>
 
 <template>

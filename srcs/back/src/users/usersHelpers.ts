@@ -294,12 +294,13 @@ class UsersHelper {
 
     async postOneUser(user: CreateUserDto): Promise<users> {
       try {
-        await this.testNickname(user.nickname);
         const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
         if (existsAlready) {
           throw new HttpException("42 account already binded to a user", HttpStatus.CONFLICT)
         }
-        const ret = await prisma.users.create( {data: user })
+        const ret = await prisma.users.create( {data: {
+          nick_fourtytwo: user.nick_fourtytwo,
+        } })
         return ret;
       } catch (e) {
         throw new Error(e)

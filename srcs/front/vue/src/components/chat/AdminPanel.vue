@@ -3,31 +3,39 @@ import { ref } from '@vue/reactivity'
 import { useChannelsStore } from '@/stores/channels'
 import { useUserStore } from '@/stores/user';
 import CarbonClose from '@/components/icones-bags/CarbonClose.vue'
-
+import ModalRestrictUser from './ModalRestrictUser.vue';
+import ModalAddAdmin from './ModalAddAdmin.vue';
+import ModalRemoveAdmin from './ModalRemoveAdmin.vue';
+import ModalChangeChanType from './ModalChangeChanType.vue';
+import ModalChangePass from './ModalChangePass.vue';
+import ModalKickUser from './ModalKickUser.vue'
 
 const channelsStore = useChannelsStore()
 const userStore = useUserStore()
 const adminPanel = ref(false)
 
-
-
-
 </script>
 
 <template>
-	<div v-if="channelsStore.currentChan?.isAdmin(userStore.user.id)" >
+	<div v-if="channelsStore.currentChan?.isAdmin(userStore.user.id) || channelsStore.currentChan?.isOwner(userStore.user.id)" >
 		<button @click="adminPanel = true">
 			Open admin panel
 		</button>
-		<div class="admin-bar" v-if="channelsStore.currentChan.isAdmin(userStore.user.id)" v-show="adminPanel">
+		<div 
+			class="admin-bar"
+			v-if="channelsStore.currentChan.isAdmin(userStore.user.id) || channelsStore.currentChan.isOwner(userStore.user.id)"
+			v-show="adminPanel"
+		>
 			<button @click="adminPanel = false"><i class="icon_btn"><CarbonClose></CarbonClose></i></button>
-			<button>Restrict user</button>
-			<button>Add admin</button>
-			<button>Kick user</button>
+			<p>As admin</p>
+			<ModalRestrictUser></ModalRestrictUser>
+			<ModalAddAdmin></ModalAddAdmin>
+			<ModalKickUser></ModalKickUser>
 			<div class="owner-bar" v-if="channelsStore.currentChan.isOwner(userStore.user.id)">
-				<button>Remove admin</button>
-				<button>Change channel Type</button>
-				<button v-if="channelsStore.currentChan?.getType() == 'pass'">Change password</button>
+				<p>As owner</p>
+				<ModalRemoveAdmin></ModalRemoveAdmin>
+				<ModalChangeChanType></ModalChangeChanType>
+				<ModalChangePass v-if="channelsStore.currentChan?.getType() == 'pass'"></ModalChangePass>
 			</div>
 		</div>
 	</div>

@@ -111,70 +111,66 @@ export const useStatusStore = defineStore({
           });
         }, 1000);
 
-        //Change my current status for myself, emit to server i do am connected
-        this.socket.emit("connectionStatus", this.id);
-
-        //Subscribe to messages from other sockets
-        this.socket.on("newStatusConnection", (res: ISocketStatus) => {
-          const alreadyConnected = this.statusList.findIndex((el) => {
-            return res.userId === el.userId;
-          });
-          if (alreadyConnected != -1) {
-            this.statusList.splice(alreadyConnected, 1);
-          }
-          this.statusList.push(res);
-        });
-        this.socket.on("newStatusDisconnection", (res: ISocketStatus) => {
-          this.statusList.splice(
-            this.statusList.findIndex(
-              (el: ISocketStatus) => el.socketId == res.socketId
-            ),
-            1
-          );
-        });
-        this.socket.on("newStatusChange", (res: ISocketStatus) => {
-          // console.log("onChangeStatus", res)
-          const changedIndex = this.statusList.findIndex(
-            (el) => el.socketId == res.socketId
-          );
-          if (changedIndex != -1)
-            this.statusList[changedIndex].userStatus = res.userStatus;
-        });
-
-        //Messages for challenges
-        this.socket.on("newChallenge", (challenge: Challenge) => {
-          // console.log("Challenge recu")
-          if (challenge) {
-            // console.log("Challenge valide", challenge)
-            this.challenge = challenge;
-            this.changeCurrentUserStatus("challenged", challenge.challenged);
-          }
-        });
-        this.socket.on("challengeAccepted", (challenge: any) => {
-          router.push({
-            path: "/game",
-            query: { challenge: JSON.stringify(challenge) },
-          });
-        });
-        this.socket.on("refuseChallenge", () => {
-          this.challenge = null;
-          this.changeCurrentUserStatus("available", this.id);
-        });
-        return;
-      } else {
-        setTimeout(this.setupSocket, 100);
-      }
-    },
-
-    async setup(id: number) {
-      // Check to do it only once
-      if (this.setuped == false) {
-        this.id = id;
-        this.setupSocket();
-        // console.log("my list after timeout ==> ", this.statusList)
-        this.setuped = true;
-      }
-    },
+                //Change my current status for myself, emit to server i do am connected
+                 this.socket.emit('connectionStatus', this.id)
+             
+                //Subscribe to messages from other sockets
+                 this.socket.on("newStatusConnection", (res: ISocketStatus) => {
+                     const alreadyConnected = this.statusList.findIndex((el) => {return res.userId === el.userId})
+                     if (alreadyConnected != -1) {
+                        this.statusList[alreadyConnected].socketId.push(res.socketId)
+                     }
+                     else {
+                         this.statusList.push(res)
+                     }
+                 })
+                 this.socket.on("newStatusDisconnection", (res: ISocketStatus) => {
+                     this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.userId), 1)
+                 })
+                 this.socket.on("newStatusChange", (res: ISocketStatus) => {
+                     console.log("onChangeStatus", res)
+                     const changedIndex = this.statusList.findIndex((el) => el.userId == res.userId)
+                     if (changedIndex != -1)
+                       this.statusList[changedIndex].userStatus = res.userStatus
+                 })
+             
+                 //Messages for challenges
+                 this.socket.on("newChallenge", (challenge: Challenge) => {
+                     console.log("Challenge recu")
+                     if (challenge) {
+                     console.log("Challenge valide", challenge)
+                         this.challenge = challenge
+                         this.changeCurrentUserStatus('challenged', challenge.challenged)
+                     }
+                 })
+                 this.socket.on("challengeAccepted", (challenge: any) => {
+                    if (challenge.challenged == this.id) {
+                        this.challengeAccepted = true
+                    }
+                    else if (challenge.challenger == this.id){
+                        router.push({path: "/game", query: {challenge: challenge}})
+                    }
+                 })
+                 this.socket.on("refuseChallenge", () => {
+                     this.challenge = null
+                     this.changeCurrentUserStatus('available', this.id)
+                 })
+                return
+            }
+            else {
+                setTimeout(this.setupSocket, 100)
+            }
+        },
+        
+        async setup(id: number) {
+            // Check to do it only once
+            if (this.setuped == false) {
+                this.id = id
+                this.setupSocket()        
+                // console.log("my list after timeout ==> ", this.statusList)
+                this.setuped = true;
+            }
+        },
 
     onClose() {
       this.socket.close();
@@ -234,8 +230,8 @@ export const useStatusStore = defineStore({
       }
     },
 
-    finishChallenge() {
-      (this.challenge = null), (this.challengeAccepted = false);
-    },
-  },
-});
+        finishChallenge() {
+            this.challengeAccepted = false
+        }
+    } ,
+})

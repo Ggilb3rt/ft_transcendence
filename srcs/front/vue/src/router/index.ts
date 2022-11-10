@@ -3,7 +3,9 @@ import HomeView from "../views/HomeView.vue";
 import Login from "../views/LoginView.vue"
 import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
 import DashOther from "@/views/DashOtherView.vue";
-import Success from "@/views/SuccessView.vue"
+import Chat from "@/views/ChatView.vue";
+import Channel from "@/views/ChannelView.vue"
+// import Success from "@/views/SuccessView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
 import { setStatus, useUserStore } from "@/stores/user";
@@ -13,8 +15,8 @@ import { useStatusStore } from "@/stores/status";
 type gameList = "pong" | "catPong"
 
 const ourGames: gameList = 'pong';
-const Chat = () => import("@/views/ChatView.vue")
-const Channel = () => import("@/views/ChannelView.vue")
+// const Chat = () => import("@/views/ChatView.vue")
+// const Channel = () => import("@/views/ChannelView.vue")
 const Dashboard = () => import("@/views/DashboardView.vue")
 // const DashOther = () => import("@/views/DashOtherView.vue")
 const Game = () => import("@/views/GameView.vue")
@@ -49,25 +51,25 @@ const router = createRouter({
       component: Login,
       beforeEnter: [goToDisconnect]
     },
-    {
-      path: "/success",
-      name: "success",
-      component: Success,
-      // beforeEnter: [isConnectionOk]
-    },
+    // {
+    //   path: "/success",
+    //   name: "success",
+    //   component: Success,
+    //   // beforeEnter: [isConnectionOk]
+    // },
     {
       path: "/2fa",
       name: "2fa",
       component: TwoFactorAuth
     },
-    {
-      path: "/about",
-      name: "about",
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import("../views/AboutView.vue"),
-    },
+    // {
+    //   path: "/about",
+    //   name: "about",
+    //   // route level code-splitting
+    //   // this generates a separate chunk (About.[hash].js) for this route
+    //   // which is lazy-loaded when the route is visited.
+    //   component: () => import("../views/AboutView.vue"),
+    // },
     {
       path: "/chat",
       name: "chat",
@@ -105,7 +107,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:ourGames?/:id?",
+      path: "/game/:ourGames/:id?",
       name: "game",
       component: Game,
     },
@@ -129,39 +131,33 @@ const router = createRouter({
 
 
 //! need to add a canAccess global guad naviguation with token
+
+// ? -1 == non, 0 == OK, 1 == 2FA
 router.beforeEach(async (to, from) => {
   const userStore = useUserStore()
   //console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
-  if (to.name == 'success')
-    console.log("le success est apparu")
-  else if (localStorage.getItem('last_page') != undefined) {
-    //console.log("localStorage found on router", localStorage.getItem('last_page'), "\nneed to go to ", to.name, "\ncome from ", from.name)
-    const response = await fetch(`http://localhost:3000/auth/verify`, {credentials: "include"})
-    if (response.status == 401) {
+  try {
+  const res = await fetch(`http://localhost:3000/auth/verify`, {
+			method: 'GET',
+			credentials: "include",
+		})
+
+    const {status} = await res.json();
+    userStore.conStatus = status
+    if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
+      console.log('userStore.conStatus === ', userStore.conStatus)
+      return { name: "2fa"}
+    }
+    else if (userStore.conStatus == setStatus.needLogin && to.name != 'login') {
+      console.log('userStore.conStatus je need login === ', userStore.conStatus)
       return { name: 'login' }
-    } else if (localStorage.getItem('toto') == 'true') {
-		console.log("je suis dans a condition a laide")
-		return ({name: '/'});
-	}
-	/*else {
-		const temp = localStorage.getItem('last_page')?.toString()
-		console.log('TEMP ' + temp);
-       setTimeout(() => {return {name : temp}} , 1000);
-	   //return ({name: '/'});
-	}*/
-    // else {
-    //   const temp = localStorage.getItem('last_page')?.toString()
-    //   setTimeout(() => {return {name : temp}} , 1000);
-    // }
+    }
+  } catch(err) {
+    return {name: 'login'}
   }
-  else if (userStore.conStatus == setStatus.needLogin && to.name != 'login' && to.name != "2fa") {
-    //('userStore.conStatus === ', userStore.conStatus)
-    return { name: 'login' }
-  }
-  else if (userStore.conStatus == setStatus.need2fa && to.name != "2fa")
-    return { name: "2fa" }
+  // return { name: to.name}
 })
 
 

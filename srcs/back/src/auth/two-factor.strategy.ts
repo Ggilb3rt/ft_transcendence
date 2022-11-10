@@ -13,7 +13,6 @@ export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStra
     const extractJwtFromCookie = (req) => {
         let token = null;
   
-        //console.log("extractJwtfromCookie ", req.cookies)
         if (req && req.cookies) {
           token = req.cookies['jwt'];
           //console.log(token)
@@ -33,7 +32,7 @@ export class TwoFactorStrategy extends PassportStrategy(Strategy, 'TwoFactorStra
   const {username, id} = payload;
 
   const user = await prisma.users.findFirst({where:{id}})
-  //console.log("user == ", user)
+  // console.log("user == ", user)
   if (!user)
     throw new HttpException("Invalid Token Here", HttpStatus.FORBIDDEN)
   return { id, username };

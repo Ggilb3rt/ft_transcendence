@@ -15,11 +15,7 @@ const props = defineProps({
 	direct: {type: Boolean, required: true},
 })
 
-const emit = defineEmits<{
-  (e: 'im-mounted'): void
-}>()
-
-const channelIdNumber = Number(props.channelId)
+const channelIdNumber = props.channelId
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const channelsStore = useChannelsStore()
@@ -37,8 +33,6 @@ let msg = ref("")
 // }
 
 let currentChan = new CChannel(channelIdNumber, "Lol", "public", "", 9, [7, 8, 9], [9], [], [], [])
-//console.log("le channel courant ", currentChan)
-
 
 // need to getMessages from channel(props.channelId)
 let channelMsgs: TMessage[] = [
@@ -68,7 +62,8 @@ let channelMsgs: TMessage[] = [
 
 function submit(e: Event) {
 	e.preventDefault()
-	// fetch to server
+	// emit to server
+	channelsStore.emitMessage(channelIdNumber, msg.value)
 	if (msg.value != "") {
 		channelMsgs.push({
 			sender: userStore.user.id,
@@ -90,8 +85,9 @@ function submit(e: Event) {
 	msg.value = ""
 }
 
-onBeforeMount(() => {
+onBeforeMount(async() => {
 	// fetch Channel
+	await channelsStore.getChan(channelIdNumber)
 	channelsStore.selectCurrentChan(channelIdNumber)
 })
 
@@ -113,13 +109,14 @@ onUpdated(() => {
 </script>
 
 <template>
-	<div class="room" v-if="channelsStore.currentChan">
+	<div class="room" v-if="channelsStore.currentChan && !channelsStore.currentChan.isBan(userStore.user.id) && channelsStore.currentChan.isInChannel(userStore.user.id)">
 		<p>
 			<span v-if="props.direct">/direct/</span>{{ props.channelId }}
 		</p>
 		<AdminPanel></AdminPanel>
 		<div class="chatRoom" id="room-view">
 			<div v-for="msg in channelsStore.currentChan.messages" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
+				<!-- if msg.sender < 0 ===> print as server info -->
 				<div v-if="!userStore.isBan(msg.sender)" class="message">
 					<figure>
 						<UserLink :other-user="usersStore.getUserRestrictById(msg.sender)" remove-status remove-name remove-hover></UserLink>
@@ -130,7 +127,8 @@ onUpdated(() => {
 							<span v-if="currentChan.isBan(msg.sender)"> (is ban)</span>
 							<span v-if="currentChan.isMute(msg.sender)"> (is mute)</span>
 						</span> |
-						<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span>
+						<span class="time"> {{ msg.date }} (pas de type date)</span>
+						<!-- <span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span> -->
 						<br>
 						<span>{{ msg.msg }}</span>
 					</p>
@@ -140,11 +138,14 @@ onUpdated(() => {
 					<p>You banned this user</p>
 				</div>
 			</div>
-			<form>
+			<form v-if="!channelsStore.currentChan.isBan(userStore.user.id) && !channelsStore.currentChan.isMute(userStore.user.id) ">
 				<textarea v-model="msg" @keyup.enter="submit"></textarea>
 				<button @click="submit" class="send">Send</button>
 			</form>
 		</div>
+	</div>
+	<div class="room" v-else>
+		<h2>Nothing to see here</h2>
 	</div>
 </template>
 

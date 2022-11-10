@@ -7,11 +7,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream } from 'fs';
 import { ban_users, friends, users } from '@prisma/client';
 import { otherFormat, userFront, userRestrict } from './types';
-
+import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
 
 @Controller('users')
 export class UsersController {
-    constructor(private usersService: UsersService) {}
+    constructor(private usersService: UsersService, private jwtAuthService: JwtAuthService) {}
 
     @Post()
     @UseGuards(JwtAuthGuard)
@@ -31,59 +31,66 @@ export class UsersController {
     }
 
     @Get(':id/other')
-    @UseGuards(JwtAuthGuard)
-    getOther(@Param('id', ParseIntPipe) id): Promise<otherFormat> {
+    getOther(@Param('id', ParseIntPipe) id: number): Promise<otherFormat> {
        return (this.usersService.getOtherUser(id))
     }
 
-    @Get(':id')
+    @Get('/current')
     @UseGuards(JwtAuthGuard)
-    getOneUser(@Param('id', ParseIntPipe) id): Promise<userFront> {
+    async getOneUser(@Req() req): Promise<userFront> {
+        const id = await this.usersService.verify(req.cookies.jwt)
         return (this.usersService.getUserById(id))
     }
 
     @Get(':id/friends')
     @UseGuards(JwtAuthGuard)
-    getFriends(@Param('id', ParseIntPipe) id): Promise<number[]> {
+    getFriends(@Param('id', ParseIntPipe) id: number): Promise<number[]> {
         return (this.usersService.getFriends(id));
     }
 
     @Get(':id/pending')
     @UseGuards(JwtAuthGuard)
-    getPending(@Param('id', ParseIntPipe) id): Promise<number[]> {
+    getPending(@Param('id', ParseIntPipe) id: number): Promise<number[]> {
         return (this.usersService.getPending(id));
     }
 
     @Post(':id/pending')
     @UseGuards(JwtAuthGuard)
-    acceptPending(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend, @Body('valid', ParseBoolPipe) valid): Promise<friends> {
+    acceptPending(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number, @Body('valid', ParseBoolPipe) valid: boolean): Promise<friends> {
        return (this.usersService.acceptFriend(id, friend, valid))
     }
 
     @Post(':id/2fa')
-    @UseGuards(JwtAuthGuard)
-    async switch2fa(@Param('id', ParseIntPipe) id, @Body('status', ParseBoolPipe) status, @Body('code') code: string | undefined, @Res() response) {
-        //console.log("bounjouern sdf", status)
+    // @UseGuards(JwtAuthGuard)
+    async switch2fa(@Param('id', ParseIntPipe) id: number, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
         let isCodeValid: boolean = false
-        if (code)
+        if (code) {
             isCodeValid = await this.usersService.isCodeValid(code, id)
-        //console.log("code ", code, "\nisCodeValid ", isCodeValid, "\nstatus ", status)
-        //console.log("\n--------\ntype of isCodevalid ", typeof isCodeValid, "\ntypeof status ", typeof status)
+        }
         if (status == false && isCodeValid == false) {
             throw new UnauthorizedException('Wrong authentication code');
         }
-        return (this.usersService.switch2fa(id, status, response))
+        const user = await this.usersService.getUserById(id);
+        const {accessToken} = await this.jwtAuthService.login(user, status)
+
+        response.cookie("jwt", accessToken, {
+            httpOnly:true
+          });
+
+        if (status == true)
+            return (this.usersService.switch2fa(id, status, response))
+        else return {msg: "disabled"}
     }
 
     @Post(':id/friends')
     @UseGuards(JwtAuthGuard)
-    addFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend): Promise<friends> {
+    addFriend(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number): Promise<friends> {
        return (this.usersService.addFriend(id, friend))
     }
 
     @Post(':id/friends/remove')
     @UseGuards(JwtAuthGuard)
-    removeFriend(@Param('id', ParseIntPipe) id, @Body('friend', ParseIntPipe) friend) {
+    removeFriend(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number) {
        return (this.usersService.removeFriend(id, friend))
     }
 

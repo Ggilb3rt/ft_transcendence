@@ -6,8 +6,6 @@ import { AuthService } from './auth.service';
 import { TwoFactorGuard } from './two-factor.guard';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { UsersService } from 'src/users/users.service';
-import { users } from '@prisma/client';
-
 
 @Controller('auth')
 export class AuthController {
@@ -51,7 +49,6 @@ export class AuthController {
       httpOnly:true,
     })
     if (two_factor_auth == false) {
-      
       return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
     }
     else
@@ -60,8 +57,7 @@ export class AuthController {
 
   @Get('verify')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
-  async verif(@Req() req): Promise<users> {
+  async verif(@Req() req) {
     return (this.authService.verify(req.cookies.jwt))
   }
 

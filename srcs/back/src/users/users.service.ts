@@ -1,25 +1,37 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException} from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException} from '@nestjs/common';
 import { friends, match, PrismaClient, users } from '@prisma/client'
 import { UsersHelper } from './usersHelpers';
 import { CreateUserDto } from './createUserDto';
 const path = require('path');
+import * as base32 from 'hi-base32'
 const util = require('util');
 import { writeFile } from 'fs';
 import { otherFormat, userFront, userRestrict } from './types';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
+import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
 
   const prisma = new PrismaClient();
 
 
 @Injectable()
 export class UsersService {
-  constructor(private usersHelper: UsersHelper) {}
-
-
+  constructor(private usersHelper: UsersHelper, private jwtAuthService: JwtAuthService) {}
   // OPERATIONS AROUND USERS AND RELATIONS BETWEEN THEM
 
   // ban user
+
+  async verify(token: string | null) {
+    if (!token) {
+      throw new ForbiddenException("No Token")
+    }
+    const {validate} = await this.jwtAuthService.validate(token);
+    if (!validate.id) {
+      throw new ForbiddenException("Invalid Token")
+    }
+    return (validate.id)
+  }
+
   async banUser(id:number, banned:number) {
 
     this.usersHelper.checkSame(id, banned);
@@ -100,7 +112,7 @@ export class UsersService {
       throw new NotFoundException({msg: "No user at this ID", status: false})
     }
 
-    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, two_factor_secret} = user
+    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth } = user
 
     const friends = await this.getFriends(id);
     const bannedBy = await this.getBannedMe(id);
@@ -119,7 +131,7 @@ export class UsersService {
       wins,
       loses,
       two_factor_auth,
-      two_factor_secret,
+      two_factor_secret: null,
       friends,
       bannedBy,
       bans,
@@ -314,15 +326,18 @@ export class UsersService {
 
 
   async isCodeValid(code: string, id: number) {
-    const {two_factor_secret} = await this.getUserById(id)
+    const {two_factor_secret} = await prisma.users.findFirst({
+      where:{id}
+    })
     try {
-      const verify = await authenticator.verify({
+      const verify = authenticator.verify({
         token: code,
         secret: two_factor_secret
       })
       return verify
     } catch (e) {
-      throw new Error(e)
+      console.error("error in back ", e);
+      throw new Error (e);
     }
   }
 
@@ -335,16 +350,11 @@ export class UsersService {
     const secret = authenticator.generateSecret()
     const otpauthUrl = authenticator.keyuri(user.nick_fourtytwo, "Transcendance", secret);
 
-
     await this.setSecret(user.id, secret);
     return {
         secret,
         otpauthUrl
     }
-  }
-
-  async hashPassowrd() {
-
   }
 
   async switch2fa(id: number, status: boolean, response) {
@@ -361,7 +371,6 @@ export class UsersService {
         const { otpauthUrl } = await this.generate2faSecret(id);
         return this.pipeQrCodeStream(response, otpauthUrl);
       }
-      return { status: 200, message: ret}
     } catch (e) {
       throw new Error(e)
     }

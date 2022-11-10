@@ -29,10 +29,6 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
         
         const user: CreateUserDto = {
             nick_fourtytwo,
-            first_name,
-            last_name,
-            nickname: nick_fourtytwo,
-            avatar_url: undefined,
             ranking: 0,
             wins: 0,
             loses: 0,
