@@ -76,6 +76,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const newClients : string[] = []
         const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg}
         const msg: TSend = {userStatus: 'available', userId: arg}
+        client.join("user_" + arg)
         if (index == -1) {
             newClients.push(client.id)
             this.userArr.push(u)
@@ -84,14 +85,13 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
         else {
             this.userArr[index].socketId.push(client.id)
-            client.join("user_" + u.userId)
         }
+        console.log("MY ARR AFTER CONNECTION == ", this.userArr)
         this.server.to(client.id).emit('takeThat', this.toSend)
     }
 
     @SubscribeMessage('changeStatus')
     handleChangeStatus(client: Socket, arg: IStatus) {
-        console.log("\n\n------JE RENTRE DANS CHANGE STATUS")
         const index = this.userArr.findIndex((elem) => {
             if (elem.socketId.findIndex((e) => {return e == client.id}) != -1)
                 return true
@@ -102,7 +102,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         }
         this.userArr[index].userStatus = arg.userStatus
         this.toSend[index].userStatus = arg.userStatus
-        console.log("\n\n----------------- THIS USER ARR-------------\n\n", this.userArr)
         client.broadcast.emit("newStatusChange", arg)
     }
 
