@@ -28,8 +28,9 @@ const statusStore = useStatusStore()
 
 async function testConnection() {
   try {
-    console.log("Test Connection premiere ligne")
+    console.log("Test Connection premiere ligne == ", userStore.conStatus)
     // userStore.loading = true
+  if (userStore.conStatus == setStatus.connected) {
     const response = await fetch(`http://localhost:3000/users/current`, {credentials: "include"})
     localStorage.clear();
     var data;
@@ -50,6 +51,7 @@ async function testConnection() {
         statusStore.setup(userStore.user.id);
         channelStore.getChansLists();
       }
+  }
   } catch (error: any) {
     // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
     const tempErr = JSON.parse(error.message)
@@ -60,8 +62,7 @@ async function testConnection() {
   }
 }
 
-testConnection();
-
+router.beforeResolve(testConnection)
 
 window.addEventListener('beforeunload', (e) => {
   statusStore.refuseChallenge(userStore.user.id)

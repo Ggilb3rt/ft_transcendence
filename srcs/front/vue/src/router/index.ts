@@ -137,22 +137,26 @@ router.beforeEach(async (to, from) => {
   const userStore = useUserStore()
   console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
-  fetch(`http://localhost:3000/auth/verify`, {
+
+  try {
+  const res = await fetch(`http://localhost:3000/auth/verify`, {
 			method: 'GET',
 			credentials: "include",
 		})
-    .then(async (res) => {
-      const {status} = await res.json();
-      userStore.conStatus = status
-      if (userStore.conStatus == setStatus.needLogin && to.name != 'login' && to.name != "2fa") {
-        console.log('userStore.conStatus === ', userStore.conStatus)
-        return { name: 'login' }
-      }
-      else if (userStore.conStatus == setStatus.need2fa && to.name != "2fa")
-        return { name: "2fa" }
-    })
-    
 
+    const {status} = await res.json();
+    userStore.conStatus = status
+    if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
+      console.log('userStore.conStatus === ', userStore.conStatus)
+      return { name: "2fa"}
+    }
+    else if (userStore.conStatus == setStatus.needLogin && to.name != 'login') {
+      console.log('userStore.conStatus je need login === ', userStore.conStatus)
+      return { name: 'login' }
+    }
+  } catch(err) {
+    return {name: 'login'}
+  }
   // return { name: to.name}
 })
 

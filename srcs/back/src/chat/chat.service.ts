@@ -209,33 +209,29 @@ export class ChatService {
         const myChannels = await this.chatHelper.getMyChannels(user_id)
 
         const ids: number[] = []
-        myChannels.channels.forEach((elem) => {
-            ids.push(elem.id)
+        myChannels.forEach((elem) => {
+            ids.push(elem.channel_id)
         })
         
         const availables = await this.chatHelper.getAvailableChannels()
         const privateC = await this.chatHelper.getMyPrivateChannels(user_id)
 
         const availableChannels: TChannelRestrict[] = [];
-        const channels: TChannelRestrict[] = [];
-        const privateChannels: TChannelRestrict[] = [];
+        const joinedChannels: TChannelRestrict[] = [];
 
-
-        privateC.forEach((elem) => {
-            elem.channels.forEach((elem) => {
-                privateChannels.push(elem)
-            })
-        })
+        await this.chatHelper.joinChannel(3, 4)
 
         availables.forEach((elem) => {
             if (ids.includes(elem.id)) {
-                channels.push(elem)
+                joinedChannels.push(elem)
             }
             else
                 availableChannels.push(elem)
         })
         
-        const joinedChannels: TChannelRestrict[] = channels.concat(privateChannels)
+        privateC.forEach((elem) => {
+            joinedChannels.push(elem.channels)
+        })
 
         return ({availableChannels, joinedChannels})
     }

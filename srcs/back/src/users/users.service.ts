@@ -330,12 +330,8 @@ export class UsersService {
       where:{id}
     })
     try {
-      console.log("token == ", code)
-
-      console.log('2fa secret', two_factor_secret)
-
       const verify = authenticator.verify({
-        token: base32.encode('toto'),
+        token: code,
         secret: two_factor_secret
       })
       return verify
@@ -375,7 +371,6 @@ export class UsersService {
         const { otpauthUrl } = await this.generate2faSecret(id);
         return this.pipeQrCodeStream(response, otpauthUrl);
       }
-      return { status: 200, message: ret}
     } catch (e) {
       throw new Error(e)
     }

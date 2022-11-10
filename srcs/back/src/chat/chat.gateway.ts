@@ -6,7 +6,7 @@ import {
     OnGatewayConnection,
     SubscribeMessage} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { ForbiddenException, Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { UsersService } from 'src/users/users.service';
 import { TMessage } from 'src/users/types';
@@ -78,6 +78,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             date,
         }
         client.broadcast.to(room).emit('messageSentToChannel', message, room)
+        return (true)
     }
 
     @SubscribeMessage('sendDirectMessage')

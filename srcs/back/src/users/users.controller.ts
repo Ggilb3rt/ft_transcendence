@@ -7,10 +7,11 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { createReadStream } from 'fs';
 import { ban_users, friends, users } from '@prisma/client';
 import { otherFormat, userFront, userRestrict } from './types';
+import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
 
 @Controller('users')
 export class UsersController {
-    constructor(private usersService: UsersService) {}
+    constructor(private usersService: UsersService, private jwtAuthService: JwtAuthService) {}
 
     @Post()
     @UseGuards(JwtAuthGuard)
@@ -64,15 +65,21 @@ export class UsersController {
     async switch2fa(@Param('id', ParseIntPipe) id: number, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
         let isCodeValid: boolean = false
         if (code) {
-            const toto: string = "toto"
-            console.log("dans controller code = ", code)
-            isCodeValid = await this.usersService.isCodeValid(toto, id)
+            isCodeValid = await this.usersService.isCodeValid(code, id)
         }
-        console.log("je suis apres")
         if (status == false && isCodeValid == false) {
             throw new UnauthorizedException('Wrong authentication code');
         }
-        return (this.usersService.switch2fa(id, status, response))
+        const user = await this.usersService.getUserById(id);
+        const {accessToken} = await this.jwtAuthService.login(user, status)
+
+        response.cookie("jwt", accessToken, {
+            httpOnly:true
+          });
+
+        if (status == true)
+            return (this.usersService.switch2fa(id, status, response))
+        else return {msg: "disabled"}
     }
 
     @Post(':id/friends')
