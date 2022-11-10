@@ -78,25 +78,10 @@ export class ChatHelper {
                 }
             })
             chan.userList.forEach(async (id) => {
-                const user = await prisma.users_list.create({
-                    data: {
-                        channel_id: channel.id,
-                        user_id: id
-                    }
-                })
+                this.joinChannel(channel.id, id)
             })
-            await prisma.users_list.create({
-                data: {
-                    channel_id: channel.id,
-                    user_id: chan.owner
-                }
-            })
-            await prisma.admins.create({
-                data: {
-                    channel_id: channel.id,
-                    admin_id: chan.owner
-                }
-            })
+            this.joinChannel(channel.id, chan.owner)
+            this.addAdmin(chan.owner, channel.id)
             return channel.id;
         } catch (e) {
             console.log(e);

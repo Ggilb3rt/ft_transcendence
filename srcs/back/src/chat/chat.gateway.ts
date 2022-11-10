@@ -149,13 +149,13 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('join')
-    async joinChannel(client: Socket, channel, room: string, pass?) {
+    async joinChannel(client: Socket, channel_id: number, room: string, pass?) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        await this.chatService.joinChannel(id, channel, pass)
+        await this.chatService.joinChannel(id, channel_id, pass)
         client.broadcast.to(room).emit('join', {
             new_client: id,
-            channel_id: channel.id
+            channel_id
         })
     }
 
