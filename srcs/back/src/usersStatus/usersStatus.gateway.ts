@@ -10,20 +10,16 @@ function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
 }
 
-
-function countInArray(arr: IStatus[], i: number) {
-    return arr.filter(item => item.userId == i).length
-}
-
-type TStatus = "available" | "disconnected" | "inGame"
+type TStatus = "available" | "disconnected" | "inGame" | "challenged"
 
 interface IStatus {
     socketId: string[];
     userId: number;
     userStatus: TStatus;
+    inGameSocket: string;
 }
 
-type TChallenge = {challenger: Number, level: Number, challenged: Number}
+type TChallenge = {challenger: Number, level: Number, challenged: Number, socketId: string}
 
 type TSend = {userId: number, userStatus: TStatus}
 
@@ -63,6 +59,9 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             e === client.id;
            })
            this.userArr[uIndex].socketId.splice(index, 1)
+           if (this.userArr[uIndex].inGameSocket == client.id) {
+            client.broadcast.to('user_' + this.userArr[index].userId).emit('internStatusChange', 'available')
+           }
         }
             
     }
@@ -74,7 +73,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         })
 
         const newClients : string[] = []
-        const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg}
+        const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg, inGameSocket: ""}
         const msg: TSend = {userStatus: 'available', userId: arg}
         client.join("user_" + arg)
         if (index == -1) {
@@ -91,7 +90,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     @SubscribeMessage('changeStatus')
-    handleChangeStatus(client: Socket, arg: IStatus) {
+    handleChangeStatus(client: Socket, userStatus: TStatus) {
         const index = this.userArr.findIndex((elem) => {
             if (elem.socketId.findIndex((e) => {return e == client.id}) != -1)
                 return true
@@ -100,9 +99,20 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (index == -1) {
             return
         }
-        this.userArr[index].userStatus = arg.userStatus
-        this.toSend[index].userStatus = arg.userStatus
-        client.broadcast.emit("newStatusChange", arg)
+        const id = this.userArr[index].userId
+        if (userStatus == 'inGame' || (userStatus == 'challenged' && this.userArr[index].inGameSocket == '')) {
+            this.userArr[index].inGameSocket = client.id
+            client.broadcast.to("users_" + id).emit('internStatusChange', userStatus)
+        }
+        else if (client.id == this.userArr[index].inGameSocket) {
+            this.userArr[index].inGameSocket = ""
+            client.broadcast.to("users_" + id).emit('internStatusChange', userStatus)
+        }
+        this.userArr[index].userStatus = userStatus
+        this.toSend[index].userStatus = userStatus
+        const res = {userStatus, userId: id}
+        client.broadcast.emit("externStatusChange", res)
+        // TODO: => verif le front: je change de status sur internStatusCHange, je fais rien si extern.Userid == this.id
     }
 
     @SubscribeMessage('refuseChallenge')
@@ -140,7 +150,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (receiver) {
             //console.log("i accept challenge from => ", receiver)
             this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
-            this.server.to("user_" + receiver.userId).emit('challengeAccepted', challenge)
+            this.server.to(challenge.socketId).emit('challengeAccepted', challenge)
         }
     }
 //

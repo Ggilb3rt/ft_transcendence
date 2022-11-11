@@ -13,8 +13,6 @@ export class ChatHelper {
 
         const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
 
-        console.log("banned == ", banned)
-
         const ChannelTypes = ["public" , "private" , "pass" , "direct"] as const
         const isChannelType = (type): type is TChannelType => ChannelTypes.includes(type)
         if (isChannelType(type)) {
@@ -55,6 +53,7 @@ export class ChatHelper {
                 adminList,
                 messages: messagesTrimmed
             }
+            console.log("Channel = ", formated_channel)
             return formated_channel
         }
 
@@ -79,7 +78,6 @@ export class ChatHelper {
                     id: true
                 }
             })
-            console.log("\n\n--------chan === ", chan)
             chan.userList.forEach(async (id) => {
                 this.joinChannel(channel.id, id)
             })
@@ -100,7 +98,6 @@ export class ChatHelper {
                     channel_id
                 }
             })
-            console.log("admin : ", admin)
             if (!admin) {
                 await prisma.admins.create({
                     data: {
@@ -184,7 +181,6 @@ export class ChatHelper {
                     user_id
                 }
             })
-            console.log('alreadyban = ', alreadyban)
             if (!alreadyban) {
             const ban =  await prisma.ban_channels.create({
                 data: {
@@ -193,7 +189,6 @@ export class ChatHelper {
                     expires,
                 }
             })
-            console.log("now banned = ", ban)
             return ban
         }
         } catch (e) {
@@ -215,6 +210,22 @@ export class ChatHelper {
         }
     }
 
+    async getMyBans(user_id: number) {
+        try {
+            const bans = await prisma.ban_channels.findMany({
+                where: {
+                    user_id
+                }
+            })
+            return bans
+        }
+        catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
+
+    }
+
     async getBan(user_id: number, channel_id: number) {
         try {
             // if (typeof(channel_id) == 'string')
@@ -232,7 +243,6 @@ export class ChatHelper {
 
     async unBan(ban: ban_channels) {
         try {
-            console.log("I'M UNBANNING = ", ban)
             await prisma.ban_channels.delete({
                 where: {id:ban.id}
             })
@@ -351,14 +361,30 @@ export class ChatHelper {
         }
     }
 
+    async getMyMutes(user_id: number) {
+        try{
+            const mutes = await prisma.muted.findMany({
+                where:{
+                    muted_id: user_id
+                }
+            })
+            return (mutes)
+        }
+        catch(e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
+    }
+
     async getMute(channel_id: number, muted_id: number) {
         try {
-            return await prisma.muted.findFirst({
+            const mute = await prisma.muted.findFirst({
                 where: {
                     channel_id,
                     muted_id
                 }
             })
+            return (mute)
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -447,7 +473,6 @@ export class ChatHelper {
     async joinChannel(channel_id: number, user_id: number) {
         try {
             const user = await this.getUser(channel_id, user_id)
-            console.log("USER === ", user)
             if (!user)
                 return await prisma.users_list.create({
                     data: {

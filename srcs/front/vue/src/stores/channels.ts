@@ -303,6 +303,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// check if chan exist
 						// update data
 					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					console.log("complete channel = ", data)
+					console.log("typeof ban.expired = ", typeof data.banList[0].expire)
+					console.log("typeof ban.mute = ", typeof data.muteList[0].expire)
 					if (chanIndex != undefined) {
 						let newChan = new CChannel(
 							data.id, 
@@ -316,6 +319,7 @@ export const useChannelsStore = defineStore('channels', () => {
 							data.muteList,
 							data.messages
 						)
+						console.log("newChan ", newChan)
 						openChan.value.push(newChan)
 					}
 				}

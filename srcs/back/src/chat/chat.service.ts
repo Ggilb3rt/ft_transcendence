@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ban_channels, users_list } from '@prisma/client';
+import { ban_channels, muted, users_list } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { TChannelRestrict, TChannelType } from 'src/users/types';
 import { UsersHelper } from 'src/users/usersHelpers';
@@ -226,6 +226,18 @@ export class ChatService {
 
     async getBan(user_id: number, channel_id: number) {
         return await this.chatHelper.getBan(user_id, channel_id)
+    }
+
+    async getMyMutes(user_id: number) {
+        return await this.chatHelper.getMyMutes(user_id)
+    }
+
+    async getMyBans(user_id: number) {
+        return await this.chatHelper.getMyBans(user_id)
+    }
+
+    async unMute(channel_id: number, muted: number) {
+        return await this.chatHelper.unMute(channel_id, muted)
     }
 
     async unBan(ban: ban_channels) {
