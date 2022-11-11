@@ -12,5 +12,4 @@ import PhaserContainer from "@/components/PhaserContainer.vue";
   </Suspense>
 </template>
 
-<style>
-</style>
+<style></style>

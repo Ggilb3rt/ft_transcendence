@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onUpdated, watch, onBeforeMount, onBeforeUpdate } from 'vue'
-import { useRoute } from 'vue-router';
+import { ref, onUpdated, watch, onBeforeMount, onBeforeUpdate, onBeforeUnmount, onMounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router';
 import router from "@/router"
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import { useUsersStore } from '@/stores/users';

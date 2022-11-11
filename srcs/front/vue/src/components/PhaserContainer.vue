@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, onUpdated } from "vue";
+import { getCurrentInstance } from "vue";
 import { useUserStore } from "@/stores/user";
 import router from "@/router";
 import { useRoute } from "vue-router";
@@ -13,17 +14,16 @@ import WaitingRoom from "./game/scenes/WaitingRoom";
 import DefaultGame from "./game/scenes/DefaultGame";
 import CustomizableGame from "./game/scenes/CustomizableGame";
 import CatPongGame from "./game/scenes/CatPongGame";
+import type { Socket } from "engine.io-client";
 
-const containerId = "game-container";
-const userStore = useUserStore();
-let socket = io("http://localhost:3000/game");
-let gameInstance = null;
+let containerId: string;
+let userStore;
+let socket;
+let gameInstance;
 let activeRoomNames;
 let error = false;
-//let key: string;
-//let level: string;
 const data = {
-  userId: userStore.user.id,
+  userId: 0,
   spectator: false,
   challenge: false,
   key: "",
@@ -32,27 +32,18 @@ const data = {
     challenger: "",
     level: 0,
     challenged: "",
-	id: 0,
   },
 };
 
 window.addEventListener("beforeunload", async (e) => {
   console.log("BEFORE UNLOAAAAD");
-  //localStorage.setItem("last_page", "/");
-  //router.push('/');
-  if (gameInstance) {
+  if (gameInstance !== undefined) {
     disconnectSockets();
-    //if (socket) {
-    //	socket.disconnect();
+    gameInstance.destroy();
   }
-  //router.go(-3);
-  //gameInstance.destroy();
-  //}
-  //localStorage.setItem("toto", "true");
-  //if (socket) {
-  // socket.disconnect();
-  //}
-  //router.push('/');
+  if (socket !== undefined) {
+    socket.disconnect();
+  }
 });
 
 class Game extends Phaser.Game {
@@ -70,6 +61,12 @@ class Game extends Phaser.Game {
 
 onMounted(() => {
   //alert("MOUNT");
+  containerId = "game-container";
+  userStore = useUserStore();
+  data.userId = userStore.user.id
+  console.log(typeof userStore);
+  socket = io("http://localhost:3000/game");
+  console.log(typeof socket);
   const route = useRoute();
   const str = route.query.challenge;
 
@@ -77,7 +74,7 @@ onMounted(() => {
   console.log('level "' + level + '"');
   const key = route.params.id;
 
-  socket.emit("getActiveRoomNames", {type: 2});
+  socket.emit("getActiveRoomNames", { type: 2 });
 
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = payload.roomNames;
@@ -127,27 +124,14 @@ onMounted(() => {
       console.log("DATA");
       console.log(data);
       gameInstance = new Game();
+	  console.log("GI")
+	  console.log(typeof gameInstance);
     }
   });
-
-  /*window.addEventListener("beforeunload", async (e) => {
-    console.log("BEFORE UNLOAAAAD");
-    router.push("/");
-  });*/
 });
-/*
-onUpdated(() => {
-  //alert("UPDATE");
-  if (gameInstance) {
-    disconnectSockets();
-    //gameInstance.destroy();
-  }
-  router.push("/");
-});*/
 
 onBeforeUnmount(() => {
   //alert("UNMOUNT");
-  //console.log("GAME INSTANCE UNMOUNT");
   console.log(gameInstance);
   if (gameInstance) {
     disconnectSockets();
@@ -159,7 +143,6 @@ onBeforeUnmount(() => {
 });
 
 function disconnectSockets() {
-  //console.log("GAME INSTANCE UNM " + gameInstance);
   if (gameInstance) {
     console.log(gameInstance.scene.scenes);
     let roomId: number;

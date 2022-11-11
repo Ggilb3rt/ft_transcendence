@@ -2,7 +2,7 @@
 import UserInvite from "@/components/user/UserInvite.vue";
 import io from "socket.io-client";
 import router from "@/router";
-import { onBeforeUnmount, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 let socket = io("http://localhost:3000/game");
 
@@ -57,11 +57,6 @@ socket.on("getActiveRoomNames", (payload) => {
 //const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
 //const items = ref(["Foo", "Bar"]);
 
-onBeforeUnmount(() => {
-  if (socket) {
-    socket.disconnect();
-  }
-});
 </script>
 
 <template>

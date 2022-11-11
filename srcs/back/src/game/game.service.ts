@@ -468,7 +468,20 @@ export class GameService {
 		const userId = data.userId;
 		const player = this.players[client.id];
 
-		this.waitingRooms[this.i] = WR4;
+		// A COMPLETER POUR TROUVER LA BONNE WR POUR CHAQUE CHALLENGE
+		
+	/*	if (this.waitingRooms[this.i] === undefined) {
+			this.waitingRooms[this.i] = WR4;
+			this.players[client.id].challengeId = this.i;
+		}
+		if (this.waitingRooms[this.i] !== undefined) {
+			if (userId !== data.challengeInfo.challenger && userId !== data.challengeInfo.challenged) {
+				this.waitingRooms[++this.i] = WR4;
+				player.challengeId = this.i;
+			}
+		}*/
+
+		//this.waitingRooms[this.i] = WR4;
 		let wr = this.waitingRooms[this.i];
 
 		console.log("USER ID CREATE " + userId)

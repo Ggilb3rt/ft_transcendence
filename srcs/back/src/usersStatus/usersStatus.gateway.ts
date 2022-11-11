@@ -38,7 +38,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     @WebSocketServer() server: Server;
 
 
-    //private logger: Logger = new Logger('usersStatusGateway');
+    private logger: Logger = new Logger('usersStatusGateway');
     private userArr: IStatus[] = []
 
     afterInit(server: Server) {
@@ -121,7 +121,8 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i decline challenge from => ", receiver)
-            this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+            //this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+			this.server.to("user_" + receiver.userId.toString()).emit('refuseChallenge', challenge)
         }
     }
 
@@ -130,7 +131,8 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
         if (receiver) {
             //console.log("i abort challenge to => ", receiver)
-            this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+            //this.server.to(receiver.socketId).emit('refuseChallenge', challenge)
+			this.server.to("user_" + receiver.userId.toString()).emit('newChallenge', challenge)
         }
     }
 
@@ -140,7 +142,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
         if (receiver) {
             console.log("i challenge => ", receiver)
-            this.server.to("user_" + receiver.userId).emit('newChallenge', challenge)
+            this.server.to("user_" + receiver.userId.toString()).emit('newChallenge', challenge)
         }
     }
 
@@ -150,7 +152,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
         if (receiver) {
             //console.log("i accept challenge from => ", receiver)
-            this.server.to(receiver.socketId).emit('challengeAccepted', challenge)
+            //this.server.to(receiver.socketId).emit('challengeAccepted', challenge)
             this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
         }
     }
