@@ -17,7 +17,7 @@ const userStore = useUserStore()
 		<UserGameStats
 			:user="userStore.user"
 			:user-rank="userStore.getUserRank"
-			:user-win-rate="userStore.getWinRate"
+			:user-win-rate="userStore.getWinRate()"
 		/>
 
 		<UserMatchHistory

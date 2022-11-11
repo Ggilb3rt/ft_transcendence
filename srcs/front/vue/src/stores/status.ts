@@ -118,7 +118,9 @@ export const useStatusStore = defineStore({
                         this.challengeAccepted = true
                     }
                     else if (challenge.challenger == this.id){
-                        router.push({path: "/game", query: {challenge: JSON.stringify(challenge)}})
+                      const tmpChallenge = challenge
+                      challenge = null
+                      router.push({path: "/game", query: {challenge: JSON.stringify(tmpChallenge)}})
                     }
                  })
                  this.socket.on("refuseChallenge", () => {

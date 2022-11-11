@@ -39,10 +39,9 @@ export const useUserStore = defineStore({
     //     if (state.user)
     //         return `@${state.user.nickname}`
     // },
-    getWinRate: (state): string => {
-      return (state.user.wins / state.user.loses).toPrecision(2);
-    },
     getUserRank: (state): string => {
+      if (state.user.ranking >= 5)
+        return "God"
       switch (state.user.ranking) {
         case 0:
           return "Pipou";
@@ -59,9 +58,6 @@ export const useUserStore = defineStore({
         case 4:
           return "Master";
           break;
-        case 5:
-          return "God";
-          break;
         default:
           return "Prrrrt";
           break;
@@ -75,6 +71,9 @@ export const useUserStore = defineStore({
     },
     getFriendsList(): number[] {
       return this.user.friends;
+    },
+    getWinRate(): string {
+      return (this.user.wins / this.user.loses).toPrecision(2);
     },
     setUserNick(newTag: string) {
       if (this.user) this.user.nickname = newTag;
@@ -93,51 +92,33 @@ export const useUserStore = defineStore({
     changeStatus(status: constatus) {
       this.conStatus = status;
     },
-    async getUser(id: number) {
-      this.loading = true;
-      try {
-        await fetch(`http://localhost:3000/users/${id}`, {
-          credentials: "include",
-        })
-          .then((response) => {
-            if (response.status >= 200 && response.status < 300) {
-              return response.json();
+    async getUser(data: any) {
+      // this.loading = true;
+        if (data) {
+          this.user = data
+          
+          if (this.user) {
+            this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
+            if (!this.user.match_history && !this.error) {
+              this.user.match_history = new Array();
+              if (this.user.matches) {
+                this.user.matches.forEach((el) => {
+                  const selectOpponent = el.player_left_id != this.user.id ? el.player_left_id : el.player_right_id
+                  const match: IMatchHistory = {
+                    opponent: selectOpponent,
+                    myScore: el.score_left,
+                    opponentScore: el.score_right,
+                    win: el.score_left > el.score_right,
+                    date: new Date(),
+                  };
+                  this.user.match_history.push(match);
+                });
+                this.user.matches = null;
+              }
             }
-            throw new Error(response.statusText);
-          })
-          .then((data) => {
-            if (data) {
-              // this.user.bans = this.user.bans
-              this.user = data;
-              this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`;
-              this.error = null;
-              this.connected = true;
-            }
-          });
-      } catch (error: any) {
-        this.error = error.body;
-      } finally {
-        // console.log(user)
-        // if (!this.user.invites && !this.error)
-        //     this.user.invites = [4, 1]
-        if (!this.user.match_history && !this.error) {
-          this.user.match_history = new Array();
-          if (this.user.matches) {
-            this.user.matches.forEach((el) => {
-              const match: IMatchHistory = {
-                opponent: el.player_right_id,
-                myScore: el.score_left,
-                opponentScore: el.score_right,
-                win: el.score_left > el.score_right,
-                date: new Date(),
-              };
-              this.user.match_history.push(match);
-            });
-            this.user.matches = null;
           }
         }
-        this.loading = false;
-      }
+        // this.loading = false;
     },
 
     // Manage Friends and Bans

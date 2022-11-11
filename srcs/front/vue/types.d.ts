@@ -79,15 +79,32 @@ export interface ISocketStatus {
 /// Side nav ///
 /// Used with SideNav.vue component ///
 
-export interface ISideNavData {
-	name: string;
-	isOpen: boolean;
-	items: [Object]
+// export interface ISideNavData {
+// 	name: string;
+// 	isOpen: boolean;
+// 	items: [Object]
+// }
+
+// export interface ISideNavDataItem {
+// 	name: string;
+// 	id: string;
+// 	children?: [ISideNavDataItem] | null
+// 	isOpen?: boolean;
+// }
+export interface sideNav {
+	name: string,
+	isOpen: boolean,
+	items: sideNavItem[]
 }
 
-export interface ISideNavDataItem {
-	name: string;
-	id: string;
-	children?: [ISideNavDataItem] | null
-	isOpen?: boolean;
+export interface sideNavItem {
+	name: string,
+	children?: sideNavLink[],
+	canJoin?: boolean,
+	isOpen: boolean
+}
+
+export interface sideNavLink {
+	id: string,
+	name: string
 }

@@ -21,7 +21,7 @@ function refuseChallenge() {
 </script>
 
 <template>
-		<Modal v-if="statusStore.challenge && statusStore.challenge.challenged == userStore.user.id" :show="statusStore.challenge != null" removeOK>
+		<Modal v-if="!statusStore.challengeAccepted && statusStore.challenge && statusStore.challenge.challenged == userStore.user.id" :show="!statusStore.challengeAccepted" removeOK>
 			<template #header>
 				<h2>Challenged by {{ statusStore.challenge.challenger }}</h2>
 				<h3>Relever le défi ?</h3>
