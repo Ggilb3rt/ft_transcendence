@@ -22,20 +22,19 @@ function valid() {
 			if (minuteToAdd.value > 0) {
 				channelsStore.emitRestrictUser(
 					isMute.value,
-					Number(channelsStore.currentChan.getId()),
 					channelsStore.currentChan.getId(),
-					selectedUser.value
+					selectedUser.value,
+					minuteToAdd.value
 				)
 			}
 			else {
 				channelsStore.emitRestrictUser(
 					isMute.value,
-					Number(channelsStore.currentChan.getId()),
 					channelsStore.currentChan.getId(),
 					selectedUser.value
 				)
 			}
-			console.log("send restrict user ", selectedUser.value, isMute.value)
+			console.log("send restrict user ", selectedUser.value, isMute.value, minuteToAdd.value)
 			cancel()
 		}
 		else

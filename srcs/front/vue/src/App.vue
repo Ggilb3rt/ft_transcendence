@@ -74,7 +74,10 @@ async function testConnection() {
   }
 }
 
-router.beforeResolve((to) => {testConnection(); return true})
+router.beforeResolve((to) => {
+  testConnection();
+  return true
+})
 
 window.addEventListener('beforeunload', (e) => {
   statusStore.refuseChallenge(userStore.user.id)

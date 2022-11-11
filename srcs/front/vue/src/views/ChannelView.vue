@@ -15,7 +15,7 @@ const props = defineProps({
 	direct: {type: Boolean, required: true},
 })
 
-const channelIdNumber = props.channelId
+const channelIdNumber = Number(props.channelId)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const channelsStore = useChannelsStore()
@@ -32,47 +32,12 @@ let msg = ref("")
 // 	const res = await fetch(`localhost:3000/channel/${id}`, {credentials: "include"})
 // }
 
-let currentChan = new CChannel(channelIdNumber, "Lol", "public", "", 9, [7, 8, 9], [9], [], [], [])
-
-// need to getMessages from channel(props.channelId)
-let channelMsgs: TMessage[] = [
-		{
-			sender: 8,
-			receiver: channelIdNumber,
-			msg: "lol",
-			isDirect: props.direct,
-			date: new Date()
-		},
-		{
-			sender: 9,
-			receiver: channelIdNumber,
-			msg: "pouet un message tres long pour voir ce que ca fait tout autour, poour pousser le btn challenge et l'img",
-			isDirect: props.direct,
-			date: new Date()
-		},
-		{
-			sender: userStore.user.id,
-			receiver: channelIdNumber,
-			msg: "internet",
-			isDirect: props.direct,
-			date: new Date()
-		},
-]
-
-
 function submit(e: Event) {
 	e.preventDefault()
 	// emit to server
-	channelsStore.emitMessage(channelIdNumber, msg.value)
 	if (msg.value != "") {
-		channelMsgs.push({
-			sender: userStore.user.id,
-			receiver: channelIdNumber,
-			msg: msg.value,
-			isDirect: props.direct,
-			date: new Date()
-		})
-		if (channelsStore.currentChan) {
+		channelsStore.emitMessage(channelIdNumber, msg.value)
+		if (channelsStore.currentChan) { // && emitMessage return true
 			channelsStore.currentChan.sendMessage({
 				sender: userStore.user.id,
 				receiver: channelIdNumber,
@@ -129,8 +94,8 @@ onUpdated(() => {
 					<p>
 						<span class="tag">
 							{{ usersStore.getUserNickById(msg.sender) }}
-							<span v-if="currentChan.isBan(msg.sender)"> (is ban)</span>
-							<span v-if="currentChan.isMute(msg.sender)"> (is mute)</span>
+							<span v-if="channelsStore.currentChan.isBan(msg.sender)"> (is ban)</span>
+							<span v-if="channelsStore.currentChan.isMute(msg.sender)"> (is mute)</span>
 						</span> |
 						<span class="time"> {{ msg.date }} (pas de type date)</span>
 						<!-- <span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span> -->

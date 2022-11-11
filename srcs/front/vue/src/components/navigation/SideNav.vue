@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, ref } from 'vue'
+import { onBeforeMount, onBeforeUnmount, onRenderTriggered, ref } from 'vue'
 import { RouterLink } from "vue-router";
 import router from '@/router';
 import { useChannelsStore } from '@/stores/channels';
@@ -34,24 +34,24 @@ function updateWinWidthValue(e: Event) {
 			props.model.isOpen = false
 }
 
-function getChanIdFromLink(link: string): string {
-	return link.split('/').at(-1)
+function getChanIdFromLink(link: string): number {
+	return parseInt(link.split('/').at(-1))
 }
 
 function leaveChannel(link: string) {
-	const id: string = getChanIdFromLink(link)
+	const id: number = getChanIdFromLink(link)
 	
 	if(id && confirm(`You want to leave chan ${id} ?`)) {
 		// emit to server
 		if (channelsStore.currentChan)
-			channelsStore.emitQuitChannel(Number(channelsStore.currentChan?.getId()), channelsStore.currentChan?.getId())
+			channelsStore.emitQuitChannel(channelsStore.currentChan.getId())
 		console.log("you leave chan", id)
 	}
 }
 
 function joinChannel(e: Event, link: string) {
 	e.preventDefault()
-	const id: string = getChanIdFromLink(link)
+	const id: number = getChanIdFromLink(link)
 	// emit sur join et attendre la réponse
 	if (confirm(`join channel '${id}' from '${link}' ?`))
 		if (channelsStore.emitJoin(id))
@@ -83,6 +83,10 @@ onBeforeMount(() => {
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
+})
+
+onRenderTriggered((e) => {
+	debugger
 })
 
 </script>

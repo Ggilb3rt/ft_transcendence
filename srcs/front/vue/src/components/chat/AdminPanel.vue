@@ -17,7 +17,7 @@ const adminPanel = ref(false)
 </script>
 
 <template>
-	<div v-if="channelsStore.currentChan?.isAdmin(userStore.user.id) || channelsStore.currentChan?.isOwner(userStore.user.id)" >
+	<div id="admin-panel-wrapper" v-if="channelsStore.currentChan?.isAdmin(userStore.user.id) || channelsStore.currentChan?.isOwner(userStore.user.id)" >
 		<button @click="adminPanel = true">
 			Open admin panel
 		</button>
@@ -43,6 +43,7 @@ const adminPanel = ref(false)
 
 
 <style>
+#admin-panel-wrapper { position: fixed; z-index: 9;}
 
 .room .admin-bar {
 	position: absolute;

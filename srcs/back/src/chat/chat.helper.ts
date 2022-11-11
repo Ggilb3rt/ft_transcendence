@@ -211,6 +211,8 @@ export class ChatHelper {
 
     async getBan(user_id: number, channel_id: number) {
         try {
+            // if (typeof(channel_id) == 'string')
+            //     channel_id = parseInt(channel_id)
             const ban = await prisma.ban_channels.findFirst({where: {
                 user_id,
                 channel_id
