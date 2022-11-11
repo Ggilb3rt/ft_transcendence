@@ -17,6 +17,7 @@ const minuteToAdd = ref(0)
 const formError = ref("")
 
 function valid() {
+	console.log('minuteToAdd == ', minuteToAdd.value)
 	if (channelsStore.currentChan && minuteToAdd.value <= minutesInOneYear) {
 		if (channelsStore.currentChan.restrictUser(userStore.user.id, selectedUser.value, isMute.value, minuteToAdd.value)) {
 			if (minuteToAdd.value > 0) {

@@ -1,14 +1,15 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ban_channels, users_list } from '@prisma/client';
 import { Socket } from 'socket.io';
-import { TChannelRestrict } from 'src/users/types';
-import { UsersService } from 'src/users/users.service';
+import { TChannelRestrict, TChannelType } from 'src/users/types';
 import { UsersHelper } from 'src/users/usersHelpers';
 import { ChatHelper } from './chat.helper';
 
 @Injectable()
 export class ChatService {
-    constructor(private chatHelper: ChatHelper, private jwtService: JwtService, private usersHelper: UsersHelper) {}
+    constructor(
+        private chatHelper: ChatHelper, private jwtService: JwtService, private usersHelper: UsersHelper) {}
 
     validate(token) {
         // console.log("token in validate in jwt-auth service", token)
@@ -90,11 +91,11 @@ export class ChatService {
     async banPolicy(channel_id: number, banned: number, bannedBy: number) {
 
 
-        const isBannedOwner = this.chatHelper.isOwner(channel_id, banned)
+        const isBannedOwner = await this.chatHelper.isOwner(channel_id, banned)
         if (isBannedOwner) {
             return false
         }
-        const isBannedByOwner = this.chatHelper.isOwner(channel_id, bannedBy)
+        const isBannedByOwner = await this.chatHelper.isOwner(channel_id, bannedBy)
         if (isBannedByOwner) {
             return true
         }
@@ -131,7 +132,7 @@ export class ChatService {
             return false
         }
         else if (isBan) {
-            this.chatHelper.unBan(user_id, channel_id)
+            await this.chatHelper.unBan(isBan)
         }
         return true
     }
@@ -155,65 +156,103 @@ export class ChatService {
 
     async sendMessageToChannel(channel_id: number, content: string, date: Date, user_id: number) {
         if (!this.canSend(user_id, channel_id)) {
-            throw new UnauthorizedException("You can't send a message to this channel")
+            return false
         }
         await this.chatHelper.sendMessageToChannel(channel_id, user_id, content, date)
+        return true
     }
 
     async sendDirectMessage(receiver: number, content: string, date: Date, user_id: number) {
         if (!await this.usersHelper.getFriendship(user_id, receiver)) {
-            throw new ForbiddenException("Can't send message if you are not friends")
+           return false
         }
         await this.chatHelper.sendDirectMessage(receiver, user_id, content, date)
+        return true
     }
 
     async getDirectConversation(friend: number, req) {
         const {id: user_id} = await this.getToken(req)
         return await this.chatHelper.getDirectMessages(user_id, friend)
     }
-    
+
     async joinChannel(user_id: number, channel_id: number, pass?: string) {
         if (!this.canJoin(user_id, channel_id, pass))
-            throw new ForbiddenException("You have no right to join this channel")
+            return {msg: 'no right', status: false}
         const {type} = await this.chatHelper.getChannel(channel_id)
         if (type === "private") {
-            throw new HttpException("You have no right to join this channel", HttpStatus.FORBIDDEN)
+            return {msg: 'no right', status: false}
         }
         else if (type === "pass") {
             if (!pass) {
-                throw new HttpException("Need a password to join this channel", HttpStatus.FORBIDDEN)
+                return {msg: 'need pass', status: false}
             }
             else if (this.chatHelper.checkPass(pass, channel_id)) {
-                return await this.chatHelper.joinChannel(channel_id, user_id)
+                await this.chatHelper.joinChannel(channel_id, user_id)
+                return {msg: 'joined', status: true}
             }
+            return {msg: 'password incorrect', status: false}
         }
         else if (type === "public") {
-            return await this.chatHelper.joinChannel(channel_id, user_id)
+                await this.chatHelper.joinChannel(channel_id, user_id)
+            return {msg: 'joined', status: true}
         }
     }
 
     async promoteAdmin(id: number, channel_id: number, user_id: number) {
 
         if (!await this.chatHelper.isAdmin(channel_id, user_id) && !await this.chatHelper.isOwner(channel_id, user_id))
-            throw new ForbiddenException("You have no right to promote a user")
+            return false
         if (!await this.chatHelper.isInChannel(channel_id, id))
-            throw new ForbiddenException("User needs to join channel before being promoted")
-        return await this.chatHelper.addAdmin(id, channel_id)
+            return false
+        await this.chatHelper.addAdmin(id, channel_id)
+        return true
     }
 
-    async getAvailableChannels(user_id: number) {
-        const myChannels = await this.chatHelper.getMyChannels(user_id)
+    async changeChannelType(channel_id: number, type: TChannelType, id: number, pass?: string) {
+        if (type != "direct" && type != "pass" && type != "private" && type != "public")
+            return false
+        else if (await this.chatHelper.isOwner(channel_id, id) == false)
+            return false
+        await this.chatHelper.changeChannelType(channel_id, type)
+        if (pass) {
+            await this.chatHelper.changePass(channel_id, pass)
+        }
+        return true
+    }
 
-        const ids: number[] = []
-        myChannels.forEach((elem) => {
-            ids.push(elem.channel_id)
-        })
+    async getMyChannels(user_id: number) {
+        return await this.chatHelper.getMyChannels(user_id)
+    }
+
+    async getBan(user_id: number, channel_id: number) {
+        return await this.chatHelper.getBan(user_id, channel_id)
+    }
+
+    async unBan(ban: ban_channels) {
+        return await this.chatHelper.unBan(ban)
+    }
+
+    async demote(channel_id: number, demoted_id: number, demoter_id: number) {
+        if (!await this.chatHelper.isOwner(channel_id, demoter_id))
+            return false
+        await this.chatHelper.unAdmin(channel_id, demoted_id)
+        return true
+    }
+
+    async getAvailableChannels(user_id: number, myChannels: users_list[]) {
+
+
         
         const availables = await this.chatHelper.getAvailableChannels()
         const privateC = await this.chatHelper.getMyPrivateChannels(user_id)
 
         const availableChannels: TChannelRestrict[] = [];
         const joinedChannels: TChannelRestrict[] = [];
+        const ids: number[] = [];
+
+        myChannels.forEach((elem) => {
+            ids.push(elem.channel_id)
+        })
 
         availables.forEach((elem) => {
             if (ids.includes(elem.id)) {

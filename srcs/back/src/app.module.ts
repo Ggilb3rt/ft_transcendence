@@ -15,10 +15,11 @@ import { GameService } from './game/game.service';
 import { ChatController } from './chat/chat.controller';
 import { ChatService } from './chat/chat.service';
 import { ChatModule } from './chat/chat.module';
+import { ChatGateway } from './chat/chat.gateway';
 
 @Module({
   imports: [ UsersModule, AuthModule, GameModule, JwtAuthModule, ChatModule ],
   controllers: [AppController, UsersController, AuthController, ChatController],
-  providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway, GameService, ChatService],
+  providers: [AppService, UsersService, AuthService, UsersStatusGateway, testStatusGateway, GameService, ChatService, ChatGateway],
 })
 export class AppModule {}

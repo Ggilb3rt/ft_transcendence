@@ -164,7 +164,7 @@ export class CChannel {
 		return false
 	}
 	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, timeInMinutes:number): boolean {
-		if ((this.isAdmin(restrictor) || this.isOwner(restrictor)) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor) {
+		if ((this.isOwner(restrictor) && restrictor != restricted) || (this.isAdmin(restrictor) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor)) {
 			const restrict: TRestrictUserTime = {
 				userId: restricted,
 				expire: this.addMinutes(new Date(), timeInMinutes)
@@ -195,6 +195,22 @@ export class CChannel {
 			return true
 		}
 		return false
+	}
+	unBan(banned_id: number) {
+		const index = this.banList.findIndex((e) => {
+			return e.userId === banned_id
+		})
+		if (index != -1) {
+			this.banList.splice(index, 1)
+		}
+	}
+	demote(demoted_id: number) {
+		const index = this.adminList.findIndex((e) => {
+			return e === demoted_id
+		})
+		if (index != -1) {
+			this.banList.splice(index, 1)
+		}
 	}
 	sendMessage(message: TMessage): boolean {
 		if (this.isInChannel(message.sender) && !this.isBan(message.sender) && !this.isMute(message.sender)) {

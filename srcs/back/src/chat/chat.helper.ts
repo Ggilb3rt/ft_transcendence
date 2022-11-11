@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaClient } from "@prisma/client";
+import { ban_channels, PrismaClient, users_list } from "@prisma/client";
 import { TChannel, TChannelType, TMessage, TRestrictUserTime } from "src/users/types";
 
 const bcrypt = require('bcrypt');
@@ -12,6 +12,8 @@ export class ChatHelper {
     async formatChannels(channel_id: number) {
 
         const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
+
+        console.log("banned == ", banned)
 
         const ChannelTypes = ["public" , "private" , "pass" , "direct"] as const
         const isChannelType = (type): type is TChannelType => ChannelTypes.includes(type)
@@ -98,6 +100,7 @@ export class ChatHelper {
                     channel_id
                 }
             })
+            console.log("admin : ", admin)
             if (!admin) {
                 await prisma.admins.create({
                     data: {
@@ -181,14 +184,17 @@ export class ChatHelper {
                     user_id
                 }
             })
+            console.log('alreadyban = ', alreadyban)
             if (!alreadyban) {
-            return await prisma.ban_channels.create({
+            const ban =  await prisma.ban_channels.create({
                 data: {
                     user_id,
                     channel_id,
                     expires,
                 }
             })
+            console.log("now banned = ", ban)
+            return ban
         }
         } catch (e) {
             console.log(e);
@@ -224,13 +230,11 @@ export class ChatHelper {
         }
     }
 
-    async unBan(user_id: number, channel_id: number) {
+    async unBan(ban: ban_channels) {
         try {
-            const ban = await this.getBan(user_id, channel_id)
+            console.log("I'M UNBANNING = ", ban)
             await prisma.ban_channels.delete({
-                where: {
-                    id: ban.id
-                }
+                where: {id:ban.id}
             })
         } catch (e) {
             console.log(e);
@@ -459,12 +463,13 @@ export class ChatHelper {
 
     async isInChannel(channel_id, user_id) {
         try {
-            return ((await prisma.users_list.findFirst({
+            const user = await prisma.users_list.findFirst({
                 where: {
                     channel_id,
                     user_id
                 }
-            })) ? true : false)
+            })
+           return user ? true : false
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -472,17 +477,11 @@ export class ChatHelper {
     }
 
     async isOwner(channel_id: number, user_id: number) {
-        try {
-            return (await prisma.channels.findFirst({
-                where: {
-                    id: channel_id,
-                    owner: user_id
-                }
-            }) ? true : false)
-        } catch (e) {
-            console.log(e);
-            throw new Error("Database Chat Error")
-        }
+        const channel = await this.getChannel(channel_id)
+
+        if (!channel)
+            return false
+        return channel.owner == user_id ? true : false
     }
 
     async isAdmin(channel_id: number, user_id: number) {
@@ -602,7 +601,7 @@ export class ChatHelper {
 
     async getChannel(channel_id: number) {
         try {
-            return await prisma.channels.findUnique({
+            return await prisma.channels.findFirst({
                 where: {
                     id: channel_id
                 },

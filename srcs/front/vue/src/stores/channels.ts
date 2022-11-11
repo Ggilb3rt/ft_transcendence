@@ -3,7 +3,7 @@ import { useUsersStore } from "./users";
 import { ref } from 'vue'
 import { io } from "socket.io-client"
 import { CChannel } from "@/helpers/class.channel"
-import type { IChannel, IChannelRestrict, TMessage } from "../../typesChat"
+import type { IChannel, IChannelRestrict, TChannelType, TMessage } from "../../typesChat"
 import { useUserStore } from "./user";
 
 interface IChannelsStore {
@@ -108,6 +108,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			console.log("son index", index)
 			if (index === -1)
 				return
+			openChan.value[index].unBan(msg.sender)
 			openChan.value[index].messages.push(msg)
 		}
 		else {
@@ -197,6 +198,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			}
 			// openChan.value[index].banList.push()
 			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'kicked', args.banned_by, -4))
+			
 		}
 
 	function handleJoin(args: {
@@ -224,16 +226,44 @@ export const useChannelsStore = defineStore('channels', () => {
 			openChan.value[index].messages.push(createCustomMessage(args.client_quit, 'left', args.channel_id, -6))
 		}
 
+	function handleTypeChange(args: {channel_id: number, type: TChannelType, user_id: number, pass?: string}){
+		const {channel_id, type, user_id, pass} = args;
+		const index: number = getChanIndex(args.channel_id)
+		if (index === -1) {
+			return
+		}
+        if (type != "direct" && type != "pass" && type != "private" && type != "public")
+			return
+		openChan.value[index].changeChannelType(user_id, type, pass)
+	}
+
+	function handleDemote(arg: {channel_id: number, demoted_id: number, id: number}) {
+		const { channel_id, demoted_id, id} = arg;
+
+		const index: number = getChanIndex(channel_id)
+		if (index === -1) {
+			return
+		}
+		openChan.value[index].demote(demoted_id)
+		openChan.value[index].messages.push(createCustomMessage(demoted_id, 'demoted', id, -1))
+	}
+
 	async function setup() {
-		refsocket.value.emit('getMyRooms', (res: any) => {
-			res.forEach((elem: string) => {
-				myRooms.push(elem)
-				console.log('Adding room id: ', elem)
-			})
+		refsocket.value.emit('getMyRooms', (res: boolean | any) => {
+			if (res == false) {
+				// throw new blabla
+			}
+			else {
+					availableChannels.value = res.availableChannels
+					joinedChannels.value = res.joinedChannels
+					joinedChannels.value.push({name: "fake", id: 10})
+				}
 		})
 		refsocket.value.on('messageSentToChannel', handleMessage)
 		refsocket.value.on('directMessageSent', handleMessage)
+		refsocket.value.on('typeChanged', handleTypeChange)
 		refsocket.value.on('promote', handlePromotion)
+		refsocket.value.on('demoted', handleDemote)
 		refsocket.value.on('ban', handleBan)
 		refsocket.value.on('kick', handleKick)
 		refsocket.value.on('mute', handleMute)
@@ -244,17 +274,8 @@ export const useChannelsStore = defineStore('channels', () => {
 		async function getChansLists() {
 			try {
 				// la reponse va être un obj avec deux tableaux, un avaec les chanRestrict dispo et un avec ceux dans lequel je me trouve
-				const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
-				let data;
-				if (response.status >= 200 && response.status < 300)
-					data = await response.json()
-				else
-					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
-				if (data) {
-					availableChannels.value = data.availableChannels
-					joinedChannels.value = data.joinedChannels
-					joinedChannels.value.push({name: "fake", id: 10})
-				}
+				// const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
+				
 			setup()
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
@@ -272,6 +293,7 @@ export const useChannelsStore = defineStore('channels', () => {
 				else
 					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 				if (data) {
+					console.log("MY OPENED CHANNEL: ", data);
 					// check if chan exist
 						// update data
 					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
@@ -312,13 +334,14 @@ export const useChannelsStore = defineStore('channels', () => {
 		function isChanInList(id: number): boolean {
 			return openChan.value.find((el) => el.id == id) ? true : false
 		}
+		
 		// Getter
 		function selectCurrentChan(id: number) {
 			if (!isChanInList(id))
 				return
-			const finded = openChan.value.find((el) => el.id == id)
-			if (finded)
-				currentChan.value = finded
+			const found = openChan.value.find((el) => el.id == id)
+			if (found)
+				currentChan.value = found
 		}
 		function unselectCurrentChan() {
 			currentChan.value = null

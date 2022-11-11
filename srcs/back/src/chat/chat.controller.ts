@@ -1,17 +1,12 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
-import { TChannel, TMessageRestrict } from 'src/users/types';
+import { TChannel } from 'src/users/types';
 import { ChatService } from './chat.service';
 
 @Controller('channels')
 @UseGuards(JwtAuthGuard)
 export class ChatController {
     constructor(private chatService: ChatService) {}
-
-    @Get()
-    async getChannels(@Req() req: Request) {
-        return this.chatService.getAvailableChannels(await this.chatService.getToken(req))
-    }
 
     @Post()
     createChannel(@Body('channel') channel: TChannel) {
