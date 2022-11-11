@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import type { Ref } from "vue"
-import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, TStatus, ISocketStatus } from '../../types'
+import type { IUser, IOtherUserRestrict, IOtherUser, IMatchHistory, TStatus, ISocketStatus, sideNavLink } from '../../types'
 import type { io, Socket } from "socket.io-client"
 
 export interface IUsersStoreState {
@@ -116,10 +116,10 @@ export const useUsersStore = defineStore({
         // },
         
         // je devrai plutot return string[] et adapter si besoin dans les composents
-        getUsersListForChat(idList: number[]): Object[] | null {
-            let list: Object[] = []
+        getUsersListForChat(idList: number[]): sideNavLink[] {
+            let list: sideNavLink[] = []
             if (!idList)
-                return null
+                return list
             idList.forEach((el) => {
                 const findUser = this.userList.find((user) => user.id == el)
                 if (findUser != undefined) {

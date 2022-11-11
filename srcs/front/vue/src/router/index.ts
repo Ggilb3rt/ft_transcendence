@@ -107,7 +107,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:ourGames/:id?",
+      path: "/game/:ourGames?/:id?",
       name: "game",
       component: Game,
     },
@@ -170,12 +170,6 @@ router.beforeEach(async (to, from) => {
       return false
   }
   return true
-})
-
-router.afterEach((to, from) => {
-  const userStore = useUserStore()
-
-  userStore.loading = false
 })
 
 export default router;

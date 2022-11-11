@@ -140,7 +140,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (receiver) {
             //console.log("i accept challenge from => ", receiver)
             this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
-            this.server.to('user_' + receiver.userId).emit('challengeAccepted', challenge)
+            this.server.to("user_" + receiver.userId).emit('challengeAccepted', challenge)
         }
     }
 //

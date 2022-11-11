@@ -10,6 +10,7 @@ import SideNav from '../components/navigation/SideNav.vue';
 import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 import CreateChanForm from '@/components/chat/CreateChanForm.vue'
 import Loader from '@/components/navigation/loader.vue'
+import chatSideNav from '@/components/navigation/chatSideNav.vue';
 
 const usersStore = useUsersStore()
 const userStore = useUserStore()
@@ -205,6 +206,7 @@ onBeforeMount(() => {
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
 		<router-view v-else></router-view>
+		<chatSideNav class="item open" :onRight="true"></chatSideNav>
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav>
 	</div>
 </template>

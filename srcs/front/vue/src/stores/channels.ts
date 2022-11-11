@@ -11,7 +11,7 @@ interface IChannelsStore {
 	joinedChannels: IChannelRestrict[]
 	openChan: CChannel[]
 	currentChan: CChannel | null
-	loader: boolean
+	loading: boolean
 	error: any
 }
 
@@ -37,7 +37,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		withCredentials: true,
 	}));
 
-	const loader = false
+	const loading = ref<boolean>(false)
 	const myRooms: string[] = [];
 
 	function getChanIndex(rhs: number): number {
@@ -116,10 +116,12 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 	}
 
-	function createCustomMessage(admin: number, did: string, type: number, to: number): TMessage {
+	function createCustomMessage(admin: number, did: string, to: number, type: number): TMessage {
 		if (type > -5) {
 			const admin_nick: string = admin === userStore.user.id ? 'You' : usersStore.getUserNickById(admin);
 			const user_nick: string = to === userStore.user.id ? 'you' : usersStore.getUserNickById(to);
+			console.log("user _nick == ", user_nick, "to == ", to)
+
 			const msg = `${admin_nick} ` + did + ` ${user_nick} !`;
 			return {
 				sender: type,
@@ -272,6 +274,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	}
 		// Initialise
 		async function getChansLists() {
+			loading.value = true
 			try {
 				// la reponse va être un obj avec deux tableaux, un avaec les chanRestrict dispo et un avec ceux dans lequel je me trouve
 				// const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
@@ -280,9 +283,12 @@ export const useChannelsStore = defineStore('channels', () => {
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
+			} finally {
+				loading.value = false
 			}
 		}
 		async function getChan(id: number) {
+			loading.value = true
 			if (isChanInList(id))
 				return
 			try {
@@ -316,6 +322,8 @@ export const useChannelsStore = defineStore('channels', () => {
 			} catch (error: any) {
 				const tempErr = JSON.parse(error.message)
 				error.value = tempErr.body
+			} finally {
+				loading.value = false
 			}
 		}
 		async function createChan(newChan: IChannel): Promise<boolean> {
@@ -393,7 +401,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		// ! fin
 		openChan,
 		currentChan,
-		loader,
+		loading,
 		error,
 		getChansLists,
 		getChan,

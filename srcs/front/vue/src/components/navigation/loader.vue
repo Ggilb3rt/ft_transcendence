@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
+import { useChannelsStore } from '@/stores/channels';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
+// const channelStore = useChannelsStore()
 
 </script>
 

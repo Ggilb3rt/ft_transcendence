@@ -144,7 +144,7 @@ export class ChatHelper {
             channel_id
         }})
         return await prisma.users_list.delete({
-            where: userList
+            where: {id: userList.id}
         }) 
     }
 
