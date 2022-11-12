@@ -234,6 +234,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         return (true)
     }
 
+    @SubscribeMessage('passChange')
+    async passCHange(client: Socket, arg: { channel_id: number, oldPass: string, newPass: string}) {
+        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        const {channel_id, newPass} = arg;
+
+        const res = await this.chatService.changePass(channel_id, id, newPass)
+    }
+
     @SubscribeMessage('typeChange')
     async changeType(client: Socket, arg: { channel_id: number, type: TChannelType, pass?: string }) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)

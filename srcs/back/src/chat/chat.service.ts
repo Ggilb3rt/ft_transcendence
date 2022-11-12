@@ -208,6 +208,14 @@ export class ChatService {
         return true
     }
 
+    async changePass(channel_id: number, id: number, pass: string){
+        if (await this.chatHelper.isOwner(channel_id, id) == false) {
+            return false
+        }
+        await this.chatHelper.changePass(channel_id, pass)
+        return true
+    }
+
     async changeChannelType(channel_id: number, type: TChannelType, id: number, pass?: string) {
         if (type != "direct" && type != "pass" && type != "private" && type != "public")
             return false

@@ -11,7 +11,7 @@ export class ChatHelper {
     // TODO: hash all passwords
     async formatChannels(channel_id: number) {
 
-        const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
+        const { id, name, type, owner, users_list, banned, messages, muted, admins, pass } = await this.getChannel(channel_id)
 
         const ChannelTypes = ["public" , "private" , "pass" , "direct"] as const
         const isChannelType = (type): type is TChannelType => ChannelTypes.includes(type)
@@ -47,6 +47,7 @@ export class ChatHelper {
                 ChanName: name,
                 type,
                 owner,
+                pass,
                 userList,
                 banList,
                 muteList,
@@ -67,8 +68,11 @@ export class ChatHelper {
     async createChannel(chan: TChannel) {
         try {
             if (chan.pass) {
-                return await bcrypt.hash(chan.pass, 10, async (hash) => {
-                    const channel = await prisma.channels.create({
+                // console.log("bcrypt = ", bcrypt)
+                console.log("chan = ", chan)
+                const hash: string = await bcrypt.hash(chan.pass, 10)
+                console.log('hash == ', hash)
+                const channel = await prisma.channels.create({
                         data:{
                             name: chan.ChanName,
                             type: chan.type,
@@ -76,16 +80,17 @@ export class ChatHelper {
                             owner: chan.owner,
                         },
                         select: {
+                            pass:true,
                             id: true
                         }
                     })
                     chan.userList.forEach(async (id) => {
-                        this.joinChannel(channel.id, id)
+                        await this.joinChannel(channel.id, id)
                     })
-                    this.joinChannel(channel.id, chan.owner)
-                    this.addAdmin(chan.owner, channel.id)
+                    await this.joinChannel(channel.id, chan.owner)
+                    await this.addAdmin(chan.owner, channel.id)
+                    console.log("channel = ", channel)
                     return channel.id;
-                })
             }
             else {
                 const channel = await prisma.channels.create({
@@ -99,10 +104,11 @@ export class ChatHelper {
                     }
                 })
                 chan.userList.forEach(async (id) => {
-                    this.joinChannel(channel.id, id)
+                    await this.joinChannel(channel.id, id)
                 })
-                this.joinChannel(channel.id, chan.owner)
-                this.addAdmin(chan.owner, channel.id)
+                await this.joinChannel(channel.id, chan.owner)
+                await this.addAdmin(chan.owner, channel.id)
+                console.log("ou je suis ici ", channel)
                 return channel.id;
             }
             
