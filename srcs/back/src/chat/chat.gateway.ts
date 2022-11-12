@@ -144,7 +144,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const { content, receiver, date} = arg
 
-        // if not banned
+        if (await this.usersService.isBan(id, receiver) == true)
+            return
 
         const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
 
