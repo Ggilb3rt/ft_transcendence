@@ -179,7 +179,7 @@ export const useChannelsStore = defineStore('channels', () => {
 				// ce serai cool d'avoir les infos direct si le join est ok
 				error.value = ""
 				switchJoinedAvailable(channel_id, false)
-				getChan(channel_id)
+				getChan(channel_id)	// can't await but works
 				selectCurrentChan(channel_id)
 				router.push(`/chat/room/${channel_id}`)
 			}
@@ -358,7 +358,6 @@ export const useChannelsStore = defineStore('channels', () => {
 			else {
 					availableChannels.value = res.availableChannels
 					joinedChannels.value = res.joinedChannels
-					joinedChannels.value.push({name: "fake", id: 10})
 				}
 		})
 		refsocket.value.on('messageSentToChannel', handleMessage)
@@ -376,10 +375,9 @@ export const useChannelsStore = defineStore('channels', () => {
 		async function getChansLists() {
 			loading.value = true
 			try {
-				// la reponse va être un obj avec deux tableaux, un avaec les chanRestrict dispo et un avec ceux dans lequel je me trouve
 				// const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
 				
-			setup()
+				setup()
 			} catch (error: any) {
 				console.log("err = ", error)
 				const tempErr = await JSON.parse(error.message)
@@ -390,8 +388,8 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 		async function getChan(id: number) {
 			loading.value = true
-			if (isChanInList(id))
-				return
+			// if (isChanInList(id))
+			// 	return
 			try {
 				const response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;

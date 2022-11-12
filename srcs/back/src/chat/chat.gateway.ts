@@ -43,7 +43,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             console.log("bans = ", bans)
             bans.forEach(async (ban) => {
                 if(ban.expires < new Date()) {
+                    console.log("le ban ", ban)
                     await this.chatService.unBan(ban)
+                    await this.unBan(user_id, ban.channel_id)
                 }
             })
     }
@@ -64,21 +66,24 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     async leaveChannelId(banned_id: number, channel_id: number) {
-        const room = makeId(false, banned_id)
+        const room = makeId(true, banned_id)
+        console.log(room)
         const clients = await this.server.in(room).fetchSockets();
-
-        clients.forEach((client) => [
-            client.leave(makeId(true, channel_id))
-        ])
+        console.log("banning ", banned_id)
+        clients.forEach((client) => {
+            console.log("le banning ", channel_id)
+            console.log("socket = ", client.id)
+            client.leave(makeId(false, channel_id))
+        })
     }
     
     async unBan(banned_id: number, channel_id: number) {
-        const room = makeId(false, banned_id)
+        const room = makeId(true, banned_id)
         const clients = await this.server.in(room).fetchSockets();
 
-        clients.forEach((client) => [
+        clients.forEach((client) => {
             client.join(makeId(true, channel_id))
-        ])
+        })
     }
 
     @SubscribeMessage('getMyRooms')
@@ -225,7 +230,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const { channel_id, banned_id, expires} = arg
 
-        const res = await this.chatService.banUser(channel_id, banned_id, expires, id)
+        const res: boolean = await this.chatService.banUser(channel_id, banned_id, expires, id)
+        console.log("res == ", res)
 
         if (!res)
             return false
