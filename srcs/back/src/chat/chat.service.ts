@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ban_channels, users_list } from '@prisma/client';
+import { ban_channels, muted, users_list } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { TChannelRestrict, TChannelType } from 'src/users/types';
 import { UsersHelper } from 'src/users/usersHelpers';
@@ -186,10 +186,11 @@ export class ChatService {
             if (!pass) {
                 return {msg: 'need pass', status: false}
             }
-            else if (this.chatHelper.checkPass(pass, channel_id)) {
+            else if (await this.chatHelper.checkPass(pass, channel_id)) {
                 await this.chatHelper.joinChannel(channel_id, user_id)
                 return {msg: 'joined', status: true}
             }
+            console.log("OULA")
             return {msg: 'password incorrect', status: false}
         }
         else if (type === "public") {
@@ -205,6 +206,15 @@ export class ChatService {
         if (!await this.chatHelper.isInChannel(channel_id, id))
             return false
         await this.chatHelper.addAdmin(id, channel_id)
+        return true
+    }
+
+    async changePass(channel_id: number, id: number, pass: string){
+        if (await this.chatHelper.isOwner(channel_id, id) == false) {
+            return false
+        }
+        console.log("arg == ", id, pass)
+        await this.chatHelper.changePass(channel_id, pass)
         return true
     }
 
@@ -226,6 +236,18 @@ export class ChatService {
 
     async getBan(user_id: number, channel_id: number) {
         return await this.chatHelper.getBan(user_id, channel_id)
+    }
+
+    async getMyMutes(user_id: number) {
+        return await this.chatHelper.getMyMutes(user_id)
+    }
+
+    async getMyBans(user_id: number) {
+        return await this.chatHelper.getMyBans(user_id)
+    }
+
+    async unMute(channel_id: number, muted: number) {
+        return await this.chatHelper.unMute(channel_id, muted)
     }
 
     async unBan(ban: ban_channels) {

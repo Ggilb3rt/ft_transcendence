@@ -381,7 +381,8 @@ export const useChannelsStore = defineStore('channels', () => {
 				
 			setup()
 			} catch (error: any) {
-				const tempErr = JSON.parse(error.message)
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
 				error.value = tempErr.body
 			} finally {
 				loading.value = false
@@ -403,6 +404,7 @@ export const useChannelsStore = defineStore('channels', () => {
 					// check if chan exist
 						// update data
 					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					console.log("complete channel = ", data)
 					if (chanIndex != undefined) {
 						let newChan = new CChannel(
 							data.id, 
@@ -416,11 +418,13 @@ export const useChannelsStore = defineStore('channels', () => {
 							data.muteList,
 							data.messages
 						)
+						console.log("newChan ", newChan)
 						openChan.value.push(newChan)
 					}
 				}
 			} catch (error: any) {
-				const tempErr = JSON.parse(error.message)
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
 				error.value = tempErr.body
 			} finally {
 				loading.value = false

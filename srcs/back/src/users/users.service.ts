@@ -357,6 +357,13 @@ export class UsersService {
     }
   }
 
+  async isBan(id: number, ban: number) {
+    const banned =  this.usersHelper.getBan(id, ban)
+    if (banned)
+      return true
+    return false
+  }
+
   async switch2fa(id: number, status: boolean, response) {
     try {
       await this.usersHelper.getUser(id);

@@ -13,8 +13,6 @@ export class ChatHelper {
 
         const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
 
-        console.log("banned == ", banned)
-
         const ChannelTypes = ["public" , "private" , "pass" , "direct"] as const
         const isChannelType = (type): type is TChannelType => ChannelTypes.includes(type)
         if (isChannelType(type)) {
@@ -55,6 +53,7 @@ export class ChatHelper {
                 adminList,
                 messages: messagesTrimmed
             }
+            console.log("Channel on reload = ", formated_channel)
             return formated_channel
         }
 
@@ -65,27 +64,53 @@ export class ChatHelper {
         // }
     }
 
-    async createChannel(chan: TChannel,) {
+    async createChannel(chan: TChannel) {
         try {
-            const hash: string = chan.pass? await bcrypt.hash(chan.pass, 10) : ""
-            const channel = await prisma.channels.create({
-                data:{
-                    name: chan.ChanName,
-                    type: chan.type,
-                    pass: hash,
-                    owner: chan.owner,
-                },
-                select: {
-                    id: true
-                }
-            })
-            console.log("\n\n--------chan === ", chan)
-            chan.userList.forEach(async (id) => {
-                this.joinChannel(channel.id, id)
-            })
-            this.joinChannel(channel.id, chan.owner)
-            this.addAdmin(chan.owner, channel.id)
-            return channel.id;
+            if (chan.pass) {
+                // console.log("bcrypt = ", bcrypt)
+                console.log("chan = ", chan)
+                const hash: string = await bcrypt.hash(chan.pass, 10)
+                console.log('hash == ', hash)
+                const channel = await prisma.channels.create({
+                        data:{
+                            name: chan.ChanName,
+                            type: chan.type,
+                            pass: hash,
+                            owner: chan.owner,
+                        },
+                        select: {
+                            pass:true,
+                            id: true
+                        }
+                    })
+                    chan.userList.forEach(async (id) => {
+                        await this.joinChannel(channel.id, id)
+                    })
+                    await this.joinChannel(channel.id, chan.owner)
+                    await this.addAdmin(chan.owner, channel.id)
+                    console.log("channel = ", channel)
+                    return channel.id;
+            }
+            else {
+                const channel = await prisma.channels.create({
+                    data:{
+                        name: chan.ChanName,
+                        type: chan.type,
+                        owner: chan.owner,
+                    },
+                    select: {
+                        id: true
+                    }
+                })
+                chan.userList.forEach(async (id) => {
+                    await this.joinChannel(channel.id, id)
+                })
+                await this.joinChannel(channel.id, chan.owner)
+                await this.addAdmin(chan.owner, channel.id)
+                console.log("ou je suis ici ", channel)
+                return channel.id;
+            }
+            
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -100,7 +125,6 @@ export class ChatHelper {
                     channel_id
                 }
             })
-            console.log("admin : ", admin)
             if (!admin) {
                 await prisma.admins.create({
                     data: {
@@ -184,7 +208,6 @@ export class ChatHelper {
                     user_id
                 }
             })
-            console.log('alreadyban = ', alreadyban)
             if (!alreadyban) {
             const ban =  await prisma.ban_channels.create({
                 data: {
@@ -193,7 +216,6 @@ export class ChatHelper {
                     expires,
                 }
             })
-            console.log("now banned = ", ban)
             return ban
         }
         } catch (e) {
@@ -215,6 +237,22 @@ export class ChatHelper {
         }
     }
 
+    async getMyBans(user_id: number) {
+        try {
+            const bans = await prisma.ban_channels.findMany({
+                where: {
+                    user_id
+                }
+            })
+            return bans
+        }
+        catch (e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
+
+    }
+
     async getBan(user_id: number, channel_id: number) {
         try {
             // if (typeof(channel_id) == 'string')
@@ -232,7 +270,6 @@ export class ChatHelper {
 
     async unBan(ban: ban_channels) {
         try {
-            console.log("I'M UNBANNING = ", ban)
             await prisma.ban_channels.delete({
                 where: {id:ban.id}
             })
@@ -351,14 +388,30 @@ export class ChatHelper {
         }
     }
 
+    async getMyMutes(user_id: number) {
+        try{
+            const mutes = await prisma.muted.findMany({
+                where:{
+                    muted_id: user_id
+                }
+            })
+            return (mutes)
+        }
+        catch(e) {
+            console.log(e);
+            throw new Error("Database Chat Error")
+        }
+    }
+
     async getMute(channel_id: number, muted_id: number) {
         try {
-            return await prisma.muted.findFirst({
+            const mute = await prisma.muted.findFirst({
                 where: {
                     channel_id,
                     muted_id
                 }
             })
+            return (mute)
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -447,7 +500,6 @@ export class ChatHelper {
     async joinChannel(channel_id: number, user_id: number) {
         try {
             const user = await this.getUser(channel_id, user_id)
-            console.log("USER === ", user)
             if (!user)
                 return await prisma.users_list.create({
                     data: {
@@ -545,14 +597,16 @@ export class ChatHelper {
 
     async changePass(channel_id: number, pass: string) {
         try {
-            return await prisma.channels.update({
-                where: {
-                    id: channel_id
-                },
-                data: {
-                    pass
-                }
-            })
+            console.log("pass = ", pass)
+            const hash =  await bcrypt.hash(pass, 10)
+                return await prisma.channels.update({
+                    where: {
+                        id: channel_id
+                    },
+                    data: {
+                        pass: hash
+                    }
+                })
         } catch (e) {
             console.log(e);
             throw new Error("Error modifying channel passs")
@@ -562,9 +616,13 @@ export class ChatHelper {
     async checkPass(pass: string, channel_id) {
         const channel = await this.getChannel(channel_id)
 
-        if (await bcrypt.compare(pass, channel.pass))
-            return true
-        return false
+        console.log("channel = ", channel)
+        console.log("pass = ", pass)
+
+
+        const checked = await bcrypt.compare(pass, channel.pass)
+        console.log("Checked == ", checked)
+        return checked
     }
 
     async sendMessageToChannel(channel_id: number, sender: number, content: string, date: Date) {
@@ -610,7 +668,7 @@ export class ChatHelper {
                     users_list: true,
                     admins: true,
                     banned: true,
-                    muted: true
+                    muted: true,
                 }
             })
         } catch (error) {

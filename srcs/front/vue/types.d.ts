@@ -2,6 +2,7 @@ export type Challenge = {
   challenger: Number,
   level: Number,
   challenged: Number,
+  socketId: string
 } | null
 
 export interface IUser {
