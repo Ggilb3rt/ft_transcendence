@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from "vue"
 import { useStatusStore } from '@/stores/status'
 import { useUserStore} from '@/stores/user'
@@ -21,7 +21,7 @@ function refuseChallenge() {
 </script>
 
 <template>
-		<Modal v-if="statusStore.challenge && statusStore.challenge.challenged == userStore.user.id" :show="statusStore.challenge" @close="showChallengModal = false" removeOK>
+		<Modal v-if="!statusStore.challengeAccepted && statusStore.challenge && statusStore.challenge.challenged == userStore.user.id" :show="!statusStore.challengeAccepted" removeOK>
 			<template #header>
 				<h2>Challenged by {{ statusStore.challenge.challenger }}</h2>
 				<h3>Relever le défi ?</h3>

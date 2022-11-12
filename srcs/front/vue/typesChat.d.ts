@@ -12,7 +12,7 @@ export type TChannelUser = {
 }
 
 export interface IChannel {
-	id?: string;
+	id: number;
 	ChanName: string;
 	type: TChannelType;
 	pass?: string;
@@ -26,14 +26,14 @@ export interface IChannel {
 
 export interface IChannelRestrict {
 	name: string;
-	id: string;
+	id: number;
 }
 
 // remplacer tag et img par userId, permet de le retrouver dans le store usersList
 // en vrai pas sur parceque ça va faire plein d'appel au store... je sais pas trop en vrai
 export type TMessage = {
 	sender: number,
-	receiver: string,
+	receiver: number,
 	msg: string,
 	isDirect: boolean,
 	date: Date

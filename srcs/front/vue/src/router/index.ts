@@ -172,10 +172,4 @@ router.beforeEach(async (to, from) => {
   return true
 })
 
-router.afterEach((to, from) => {
-  const userStore = useUserStore()
-
-  userStore.loading = false
-})
-
 export default router;

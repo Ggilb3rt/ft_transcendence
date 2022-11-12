@@ -2,6 +2,7 @@ export type Challenge = {
   challenger: Number,
   level: Number,
   challenged: Number,
+  socketId: string
 } | null
 
 export interface IUser {
@@ -70,7 +71,6 @@ export type TStatus = "available" | "disconnected" | "inGame" | "challenged"
 
 // Status of each users, use to allowed or not some actions
 export interface ISocketStatus {
-  socketId: string[];
   userStatus: TStatus;
   userId: number;
 }
@@ -80,15 +80,32 @@ export interface ISocketStatus {
 /// Side nav ///
 /// Used with SideNav.vue component ///
 
-export interface ISideNavData {
-	name: string;
-	isOpen: boolean;
-	items: [Object]
+// export interface ISideNavData {
+// 	name: string;
+// 	isOpen: boolean;
+// 	items: [Object]
+// }
+
+// export interface ISideNavDataItem {
+// 	name: string;
+// 	id: string;
+// 	children?: [ISideNavDataItem] | null
+// 	isOpen?: boolean;
+// }
+export interface sideNav {
+	name: string,
+	isOpen: boolean,
+	items: sideNavItem[]
 }
 
-export interface ISideNavDataItem {
-	name: string;
-	id: string;
-	children?: [ISideNavDataItem] | null
-	isOpen?: boolean;
+export interface sideNavItem {
+	name: string,
+	children?: sideNavLink[],
+	canJoin?: boolean,
+	isOpen: boolean
+}
+
+export interface sideNavLink {
+	id: string,
+	name: string
 }

@@ -1,37 +1,44 @@
 <script setup lang="ts">
 import { onBeforeMount, onBeforeUnmount, onRenderTriggered, ref } from 'vue'
+import type { sideNav, sideNavItem, sideNavLink } from "../../../types"
 import { RouterLink } from "vue-router";
 import router from '@/router';
 import { useChannelsStore } from '@/stores/channels';
 import { useUsersStore } from '@/stores/users';
+import { useUserStore } from '@/stores/user';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
 
 const props = defineProps({
-	model: {type: [Object], required: true},
 	onRight: {type: Boolean, required: true}
 })
-
 let winWidth = ref(window.innerWidth)
 const channelsStore = useChannelsStore()
 const usersStore = useUsersStore()
+const userStore = useUserStore()
+const folders = ref([{isOpen: true}, {isOpen: true}])
+
 
 function isOpen(index: number) {
-	return props.model.items[index].isOpen
+	return folders.value[index].isOpen
 }
-function isFolder(index: number) {
-	return props.model.items[index].children && props.model.items[index].children.length
-}
+// function isFolder(index: number) {
+// 	return props.model.items[index].children && props.model.items[index].children.length
+// }
 function toggle(index: number) {
-	props.model.items[index].isOpen = !props.model.items[index].isOpen
+	folders.value[index].isOpen = !folders.value[index].isOpen
 }
 
-function updateWinWidthValue(e: Event) {
+function updateWinWidthValue() {
 	winWidth.value = window.innerWidth
 		if (winWidth.value >= 768)
-			props.model.isOpen = true
+			folders.value.forEach(el => {
+				el.isOpen = true
+			});
 		else
-			props.model.isOpen = false
+			folders.value.forEach(el => {
+				el.isOpen = false
+			});
 }
 
 function getChanIdFromLink(link: string): number {
@@ -59,35 +66,47 @@ function joinChannel(e: Event, link: string) {
 }
 
 onBeforeMount(() => {
-	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+	window.addEventListener('resize', (e) => updateWinWidthValue());
 	// check on start
-	if (winWidth.value >= 768)
-		props.model.isOpen = true
-	else
-		props.model.isOpen = false
+	// updateWinWidthValue()
 
-	if (props.onRight) {
-		if (channelsStore.currentChan) {
-			if (props.model.items.length > 1) {
-				props.model.items[1].children = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
-			}
-		}
-		else{
-			if (props.model.items.length > 1) {
-				props.model.items[1].children = []
-			}
-		}
-	}
-	console.log("la side nav ", props.model.items)
 })
 
 onBeforeUnmount(() => {
-	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
+	window.removeEventListener('resize', (e) => updateWinWidthValue())
 })
 
-onRenderTriggered((e) => {
-	debugger
+// onRenderTriggered((e) => {
+// 	debugger
+// })
+
+
+
+
+const sideNavDataLeft = ref({
+	name: 'Channels',
+	isOpen: false,
+	items: [
+		// {
+		// 	name: 'New',
+		// 	children: null,
+		// 	id '/chat/new'
+		// },
+		{
+			name: 'All channels3',
+			// children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
+			children: channelsStore.getChanListForSideBar(false),
+			canJoin: true,
+			isOpen: false
+		},
+		{
+			name: 'My channels',
+			children: channelsStore.getChanListForSideBar(true),
+			isOpen: true
+		}
+	]
 })
+
 
 </script>
 
@@ -96,13 +115,37 @@ onRenderTriggered((e) => {
 		<button 
 			v-if="winWidth < 768"
 			class="btn_side"
-			@click="props.model.isOpen = !props.model.isOpen"
+			@click="toggle(0)"
 		>
 			<i class="icon_btn">
 				<CarbonClose></CarbonClose>
 			</i>
 		</button>
-		<li v-for="el, index in model.items" :key="el">
+
+		<li>
+			<button>Availables [{{ isOpen(0) ? '-' : '+' }}]</button>
+			
+			<nav class="bold" @click="toggle(0)">
+				<ul v-show="isOpen(0)">
+					<li v-for="child in channelsStore.getChanListForSideBar(false)" :key="child.id">
+						<a href="#" rel="nofollow" v-if="child.id" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
+					</li>
+				</ul>
+			</nav>
+			<button>Joined [{{ isOpen(1) ? '-' : '+' }}]</button>
+			
+			<nav class="bold" @click="toggle(1)">
+				<ul v-show="isOpen(1)">
+					<li v-for="child in channelsStore.getChanListForSideBar(true)" :key="child.id">
+						<RouterLink v-if="child.id" :to="child.id" class="channel_link">
+							{{ child.name }}
+							<button v-if="!onRight" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
+						</RouterLink>
+					</li>
+				</ul>
+			</nav>
+		</li>
+		<!-- <li v-for="el, index in currentSideNav.items" :key="el.name">
 			<nav
 				:class="{ bold: isFolder(index) }"
 				@click="toggle(index)"
@@ -110,13 +153,13 @@ onRenderTriggered((e) => {
 				<RouterLink v-if="el.id" :to="el.id">
 					{{ el.name }}
 				</RouterLink>
-				<button v-else>{{ el.name }}
+				<button>{{ el.name }}
 					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
 				</button>
 			</nav>
 			<nav>
 				<ul v-show="isOpen(index)" v-if="isFolder(index)">
-					<li v-for="child in el.children" :key="child">
+					<li v-for="child in el.children" :key="child.id">
 						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
 						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
 							{{ child.name }}
@@ -126,7 +169,7 @@ onRenderTriggered((e) => {
 					</li>
 				</ul>
 			</nav>
-		</li>
+		</li> -->
 	</ul>
 </template>
 

@@ -51,8 +51,7 @@ async function testConnection() {
       throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
     }
     if (data) {
-        userStore.user = data
-        userStore.user.avatar_url = `http://localhost:3000/users/${userStore.user.id}/avatar`
+        userStore.getUser(data)
         userStore.error = null
         userStore.connected = true
         usersStore.getUsers()
@@ -69,14 +68,14 @@ async function testConnection() {
     const tempErr = JSON.parse(error.message);
     userStore.error = tempErr.body;
   } finally {
-    console.log("me repetes-je?")
-    userStore.loading = false;
+    userStore.loading = false
+    console.log("end of testConnection")
   }
 }
 
 router.beforeResolve((to) => {
-  testConnection();
-  return true
+    testConnection();
+    return true
 })
 
 window.addEventListener('beforeunload', (e) => {
@@ -111,6 +110,10 @@ watch(route, (newRoute) => {
     }
   }
 });
+
+onMounted(() => {
+  userStore.loading = false
+})
 </script>
 
 <template>

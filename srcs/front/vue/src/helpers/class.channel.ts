@@ -2,7 +2,7 @@ import type { IChannel, TChannelType, TRestrictUserTime, TMessage } from "typesC
 
 // must protect if channel type is direct (remove possibility of add or remove user, ban, kick, change type, etc)
 export class CChannel {
-	id: string;
+	id: number;
 	ChanName: string;
 	type: TChannelType;
 	pass: string;
@@ -16,7 +16,7 @@ export class CChannel {
 	maxUser: number;
 
 	constructor(
-		id:string,
+		id:number,
 		name: string,
 		type: TChannelType,
 		pass: string,
@@ -55,9 +55,20 @@ export class CChannel {
 		if (isBan)
 			userRestrict = this.banList.find((el) => el.userId == userId)
 		else
-			userRestrict = this.banList.find((el) => el.userId == userId)
+			userRestrict = this.muteList.find((el) => el.userId == userId)
 		if (userRestrict != undefined)
 			userRestrict.expire = this.addMinutes(userRestrict.expire, minutes)
+	}
+	getRestrictTime(userId:number, isBan: boolean, minutes?: number,): Date | undefined {
+		let userRestrict: TRestrictUserTime | undefined = undefined
+		
+		if (isBan)
+			userRestrict = this.banList.find((el) => el.userId == userId)
+		else
+			userRestrict = this.muteList.find((el) => el.userId == userId)
+		if (userRestrict != undefined && minutes)
+			return this.addMinutes(userRestrict.expire, minutes)
+		return userRestrict ? userRestrict.expire : undefined
 	}
 	async checkWithServer(url: string, option: Object): Promise<boolean> {
 		const response = await fetch(url, { credentials: "include"})
@@ -71,7 +82,7 @@ export class CChannel {
 		return false
 	}
 	// Getters
-	getId(): string { return this.id }
+	getId(): number { return this.id }
 	getName(): string { return this.ChanName }
 	getType(): TChannelType { return this.type }
 	getMessages(): TMessage[] { return this.messages }
@@ -153,7 +164,7 @@ export class CChannel {
 		return false
 	}
 	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, timeInMinutes:number): boolean {
-		if ((this.isAdmin(restrictor) || this.isOwner(restrictor)) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor) {
+		if ((this.isOwner(restrictor) && restrictor != restricted) || (this.isAdmin(restrictor) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor)) {
 			const restrict: TRestrictUserTime = {
 				userId: restricted,
 				expire: this.addMinutes(new Date(), timeInMinutes)
@@ -184,6 +195,22 @@ export class CChannel {
 			return true
 		}
 		return false
+	}
+	unBan(banned_id: number) {
+		const index = this.banList.findIndex((e) => {
+			return e.userId === banned_id
+		})
+		if (index != -1) {
+			this.banList.splice(index, 1)
+		}
+	}
+	demote(demoted_id: number) {
+		const index = this.adminList.findIndex((e) => {
+			return e === demoted_id
+		})
+		if (index != -1) {
+			this.banList.splice(index, 1)
+		}
 	}
 	sendMessage(message: TMessage): boolean {
 		if (this.isInChannel(message.sender) && !this.isBan(message.sender) && !this.isMute(message.sender)) {
