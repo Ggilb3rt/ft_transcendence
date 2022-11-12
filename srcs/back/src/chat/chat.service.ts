@@ -71,8 +71,8 @@ export class ChatService {
     async getChannel(channel_id: number, req) {
         const token = await this.getToken(req);
 
-        if (!await this.chatHelper.isInChannel(channel_id, token.id)) {
-            throw new ForbiddenException("You have no right to request this channel")
+        if (!await this.chatHelper.isInChannel(channel_id, token.id) || await this.chatHelper.getBan(token.id, channel_id)) {
+           return false
         }
         return await this.chatHelper.formatChannels(channel_id)
     }

@@ -67,18 +67,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const room = makeId(false, banned_id)
         const clients = await this.server.in(room).fetchSockets();
 
-        clients.forEach((client) => [
+        clients.forEach((client) => {
             client.leave(makeId(true, channel_id))
-        ])
+        })
     }
     
     async unBan(banned_id: number, channel_id: number) {
         const room = makeId(false, banned_id)
         const clients = await this.server.in(room).fetchSockets();
 
-        clients.forEach((client) => [
+        clients.forEach((client) => {
             client.join(makeId(true, channel_id))
-        ])
+        })
     }
 
     @SubscribeMessage('getMyRooms')
@@ -247,10 +247,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const {channel_id, pass} = arg;
 
 
-        console.log("OBJECT arg == ", arg)
-        console.log("arg == ", channel_id, pass)
         const res = await this.chatService.changePass(channel_id, id, pass)
-        console.log("resPassCHange = ", res)
         return res
     }
 

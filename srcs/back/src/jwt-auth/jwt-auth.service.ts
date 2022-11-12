@@ -12,13 +12,14 @@ export class JwtAuthService {
   async login(user, isAuth = false) {
     // console.log("debut login")
     //console.log("user ", user)
-    const {two_factor_auth, nick_fourtytwo} = await prisma.users.findFirst({where:{id:user.id},
+    const {two_factor_auth, nick_fourtytwo, first_connection} = await prisma.users.findFirst({where:{id:user.id},
       select: {
         two_factor_auth:true,
-        nick_fourtytwo:true
+        nick_fourtytwo:true,
+        first_connection:true
       }
     })
-    const payload: JwtPayload = { username: nick_fourtytwo, id: user.id, isAuth, two_factor_auth };
+    const payload: JwtPayload = { username: nick_fourtytwo, id: user.id, isAuth, two_factor_auth, first_time: first_connection };
     // console.log("\n\n--------\n\npayload == ", payload)
     return {
       accessToken: this.jwtService.sign(payload),

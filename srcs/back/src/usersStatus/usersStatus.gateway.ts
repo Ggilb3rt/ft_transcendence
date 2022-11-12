@@ -5,15 +5,9 @@ import {
     OnGatewayInit,
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { CLIENT_RENEG_WINDOW } from 'tls';
 
 function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
-}
-
-
-function countInArray(arr: IStatus[], i: number) {
-    return arr.filter(item => item.userId == i).length
 }
 
 type TStatus = "available" | "disconnected" | "inGame" | "challenged"
@@ -23,6 +17,7 @@ interface IStatus {
     userId: number;
     userStatus: TStatus;
     inGame: string | null
+    challenge: TChallenge
 }
 
 type TChallenge = {challenger: Number, level: Number, challenged: Number, socketId: string}
@@ -61,7 +56,8 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             this.toSend.splice(uIndex, 1)
         } else {
             console.log("je retire mon client")
-           const index = this.userArr[uIndex].socketId.findIndex((e) => {
+
+            const index = this.userArr[uIndex].socketId.findIndex((e) => {
             e === client.id;
            })
            this.userArr[uIndex].socketId.splice(index, 1)
@@ -76,7 +72,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         })
 
         const newClients : string[] = []
-        const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg, inGame: null}
+        const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg, inGame: null, challenge: null}
         const msg: TSend = {userStatus: 'available', userId: arg}
         client.join("user_" + arg)
         if (index == -1) {
@@ -93,7 +89,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     @SubscribeMessage('changeStatus')
-    handleChangeStatus(client: Socket, arg: {userStatus: "available" | "inGame", userId: number}) {
+    handleChangeStatus(client: Socket, arg: {userStatus: "available" | "inGame" | "challenged", userId: number, force? : boolean}) {
         const index = this.userArr.findIndex((elem) => {
             return elem.userId == arg.userId
         })
@@ -105,7 +101,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (elem.inGame && client.id != elem.inGame)
             return
 
-        if (elem.userStatus == 'challenged' && arg.userStatus == 'available')
+        if (elem.userStatus == 'challenged' && arg.userStatus == 'available' && !arg.force)
             return
         if (elem.inGame && arg.userStatus == 'available') {
             elem.inGame = null
@@ -126,17 +122,22 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
         //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
 
-        if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'challenged' || this.userArr[sender].userStatus != 'challenged') {
+        if (receiver == -1 || sender == -1) {
             return false
         }
-            //console.log("i decline challenge from => ", receiver)
-            this.userArr[receiver].userStatus = 'available'
-            this.toSend[receiver].userStatus = 'available'
-            this.server.to("user_" + this.userArr[receiver].userId).emit('refuseChallenge', challenge)
-            const arg = this.toSend[receiver]
-            console.log("arg == ", arg)
-            client.emit("newStatusChange", arg)
-            client.broadcast.emit("newStatusChange", {userId: challenge.challenged, userStatus: 'available'})
+
+        //console.log("i decline challenge from => ", receiver)
+        this.userArr[receiver].userStatus = 'available'
+        this.userArr[sender].userStatus = 'available'
+        this.toSend[receiver].userStatus = 'available'
+        this.toSend[sender].userStatus = 'available'
+        client.broadcast.to("user_" + this.userArr[receiver].userId).emit('refuseChallenge', challenge)
+        this.server.to("user_" + this.userArr[sender].userId).emit('refuseChallenge', challenge)
+        const arg = this.toSend[receiver]
+        const arg2 = this.toSend[sender]
+        console.log("arg == ", arg)
+        this.server.emit("newStatusChange", arg)
+        this.server.emit("newStatusChange", arg2)
         return true
     }
 
@@ -144,18 +145,25 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     newChallenge(client: Socket, challenge: TChallenge) {
         const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
         const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
-        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+        // console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
 
+        console.log("sender == ", this.userArr[sender].userStatus, "receiver", this.userArr[receiver].userStatus )
         if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'available' || this.userArr[sender].userStatus != 'available') {
             return false
         }
             console.log("i challenge => ", receiver)
             this.userArr[receiver].userStatus = 'challenged' 
             this.toSend[receiver].userStatus = 'challenged'
+            this.userArr[sender].userStatus = 'challenged' 
+            this.toSend[sender].userStatus = 'challenged'
             this.server.to("user_" + this.userArr[receiver].userId).emit('newChallenge', challenge)
             const arg = this.toSend[receiver]
-            console.log("arg == ", arg)
+            const arg2 = this.toSend[sender]
+            console.log("arg == ", )
+
+
             client.broadcast.emit("newStatusChange", arg)
+            this.server.emit("newStatusChange", arg2)
             return true
     }
 
@@ -168,11 +176,19 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'challenged' || this.userArr[sender].userStatus != 'challenged') {
             return false
         }
-            //console.log("i accept challenge from => ", receiver)
-            this.server.to("user_" + this.userArr[sender].userId).emit('challengeAccepted', challenge)
-            this.server.to("user_" + this.userArr[receiver].userId).emit('challengeAccepted', challenge)
+        //console.log("i accept challenge from => ", receiver)
+        this.userArr[receiver].userStatus = 'available' 
+        this.toSend[receiver].userStatus = 'available'
+        this.userArr[sender].userStatus = 'available' 
+        this.toSend[sender].userStatus = 'available'
+        this.server.to("user_" + this.userArr[sender].userId).emit('challengeAccepted', challenge)
+        this.server.to("user_" + this.userArr[receiver].userId).emit('challengeAccepted', challenge)
+        const arg = this.toSend[receiver]
+        const arg2 = this.toSend[sender]
 
-            client.broadcast.emit("newStatusChange", {userId: this.userArr[sender].userId, userStatus: 'inGame'})
+        client.broadcast.emit("newStatusChange", arg)
+        this.server.emit("newStatusChange", arg2)
+
             return true
     }
 //
