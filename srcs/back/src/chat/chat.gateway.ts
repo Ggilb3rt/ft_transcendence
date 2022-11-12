@@ -137,15 +137,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('sendDirectMessage')
-    async sendDirectMessage(client: Socket, content: string, receiver: number, date: Date) {
+    async sendDirectMessage(client: Socket, arg: { content: string, receiver: number, date: Date}) {
     
         
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
+        const { content, receiver, date} = arg
 
         // if not banned
-        // if friends
+
+        const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
+
+
         if (!res)
             return false
         const message: TMessage = {
