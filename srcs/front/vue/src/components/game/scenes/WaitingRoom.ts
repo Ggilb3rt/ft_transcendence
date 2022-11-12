@@ -57,6 +57,7 @@ export default class WaitingRoom extends Phaser.Scene {
     const scene = this;
 
     if (scene.doneOK === true) {
+		console.log(scene.settings);
       scene.scene.pause();
       scene.scene.start("GameScene", {
         level: scene.level,

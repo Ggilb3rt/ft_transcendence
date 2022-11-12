@@ -2,12 +2,34 @@
 import io from "socket.io-client";
 import router from "@/router";
 import { onBeforeUnmount, ref } from "vue";
+import { useStatusStore } from "@/stores/status";
+import { useUserStore } from "@/stores/user";
 
-const socket = io("http://localhost:3000/game");
+const userStore = useUserStore();
+const userId = userStore.user.id;
+const socket = io("http://localhost:3000/game", {
+  query: {
+    userId: userStore.user.id,
+  },
+});
 
-async function findGame(event: Event, game: string) {
+async function findGame(event: Event, game: string, spectator: boolean) {
   event.preventDefault();
-  router.push({ path: `/game/${game}` });
+
+  if (spectator === true) {
+    router.push({ path: `/game/${game}` });
+  } else {
+    socket.emit("isUserInGame", { userId });
+    socket.on("isUserInGame", (bool) => {
+      console.log(bool);
+      if (bool === true) {
+        alert("YOU ARE ALREADY IN A GAME");
+        return;
+      } else {
+        router.push({ path: `/game/${game}` });
+      }
+    });
+  }
 }
 
 socket.emit("getActiveRoomNames", { type: 1 });
@@ -28,7 +50,11 @@ onBeforeUnmount(() => {
     <nav>
       <ul class="gameList">
         <li>
-          <button id="pong" @click="findGame($event, 'pong')" class="pongLink">
+          <button
+            id="pong"
+            @click="findGame($event, 'pong', false)"
+            class="pongLink"
+          >
             Pong<br />
             <img
               src="../assets/pongGame.png"
@@ -40,7 +66,7 @@ onBeforeUnmount(() => {
         <li>
           <button
             id="catPong"
-            @click="findGame($event, 'catPong')"
+            @click="findGame($event, 'catPong', false)"
             class="pongLink"
           >
             CatPong<br />
@@ -54,7 +80,7 @@ onBeforeUnmount(() => {
         <li>
           <button
             id="customizable"
-            @click="findGame($event, 'customizable')"
+            @click="findGame($event, 'customizable', false)"
             class="pongLink"
           >
             Customizable<br />
@@ -65,24 +91,22 @@ onBeforeUnmount(() => {
     </nav>
     <h1>Let's watch a <span class="red">game</span></h1>
     <nav>
-      <ul class="gameList" v-if="activeRoomNames.length > 0">
-		<!-- <p v-for="room in activeRoomNames" :key="room"> -->
-        <p v-for="(value) in activeRoomNames" :key="value">
-          <button
-                id="customizable"
-                @click="findGame($event, `${value.level}/${value.id}`)"
-                class="pongLink"
-              >{{value.id}} {{ value.level }}
-          </button>
-        </p>
+       <ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0"> 
+      <!-- <p v-for="room in activeRoomNames" :key="room"> -->
+      <p v-for="value in activeRoomNames" :key="value">
+        <button
+          id="customizable"
+          @click="findGame($event, `${value.level}/${value.id}`, true)"
+          class="pongLink"
+        >
+          {{ value.id }} {{ value.level }}
+        </button>
+      </p>
       </ul>
       <p v-else>No game</p>
     </nav>
   </div>
 </template>
-
-
-
 
 <style>
 .gameList .loader {

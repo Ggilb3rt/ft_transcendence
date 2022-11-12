@@ -70,16 +70,19 @@ export default class Preloader extends Phaser.Scene {
 
     if (scene.level == "pong" || (scene.challenge === true && scene.challengeInfo.level === 0)) {
       scene.level = 1;
+	  console.log('LEVEL ONE')
     } else if (
       scene.level == "customizable" ||
       (scene.challenge === true && scene.challengeInfo.level === 2))  {
       scene.sceneName = "WaitingRoom";
       scene.level = 2;
+	  console.log('LEVEL TWO')
     } else if (scene.level == "catPong" || (scene.challenge === true && scene.challengeInfo.level === 1)) {
       scene.level = 3;
       scene.images = scene.catImages;
+	  console.log('LEVEL THREE')
     }
-
+ 
     scene.scene.start(scene.sceneName, {
       userId: scene.userId,
       spectator: scene.spectator,

@@ -1,5 +1,5 @@
 export default {
-  type: Phaser.CANVAS,
+  type: Phaser.AUTO,
   width: 900,
   height: 600,
   scale: {

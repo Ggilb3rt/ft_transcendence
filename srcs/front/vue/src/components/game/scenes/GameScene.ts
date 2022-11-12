@@ -1,17 +1,16 @@
 import Phaser from "phaser";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import GamePlay from "../tools/GamePlay";
 
 const f = new GamePlay();
 
-export default class DefaultGame extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
   socket: Socket;
-  roomName: number;
+  spectator: boolean;
   level: number;
 
   constructor() {
-    super("DefaultGame");
-    //this.socket = null;
+    super("GameScene");
   }
 
   init(data) {
@@ -19,9 +18,11 @@ export default class DefaultGame extends Phaser.Scene {
     this.spectator = data.spectator;
     this.challenge = data.challenge;
     this.challengeInfo = data.challengeInfo;
-	this.key = data.key;
-    //this.socket = null;
-    this.level = 1;
+    this.key = data.key;
+    this.images = data.images;
+    this.custom = data.custom;
+    this.level = data.level;
+    this.settings = data.settings;
     this.roomComplete = false;
     this.playerInit = false;
     this.playerNumber = 0;
@@ -39,11 +40,12 @@ export default class DefaultGame extends Phaser.Scene {
     this.playerTwoScoreText = {};
     this.p1oldposy;
     this.p2oldposy;
-    this.images = {
-      ball: "defaultBall",
-      playerOne: "defaultPaddle",
-      playerTwo: "defaultOpponentPaddle",
-    };
+    this.fox = {};
+    this.foxSpeed = 100;
+    this.foxVelocityLeftUP = -this.foxSpeed;
+    this.foxVelocityRightDown = this.foxSpeed;
+    this.foxLimitLeft = 230;
+    this.foxLimitRight = 800 - this.foxLimitLeft;
   }
 
   preload() {}
@@ -52,37 +54,32 @@ export default class DefaultGame extends Phaser.Scene {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
     const game = this.sys.game;
-    console.log("defaultgame");
-    console.log("socket " + this.socket);
-	console.log("userId " + scene.userId)
+    console.log("level = " + scene.level);
 
-	
     /* INIT SOCKET */
     if (!scene.roomComplete) {
-		console.log('init socket here');
-		scene.socket = io("http://localhost:3000/game");
+      scene.socket = io("http://localhost:3000/game");
     }
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
-      scene.scene.launch("WaitingRoom", { level: "default", spectator: scene.spectator });
+      scene.scene.launch("WaitingRoom", { custom: false });
     } else {
       f.watchGame(scene);
-	  scene.roomComplete = true;
+      scene.roomComplete = true;
     }
 
     /* ADD GAME OBJECTS */
-    //if (!scene.roomComplete) {
-      f.createGameObjects(
-        scene.level,
-        null,
-        scene.images,
-        width,
-        height,
-        scene
-      );
-    //}
-    /* JOIN QUEUE OR CREATE GAME*/	
+    f.createGameObjects(
+      scene.level,
+      scene.settings,
+      scene.images,
+      width,
+      height,
+      scene,
+    );
+
+    /* JOIN QUEUE OR CREATE GAME*/
     if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
       f.joinQueue(scene, scene.level);
     } else if (
@@ -95,14 +92,12 @@ export default class DefaultGame extends Phaser.Scene {
       scene.socket.emit("createGame", {
         userId: scene.userId,
         challengeInfo: scene.challengeInfo,
-		level: scene.level
+        level: scene.level,
       });
     }
 
     /* EVENT LISTENERS */
-    //if (!scene.roomComplete) {
-      f.addEventListeners(scene.level, width, height, scene, game);
-    //}
+    f.addEventListeners(scene.level, width, height, scene, game);
   }
 
   update() {
@@ -111,6 +106,9 @@ export default class DefaultGame extends Phaser.Scene {
 
     if (scene.activeGame) {
       f.moveBall(scene);
+      if (scene.level === 3) {
+        f.moveAnim(scene);
+      }
       f.checkPlayerMovement(scene);
       f.checkPoints(scene.level, width, height, scene);
     }

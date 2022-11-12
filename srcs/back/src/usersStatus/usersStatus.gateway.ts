@@ -6,6 +6,7 @@ import {
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { CLIENT_RENEG_WINDOW } from 'tls';
+import { Logger } from '@nestjs/common';
 
 function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
@@ -88,7 +89,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         else {
             this.userArr[index].socketId.push(client.id)
         }
-        console.log("MY ARR AFTER CONNECTION == ", this.userArr)
+        //console.log("MY ARR AFTER CONNECTION == ", this.userArr)
         this.server.to(client.id).emit('takeThat', this.toSend)
     }
 

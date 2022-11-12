@@ -13,11 +13,10 @@ import WaitingRoom from "./game/scenes/WaitingRoom";
 import GameScene from "./game/scenes/GameScene";
 
 const containerId = "game-container";
-//const socket = io("http://localhost:3000/game"/*, { autoConnect: false }*/);
-let socket;
 const userStore = useUserStore();
 const statusStore = useStatusStore();
 const route = useRoute();
+const socket = io("http://localhost:3000/game");
 const str = route.query.challenge;
 const level = route.params.ourGames;
 const key = route.params.id;
@@ -39,10 +38,13 @@ const data = {
 
 window.addEventListener("beforeunload", (e) => {
   disconnectGameSocket();
-  destroyGame();
-  if (socket) {
-  socket.disconnect();
+  if (gameInstance !== undefined && gameInstance.scene.scenes[2].level === 2) {
+    destroyGame();
   }
+  if (socket) {
+    socket.disconnect();
+  }
+  //router.push("/");
 });
 
 class Game extends Phaser.Game {
@@ -56,26 +58,21 @@ class Game extends Phaser.Game {
 }
 
 onMounted(() => {
-  if (statusStore.status === "inGame" || statusStore.status === "challenged") {
-    //socket.connect();
-    socket = io("http://localhost:3000/game");
-    socket.on("connect", launchGame);
-  } else {
-    //socket.disconnect();
+  if (launchGame() === false) {
     router.push("/");
   }
 });
 
 onBeforeUnmount(() => {
+  statusStore.changeCurrentUserStatus("available", userStore.user.id);
   disconnectGameSocket();
   destroyGame();
-  destroyGame();
   if (socket) {
-  socket.disconnect();
+    socket.disconnect();
   }
 });
 
-function launchGame() {
+function launchGame(): bool {
   socket.emit("getActiveRoomNames", { type: 2 });
 
   socket.on("getActiveRoomNames", (payload) => {
@@ -115,7 +112,14 @@ function launchGame() {
       router.replace("/");
     }
     if (!error) {
-      gameInstance = new Game();
+      socket.emit("addUserId", { userId: userStore.user.id });
+      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
+      socket.on("userAdded", () => {
+        gameInstance = new Game();
+      });
+      return true;
+    } else {
+      return false;
     }
   });
 }

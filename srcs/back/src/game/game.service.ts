@@ -8,6 +8,7 @@ import { CreateMatchDto } from 'src/users/createMatchDto';
 export class GameService {
 	private waitingRooms = {};
     private activeGames = {};
+	private userIds = {};
     private players = {};
 	private i = 4;
 
@@ -30,10 +31,26 @@ export class GameService {
 			userId: 0,
 			type: "player",
 			challengeId: 0,
-        }
-        console.log("PLAYERS ID")
-		console.log(Object.keys(this.players));
-    }
+		}
+	}
+
+	handleAddUserId(client: Socket, data: any) {
+		const userId = Number(data.userId);
+		console.log("USER ID1 " + userId);
+		this.userIds[userId] = userId;
+		console.log("ADD USER ");
+		console.log(this.userIds);
+		client.emit("userAdded");
+	} 
+
+	handleIsUserInGame(client: Socket, data: any) {
+		const userId = data.userId;
+		console.log("USER ID2 " + userId);
+		console.log("array")
+		console.log(this.userIds);
+		if (this.userIds.hasOwnProperty(userId)) { client.emit("isUserInGame", true); } 
+		else { client.emit("isUserInGame", false);}
+	}
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
 		//console.log(data);
@@ -183,14 +200,14 @@ export class GameService {
         let dirx = 0;
         let diry = 0;
         while (Math.abs(dirx) <= 0.8 || Math.abs(dirx) >= 0.9) {
-            console.log("DIRX 1 " + dirx)
+            //console.log("DIRX 1 " + dirx)
 			const heading = this.randomNumberBetween(0, 2 * Math.PI);
-            console.log("HEADING " + heading)
+            //console.log("HEADING " + heading)
 			dirx = Math.cos(heading);
             diry = Math.sin(heading);
         }
-		console.log("DIRX 2 " + dirx)
-		console.log("DIRY" + diry)
+		//console.log("DIRX 2 " + dirx)
+		//console.log("DIRY" + diry)
         ball.initialVelocity.x = dirx * ball.speed;
         ball.initialVelocity.y = diry * ball.speed;
     }
@@ -257,6 +274,7 @@ export class GameService {
 		console.log("CLIENT DISCONNECTED " + client.id);
 		
 		const roomName = this.players[client.id].roomId;
+		const userId = this.players[client.id].userId;
 		const level = this.players[client.id].level;
 		const spectator = this.players[client.id].spectator;
 
@@ -299,10 +317,15 @@ export class GameService {
 			client.emit("leftGame", 1);
 			//Reflect.deleteProperty(this.waitingRooms, level);
 		}
+
+		Reflect.deleteProperty(this.userIds, userId);
 		Reflect.deleteProperty(this.players, client.id);
+
 
 		console.log("REMAINING CLIENTS ")
 		console.log(Object.keys(this.players));
+		console.log("USER IDS")
+		console.log(this.userIds);
 
 		//console.log("ACTIVE GAMES2")
 		//console.log(this.activeGames);

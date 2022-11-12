@@ -40,7 +40,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async unBanExpired(user_id: number) {
 
             const bans: ban_channels[] = await this.chatService.getMyBans(user_id)
-            console.log("bans = ", bans)
+            //console.log("bans = ", bans)
             bans.forEach(async (ban) => {
                 if(ban.expires < new Date()) {
                     await this.chatService.unBan(ban)
