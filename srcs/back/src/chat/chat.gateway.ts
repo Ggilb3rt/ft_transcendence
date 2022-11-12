@@ -186,6 +186,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const res = await this.chatService.kickUser(channel_id, kicked_id, id)
         if (!res)
             return false
+        this.leaveChannelId(channel_id, id)
         client.broadcast.to(makeId(false, channel_id)).emit('kick', {
             kicked_id,
             kicked_by: id,
@@ -295,11 +296,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const res = await this.chatService.kickUser(channel_id, id, id)
         if (!res)
             return false
+        this.leaveChannelId(channel_id, id)
         client.broadcast.to(makeId(false, channel_id)).emit('quit', {
             client_quit: id,
             channel_id
         })
-        client.leave(makeId(false, channel_id))
         return true
     }
 
