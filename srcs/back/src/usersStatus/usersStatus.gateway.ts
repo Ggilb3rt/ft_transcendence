@@ -5,6 +5,7 @@ import {
     OnGatewayInit,
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
+import { CLIENT_RENEG_WINDOW } from 'tls';
 
 function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
@@ -118,8 +119,13 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('refuseChallenge')
     refuseChallenges(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
-        if (receiver != -1) {
+        const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
+        const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
+        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+
+        if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'challenged' || this.userArr[sender].userStatus != 'challenged') {
+            return false
+        }
             //console.log("i decline challenge from => ", receiver)
             this.userArr[receiver].userStatus = 'available'
             this.toSend[receiver].userStatus = 'available'
@@ -128,14 +134,18 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             console.log("arg == ", arg)
             client.emit("newStatusChange", arg)
             client.broadcast.emit("newStatusChange", {userId: challenge.challenged, userStatus: 'available'})
-        }
+        return true
     }
 
     @SubscribeMessage('newChallenge')
     newChallenge(client: Socket, challenge: TChallenge) {
         const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
-        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)
-        if (receiver != -1) {
+        const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
+        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+
+        if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'available' || this.userArr[sender].userStatus != 'available') {
+            return false
+        }
             console.log("i challenge => ", receiver)
             this.userArr[receiver].userStatus = 'challenged' 
             this.toSend[receiver].userStatus = 'challenged'
@@ -143,18 +153,24 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             const arg = this.toSend[receiver]
             console.log("arg == ", arg)
             client.broadcast.emit("newStatusChange", arg)
-        }
+            return true
     }
 
     @SubscribeMessage('challengeAccepted')
     acceptChallenge(client: Socket, challenge: TChallenge) {
-        const sender = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
-        const receiver = this.userArr.find((el) => {console.log(el); return el.userId === challenge.challenger})
-        if (receiver) {
-            //console.log("i accept challenge from => ", receiver)
-            this.server.to("user_" + sender.userId).emit('challengeAccepted', challenge)
-            this.server.to("user_" + receiver.userId).emit('challengeAccepted', challenge)
+        const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
+        const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
+        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+
+        if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'challenged' || this.userArr[sender].userStatus != 'challenged') {
+            return false
         }
+            //console.log("i accept challenge from => ", receiver)
+            this.server.to("user_" + this.userArr[sender].userId).emit('challengeAccepted', challenge)
+            this.server.to("user_" + this.userArr[receiver].userId).emit('challengeAccepted', challenge)
+
+            client.broadcast.emit("newStatusChange", {userId: this.userArr[sender].userId, userStatus: 'inGame'})
+            return true
     }
 //
     // @SubscribeMessage('chatToServer')
