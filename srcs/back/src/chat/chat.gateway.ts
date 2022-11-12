@@ -47,6 +47,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
                     await this.chatService.unBan(ban)
                     await this.unBan(user_id, ban.channel_id)
                 }
+                else {
+                    await this.leaveChannelId(user_id, ban.channel_id)
+                }
             })
     }
 
@@ -99,8 +102,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!myChannels)
             return false
 
-        await this.unBanExpired(user_id)
-        await this.unMuteExpired(user_id)
+      
 
         const { joinedChannels, availableChannels } = await this.chatService.getAvailableChannels(user_id, myChannels)
 
@@ -116,6 +118,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         })
         client.join(rooms)
         client.join(makeId(true, user_id))
+
+        await this.unBanExpired(user_id)
+        await this.unMuteExpired(user_id)
 
         return ({joinedChannels, availableChannels})
     }

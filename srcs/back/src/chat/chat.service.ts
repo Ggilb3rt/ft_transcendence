@@ -71,7 +71,8 @@ export class ChatService {
     async getChannel(channel_id: number, req) {
         const token = await this.getToken(req);
 
-        if (!await this.chatHelper.isInChannel(channel_id, token.id) || await this.chatHelper.getBan(token.id, channel_id)) {
+
+        if (!await this.chatHelper.isInChannel(channel_id, token.id) || await this.chatHelper.getBan(token, channel_id)) {
            return false
         }
         return await this.chatHelper.formatChannels(channel_id)
@@ -145,17 +146,20 @@ export class ChatService {
             return false
         }
         const mute = await this.chatHelper.getMute(channel_id, user_id)
+        console.log("channel_id, user_id ", channel_id, user_id)
+        console.log("mute ", mute)
         if (mute && mute.mute_date > new Date()) {
+            console.log("tout va bien")
             return false
         }
         else if (mute) {
-            this.chatHelper.unMute(user_id, channel_id)
+            this.chatHelper.unMute(channel_id, user_id)
         }
         return true
     }
 
     async sendMessageToChannel(channel_id: number, content: string, date: Date, user_id: number) {
-        if (!this.canSend(user_id, channel_id)) {
+        if (!await this.canSend(user_id, channel_id)) {
             return false
         }
         await this.chatHelper.sendMessageToChannel(channel_id, user_id, content, date)
