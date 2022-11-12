@@ -5,12 +5,12 @@ import { useChannelsStore } from '@/stores/channels';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-// const channelStore = useChannelsStore()
+const channelsStore = useChannelsStore()
 
 </script>
 
 <template>
-	<div class="loader" v-if="userStore.loading || usersStore.loading">
+	<div class="loader" v-if="userStore.loading || usersStore.loading || channelsStore.loading">
 		<div>
 			<span class="bar ping"></span>
 			<span class="bar ball"></span>

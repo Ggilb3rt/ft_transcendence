@@ -136,7 +136,8 @@ onUpdated(() => {
 	align-self: flex-start;
 	width: 100%;
 	height: calc(90vh - 89px);
-	overflow: scroll;
+	overflow-y: scroll;
+	overflow-x: hidden;
 	padding: 0px;
 	position: relative;
 }

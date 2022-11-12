@@ -58,7 +58,7 @@ async function testConnection() {
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
         if (!isSetupStoreChannel) {
-          channelStore.getChansLists();
+          await channelStore.getChansLists();
           isSetupStoreChannel = true
         }
       }

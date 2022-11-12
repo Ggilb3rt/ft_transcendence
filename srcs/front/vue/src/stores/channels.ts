@@ -139,24 +139,33 @@ export const useChannelsStore = defineStore('channels', () => {
 		})
 	}
 
-	function emitRestrictUser(isMute: boolean, channel_id: number, banned_id: number, expires?: number) {
+	function emitRestrictUser(isMute: boolean, channel_id: number, banned_id: number, expires: string) {
 		// si le user est déjà ban il faut remplacer avec la nouvelle date
-		let localExpires: Date = new Date()
-		if (currentChan.value)
-			if (expires)
-				localExpires = currentChan.value.getRestrictTime(banned_id, !isMute, expires)
-			else
-				localExpires = currentChan.value.getRestrictTime(banned_id, !isMute)
+		let dateExpires: Date = new Date(expires)
+		let whereToSend: "mute" | "ban" = "ban"
+
 		if (isMute)
-			refsocket.value.emit("mute", {channel_id: channel_id, banned_id: banned_id, expires: localExpires}, (res: boolean) => {
-				if (currentChan.value && res)
-					currentChan.value.restrictUser(userStore.user.id, banned_id, isMute, localExpires)
-			})
-		else
-			refsocket.value.emit("ban", {channel_id: channel_id, banned_id: banned_id, expires: localExpires}, (res: boolean) => {
-				if (currentChan.value && res)
-					currentChan.value.restrictUser(userStore.user.id, banned_id, !isMute, localExpires)
-			})
+			whereToSend = "mute"
+		refsocket.value.emit(whereToSend, {channel_id: channel_id, banned_id: banned_id, expires: dateExpires}, (res: boolean) => {
+			if (currentChan.value && res)
+				currentChan.value.restrictUser(userStore.user.id, banned_id, isMute, dateExpires)
+		})
+
+		// if (currentChan.value)
+		// 	if (expires)
+		// 		localExpires = currentChan.value.getRestrictTime(banned_id, !isMute, expires)
+		// 	else
+		// 		localExpires = currentChan.value.getRestrictTime(banned_id, !isMute)
+		// if (isMute)
+		// 	refsocket.value.emit("mute", {channel_id: channel_id, banned_id: banned_id, expires: localExpires}, (res: boolean) => {
+		// 		if (currentChan.value && res)
+		// 			currentChan.value.restrictUser(userStore.user.id, banned_id, isMute, localExpires)
+		// 	})
+		// else
+		// 	refsocket.value.emit("ban", {channel_id: channel_id, banned_id: banned_id, expires: localExpires}, (res: boolean) => {
+		// 		if (currentChan.value && res)
+		// 			currentChan.value.restrictUser(userStore.user.id, banned_id, !isMute, localExpires)
+		// 	})
 	}
 
 	function emitJoin(channel_id: number, pass?: string) {
@@ -170,7 +179,7 @@ export const useChannelsStore = defineStore('channels', () => {
 				// ce serai cool d'avoir les infos direct si le join est ok
 				error.value = ""
 				switchJoinedAvailable(channel_id, false)
-				getChan(channel_id)
+				getChan(channel_id)	// can't await but works
 				selectCurrentChan(channel_id)
 				router.push(`/chat/room/${channel_id}`)
 			}
@@ -349,7 +358,6 @@ export const useChannelsStore = defineStore('channels', () => {
 			else {
 					availableChannels.value = res.availableChannels
 					joinedChannels.value = res.joinedChannels
-					joinedChannels.value.push({name: "fake", id: 10})
 				}
 		})
 		refsocket.value.on('messageSentToChannel', handleMessage)
@@ -367,10 +375,9 @@ export const useChannelsStore = defineStore('channels', () => {
 		async function getChansLists() {
 			loading.value = true
 			try {
-				// la reponse va être un obj avec deux tableaux, un avaec les chanRestrict dispo et un avec ceux dans lequel je me trouve
 				// const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
 				
-			setup()
+				setup()
 			} catch (error: any) {
 				console.log("err = ", error)
 				const tempErr = await JSON.parse(error.message)
@@ -381,8 +388,8 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 		async function getChan(id: number) {
 			loading.value = true
-			if (isChanInList(id))
-				return
+			// if (isChanInList(id))
+			// 	return
 			try {
 				const response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;

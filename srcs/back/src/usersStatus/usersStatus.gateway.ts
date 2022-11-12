@@ -84,7 +84,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         else {
             this.userArr[index].socketId.push(client.id)
         }
-        console.log("MY ARR AFTER CONNECTION == ", this.userArr)
         this.server.to(client.id).emit('takeThat', this.toSend)
     }
 

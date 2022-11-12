@@ -49,13 +49,13 @@ export class CChannel {
 
 		return dateCopy;
 	}
-	changeRestrictTime(userId:number, newDate: Date, isBan: boolean) {
+	changeRestrictTime(userId:number, newDate: Date, isMute: boolean) {
 		let userRestrict: TRestrictUserTime | undefined = undefined
 		
-		if (isBan)
-			userRestrict = this.banList.find((el) => el.userId == userId)
-		else
+		if (isMute)
 			userRestrict = this.muteList.find((el) => el.userId == userId)
+		else
+			userRestrict = this.banList.find((el) => el.userId == userId)
 		if (userRestrict != undefined)
 			userRestrict.expire = newDate
 	}

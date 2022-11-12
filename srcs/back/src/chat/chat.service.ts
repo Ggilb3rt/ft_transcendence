@@ -115,7 +115,7 @@ export class ChatService {
     async banUser(channel_id: number, banned: number, expires: Date, id: number) {
         // check if ban is in admin
         if (await this.banPolicy(channel_id, banned, id) == false)
-            throw new ForbiddenException("You have no right to ban this user")
+            return false
         return (await this.chatHelper.banOne(banned, channel_id, expires))
     }
     

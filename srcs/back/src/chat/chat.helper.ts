@@ -53,7 +53,6 @@ export class ChatHelper {
                 adminList,
                 messages: messagesTrimmed
             }
-            console.log("Channel on reload = ", formated_channel)
             return formated_channel
         }
 
@@ -216,7 +215,7 @@ export class ChatHelper {
                     expires,
                 }
             })
-            return ban
+            return true
         }
         } catch (e) {
             console.log(e);
