@@ -84,7 +84,11 @@ export const useStatusStore = defineStore({
       if (this.socket.connected) {
                  this.socket.emit('connectionStatus', this.id)
                  this.socket.on('takeThat', ((arr:any) => {
-                    this.statusList = arr
+                    arr.forEach((e: ISocketStatus) => {
+                      this.statusList.push(e);
+                      if (e.userId == this.id)
+                        this.status = e.userStatus
+                    })
                  })) 
                  this.socket.on("newStatusConnection", (res: {ISocket: ISocketStatus, ExistsAlready: boolean, sender: string}) => {
                     if (res.ExistsAlready == false) {
@@ -97,17 +101,13 @@ export const useStatusStore = defineStore({
                         this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == res.ISocket.userId), 1)
                     }
                  })
-                 this.socket.on('internStatusChange', (status: TStatus) => {
-                    this.status = status
-                 })
-                 this.socket.on("externStatusChange", (res: any) => {
-                  if (this.id == res.userId)
-                  console.log("externChangeStatus", res)
-                    const changedIndex = this.statusList.findIndex((el) => el.userId == res.userId)
-                    if (changedIndex != -1) {
-                      console.log("newExternStatus = ", res)
-                      this.statusList[changedIndex].userStatus = res.userStatus.userStatus
-                    }
+                 this.socket.on("newStatusChange", (res: ISocketStatus) => {
+                     const changedIndex = this.statusList.findIndex((el) => el.userId == res.userId)
+                     console.log('res == ', res, "\nelem = ", this.statusList[changedIndex])
+                     if (changedIndex != -1)
+                       this.statusList[changedIndex].userStatus = res.userStatus
+                    if (this.id == res.userId)
+                      this.status = res.userStatus
                  })
              
                  //Messages for challenges
@@ -116,7 +116,6 @@ export const useStatusStore = defineStore({
                      if (challenge) {
                      console.log("Challenge valide", challenge)
                          this.challenge = challenge
-                         this.changeCurrentUserStatus('challenged', challenge.challenged)
                      }
                  })
                  this.socket.on("challengeAccepted", (challenge: Challenge) => {
@@ -134,7 +133,6 @@ export const useStatusStore = defineStore({
                  })
                  this.socket.on("refuseChallenge", () => {
                      this.challenge = null
-                     this.changeCurrentUserStatus('available', this.id)
                  })
                 return
             }
