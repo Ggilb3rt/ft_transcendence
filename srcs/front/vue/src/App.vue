@@ -70,13 +70,13 @@ async function testConnection() {
     userStore.error = tempErr.body;
   } finally {
     console.log("me repetes-je?")
-    userStore.loading = false
+    userStore.loading = false;
   }
 }
 
-router.beforeResolve(to => {
-	testConnection()
-	return true
+router.beforeResolve((to) => {
+  testConnection();
+  return true
 })
 
 window.addEventListener('beforeunload', (e) => {

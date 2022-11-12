@@ -36,7 +36,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
 
   const user = await prisma.users.findFirst({where:{id}})
 
-  console.log("MY user in STRAT == ", user)
+  //console.log("MY user in STRAT == ", user)
   // console.log("params validate", req.params.id)
   if (!user)
     throw new HttpException("Invalid Token", HttpStatus.FORBIDDEN)  

@@ -1,62 +1,25 @@
 <script setup lang="ts">
-import UserInvite from "@/components/user/UserInvite.vue";
 import io from "socket.io-client";
 import router from "@/router";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 
-let socket = io("http://localhost:3000/game");
-
-// simule server timing
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-let inQueue = ref(false);
+const socket = io("http://localhost:3000/game");
 
 async function findGame(event: Event, game: string) {
   event.preventDefault();
-  if (inQueue.value) return;
-  inQueue.value = true;
-  const url = `http://localhost:3000/lobby/${game}`;
-  const data = Math.floor(Math.random() * 1000 + 1); // await fetch data and get game id
-  const motivational = [
-    "Recherche d'opposant",
-    "nettoyage des raquettes",
-    "reveil du chat",
-    "préparation du terrain",
-  ];
-
-  const btnEl = document.getElementById(game);
-  let span = document.createElement("span");
-  span.classList.add("loader");
-  span.innerText = motivational[0];
-  btnEl?.appendChild(span);
-
-  //console.log(url)
-  for (let i = 0; i < 4; i++) {
-    //await sleep(1000)
-    span.innerText = motivational[i];
-  }
-
-  //await sleep(1000)
-  // console.log(data);
-  btnEl?.removeChild(span);
   router.push({ path: `/game/${game}` });
 }
 
-socket.emit("getActiveRoomNames", {type: 1});
+socket.emit("getActiveRoomNames", { type: 1 });
 
 const activeRoomNames = ref([]);
 socket.on("getActiveRoomNames", (payload) => {
   activeRoomNames.value = payload.roomNames;
-  console.log('HOME VIEW ACTIVE ROOM NAMES');
-  console.log(activeRoomNames);
 });
-//const activeGames =
 
-//const items = ref([{ message: 'Foo' }, { message: 'Bar' }])
-//const items = ref(["Foo", "Bar"]);
-
+onBeforeUnmount(() => {
+  socket.disconnect();
+});
 </script>
 
 <template>
@@ -103,17 +66,23 @@ socket.on("getActiveRoomNames", (payload) => {
     <h1>Let's watch a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
-		<!-- <p v-for="room in activeRoomNames" :key="room"> -->
-		<p v-for="(value) in activeRoomNames" :key="value">
-			<button
+        <!-- <p v-for="room in activeRoomNames" :key="room"> -->
+        <p v-for="value in activeRoomNames" :key="value">
+          <button
             id="customizable"
             @click="findGame($event, `${value.level}/${value.id}`)"
             class="pongLink"
-          >{{value.id}} {{ value.level }}</button></p>
+          >
+            {{ value.id }} {{ value.level }}
+          </button>
+        </p>
       </ul>
     </nav>
   </div>
 </template>
+
+
+
 
 <style>
 .gameList .loader {

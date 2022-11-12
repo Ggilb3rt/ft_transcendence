@@ -70,16 +70,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gameService.handleWatchGame(client, data, this.server);
     }
 
-    @SubscribeMessage("quitGame") 
-    handleQuitGame(client: Socket, data: any) {
-        this.gameService.handleQuitGame(client, data, this.server);
-    }
-
-    @SubscribeMessage("rematch") 
-    handleRematch(client: Socket, data: any) {
-        this.gameService.handleRematch(client, data, this.server);
-    }
-
 	@SubscribeMessage("moveAnim")
     handleMoveAnim(client: Socket, data: any) {
         this.gameService.handleMoveAnim(client, data, this.server);
@@ -115,14 +105,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage("createGame") 
 	handleCreateGame(client: Socket, data: any) {
 		this.gameService.handleCreateGame(client, data, this.server);
-	}
-	@SubscribeMessage("joinGame")
-	handleJoinGame(client: Socket, data: any) {
-		this.gameService.handleJoinGame(client, data, this.server);
-	}
-
-
-
-   
+	}   
 
 }

@@ -11,8 +11,13 @@ export default class WaitingRoom extends Phaser.Scene {
 
   init(data) {
     this.level = data.level;
+    this.userId = data.userId;
+    this.challenge = data.challenge;
+	this.challengeInfo = data.challengeInfo;
     this.spectator = data.spectator;
-    this.rematch = data.rematch;
+    this.key = data.key;
+    this.images = data.images;
+    this.custom = data.custom;
     this.doneOK = false;
     this.settingsOK = false;
     this.settings = {
@@ -20,9 +25,9 @@ export default class WaitingRoom extends Phaser.Scene {
       playerTwo: "WHITE",
       ball: "WHITE",
     };
-    this.message = {};
-    this.panel = {};
-    this.popup = {};
+    this.message;
+    this.panel;
+    this.popup;
     this.buttons = [];
   }
 
@@ -31,100 +36,58 @@ export default class WaitingRoom extends Phaser.Scene {
   create() {
     const scene = this;
     let { width, height } = this.sys.game.canvas;
+    console.log("custom " + scene.custom);
 
-    eventsCenter.on("quit", () => {
-      scene.scene.stop();
-    });
+	scene.createWaitingPanel(width, height, scene);
 
-    if (scene.level === "default" && !scene.rematch) {
-      if (!scene.spectator) {
-        scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
-        eventsCenter.on(
-          "ready",
-          () => {
-            scene.message.setText("GAME IS ABOUT TO START !");
-            scene.time.delayedCall(2000, function () {
-              scene.scene.stop("WaitingRoom");
-            });
-          },
-          scene
-        );
-      }
-    }
-
-    if (scene.level === "customizable" && !scene.rematch) {
-      if (!scene.rematch) {
-        this.container = scene.add.container(0, height / 2 - 75);
-        scene.createPanel(width, height, scene);
-        scene.buttonsPlayerOne(width, height, scene);
-        scene.buttonsPlayerTwo(width, height, scene);
-        scene.buttonsBall(width, height, scene);
-        scene.doneButton(width, height, scene);
-      }
-
-      if (scene.settingsOK) {
-        eventsCenter.on(
-          "ready",
-          () => {
-            scene.message.setText("GAME IS ABOUT TO START !");
-            scene.time.delayedCall(2000, function () {
-              scene.scene.stop("WaitingRoom");
-            });
-          },
-          scene
-        );
-      }
-    }
-
-    if (scene.rematch) {
-      scene.waitingText(width, height, "BE READY FOR REMATCH !", scene);
-      eventsCenter.on(
-        "ready",
-        () => {
-          scene.message.setText("          GO !          ");
-          scene.time.delayedCall(1000, function () {
-            scene.scene.stop("WaitingRoom");
-          });
-        },
-        scene
-      );
+    if (scene.custom === true) {
+      this.container = scene.add.container(0, height / 2 - 75);
+      scene.createPanel(width, height, scene);
+      scene.buttonsPlayerOne(width, height, scene);
+      scene.buttonsPlayerTwo(width, height, scene);
+      scene.buttonsBall(width, height, scene);
+      scene.doneButton(width, height, scene);
+    } else {
+		scene.popUp.setVisible(true);
+		scene.message.setVisible(true);
     }
   }
 
   update() {
     const scene = this;
-    const { width, height } = scene.sys.canvas;
-    if (scene.doneOK === true && scene.settingsOK === false && !scene.rematch) {
-      scene.settingsOK = true;
-      if (!scene.spectator) {
-        scene.waitingText(width, height, "WAITING FOR SECOND PLAYER", scene);
-      }
-      eventsCenter.emit("settingsOK", scene.settings);
-      scene.panel.destroy();
-      scene.buttons.forEach((b) => {
-        b.setVisible(false);
+
+    if (scene.doneOK === true) {
+      scene.scene.pause();
+      scene.scene.start("GameScene", {
+        level: scene.level,
+        userId: scene.userId,
+        spectator: scene.spectator,
+        challenge: scene.challenge,
+        challengeInfo: scene.challengeInfo,
+        key: scene.key,
+        images: scene.images,
+        settings: scene.settings,
       });
-      scene.physics.pause();
     }
   }
 
-  waitingText(width, height, text, scene) {
-    scene.popUp = scene.add.graphics();
+  createWaitingPanel(width, height, scene) {
+
+    scene.popUp = scene.add.graphics().setVisible(false);
     scene.popUp.lineStyle(1, 0xffffff);
     scene.popUp.fillStyle(0xffffff, 0.5);
     scene.popUp.strokeRect(0, 85, width, 105);
     scene.popUp.fillRect(0, 85, width, 105);
 
     scene.message = scene.add
-      //.text(200, 115, "WAITING FOR SECOND PLAYER", {
-      .text(200, 115, text, {
+      .text(200, 115, "WAITING FOR SECOND PLAYER", {
         fill: "0x000000",
         fontSize: "36px",
         fontStyle: "bold",
         boundsAlignH: "center",
         boundsAlignV: "middle",
       })
-      .setShadow(3, 3, "rgba(0,0,0,0.5)", 2);
+      .setShadow(3, 3, "rgba(0,0,0,0.5)", 2).setVisible(false);
 
     eventsCenter.on(
       "ready",

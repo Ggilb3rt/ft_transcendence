@@ -20,7 +20,7 @@ export class GameService {
 	}
 
     handleConnection(client: Socket, server: Server) {
-		console.log('CLIENT CONNECTED')
+		console.log('CLIENT CONNECTED ' + client.id)
         this.players[client.id] = {
             id: client.id,
             socket: client,
@@ -31,7 +31,7 @@ export class GameService {
 			type: "player",
 			challengeId: 0,
         }
-        console.log("PLAYERS")
+        console.log("PLAYERS ID")
 		console.log(Object.keys(this.players));
     }
 
@@ -129,8 +129,6 @@ export class GameService {
 		state.players[1].userId = gameRoom.playerTwo.userId;
         state.roomName = roomId;
         gameRoom.state = state;
-		//console.log("GAMEROOM");
-		//console.log(gameRoom);
         server.to(roomId).emit("roomComplete", state);
 
 		this.updateActiveRoomNames();
@@ -184,11 +182,15 @@ export class GameService {
     initBall(ball: Ball) {
         let dirx = 0;
         let diry = 0;
-        while (Math.abs(dirx) <= 0.6 || Math.abs(dirx) >= 0.9) {
-            const heading = this.randomNumberBetween(0, 2 * Math.PI);
-            dirx = Math.cos(heading);
+        while (Math.abs(dirx) <= 0.8 || Math.abs(dirx) >= 0.9) {
+            console.log("DIRX 1 " + dirx)
+			const heading = this.randomNumberBetween(0, 2 * Math.PI);
+            console.log("HEADING " + heading)
+			dirx = Math.cos(heading);
             diry = Math.sin(heading);
         }
+		console.log("DIRX 2 " + dirx)
+		console.log("DIRY" + diry)
         ball.initialVelocity.x = dirx * ball.speed;
         ball.initialVelocity.y = diry * ball.speed;
     }
@@ -206,6 +208,7 @@ export class GameService {
         let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
         if (score === 10) {
             server.to(data.roomName).emit('gameResult', { winner: data.player });
+			console.log("HERE1")
 			this.injectScoresDB(this.activeGames[data.roomName], null);
 		} else {
             server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
@@ -272,6 +275,7 @@ export class GameService {
 
 		if (roomName) {
 			if (this.activeGames[roomName] !== undefined) {
+				console.log("HERE2")
 				await this.injectScoresDB(this.activeGames[roomName], client);
 			}
 			Reflect.deleteProperty(this.activeGames, roomName);
@@ -295,53 +299,14 @@ export class GameService {
 			client.emit("leftGame", 1);
 			//Reflect.deleteProperty(this.waitingRooms, level);
 		}
-        
 		Reflect.deleteProperty(this.players, client.id);
+
+		console.log("REMAINING CLIENTS ")
+		console.log(Object.keys(this.players));
 
 		//console.log("ACTIVE GAMES2")
 		//console.log(this.activeGames);
 
-		//console.log(this.waitingRooms);
-    }
-
-    async handleQuitGame(client: Socket, data: any, server: Server) {
-		console.log("CLIENT QUIT " + client.id);
-		console.log(Object.keys(this.activeGames));
-	
-
-		const roomName = data.roomName;
-		const level = data.level;
-		const spectator = this.players[client.id].spectator;
-
-		console.log("roomName " + roomName);
-		console.log("level  " +level);
-
-		if (spectator) {
-			client.emit("leftGame", 2)
-			client.disconnect();
-		}
-
-
-		if (roomName) {
-			const connSockets = await server.in(roomName).fetchSockets();
-			server.in(roomName).emit("leftGame", 2);
-			Reflect.deleteProperty(this.activeGames, roomName);
-		} else {
-			if (level !== 0) {
-				const wr = this.waitingRooms[level];
-				if (wr){
-				
-				if (wr.playerOne.id === client.id) {
-					   this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
-				   } else if (wr.playerTwo.id === client.id) {
-					   this.switchPlayers(null, null, wr, 2);
-				   }
-			
-				   client.emit("leftGame", 2);
-				   client.disconnect();
-				}
-			} 
-		}
 		//console.log(this.waitingRooms);
     }
 
@@ -362,58 +327,6 @@ export class GameService {
         }
     }
 
-    handleRematch(client: Socket, data: any, server: Server) {
-        //console.log(Object.keys(this.players).length);
-		console.log("REMATCH")
-        //const roomId = this.players[client.id].roomId;
-        const roomId = data.roomName;
-		const room = this.activeGames[roomId];
-		
-		console.log(room);
-        let player;
-        let opponent;
-        let playerNum;
-        let winner;
-        if (client.id === room.state.players[0].id) {
-            player = room.state.players[0]; 
-            playerNum = 1;
-            opponent = room.state.players[1]
-        } else if (client.id === room.state.players[1].id) {
-            player = room.state.players[1];
-            playerNum = 2;
-            opponent = room.state.players[0];
-        }
-
-        if (room.state.players[0].match_score === 3) {
-            winner = room.state.players[0].id;
-        } else {
-            winner = room.state.players[1].id;
-        }
-
-        let result = {
-            winner,
-            player: player.id,
-            opponent: opponent.id,
-            playerScore: player.match_score,
-            opponentScore: opponent.match_score,
-        }
-
-        player.game_scores.push(result);
-        opponent.game_scores.push(result); 
-
-        player.match_score = 0;
-        opponent.match_score = 0;
-
-
-        server.to(data.roomName).emit("rematch");
-        //console.log(Object.keys(this.players).length);
-
-        
-        
-        //console.log(player);
-        //console.log(opponent);
-    }
-
 	handleMoveAnim(client: Socket, data: any, server: Server) {
 		client.to(data.roomName).emit("animMoved", data);
 	}
@@ -423,36 +336,30 @@ export class GameService {
     }
 
 	getActiveRoomNames(client: Socket, data: any) {
+		console.log("GET ACTIVE ROOM NAMES");
 		if (client !== null) {
 			if (data.type === 1) {
 				this.players[client.id].type = "general";
 			} else if (data.type === 2) {
 				this.players[client.id].type = "game-component";
 			}
+			console.log(client.id + " " + this.players[client.id].type)
 		}
 		let roomNames = {};
 		let room;
 		let level;
 		let levelname;
-		
+
 		for (var key in this.activeGames) {
 			level = this.activeGames[key].level;
 			if (level === 1) {
 				levelname = "pong"
-			} else if (level === 2) {
-				levelname = "catPong"
-			} else if (level === 3) {
-				levelname = "customizable"
-			} else if (level === 4) {
-				console.log("LEVEL 4")
-				console.log(this.activeGames[key])
-				if (level === 1) {
-					levelname = "pong"
-				} else if (level === 2) {
-					levelname = "catPong"
-				} else if (level === 3) {
+			}
+				else if (level === 2) {
 					levelname = "customizable"
-				}
+				} 
+			else if (level === 3) {
+				levelname = "catPong"
 			}
 			room = {
 				id: key,
@@ -464,6 +371,9 @@ export class GameService {
 	}
 
 	handleCreateGame(client:Socket, data: any, server: Server ) {
+		//console.log("HANDLE CREATE GAME |||")
+		//console.log(data);
+		//console.log("||||")
 		const level = data.challengeInfo.level;
 		const userId = data.userId;
 		const player = this.players[client.id];
@@ -482,9 +392,12 @@ export class GameService {
 		}*/
 
 		//this.waitingRooms[this.i] = WR4;
-		let wr = this.waitingRooms[this.i];
+		//let wr = this.waitingRooms[this.i];
 
-		console.log("USER ID CREATE " + userId)
+		this.waitingRooms[4] = WR4;
+		let wr = this.waitingRooms[4];
+
+		// console.log("USER ID CREATE " + userId)
 
 		player.userId = userId;
 		player.level = level;
@@ -526,14 +439,12 @@ export class GameService {
 
 			this.initGame(wr.roomId, server);
 
-			Reflect.deleteProperty(this.waitingRooms, this.i);
+			//Reflect.deleteProperty(this.waitingRooms, this.i);
+			Reflect.deleteProperty(this.waitingRooms, 4);
 			//++this.i;
 		}
 	}
 
-	handleJoinGame(client: Socket, data: any, server: Server) {
-		
-	}
 }
 
 
