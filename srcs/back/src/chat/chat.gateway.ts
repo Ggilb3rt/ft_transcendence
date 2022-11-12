@@ -163,6 +163,25 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         return (true)
     }
 
+
+    @SubscribeMessage('demoted')
+    async demoteUser(client: Socket, arg: { channel_id: number, demoted_id: number}) {
+        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        const {channel_id, demoted_id} = arg
+
+        const res = await this.chatService.demote(channel_id, demoted_id, id)
+        if (!res) {
+            return false
+        }
+        client.broadcast.to(makeId(false, channel_id)).emit('demoted', {
+            channel_id,
+            demoted_id,
+            id
+        })
+        return (true)
+    }
+
     @SubscribeMessage('promote')
     async promoteUser(client: Socket, arg: {promoted_id: number, channel_id: number}) {
 
@@ -221,31 +240,18 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         return true
     }
 
-    @SubscribeMessage('demoted')
-    async demoteUser(client: Socket, arg: { channel_id: number, demoted_id: number}) {
-        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
-
-        const {channel_id, demoted_id} = arg
-
-        const res = await this.chatService.demote(channel_id, demoted_id, id)
-        if (!res) {
-            return false
-        }
-        client.broadcast.to(makeId(false, channel_id)).emit('demoted', {
-            channel_id,
-            demoted_id,
-            id
-        })
-        return (true)
-    }
-
     @SubscribeMessage('passChange')
-    async passCHange(client: Socket, arg: { channel_id: number, oldPass: string, newPass: string}) {
+    async passChange(client: Socket, arg: { channel_id: number, pass: string}) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        const {channel_id, newPass} = arg;
+        const {channel_id, pass} = arg;
 
-        const res = await this.chatService.changePass(channel_id, id, newPass)
+
+        console.log("OBJECT arg == ", arg)
+        console.log("arg == ", channel_id, pass)
+        const res = await this.chatService.changePass(channel_id, id, pass)
+        console.log("resPassCHange = ", res)
+        return res
     }
 
     @SubscribeMessage('typeChange')
@@ -282,6 +288,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const {channel_id, pass} = basicJoin
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
+        console.log("res == ", res)
         if (res.status == false)
             return res
         client.broadcast.to(makeId(false, channel_id)).emit('join', {

@@ -94,52 +94,16 @@ onBeforeUnmount(() => {
 			</i>
 		</button>
 
-		<nav class="bold" @click="toggle(0)">
-			<button>Current user [{{ isOpen(0) ? '-' : '+' }}]</button>
-		</nav>
-
-		<!-- {{ usersStore.getUsersListForChat(channelsStore.getUsersInChannel()) }} -->
-		<!-- {{ channelsStore.currentChan?.userList }} -->
-		<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
-			{{ el.name }}
-			<!-- {{ channelsStore.getChanListForSideBar(true) }} -->
-			<!-- <a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-			<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-				{{ child.name }}
-			<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
-			</RouterLink> -->
-			
-
-
-
-		</li>
-		<hr>
-
-		<!-- <li v-for="el, index in currentSideNav.items" :key="el.name">
-			<nav
-				:class="{ bold: isFolder(index) }"
-				@click="toggle(index)"
-			>
-				<RouterLink v-if="el.id" :to="el.id">
-					{{ el.name }}
-				</RouterLink>
-				<button>{{ el.name }}
-					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
-				</button>
-			</nav>
-			<nav>
-				<ul v-show="isOpen(index)" v-if="isFolder(index)">
-					<li v-for="child in el.children" :key="child.id">
-						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-							{{ child.name }}
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
-						</RouterLink>
-						<button v-else>{{ child.name }}</button>
+		<li>
+			<button @click="toggle(0)">Current user [{{ isOpen(0) ? '-' : '+' }}]</button>
+			<nav class="bold">
+				<ul v-show="isOpen(0)">
+					<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
+						{{ el.name }}
 					</li>
 				</ul>
 			</nav>
-		</li> -->
+		</li>
 	</ul>
 </template>
 

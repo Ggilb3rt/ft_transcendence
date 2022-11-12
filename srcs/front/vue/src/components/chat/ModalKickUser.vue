@@ -14,7 +14,7 @@ const formError = ref("")
 
 function valid() {
 	if (channelsStore.currentChan) {
-		if (channelsStore.currentChan.kickUser(userStore.user.id, selectedUser.value)) {
+		if (channelsStore.currentChan.canKickUser(userStore.user.id, selectedUser.value)) {
 			channelsStore.emitKickUser(channelsStore.currentChan.getId(), selectedUser.value)
 			console.log("kick user ", selectedUser.value)
 			cancel()

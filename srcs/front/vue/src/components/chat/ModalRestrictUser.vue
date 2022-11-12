@@ -19,7 +19,7 @@ const formError = ref("")
 function valid() {
 	console.log('minuteToAdd == ', minuteToAdd.value)
 	if (channelsStore.currentChan && minuteToAdd.value <= minutesInOneYear) {
-		if (channelsStore.currentChan.restrictUser(userStore.user.id, selectedUser.value, isMute.value, minuteToAdd.value)) {
+		if (channelsStore.currentChan.canRestrictUser(userStore.user.id, selectedUser.value, isMute.value)) {
 			if (minuteToAdd.value > 0) {
 				channelsStore.emitRestrictUser(
 					isMute.value,
@@ -37,9 +37,9 @@ function valid() {
 			}
 			console.log("send restrict user ", selectedUser.value, isMute.value, minuteToAdd.value)
 			cancel()
-		}
-		else
-			formError.value = "You can't do that"
+	}
+	else
+		formError.value = "You can't do that"
 	}
 }
 

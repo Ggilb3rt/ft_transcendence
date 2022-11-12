@@ -186,10 +186,11 @@ export class ChatService {
             if (!pass) {
                 return {msg: 'need pass', status: false}
             }
-            else if (this.chatHelper.checkPass(pass, channel_id)) {
+            else if (await this.chatHelper.checkPass(pass, channel_id)) {
                 await this.chatHelper.joinChannel(channel_id, user_id)
                 return {msg: 'joined', status: true}
             }
+            console.log("OULA")
             return {msg: 'password incorrect', status: false}
         }
         else if (type === "public") {
@@ -212,6 +213,7 @@ export class ChatService {
         if (await this.chatHelper.isOwner(channel_id, id) == false) {
             return false
         }
+        console.log("arg == ", id, pass)
         await this.chatHelper.changePass(channel_id, pass)
         return true
     }

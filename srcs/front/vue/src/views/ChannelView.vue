@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onUpdated, onBeforeMount, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import type {IOtherUserRestrict} from '../../types'
 import { useUserStore } from "@/stores/user"
@@ -19,6 +20,7 @@ const channelIdNumber = Number(props.channelId)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const channelsStore = useChannelsStore()
+const route = useRoute()
 let msg = ref("")
 
 
@@ -36,16 +38,22 @@ function submit(e: Event) {
 	e.preventDefault()
 	// emit to server
 	if (msg.value != "") {
-		channelsStore.emitMessage(channelIdNumber, msg.value)
-		if (channelsStore.currentChan) { // && emitMessage return true
-			channelsStore.currentChan.sendMessage({
-				sender: userStore.user.id,
-				receiver: channelIdNumber,
-				msg: msg.value,
-				isDirect: props.direct,
-				date: new Date()
-			})
-		}
+		if (channelsStore.currentChan)
+			if (channelsStore.currentChan.getType() != "direct")
+				if (channelsStore.currentChan.canSendMessage(userStore.user.id))
+					channelsStore.emitMessage(channelIdNumber, msg.value)
+			// else // pour les direct
+			// 	channelsStore.emitDirectMessage(channelIdNumber, msg.value)
+
+		// if (channelsStore.currentChan) { // && emitMessage return true
+		// 	channelsStore.currentChan.sendMessage({
+		// 		sender: userStore.user.id,
+		// 		receiver: channelIdNumber,
+		// 		msg: msg.value,
+		// 		isDirect: props.direct,
+		// 		date: new Date()
+		// 	})
+		// }
 	}
 	msg.value = ""
 }
@@ -78,6 +86,7 @@ onUpdated(() => {
 <template>
 	<div class="room" v-if="channelsStore.currentChan && !channelsStore.currentChan.isBan(userStore.user.id) && channelsStore.currentChan.isInChannel(userStore.user.id)">
 		<p>
+			{{ route.params }}
 			<span v-if="props.direct">/direct/</span>{{ props.channelId }}
 		</p>
 		<AdminPanel></AdminPanel>
@@ -87,7 +96,7 @@ onUpdated(() => {
 				<div v-if="msg.sender < 0" class="message robot-message">
 					{{ msg.msg }}
 				</div>
-				<div v-if="!userStore.isBan(msg.sender)" class="message">
+				<div v-else-if="!userStore.isBan(msg.sender)" class="message">
 					<figure>
 						<UserLink :other-user="usersStore.getUserRestrictById(msg.sender)" remove-status remove-name remove-hover></UserLink>
 					</figure>

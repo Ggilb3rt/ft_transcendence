@@ -114,6 +114,8 @@ watch(route, (newRoute) => {
 onMounted(() => {
   userStore.loading = false
 })
+
+const timeDate = ref<string>("")
 </script>
 
 <template>

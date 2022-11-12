@@ -14,8 +14,9 @@ const formError = ref("")
 
 function valid() {
 	if (channelsStore.currentChan) {
-		if (channelsStore.currentChan.removeAdmin(userStore.user.id, selectedUser.value)) {
+		if (channelsStore.currentChan.canRemoveAdmin(userStore.user.id, selectedUser.value)) {
 			// send data
+			channelsStore.emitDemoteUser(channelsStore.currentChan.getId(), selectedUser.value)
 			console.log("remove admin user ", selectedUser.value)
 			cancel()
 		}

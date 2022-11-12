@@ -105,9 +105,12 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         if (elem.inGame && client.id != elem.inGame)
             return
 
-        if (elem.userStatus == 'challenged' && arg.userStatus != 'inGame')
+        if (elem.userStatus == 'challenged' && arg.userStatus == 'available')
             return
-        if (!elem.inGame && arg.userStatus == 'inGame') {
+        if (elem.inGame && arg.userStatus == 'available') {
+            elem.inGame = null
+        }
+        else if (!elem.inGame && arg.userStatus == 'inGame') {
             elem.inGame = client.id
         }
 
