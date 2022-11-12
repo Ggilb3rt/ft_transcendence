@@ -32,6 +32,7 @@ function cancel() {
 	needPass.value = ""
 	formError.value = ""
 	channelsStore.error = ""
+	showModal.value = false
 }
 
 watch(channelsStore, (newVal) => {

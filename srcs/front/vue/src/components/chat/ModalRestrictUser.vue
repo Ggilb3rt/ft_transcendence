@@ -6,36 +6,25 @@ import { useChannelsStore } from '@/stores/channels'
 import Modal from '@/components/Modal.vue';
 import CarbonClose from '@/components/icones-bags/CarbonClose.vue'
 
-const minutesInOneYear: number = 525960
 const channelsStore = useChannelsStore()
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-const showRestrictUserModal = ref(false)
-const selectedUser = ref(0)
-const isMute = ref(false)
-const minuteToAdd = ref(0)
-const formError = ref("")
+const showRestrictUserModal = ref<boolean>(false)
+const selectedUser = ref<number>(0)
+const isMute = ref<boolean>(false)
+const timeDate = ref<string>("")
+const formError = ref<string>("")
 
 function valid() {
-	console.log('minuteToAdd == ', minuteToAdd.value)
-	if (channelsStore.currentChan && minuteToAdd.value <= minutesInOneYear) {
+	if (channelsStore.currentChan) {
 		if (channelsStore.currentChan.canRestrictUser(userStore.user.id, selectedUser.value, isMute.value)) {
-			if (minuteToAdd.value > 0) {
 				channelsStore.emitRestrictUser(
 					isMute.value,
 					channelsStore.currentChan.getId(),
 					selectedUser.value,
-					minuteToAdd.value
+					timeDate.value
 				)
-			}
-			else {
-				channelsStore.emitRestrictUser(
-					isMute.value,
-					channelsStore.currentChan.getId(),
-					selectedUser.value
-				)
-			}
-			console.log("send restrict user ", selectedUser.value, isMute.value, minuteToAdd.value)
+			console.log("send restrict user ", selectedUser.value, isMute.value, timeDate.value)
 			cancel()
 	}
 	else
@@ -46,7 +35,7 @@ function valid() {
 function cancel() {
 	selectedUser.value = 0
 	isMute.value = false
-	minuteToAdd.value = 0
+	timeDate.value = ""
 	formError.value = ""
 	showRestrictUserModal.value = false
 }
@@ -79,8 +68,13 @@ function cancel() {
 						</select>
 						<p>
 							<span v-if="isMute">Mute</span>
-							<span v-else>Ban</span> 
-							<input type="number" v-model="minuteToAdd" :max="minutesInOneYear"> minutes
+							<span v-else>Ban</span>
+							<input type="datetime-local" v-model="timeDate">
+							<!-- <input type="number" v-model="minuteToAdd" :max="minutesInOneYear"> minutes -->
+						</p>
+						<br>
+						<p v-if="selectedUser && timeDate.length > 0">
+							{{ usersStore.getUserNickById(selectedUser) }} will be {{ isMute ? "muted" : "banned" }} until {{ timeDate }}
 						</p>
 					<button @click="valid()">Go !</button>
 					<button @click="cancel()">Cancel</button>
