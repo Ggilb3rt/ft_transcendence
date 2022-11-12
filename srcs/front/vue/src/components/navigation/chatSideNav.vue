@@ -109,7 +109,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .second_side_menu {
-	min-height: 100vh;
+	height: calc(100vh - 89px);
+	overflow-y: scroll;
+	overflow-x: hidden;
 	display: none;
 	background: #000;
 	position: absolute;
@@ -117,7 +119,7 @@ onBeforeUnmount(() => {
 	left: 0;
 	right: 0;
 	z-index: 10;
-	padding: 20px;
+	padding: 20px 10px;
 }
 
 .channel_link {
@@ -162,6 +164,16 @@ ul a, .like-link {
 	word-break: break-all;
 }
 
+ul li button {
+	border: none;
+	background: none;
+	color: gray;
+}
+
+ul li nav {
+	padding-left: 15px;
+}
+
 ul li ul {
 	padding: 0;
 	margin: 10px 0;
@@ -177,13 +189,13 @@ ul li ul li a, .like-link {
 } */
 
 ul li ul li:nth-child(n+2) a{
-	border-top: 1px solid #fff;
+	/* border-top: 1px solid #fff; */
 }
 
 @media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
-		max-width: 15vw;
+		width: 20vw;
 	}
 }
 

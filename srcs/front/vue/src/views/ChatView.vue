@@ -229,7 +229,7 @@ onBeforeMount(() => {
 @media screen and (min-width: 768px) {
 	.vue_wrapper.chat {
 		/* min-height: 90vh; */
-		align-items: center;
+		align-items: flex-start;
 		flex-flow: row;
 	}
 

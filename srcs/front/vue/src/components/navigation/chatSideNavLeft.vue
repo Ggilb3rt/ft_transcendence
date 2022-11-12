@@ -136,7 +136,8 @@ const sideNavDataLeft = ref({
 			<nav class="bold">
 				<ul v-show="isOpen(1)">
 					<li v-for="child in channelsStore.getChanListForSideBar(true)" :key="child.id">
-						<RouterLink v-if="child.id" :to="child.id" class="channel_link">
+						<RouterLink v-if="child.id" :to="child.id" class="channel_link" :title="child.name">
+							<!-- {{ child.name.length < 10 ? child.name : `${child.name.substring(0, 7)}...` }} -->
 							{{ child.name }}
 							<button v-if="!onRight" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
 						</RouterLink>
@@ -174,7 +175,9 @@ const sideNavDataLeft = ref({
 
 <style scoped>
 .second_side_menu {
-	min-height: 100vh;
+	height: calc(100vh - 89px);
+	overflow-y: scroll;
+	overflow-x: hidden;
 	display: none;
 	background: #000;
 	position: absolute;
@@ -182,7 +185,7 @@ const sideNavDataLeft = ref({
 	left: 0;
 	right: 0;
 	z-index: 10;
-	padding: 20px;
+	padding: 20px 10px;
 }
 
 .channel_link {
@@ -193,6 +196,17 @@ const sideNavDataLeft = ref({
 .channel_link:hover .btn_hide {
 	right: 0;
 }
+.channel_link.router-link-active.router-link-exact-active::before {
+	content: '';
+	display: block;
+	width: 10px;
+	height: 10px;
+	border-radius: 10px;
+	background: white;
+	position: absolute;
+	top: calc(50% - 5px);
+	right: -5px;
+}
 
 .btn_hide {
 	position: absolute;
@@ -201,6 +215,7 @@ const sideNavDataLeft = ref({
 	width: 25px;
 	height: 25px;
 	right: -25px;
+	top: calc(50% - 12px);
 	transition: right .3s ease-in-out;
 }
 .btn_join {
@@ -227,9 +242,21 @@ ul a, .like-link {
 	word-break: break-all;
 }
 
+ul li button {
+	border: none;
+	background: none;
+	color: gray;
+	font-size: 15px;
+}
+
+ul li nav {
+	padding-left: 15px;
+	margin-bottom: 15px;
+}
+
 ul li ul {
 	padding: 0;
-	margin: 10px 0;
+	margin: 0;
 }
 
 ul li ul li a, .like-link {
@@ -242,13 +269,13 @@ ul li ul li a, .like-link {
 } */
 
 ul li ul li:nth-child(n+2) a{
-	border-top: 1px solid #fff;
+	/* border-top: 1px solid #fff; */
 }
 
 @media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
-		max-width: 15vw;
+		width: 20vw;
 	}
 }
 
