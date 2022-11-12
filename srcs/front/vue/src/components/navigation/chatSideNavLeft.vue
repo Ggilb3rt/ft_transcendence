@@ -50,8 +50,8 @@ function leaveChannel(link: string) {
 	
 	if(id && confirm(`You want to leave chan ${id} ?`)) {
 		// emit to server
-		if (channelsStore.currentChan)
-			channelsStore.emitQuitChannel(channelsStore.currentChan.getId())
+		// if (channelsStore.currentChan)
+		channelsStore.emitQuitChannel(id)
 		console.log("you leave chan", id)
 	}
 }
@@ -60,9 +60,9 @@ function joinChannel(e: Event, link: string) {
 	e.preventDefault()
 	const id: number = getChanIdFromLink(link)
 	// emit sur join et attendre la réponse
-	if (confirm(`join channel '${id}' from '${link}' ?`))
-		if (channelsStore.emitJoin(id))
-			router.push(link)
+	if (confirm(`join channel '${id}' from '${link}' ?`)) {
+		channelsStore.emitJoin(id)
+	}
 }
 
 onBeforeMount(() => {
@@ -123,18 +123,17 @@ const sideNavDataLeft = ref({
 		</button>
 
 		<li>
-			<button>Availables [{{ isOpen(0) ? '-' : '+' }}]</button>
-			
-			<nav class="bold" @click="toggle(0)">
+			<button @click="toggle(0)">Availables [{{ isOpen(0) ? '-' : '+' }}]</button>
+			<nav class="bold" >
 				<ul v-show="isOpen(0)">
 					<li v-for="child in channelsStore.getChanListForSideBar(false)" :key="child.id">
 						<a href="#" rel="nofollow" v-if="child.id" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
 					</li>
 				</ul>
 			</nav>
-			<button>Joined [{{ isOpen(1) ? '-' : '+' }}]</button>
-			
-			<nav class="bold" @click="toggle(1)">
+
+			<button @click="toggle(1)">Joined [{{ isOpen(1) ? '-' : '+' }}]</button>
+			<nav class="bold">
 				<ul v-show="isOpen(1)">
 					<li v-for="child in channelsStore.getChanListForSideBar(true)" :key="child.id">
 						<RouterLink v-if="child.id" :to="child.id" class="channel_link">

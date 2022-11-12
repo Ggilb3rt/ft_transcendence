@@ -17,13 +17,14 @@ if (channelsStore.currentChan)
 
 function valid() {
 	if (channelsStore.currentChan) {
-		if (channelsStore.currentChan.changeChannelType(userStore.user.id, newChannelType.value, newPass.value)) {
+		if (channelsStore.currentChan.canChangeType(userStore.user.id, newChannelType.value, newPass.value)) {
 			// send data
+			channelsStore.emitTypeChange(channelsStore.currentChan.getId(), newChannelType.value, newPass.value)
 			console.log("change type ", newChannelType.value, `'${newPass.value}'`)
 			cancel()
 		}
-		else
-			formError.value = "You can't do that"
+	else
+		formError.value = "You can't do that"
 	}
 }
 

@@ -173,6 +173,25 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         return true
     }
 
+    @SubscribeMessage('demoted')
+    async demoteUser(client: Socket, arg: { channel_id: number, demoted_id: number}) {
+        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        const {channel_id, demoted_id} = arg
+
+        const res = await this.chatService.demote(channel_id, demoted_id, id)
+        if (!res) {
+            return false
+        }
+        console.log("in DEMOTE gateway: ", channel_id, demoted_id)
+        client.broadcast.to(makeId(false, channel_id)).emit('demoted', {
+            channel_id,
+            demoted_id,
+            id
+        })
+        return (true)
+    }
+
     @SubscribeMessage('kick')
     async kickUser(client: Socket, arg: { channel_id: number, kicked_id: number }) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
@@ -188,6 +207,17 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             channel_id
         })
         return true
+    }
+
+    @SubscribeMessage('typeChange')
+    async changeType(client: Socket, arg: { channel_id: number, type: TChannelType, pass?: string }) {
+        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+        
+        const {channel_id, type, pass} = arg;
+        const res = await this.chatService.changeChannelType(channel_id, type, id, pass)
+        if (!res)
+            return false
+        client.broadcast.to(makeId(false, channel_id)).emit('typeChanged', {channel_id, type, id, pass})
     }
 
     @SubscribeMessage('ban')
@@ -213,36 +243,6 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             channel_id
         })
         return true
-    }
-
-    @SubscribeMessage('demoted')
-    async demoteUser(client: Socket, arg: { channel_id: number, demoted_id: number}) {
-        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
-
-        const {channel_id, demoted_id} = arg
-
-        const res = await this.chatService.demote(channel_id, demoted_id, id)
-        if (!res) {
-            return false
-        }
-        console.log("in DEMOTE gateway: ", channel_id, demoted_id)
-        client.broadcast.to(makeId(false, channel_id)).emit('demoted', {
-            channel_id,
-            demoted_id,
-            id
-        })
-        return (true)
-    }
-
-    @SubscribeMessage('typeChange')
-    async changeType(client: Socket, arg: { channel_id: number, type: TChannelType, pass?: string }) {
-        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
-        
-        const {channel_id, type, pass} = arg;
-        const res = await this.chatService.changeChannelType(channel_id, type, id, pass)
-        if (!res)
-            return false
-        client.broadcast.to(makeId(false, channel_id)).emit('typeChanged', {channel_id, type, id, pass})
     }
 
     @SubscribeMessage('mute')
