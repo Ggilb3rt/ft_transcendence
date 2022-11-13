@@ -1,4 +1,22 @@
-/*export class WR {
+
+export type WaitingRoom = {
+	level: 0,
+    playerOne: {
+        id: "",
+        socket: "",
+        roomId: "",
+		userId: 0,
+    },
+    playerTwo: {
+        id: "",
+        socket: "",
+        roomId: "",
+		userId: 0,
+    },
+    roomId: ""
+}
+
+/*export type WaitingRoom = {
     level: number;
     playerOne: {
         id:number,
@@ -13,6 +31,7 @@
 		userId: number,
     };
     roomId: string
+
 
 	constructor() {
 		this.level= 0,

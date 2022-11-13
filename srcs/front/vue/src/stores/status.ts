@@ -3,11 +3,13 @@ import type { Challenge, ISocketStatus, TStatus } from "../../types";
 import { io, Socket } from "socket.io-client";
 import { useUsersStore } from "./users";
 import router from "@/router";
+import type { TriggerOptions } from "@vue/test-utils/dist/createDomEvent";
 
 interface IUserStatusStore {
   status: TStatus;
   invitations: Number;
   socket: any;
+  //socketGame: any;
   statusList: ISocketStatus[];
   setuped: boolean;
   error: string | null;
@@ -23,10 +25,15 @@ export const useStatusStore = defineStore({
   id: "status",
   state: (): IUserStatusStore => ({
     status: "disconnected" as TStatus,
-    invitations: 0 as Number,
-    socket: io('http://localhost:3000/userStatus', {
+    invitations: 0 as number,
+    socket: io("http://localhost:3000/userStatus", {
       withCredentials: true,
     }),
+    /*socketGame: io("http://localhost:3000/game", {
+      query: {
+        type: "storeGameSocket",
+      },
+    }),*/
     statusList: [],
     setuped: false,
     error: null,
@@ -78,115 +85,153 @@ export const useStatusStore = defineStore({
 
     connectSocket() {
       this.socket.connect();
+      //this.socketGame.connect();
     },
 
     disconnectSocket() {
       this.socket.close();
+      //this.socketGame.close();
     },
 
     async setupSocket() {
       if (this.socket.connected) {
+        this.socket.emit("connectionStatus", this.id);
 
+        this.socket.on("takeThat", (status: ISocketStatus) => {
+          if (status.userId == this.id && status.userStatus == "inGame") {
+            this.status = status.userStatus;
+            return;
+          } else if (
+            status.userId == this.id &&
+            status.userStatus == "challenged"
+          ) {
+            this.status = status.userStatus;
+            return;
+          } else if (!this.findSocket(status.userId))
+            this.statusList.push(status);
+        });
 
-                 this.socket.emit('connectionStatus', this.id)
-
-
-                 this.socket.on('takeThat', ((status: ISocketStatus) => {
-                  if (status.userId == this.id && status.userStatus == "inGame") {
-                    this.status = status.userStatus
-                    return
-                  }
-                  else if (status.userId == this.id && status.userStatus == "challenged") {
-                    this.status = status.userStatus
-                    return
-                  }
-                  else if (!this.findSocket(status.userId))
-                    this.statusList.push(status)
-                 }))
-
-
-                 this.socket.on("newStatusConnection", (res: {userId: number, newClient: string}) => {
-                  const existsAlready = this.findSocket(res.userId)
-                    if (!existsAlready) {
-                        this.statusList.push({userId: res.userId, userStatus: 'available'})
-                    }
-                    this.socket.emit('takeThat', {userId: this.id, userStatus: this.status, newClient: res.newClient})
-                 })
-
-                 this.socket.on("newStatusDisconnection", (userId: number) => {
-                    this.statusList.splice(this.statusList.findIndex((el: ISocketStatus) => el.userId == userId), 1)
-                  }
-                 )
-
-                 this.socket.on("newStatusChange", (res: ISocketStatus) => {
-                  const found = this.findSocket(res.userId)
-                  if (!found)
-                    return
-                  found.userStatus = res.userStatus
-                  if (this.id == res.userId) {
-                    this.status = res.userStatus
-                  }
-                 })
-             
-                 //Messages for challenges
-                 this.socket.on("newChallenge", (res: {challenge: Challenge, socket: string}) => {
-                     console.log("Challenge recu")
-                     if (res.challenge && !this.challenge) {
-                     console.log("Challenge valide", res.challenge)
-                         this.challenge = res.challenge
-                         this.changeCurrentUserStatus('challenged', this.id)
-                         this.socket.emit("challengeOk", res.socket)
-                     } 
-                     else {
-                      this.socket.emit("alreadyChallenged", res.socket)
-                     }
-                 })
-
-                 this.socket.on("alreadyChallenged", () => {
-                  this.challenge = null;
-                 }) 
-                 this.socket.on("challengeOk", (challenge: Challenge) => {
-                          this.iChallenged = true
-                          console.log("I CHALLENGED = ", this.iChallenged)
-                          this.changeCurrentUserStatus('challenged', this.id)
-                  
-                 }) 
-                 this.socket.on("challengeAccepted", (challenge: Challenge) => {
-                  if (challenge) {
-                    const {challenger, challenged, level} = challenge
-                    if (!this.challenge) {
-                      console.log("No pending challenge")
-                      return
-                    }
-                    if (challenged == this.id) {
-                        this.challengeAccepted = true
-                    }
-                    else if (challenger == this.id){
-                      this.challengeAccepted = true
-                      if (this.iChallenged == true)
-                          router.push({path: "/game", query: {challenge: JSON.stringify({challenger, level, challenged})}})
-                    }
-                  }
-                 })
-                 this.socket.on("refuseChallenge", () => {
-                     this.finishChallenge()
-                 })
-                return
+        this.socket.on(
+          "newStatusConnection",
+          (res: { userId: number; newClient: string }) => {
+            const existsAlready = this.findSocket(res.userId);
+            if (!existsAlready) {
+              this.statusList.push({
+                userId: res.userId,
+                userStatus: "available",
+              });
             }
-            else {
-                setTimeout(this.setupSocket, 100)
+            this.socket.emit("takeThat", {
+              userId: this.id,
+              userStatus: this.status,
+              newClient: res.newClient,
+            });
+          }
+        );
+
+        this.socket.on("newStatusDisconnection", (userId: number) => {
+          this.statusList.splice(
+            this.statusList.findIndex(
+              (el: ISocketStatus) => el.userId == userId
+            ),
+            1
+          );
+        });
+
+        this.socket.on("newStatusChange", (res: ISocketStatus) => {
+          const found = this.findSocket(res.userId);
+          if (!found) return;
+          found.userStatus = res.userStatus;
+          if (this.id == res.userId) {
+            this.status = res.userStatus;
+          }
+        });
+
+        //Messages for challenges
+        this.socket.on(
+          "newChallenge",
+          (res: { challenge: Challenge; socket: string }) => {
+            console.log("Challenge recu");
+            if (res.challenge && !this.challenge) {
+              console.log("Challenge valide", res.challenge);
+              this.challenge = res.challenge;
+              this.changeCurrentUserStatus("challenged", this.id);
+              this.socket.emit("challengeOk", res.socket);
+            } else {
+              this.socket.emit("alreadyChallenged", res.socket);
             }
-        },
-        
-        async setup(id: number) {
-            // Check to do it only once
-            if (this.setuped == false) {
-                this.id = id
-                this.setupSocket()
-                this.status = 'available'
-                this.setuped = true;
+          }
+        );
+
+        this.socket.on("alreadyChallenged", () => {
+          this.challenge = null;
+        });
+        this.socket.on("challengeOk", (challenge: Challenge) => {
+          this.iChallenged = true;
+          console.log("I CHALLENGED = ", this.iChallenged);
+          this.changeCurrentUserStatus("challenged", this.id);
+        });
+        this.socket.on("challengeAccepted", (challenge: Challenge) => {
+          if (challenge) {
+            const { challenger, challenged, level } = challenge;
+            if (!this.challenge) {
+              console.log("No pending challenge");
+              return;
             }
-        },
+            if (challenged == this.id) {
+              this.challengeAccepted = true;
+            } else if (challenger == this.id) {
+              this.challengeAccepted = true;
+              if (this.iChallenged == true) {
+                let levelName: string;
+                if (challenge.level === 0) {
+                  levelName = "pong";
+                } else if (challenge.level === 1) {
+                  levelName = "catPong";
+                } else if (challenge.level === 2) {
+                  levelName = "customizable";
+                }
+                /*this.socketGame.emit("createChallengeRoom", {
+                  challenge: challenge,
+                  userId: this.id,
+                });
+                this.socketGame.on("roomComplete", () => {
+                  router.push({
+                    path: `/game/${levelName}/${challenge.challengeId}`,
+                  });
+                });*/
+              }
+              /*router.push({
+                  path: "/game",
+                  query: {
+                    challenge: JSON.stringify({
+                      challenger,
+                      level,
+                      challenged,
+                    }),
+                  },*/
+              //});
+            }
+          }
+        });
+        this.socket.on("refuseChallenge", () => {
+          this.finishChallenge();
+        });
+        return;
+      } else {
+        setTimeout(this.setupSocket, 100);
+      }
+    },
+
+    async setup(id: number) {
+      // Check to do it only once
+      if (this.setuped == false) {
+        this.id = id;
+        this.setupSocket();
+        this.status = "available";
+        this.setuped = true;
+      }
+    },
 
     onClose() {
       this.socket.close();
@@ -211,46 +256,88 @@ export const useStatusStore = defineStore({
       return el;
     },
 
+    codeGenerator(length: number): string {
+      var result = "";
+      var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+      var charactersLength = characters.length;
+      for (var i = 0; i < length; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * charactersLength)
+        );
+      }
+      return result;
+    },
+
     challengeUser(id: Number, level: Number, challenged: Number) {
-      console.log("je challenge un user")
-      const challenge: Challenge = { challenger: id, level, challenged, socketId: this.socket.id};
-      console.log("challenge = ", challenge)
+      console.log("je challenge un user");
+      const challengeId = this.codeGenerator(5);
+      const challenge: Challenge = {
+        challenger: id,
+        level,
+        challenged,
+        socketId: this.socket.id,
+        challengeId,
+      };
+      console.log("challenge = ", challenge);
       const el = this.findSocket(challenge.challenged);
       if (el) {
-        console.log("je suis la ")
+        console.log("je suis la ");
         this.challenge = challenge;
-        this.socket.emit("newChallenge", challenge)
+        this.socket.emit("newChallenge", challenge);
       } else {
         //console.log("Noooooooo")
       }
     },
 
     acceptChallenge() {
-      console.log("this.challenge")
-    if (!this.challenge) {
-      console.log("No pending challenge")
-      return
-    }
+      console.log("this.challenge");
+      if (!this.challenge) {
+        console.log("No pending challenge");
+        return;
+      }
       this.socket.emit("acceptChallenge", this.challenge);
-	  console.log('ACCEPT CHALLENGE');
-	  console.log(this.challenge);
-    const {challenger, challenged, level} = this.challenge
-      router.push({
+      console.log("ACCEPT CHALLENGE");
+      console.log(this.challenge);
+      const { challenger, challenged, level, challengeId } = this.challenge;
+      /*router.push({
         path: "/game",
-        query: { challenge: JSON.stringify({challenger, level, challenged}) },
+        query: { challenge: JSON.stringify({ challenger, level, challenged }) },
+      });*/
+      let levelName: string;
+      if (this.challenge.level === 0) {
+        levelName = "pong";
+      } else if (this.challenge.level === 1) {
+        levelName = "catPong";
+      } else if (this.challenge.level === 2) {
+        levelName = "customizable";
+      }
+      /*ame.emit("joinChallengeRoom", {
+        challenge: this.challenge,
+        userId: this.id,
       });
+      //console.log("THIS CHALLENGE " + JSON.stringify(challenge) + " " + levelName);
+      this.socketGame.on("roomComplete", () => {
+        router.push({
+          path: `/game/${levelName}/${challengeId}`,
+        });
+      });*/
+
+      //router.push({ path: `/game/${levelName}/${this.challenge.challengeId}` });
     },
 
     changeCurrentUserStatus(newStatus: TStatus, id: Number) {
-        //console.log("----------- CHANGING STATUS -----------\n\n -----EL = ", el, "-----STATUS = ", newStatus)
-        this.status = newStatus;
-        this.socket.emit("changeStatus", {userId: this.id, userStatus: newStatus});
+      //console.log("----------- CHANGING STATUS -----------\n\n -----EL = ", el, "-----STATUS = ", newStatus)
+      this.status = newStatus;
+      this.socket.emit("changeStatus", {
+        userId: this.id,
+        userStatus: newStatus,
+      });
     },
 
-        finishChallenge() {
-            this.challengeAccepted = false
-            this.challenge = null;
-            this.iChallenged = false;
-        }
-    } ,
-})
+    finishChallenge() {
+      this.challengeAccepted = false;
+      this.challenge = null;
+      this.iChallenged = false;
+    },
+  },
+});

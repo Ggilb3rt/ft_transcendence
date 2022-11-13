@@ -84,9 +84,9 @@ function initGame() {
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = Object.keys(payload.roomNames);
 
-    if ((isChallenge() || isValidGame()) && !error) {
+    if (/*(isChallenge() ||*/ isValidGame() && !error) {
       launchGame();
-    } else if ((!isChallenge() && !isValidGame) || error) {
+    } else if (/*(!isChallenge() && */!isValidGame || error) {
       router.replace("/");
     }
   });
@@ -136,14 +136,14 @@ function isValidGame(): boolean {
 
   if (validLevels.includes(urlLevel)) {
     data.level = urlLevel;
-    if (urlRoomId) {
+    /*if (urlRoomId) {
       if (activeRoomNames.includes(urlRoomId)) {
         data.key = urlRoomId;
         data.spectator = true;
       } else {
         error = true;
       }
-    }
+    }*/
   }
   return true;
 }

@@ -85,13 +85,13 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     @SubscribeMessage('connectionStatus')
     async handleConnection(client: Socket) {
         const {id, sockets} = await this.getSockets(client)
-
+		if (client.handshake.headers.cookie) {
         client.join(makeId(id))
         
         console.log("DEUXIEME FOIS -------------")
         await this.getSockets(client);
         client.broadcast.emit('newStatusConnection', {userId: id, newClient: client.id})
-            
+		}
     }
 
 

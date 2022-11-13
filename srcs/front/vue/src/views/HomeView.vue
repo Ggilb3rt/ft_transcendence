@@ -9,11 +9,7 @@ import { shallowEqual } from "@babel/types";
 
 const userStore = useUserStore();
 const userId = userStore.user.id;
-const socket = io("http://localhost:3000/game", {
-  query: {
-    userId: userStore.user.id,
-  },
-});
+const socket = io("http://localhost:3000/game");
 
 const canPlay = ref(true);
 const show = ref(false);

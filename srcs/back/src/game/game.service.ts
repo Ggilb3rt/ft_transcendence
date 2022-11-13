@@ -3,6 +3,7 @@ import { Socket, Server } from 'socket.io';
 import { Ball, Player, WR1, WR2, WR3, WR4} from './classes';
 import { UsersHelper } from '../users/usersHelpers';
 import { CreateMatchDto } from 'src/users/createMatchDto';
+import type { WaitingRoom } from './classes';
 
 @Injectable()
 export class GameService {
@@ -291,7 +292,7 @@ export class GameService {
 		if (level !== 0) {
 			if (this.players[client.id].challenge) {
 				console.log("deleting wr");
-				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].challengeInfo.challenger + 3);
+				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].roomId);
 			} else {
 				if (this.waitingRooms.hasOwnProperty(level) && (level === 1 || level === 2 || level === 3)) {
             	let wr = this.waitingRooms[level];
@@ -436,6 +437,72 @@ export class GameService {
 
 			Reflect.deleteProperty(this.waitingRooms, data.challeneInfo.challeneger + 10);
 		}
+	}
+	
+	handleCreateChallengeRoom(client: Socket, data: any){
+		console.log("CREATING WAITING ROOM CHALLENGE")
+		const level = data.challenge.level;
+		const userId = data.userId;
+		const player = this.players[client.id];
+
+		player.userId = userId;
+		player.level = level;
+		player.challenge = true;
+		player.challengeInfo = data.challenge;
+
+		this.waitingRooms[data.challenge.challengeId] = WR4;
+		let wr = this.waitingRooms[data.challenge.challengeId];
+
+		wr.playerOne.id = player.id;
+		wr.playerOne.socket = player.socket;
+		wr.playerOne.level = level;
+		wr.playerOne.userId = userId;
+        wr.level = level;
+	}
+
+	
+	handleJoinChallengeRoom(client: Socket, data: any, server: Server){
+		console.log("JOINING WAITING ROOM CHALLENGE")
+		const level = data.challenge.level;
+		const userId = data.userId;
+		const player = this.players[client.id];
+
+		player.userId = userId;
+		player.level = level;
+		player.challenge = true;
+		player.challengeInfo = data.challenge;
+
+		//this.waitingRooms[data.challenge.challengeId] = WR4;
+		let wr = this.waitingRooms[data.challenge.challengeId];
+
+		wr.playerTwo.id = player.id;
+		wr.playerTWo.socket = player.socket;
+		wr.playerTWo.level = level;
+		wr.playerTWO.userId = userId;
+        wr.level = level;
+
+
+		if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
+			//console.log("room CREATION COMPLETE")
+			wr.roomId = data.challengeRoomId;
+			wr.playerOne.roomId = data.challengeRoomId;
+			wr.playerTwo.roomId = data.challengeRoomId;
+			wr.level = level;
+			this.players[wr.playerOne.id].roomId = data.challengeRoomId;
+			this.players[wr.playerTwo.id].roomId = data.challengeRoomId;
+			this.players[wr.playerOne.id].level = wr.level;
+			this.players[wr.playerTwo.id].level = wr.level;
+			this.activeGames[data.challengeRoomId] = {
+				playerOne: wr.playerOne,
+				playerTwo: wr.playerTwo,
+				level: level,
+			}
+			console.log(this.activeGames[data.challengeRoomId]);
+
+			this.initGame(wr.roomId, server);
+
+			Reflect.deleteProperty(this.waitingRooms, data.challengeRoomId);
+		}	
 	}
 
 }

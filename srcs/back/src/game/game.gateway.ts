@@ -16,6 +16,10 @@ import { Logger } from '@nestjs/common';
     cors: {
         origin: '*'
     },
+	/*cors: {
+        //credentials: true,
+        origin: /localhost\:[\d]*?\/?[\w]*$/
+	},*/
     namespace: 'game'
 })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -115,6 +119,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 	@SubscribeMessage("addUserId")
 	handleAddUserId(client: Socket, data: any) {
 		this.gameService.handleAddUserId(client, data, this.server);
+	}
+
+	@SubscribeMessage("createChallengeRoom")
+	handleCreateChallengeRoom(client: Socket, data: any){
+		this.gameService.handleCreateChallengeRoom(client, data);
+	}
+
+	@SubscribeMessage("joinChallengeRoom")
+	handleJoinChallengeRoom(client: Socket, data: any){
+		this.gameService.handleJoinChallengeRoom(client, data, this.server);
 	}
 
 }
