@@ -40,10 +40,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async unBanExpired(user_id: number) {
 
             const bans: ban_channels[] = await this.chatService.getMyBans(user_id)
-            //console.log("bans = ", bans)
+            // console.log("bans = ", bans)
             bans.forEach(async (ban) => {
                 if(ban.expires < new Date()) {
-                    console.log("le ban ", ban)
+                    // console.log("le ban ", ban)
                     await this.chatService.unBan(ban)
                     await this.unBan(user_id, ban.channel_id)
                 }
@@ -70,12 +70,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     async leaveChannelId(banned_id: number, channel_id: number) {
         const room = makeId(true, banned_id)
-        console.log(room)
+        // console.log(room)
         const clients = await this.server.in(room).fetchSockets();
-        console.log("banning ", banned_id)
+        // console.log("banning ", banned_id)
         clients.forEach((client) => {
-            console.log("le banning ", channel_id)
-            console.log("socket = ", client.id)
+            // console.log("le banning ", channel_id)
+            // console.log("socket = ", client.id)
             client.leave(makeId(false, channel_id))
         })
     }
@@ -242,7 +242,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const { channel_id, banned_id, expires} = arg
 
         const res: boolean = await this.chatService.banUser(channel_id, banned_id, expires, id)
-        console.log("res == ", res)
+        // console.log("res == ", res)
 
         if (!res)
             return false
@@ -302,7 +302,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const {channel_id, pass} = basicJoin
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
-        console.log("res == ", res)
+        // console.log("res == ", res)
         if (res.status == false)
             return res
         client.broadcast.to(makeId(false, channel_id)).emit('join', {

@@ -30,7 +30,7 @@ export class AuthService {
           }
         const {validate} = await this.jwtAuthService.validate(token);
 
-        console.log("VALIDATE === ", validate)
+        // console.log("VALIDATE === ", validate)
         if (!validate || !validate.id) {
           throw new ForbiddenException("Invalid Token")
         }

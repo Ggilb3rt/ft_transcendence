@@ -7,6 +7,8 @@ import { useChannelsStore } from '@/stores/channels';
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
+import MdiCrown from "@/components/icones-bags/MdiCrown.vue"
+import MdiCrownOutline from "@/components/icones-bags/MdiCrownOutline.vue"
 
 
 const props = defineProps({
@@ -45,26 +47,6 @@ function getChanIdFromLink(link: string): number {
 	return parseInt(link.split('/').at(-1))
 }
 
-function leaveChannel(link: string) {
-	const id: number = getChanIdFromLink(link)
-	
-	if(id && confirm(`You want to leave chan ${id} ?`)) {
-		// emit to server
-		if (channelsStore.currentChan)
-			channelsStore.emitQuitChannel(channelsStore.currentChan.getId())
-		console.log("you leave chan", id)
-	}
-}
-
-function joinChannel(e: Event, link: string) {
-	e.preventDefault()
-	const id: number = getChanIdFromLink(link)
-	// emit sur join et attendre la réponse
-	if (confirm(`join channel '${id}' from '${link}' ?`))
-		if (channelsStore.emitJoin(id))
-			router.push(link)
-}
-
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue());
 	// check on start
@@ -79,6 +61,22 @@ onBeforeUnmount(() => {
 // onRenderTriggered((e) => {
 // 	debugger
 // })
+
+function isOwner(el: sideNavLink): boolean {
+	const userId: number = getChanIdFromLink(el.id)
+	if (channelsStore.currentChan)
+		if (channelsStore.currentChan.isOwner(userId))
+			return true
+	return false
+}
+
+function isAdmin(el: sideNavLink): boolean {
+	const userId: number = getChanIdFromLink(el.id)
+	if (channelsStore.currentChan)
+		if (channelsStore.currentChan.isAdmin(userId))
+			return true
+	return false
+}
 
 </script>
 
@@ -110,6 +108,8 @@ onBeforeUnmount(() => {
 				<ul v-show="isOpen(1)">
 					<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
 						{{ el.name }}
+						<i v-if="isOwner(el)"><MdiCrown></MdiCrown></i>
+						<i v-else-if="isAdmin(el)"><MdiCrownOutline></MdiCrownOutline></i>
 					</li>
 				</ul>
 			</nav>

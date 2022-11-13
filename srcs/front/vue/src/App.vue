@@ -58,7 +58,7 @@ async function testConnection() {
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
         if (!isSetupStoreChannel) {
-          await channelStore.getChansLists();
+          channelStore.getChansLists();
           isSetupStoreChannel = true
         }
       }
@@ -102,6 +102,7 @@ watch(route, (newRoute) => {
       //console.log(newRoute.name)
       // change my status by 'inGame' and emit it
       //console.log("in watch route user id should be 9 == ", userStore.user.id)
+      console.log("bonjour")
       statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
       //console.log("should be inGame")
     } else {
@@ -114,8 +115,6 @@ watch(route, (newRoute) => {
 onMounted(() => {
   userStore.loading = false
 })
-
-const timeDate = ref<string>("")
 </script>
 
 <template>
