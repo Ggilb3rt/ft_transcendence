@@ -273,6 +273,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		
 		{
 		const index: number = getChanIndex(args.channel_id, false)
+		console.log("index = ", index)
 		if (index === -1) {
 			return
 		}

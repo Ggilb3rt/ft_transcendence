@@ -35,6 +35,7 @@ export class AuthService {
           throw new ForbiddenException("Invalid Token")
         }
         if (validate.first_time == true) {
+          console.log("JE SUIS LA AVAN L'EXPLOSION")
           return {status: 0}
         }
         if (validate.isAuth || !validate.two_factor_auth) {

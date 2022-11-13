@@ -24,9 +24,7 @@ export const useStatusStore = defineStore({
   state: (): IUserStatusStore => ({
     status: "disconnected" as TStatus,
     invitations: 0 as Number,
-    socket: io('http://localhost:3000/userStatus', {
-      withCredentials: true,
-    }),
+    socket: null,
     statusList: [],
     setuped: false,
     error: null,
@@ -181,6 +179,9 @@ export const useStatusStore = defineStore({
         async setup(id: number) {
             // Check to do it only once
             if (this.setuped == false) {
+              this.socket = io('http://localhost:3000/userStatus', {
+      withCredentials: true,
+    })
                 this.id = id
                 this.setupSocket()
                 this.status = 'available'

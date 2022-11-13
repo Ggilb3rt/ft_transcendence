@@ -56,7 +56,8 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     async getSockets(client: Socket) {
-        const id = await this.usersService.getGatewayToken(client.handshake.headers, client)
+
+            const id = await this.usersService.getGatewayToken(client.handshake.headers, client)
         console.log("id == ", id)
         const sockets = await this.fetchUserSockets(id)
         const arr = this.getArrOfId(sockets)
@@ -84,6 +85,9 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     async handleConnection(client: Socket) {
+        if (client.handshake.headers.cookie) {
+            
+        }
         const {id, sockets} = await this.getSockets(client)
 
         client.join(makeId(id))

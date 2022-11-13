@@ -209,9 +209,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         if (!res)
             return false
-        client.broadcast.to(makeId(false, channel_id)).emit('promoted', {
+        this.server.to(makeId(false, channel_id)).emit('promoted', {
+            id,
+            channel_id,
             promoted_id,
-            channel_id
         })
         return true
     }
