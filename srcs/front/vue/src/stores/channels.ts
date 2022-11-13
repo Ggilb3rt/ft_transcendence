@@ -350,7 +350,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			if (index === -1) {
 				return
 			}
-			openChan.value[index].userList.push(args.client_quit)
+			openChan.value[index].removeUserFromUserList(args.client_quit)
 			openChan.value[index].messages.push(createCustomMessage(args.client_quit, 'left', args.channel_id, -6))
 		}
 
@@ -360,7 +360,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		if (index === -1) {
 			return
 		}
-        if (type != "direct" && type != "pass" && type != "private" && type != "public")
+		if (type != "direct" && type != "pass" && type != "private" && type != "public")
 			return
 		openChan.value[index].changeChannelType(user_id, type, pass)
 	}
@@ -373,7 +373,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			return
 		}
 		openChan.value[index].demote(demoted_id)
-		openChan.value[index].messages.push(createCustomMessage(demoted_id, 'demoted', id, -1))
+		openChan.value[index].messages.push(createCustomMessage(id, 'demoted', demoted_id, -1))
 	}
 
 	async function setup() {

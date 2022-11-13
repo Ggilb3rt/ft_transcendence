@@ -84,6 +84,7 @@ export class CChannel {
 	// Getters
 	getId(): number { return this.id }
 	getName(): string { return this.ChanName }
+	getOwner(): number | null { return this.owner }
 	getType(): TChannelType { return this.type }
 	getMessages(): TMessage[] { return this.messages }
 	getUserList(): number[] { return this.userList }
@@ -105,18 +106,18 @@ export class CChannel {
 	// Setters
 	joinChannel(userId:number): TMessage[] | null {
 		if (!this.isInChannel(userId) && !this.isBan(userId)) {
-			// check with server
-			// send Message "welcome to userId.name"
 			this.userList.push(userId)
 			return this.messages
 		}
 		return null
 	}
-	leaveChannel(userId:number): boolean {
-		// check user is in this.userList
-			// remove userId from this.userList
-			// return true
-		// return false
+	removeUserFromUserList(userId:number): boolean {
+		const finded: number = this.userList.findIndex((el) => el == userId)
+
+		if (finded) {
+			this.userList.splice(finded, 1)
+			return true
+		}
 		return false
 	}
 	changeChannelType(userId:number, newType:TChannelType, newPass?:string): boolean {
@@ -246,7 +247,7 @@ export class CChannel {
 			return e === demoted_id
 		})
 		if (index != -1) {
-			this.banList.splice(index, 1)
+			this.adminList.splice(index, 1)
 		}
 	}
 	sendMessage(message: TMessage): boolean {
