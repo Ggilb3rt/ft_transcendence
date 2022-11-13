@@ -292,7 +292,7 @@ export const useChannelsStore = defineStore('channels', () => {
 				return
 			}
 			openChan.value[index].banList.push({userId: args.banned_id, expire: args.expires})
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_by, -2))
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_id, -2))
 		}
 
 	function handleMute(args: {
@@ -307,12 +307,12 @@ export const useChannelsStore = defineStore('channels', () => {
 				return
 			}
 			openChan.value[index].muteList.push({userId: args.banned_id, expire: args.expires})
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_by, -3))
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_id, -3))
 		}
 		
 	function handleKick(args: {
-		banned_id: number,
-		banned_by: number,
+		kicked_id: number,
+		kicked_by: number,
 		channel_id: number
 		})
 		{
@@ -321,8 +321,8 @@ export const useChannelsStore = defineStore('channels', () => {
 				return
 			}
 
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'kicked', args.banned_by, -4))
-			if (args.banned_id == userStore.user.id) {
+			openChan.value[index].messages.push(createCustomMessage(args.kicked_by, 'kicked', args.kicked_id, -4))
+			if (args.kicked_id == userStore.user.id) {
 				if (switchJoinedAvailable(args.channel_id, true))
 					if (route.params.id == String(args.channel_id))
 						router.push('/chat')

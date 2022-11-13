@@ -7,6 +7,7 @@ import { useChannelsStore } from '@/stores/channels';
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
+import AdminPanel from '../chat/AdminPanel.vue';
 
 
 const props = defineProps({
@@ -48,7 +49,7 @@ function getChanIdFromLink(link: string): number {
 function leaveChannel(link: string) {
 	const id: number = getChanIdFromLink(link)
 	
-	if(id && confirm(`You want to leave chan ${id} ?`)) {
+	if(id) {
 		// emit to server
 		// if (channelsStore.currentChan)
 		channelsStore.emitQuitChannel(id)
@@ -60,9 +61,9 @@ function joinChannel(e: Event, link: string) {
 	e.preventDefault()
 	const id: number = getChanIdFromLink(link)
 	// emit sur join et attendre la réponse
-	if (confirm(`join channel '${id}' from '${link}' ?`)) {
+	// if (confirm(`join channel '${id}' from '${link}' ?`)) {
 		channelsStore.emitJoin(id)
-	}
+	// }
 }
 
 onBeforeMount(() => {
@@ -123,6 +124,8 @@ const sideNavDataLeft = ref({
 		</button>
 
 		<li>
+			<AdminPanel></AdminPanel>
+
 			<button @click="toggle(0)">Availables [{{ isOpen(0) ? '-' : '+' }}]</button>
 			<nav class="bold" >
 				<ul v-show="isOpen(0)">

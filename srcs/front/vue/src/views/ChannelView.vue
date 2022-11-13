@@ -93,11 +93,6 @@ onUpdated(() => {
 
 <template>
 	<div class="room" v-if="channelsStore.currentChan && !channelsStore.currentChan.isBan(userStore.user.id) && channelsStore.currentChan.isInChannel(userStore.user.id)">
-		<p>
-			{{ route.params }}
-			<span v-if="props.direct">/direct/</span>{{ props.channelId }}
-			<AdminPanel></AdminPanel>
-		</p>
 		<div class="chatRoom" id="room-view">
 			<div v-for="msg in channelsStore.currentChan.messages" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
 				<!-- if msg.sender < 0 ===> print as server info -->

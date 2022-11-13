@@ -19,7 +19,7 @@ const adminPanel = ref(false)
 <template>
 	<div id="admin-panel-wrapper" v-if="channelsStore.currentChan?.isAdmin(userStore.user.id) || channelsStore.currentChan?.isOwner(userStore.user.id)" >
 		<button id="admin-panel-btn" @click="adminPanel = true">
-			Open admin panel
+				Open admin panel
 		</button>
 		<div 
 			class="admin-bar"
@@ -43,7 +43,11 @@ const adminPanel = ref(false)
 
 
 <style>
-#admin-panel-wrapper { position: fixed; z-index: 9;}
+#admin-panel-wrapper {
+	/* position: fixed; z-index: 9; */
+	margin-bottom: 20px;
+	padding: 5px;
+}
 #admin-panel-btn:hover {
 	transform: scale(1.05);
 	animation: whao 0.5s infinite alternate ease-out;
@@ -71,7 +75,7 @@ const adminPanel = ref(false)
 	}
 }
 
-.room .admin-bar {
+.admin-bar {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -79,6 +83,10 @@ const adminPanel = ref(false)
 	background: var(--global-c-blue);
 	padding: 10px;
 	z-index: 9;
+}
+
+.admin-bar button {
+	width: 100%;
 }
 
 </style>
