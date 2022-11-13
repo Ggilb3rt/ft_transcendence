@@ -158,8 +158,9 @@ function launchGame() {
 }
 
 function disconnectGameSocket() {
-  if (gameInstance !== undefined) {
-    gameInstance.scene.scenes[2].socket.disconnect();
+	const gameSocket = gameInstance.scene.scenes[2].socket
+  if (gameInstance !== undefined && gameSocket !== undefined) {
+    gameSocket.disconnect();
   }
 }
 

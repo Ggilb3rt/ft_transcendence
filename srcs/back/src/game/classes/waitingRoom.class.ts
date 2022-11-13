@@ -1,5 +1,40 @@
+/*export class WR {
+    level: number;
+    playerOne: {
+        id:number,
+        socket: {},
+        roomId: string,
+		userId: number,
+    };
+    playerTwo: {
+		id:number,
+        socket: {},
+        roomId: string,
+		userId: number,
+    };
+    roomId: string
+
+	constructor() {
+		this.level= 0,
+		this.playerOne= {
+			id: 0,
+			socket: {},
+			roomId: "",
+			userId: 0
+		};
+		this.playerTwo= {
+			id: 0,
+			socket: {},
+			roomId: "",
+			userId: 0
+		};
+		this.roomId= "";
+	}
+}*/
+
+
 export const WR1 = {
-    level: 1,
+	level: 1,
     playerOne: {
         id: "",
         socket: "",

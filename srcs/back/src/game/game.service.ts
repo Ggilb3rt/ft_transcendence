@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import { Ball, Player, WR1, WR2, WR3, WR4 } from './classes';
+import { Ball, Player, WR1, WR2, WR3, WR4} from './classes';
 import { UsersHelper } from '../users/usersHelpers';
 import { CreateMatchDto } from 'src/users/createMatchDto';
 
@@ -54,20 +54,19 @@ export class GameService {
 	}
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
-        const level = data.level;
+        const level = Number(data.level);
 		const userId = data.userId;
 		const player = this.players[client.id];
 
 		console.log("waitingRooms");
 		console.log(this.waitingRooms)
 
-        let wr = this.waitingRooms[level];
-		if (wr === undefined) {
-			console.log("HEREEEE");
-			this.waitingRooms[level] = WR;
-			wr = this.waitingRooms[level];
-		}
+		let wr = this.waitingRooms[level]
 
+		console.log("waitingRooms");
+		console.log(this.waitingRooms)
+
+	
 		console.log('JOINING QUEUE level ' + level)
 		console.log(client.id + " " + userId);
 
@@ -113,7 +112,20 @@ export class GameService {
                     level: level,
                 }
                 this.initGame(wr.roomId, server);
-				Reflect.deleteProperty(this.waitingRooms, level);
+				//Reflect.deleteProperty(this.waitingRooms, level);
+
+				wr.roomId = "";
+                wr.playerOne.id = "";
+                wr.playerOne.socket = "";
+                wr.playerOne.roomId = "";
+				wr.playerOne.level = 0;
+				wr.playerOne.userId = 0;
+                wr.playerTwo.id = "";
+                wr.playerTwo.socket = "";
+                wr.playerTwo.roomId = "";
+				wr.playerTwo.level = 0;
+				wr.playerTwo.userId = 0;
+				wr.level = 0;
             }
         }
     }
@@ -260,7 +272,7 @@ export class GameService {
 		
 		const roomName = this.players[client.id].roomId;
 		const userId = this.players[client.id].userId;
-		const level = this.players[client.id].level;
+		const level = Number(this.players[client.id].level);
 		const spectator = this.players[client.id].spectator;
 
 		console.log("roomName " + roomName);
@@ -286,12 +298,14 @@ export class GameService {
 		if (level !== 0) {
 			if (this.players[client.id].challenge) {
 				console.log("deleting wr");
-				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].challengeInfo.challenger + 10);
+				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].challengeInfo.challenger + 3);
 			} else {
+				if (this.waitingRooms.hasOwnProperty(level) && (level === 1 || level === 2 || level === 3)) {
             	let wr = this.waitingRooms[level];
-				console.log("HAHAH");
-				console.log(this.waitingRooms[level]);
-				if (wr !== undefined && (level === 1 || level === 2 || level === 3)) {
+			//	console.log("HAHAH");
+			//	console.log(this.waitingRooms.hasOwnProperty(level));
+			//	console.log(this.waitingRooms[level]);
+			//	if (wr !== undefined && (level === 1 || level === 2 || level === 3)) {
            			if (wr.playerOne.id === client.id) {
                 		this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
             		} else if (wr.playerTwo.id === client.id) {
@@ -383,11 +397,13 @@ export class GameService {
 		player.level = level;
 		player.challenge = true;
 		player.challengeInfo = data.challeneInfo;
-	
-		let wr = this.waitingRooms[data.challengerInfo.challenger + 10];
-		if (!wr) {
-			this.waitingRooms[data.challengerInfo.challenger + 10] = WR4;
-			wr = this.waitingRooms[data.challengerInfo.challenger + 10]
+
+		let wr;
+		if (this.waitingRooms.hasOwnProperty(data.challengerInfo.challenger + 3)) {
+			wr = this.waitingRooms[data.challengerInfo.challenger + 3];
+		} else {
+			this.waitingRooms[data.challengerInfo.challenger + 3] = WR4;
+			wr = this.waitingRooms[data.challengerInfo.challenger + 3]
 		}
 
 		if (player.userId === data.challengeInfo.challenger ) {

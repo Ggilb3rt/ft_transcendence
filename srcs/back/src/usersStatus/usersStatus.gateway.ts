@@ -5,6 +5,7 @@ import {
     OnGatewayInit,
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
+import { Logger } from '@nestjs/common';
 
 function getUser(arr: IStatus[], i: string) {
     return arr.findIndex((e) => {return e.socketId.includes(i)})
