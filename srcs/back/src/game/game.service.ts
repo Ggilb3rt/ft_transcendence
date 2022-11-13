@@ -20,7 +20,7 @@ export class GameService {
 	}
 
     handleConnection(client: Socket, server: Server) {
-		console.log('CLIENT CONNECTED')
+		// console.log('CLIENT CONNECTED')
         this.players[client.id] = {
             id: client.id,
             socket: client,
@@ -31,8 +31,8 @@ export class GameService {
 			type: "player",
 			challengeId: 0,
         }
-        console.log("PLAYERS")
-		console.log(Object.keys(this.players));
+        // console.log("PLAYERS")
+		// console.log(Object.keys(this.players));
     }
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
