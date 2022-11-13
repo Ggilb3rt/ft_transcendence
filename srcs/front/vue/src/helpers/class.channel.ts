@@ -2,18 +2,18 @@ import type { IChannel, TChannelType, TRestrictUserTime, TMessage } from "typesC
 
 // must protect if channel type is direct (remove possibility of add or remove user, ban, kick, change type, etc)
 export class CChannel {
-	id: number;
-	ChanName: string;
-	type: TChannelType;
-	pass: string;
-	owner: number | null;
-	userList: number[];
-	adminList: number[];
-	banList: TRestrictUserTime[];
-	muteList: TRestrictUserTime[];
-	messages: TMessage[];
-	passMinLength: number;
-	maxUser: number;
+	private id: number;
+	private ChanName: string;
+	private type: TChannelType;
+	private pass: string;
+	private owner: number | null;
+	public userList: number[];
+	public adminList: number[];
+	public banList: TRestrictUserTime[];
+	public muteList: TRestrictUserTime[];
+	public messages: TMessage[];
+	private passMinLength: number;
+	private maxUser: number;
 
 	constructor(
 		id:number,
@@ -37,7 +37,7 @@ export class CChannel {
 		this.banList = banList;
 		this.muteList = muteList;
 		this.messages = messages;
-		this.passMinLength = 5;
+		this.passMinLength = 0;
 		this.maxUser = 20;
 		// set some socket
 	};
@@ -49,17 +49,17 @@ export class CChannel {
 
 		return dateCopy;
 	}
-	changeRestrictTime(userId:number, minutes: number, isBan: boolean) {
+	changeRestrictTime(userId:number, newDate: Date, isMute: boolean) {
 		let userRestrict: TRestrictUserTime | undefined = undefined
 		
-		if (isBan)
-			userRestrict = this.banList.find((el) => el.userId == userId)
-		else
+		if (isMute)
 			userRestrict = this.muteList.find((el) => el.userId == userId)
+		else
+			userRestrict = this.banList.find((el) => el.userId == userId)
 		if (userRestrict != undefined)
-			userRestrict.expire = this.addMinutes(userRestrict.expire, minutes)
+			userRestrict.expire = newDate
 	}
-	getRestrictTime(userId:number, isBan: boolean, minutes?: number,): Date | undefined {
+	getRestrictTime(userId:number, isBan: boolean, minutes?: number,): Date {
 		let userRestrict: TRestrictUserTime | undefined = undefined
 		
 		if (isBan)
@@ -68,7 +68,7 @@ export class CChannel {
 			userRestrict = this.muteList.find((el) => el.userId == userId)
 		if (userRestrict != undefined && minutes)
 			return this.addMinutes(userRestrict.expire, minutes)
-		return userRestrict ? userRestrict.expire : undefined
+		return userRestrict ? userRestrict.expire : new Date()
 	}
 	async checkWithServer(url: string, option: Object): Promise<boolean> {
 		const response = await fetch(url, { credentials: "include"})
@@ -120,80 +120,117 @@ export class CChannel {
 		return false
 	}
 	changeChannelType(userId:number, newType:TChannelType, newPass?:string): boolean {
+		if (this.canChangeType(userId, newType, newPass)) {
+				// check with server
+				this.type = newType
+				if (newPass != undefined)
+					this.pass = newPass
+				return true
+		}
+		return false
+	}
+	canChangeType(userId:number, newType:TChannelType, newPass?:string) {
 		if (this.isOwner(userId)) {
 			if (newType != this.getType()) {
 				if (newType == "direct")
 					return false
 				if (newType == "pass" && ((newPass && this.pass == newPass && newPass.length < this.passMinLength) || !newPass))
 					return false
-				// check with server
-				this.type = newType
-				if (newPass != undefined)
-					this.pass = newPass
 				return true
 			}
 		}
 		return false
 	}
 	changePass(userId:number, newPass:string): boolean {
-		if (this.isOwner(userId) && this.getType() == "pass") {
-			if (this.pass != newPass && newPass.length > this.passMinLength) {
-				// check with server
-				this.pass = newPass
-				return true
-			}
+		if (this.canChangePass(userId, newPass)) {
+			this.pass = newPass
+			return true
 		}
 		return false
 	}
+	canChangePass(userId:number, newPass:string): boolean {
+		if (this.isOwner(userId) && this.getType() == "pass")
+			if (this.pass != newPass && newPass.length > this.passMinLength)
+				return true
+		return false
+	}
 	addAdmin(nominator:number, nominated:number): boolean {
-		if ((this.isAdmin(nominator) || this.isOwner(nominator) ) && (!this.isAdmin(nominated) || !this.isOwner(nominated))) {
-			// check with server
-			// send message "nominated.name is a new administrator now, kneel down ! (please don't)"
+		if (this.canAddAdmin(nominator, nominated)) {
 			this.adminList.push(nominated)
 			return true
 		}
 		return false
 	}
+	canAddAdmin(nominator:number, nominated:number): boolean {
+		if ((this.isAdmin(nominator) || this.isOwner(nominator) ) && (!this.isAdmin(nominated) || !this.isOwner(nominated)))
+			return true
+		return false
+	}
 	removeAdmin(remover:number, removed:number): boolean {
-		if (remover != removed && this.isOwner(remover) && this.isAdmin(removed) && removed != this.owner) {
-			// check with server
+		if (this.canRemoveAdmin(remover, removed)) {
 			const find = this.adminList.findIndex(el => el == removed)
-			this.adminList.splice(find, 1)
+			if (find != -1)
+				this.adminList.splice(find, 1)
 			return true
 		}
 		return false
 	}
-	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, timeInMinutes:number): boolean {
-		if ((this.isOwner(restrictor) && restrictor != restricted) || (this.isAdmin(restrictor) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor)) {
-			const restrict: TRestrictUserTime = {
+	canRemoveAdmin(remover:number, removed:number): boolean {
+		if (remover != removed && this.isOwner(remover) && this.isAdmin(removed) && removed != this.owner)
+			return true
+		return false
+	}
+	restrictUser(restrictor:number, restricted:number, onlyMute: boolean, newDate:Date): boolean {
+		if (this.canRestrictUser(restrictor, restricted, onlyMute)) {
+			let restrict: TRestrictUserTime = {
 				userId: restricted,
-				expire: this.addMinutes(new Date(), timeInMinutes)
+				expire: newDate
 			}
+			// if (timeInMinutes) {
+			// 	restrict = {
+			// 			userId: restricted,
+			// 			expire: this.addMinutes(new Date(), timeInMinutes)
+			// 		}
+			// }
+			// else {
+			// 	restrict = {
+			// 		userId: restricted,
+			// 		expire: new Date()
+			// 	}
+			// }
 			if (onlyMute) {
 				if (this.isMute(restricted))
-					this.changeRestrictTime(restricted, timeInMinutes, false)
-				// check with server
-				this.muteList.push(restrict)
+					this.changeRestrictTime(restricted, newDate, false)
+				else
+					this.muteList.push(restrict)
 				return true
 			}
 			else {
 				if (this.isBan(restricted))
-					this.changeRestrictTime(restricted, timeInMinutes, true)
-				// check with server
-				this.banList.push(restrict)
+					this.changeRestrictTime(restricted, newDate, true)
+				else
+					this.banList.push(restrict)
 				return true
 			}
 		}
 		return false
 	}
+	canRestrictUser(restrictor:number, restricted:number, onlyMute: boolean): boolean {
+		if ((this.isOwner(restrictor) && restrictor != restricted) || (this.isAdmin(restrictor) && !this.isOwner(restricted) && !this.isAdmin(restricted) && restricted != restrictor))
+			return true
+		return false
+	}
 	kickUser(kicker:number, kicked:number):boolean {
-		if ((this.isAdmin(kicker) || this.isOwner(kicker)) && !this.isOwner(kicked) && kicker != kicked && this.isInChannel(kicked)) {
-			// check with server
-			// send message "kicked.name was kicked"
+		if (this.canKickUser(kicker, kicked)) {
 			const findUser = this.userList.findIndex((el) => el === kicked)
 			this.userList.splice(findUser, 1)
 			return true
 		}
+		return false
+	}
+	canKickUser(kicker:number, kicked:number):boolean {
+		if ((this.isAdmin(kicker) || this.isOwner(kicker)) && !this.isOwner(kicked) && kicker != kicked && this.isInChannel(kicked))
+			return true
 		return false
 	}
 	unBan(banned_id: number) {
@@ -213,12 +250,15 @@ export class CChannel {
 		}
 	}
 	sendMessage(message: TMessage): boolean {
-		if (this.isInChannel(message.sender) && !this.isBan(message.sender) && !this.isMute(message.sender)) {
-			// send to back
-			//console.log("message send to CChanel", message.msg)
+		if (this.canSendMessage(message.sender)) {
 			this.messages.push(message)
 			return true
 		}
+		return false
+	}
+	canSendMessage(sender: number): boolean {
+		if (this.isInChannel(sender) && !this.isBan(sender) && !this.isMute(sender))
+			return true
 		return false
 	}
 }

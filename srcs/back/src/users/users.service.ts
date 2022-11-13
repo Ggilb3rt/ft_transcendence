@@ -112,7 +112,7 @@ export class UsersService {
       throw new NotFoundException({msg: "No user at this ID", status: false})
     }
 
-    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth } = user
+    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, first_connection } = user
 
     const friends = await this.getFriends(id);
     const bannedBy = await this.getBannedMe(id);
@@ -136,7 +136,8 @@ export class UsersService {
       bannedBy,
       bans,
       matches,
-      invites
+      invites,
+      first_connection
     }
     return (userFormat);
   }
@@ -355,6 +356,14 @@ export class UsersService {
         secret,
         otpauthUrl
     }
+  }
+
+  async isBan(id: number, ban: number) {
+    const banned = await this.usersHelper.getBan(id, ban)
+    console.log("return of isBan", id, ban, banned)
+    if (banned)
+      return true
+    return false
   }
 
   async switch2fa(id: number, status: boolean, response) {

@@ -43,7 +43,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             //console.log("bans = ", bans)
             bans.forEach(async (ban) => {
                 if(ban.expires < new Date()) {
+                    console.log("le ban ", ban)
                     await this.chatService.unBan(ban)
+                    await this.unBan(user_id, ban.channel_id)
+                }
+                else {
+                    await this.leaveChannelId(user_id, ban.channel_id)
                 }
             })
     }
@@ -64,21 +69,24 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     async leaveChannelId(banned_id: number, channel_id: number) {
-        const room = makeId(false, banned_id)
+        const room = makeId(true, banned_id)
+        console.log(room)
         const clients = await this.server.in(room).fetchSockets();
-
-        clients.forEach((client) => [
-            client.leave(makeId(true, channel_id))
-        ])
+        console.log("banning ", banned_id)
+        clients.forEach((client) => {
+            console.log("le banning ", channel_id)
+            console.log("socket = ", client.id)
+            client.leave(makeId(false, channel_id))
+        })
     }
     
     async unBan(banned_id: number, channel_id: number) {
-        const room = makeId(false, banned_id)
+        const room = makeId(true, banned_id)
         const clients = await this.server.in(room).fetchSockets();
 
-        clients.forEach((client) => [
+        clients.forEach((client) => {
             client.join(makeId(true, channel_id))
-        ])
+        })
     }
 
     @SubscribeMessage('getMyRooms')
@@ -94,8 +102,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!myChannels)
             return false
 
-        await this.unBanExpired(user_id)
-        await this.unMuteExpired(user_id)
+      
 
         const { joinedChannels, availableChannels } = await this.chatService.getAvailableChannels(user_id, myChannels)
 
@@ -111,6 +118,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         })
         client.join(rooms)
         client.join(makeId(true, user_id))
+
+        await this.unBanExpired(user_id)
+        await this.unMuteExpired(user_id)
 
         return ({joinedChannels, availableChannels})
     }
@@ -137,15 +147,24 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     }
 
     @SubscribeMessage('sendDirectMessage')
-    async sendDirectMessage(client: Socket, content: string, receiver: number, date: Date) {
-    
+    async sendDirectMessage(client: Socket, arg: { content: string, receiver: number, date: Date}) {
+        console.log("starting sendDirectMessage handler", arg)
         
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
+        console.log("after getGatewayToken before check ban", id)
+
+        const { content, receiver, date} = arg
+
+        if (await this.usersService.isBan(id, receiver) == true)
+            return
+
+        console.log("send direct message after check ban, before send to chat service", arg)
+
         const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
 
-        // if not banned
-        // if friends
+        console.log("res of service", res)
+
         if (!res)
             return false
         const message: TMessage = {
@@ -155,7 +174,27 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: true,
             date,
         }
-        client.to(makeId(true, id)).emit('directMessageSent', message)
+        console.log("before emit ", message)
+        client.to(makeId(true, receiver)).emit('directMessageSent', message)
+        return (true)
+    }
+
+
+    @SubscribeMessage('demoted')
+    async demoteUser(client: Socket, arg: { channel_id: number, demoted_id: number}) {
+        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        const {channel_id, demoted_id} = arg
+
+        const res = await this.chatService.demote(channel_id, demoted_id, id)
+        if (!res) {
+            return false
+        }
+        client.broadcast.to(makeId(false, channel_id)).emit('demoted', {
+            channel_id,
+            demoted_id,
+            id
+        })
         return (true)
     }
 
@@ -186,6 +225,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const res = await this.chatService.kickUser(channel_id, kicked_id, id)
         if (!res)
             return false
+        this.leaveChannelId(channel_id, id)
         client.broadcast.to(makeId(false, channel_id)).emit('kick', {
             kicked_id,
             kicked_by: id,
@@ -201,7 +241,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const { channel_id, banned_id, expires} = arg
 
-        const res = await this.chatService.banUser(channel_id, banned_id, expires, id)
+        const res: boolean = await this.chatService.banUser(channel_id, banned_id, expires, id)
+        console.log("res == ", res)
 
         if (!res)
             return false
@@ -216,31 +257,15 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         return true
     }
 
-    @SubscribeMessage('demoted')
-    async demoteUser(client: Socket, arg: { channel_id: number, demoted_id: number}) {
-        const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
-
-        const {channel_id, demoted_id} = arg
-
-        const res = await this.chatService.demote(channel_id, demoted_id, id)
-        if (!res) {
-            return false
-        }
-        client.broadcast.to(makeId(false, channel_id)).emit('demoted', {
-            channel_id,
-            demoted_id,
-            id
-        })
-        return (true)
-    }
-
     @SubscribeMessage('passChange')
-    async passCHange(client: Socket, arg: { channel_id: number, oldPass: string, newPass: string}) {
+    async passChange(client: Socket, arg: { channel_id: number, pass: string}) {
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        const {channel_id, newPass} = arg;
+        const {channel_id, pass} = arg;
 
-        const res = await this.chatService.changePass(channel_id, id, newPass)
+
+        const res = await this.chatService.changePass(channel_id, id, pass)
+        return res
     }
 
     @SubscribeMessage('typeChange')
@@ -277,6 +302,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const {channel_id, pass} = basicJoin
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
+        console.log("res == ", res)
         if (res.status == false)
             return res
         client.broadcast.to(makeId(false, channel_id)).emit('join', {
@@ -295,11 +321,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const res = await this.chatService.kickUser(channel_id, id, id)
         if (!res)
             return false
+        this.leaveChannelId(channel_id, id)
         client.broadcast.to(makeId(false, channel_id)).emit('quit', {
             client_quit: id,
             channel_id
         })
-        client.leave(makeId(false, channel_id))
         return true
     }
 

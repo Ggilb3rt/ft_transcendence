@@ -94,58 +94,34 @@ onBeforeUnmount(() => {
 			</i>
 		</button>
 
-		<nav class="bold" @click="toggle(0)">
-			<button>Current user [{{ isOpen(0) ? '-' : '+' }}]</button>
-		</nav>
-
-		<!-- {{ usersStore.getUsersListForChat(channelsStore.getUsersInChannel()) }} -->
-		<!-- {{ channelsStore.currentChan?.userList }} -->
-		<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
-			{{ el.name }}
-			<!-- {{ channelsStore.getChanListForSideBar(true) }} -->
-			<!-- <a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-			<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-				{{ child.name }}
-			<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
-			</RouterLink> -->
-			
-
-
-
-		</li>
-		<hr>
-
-		<!-- <li v-for="el, index in currentSideNav.items" :key="el.name">
-			<nav
-				:class="{ bold: isFolder(index) }"
-				@click="toggle(index)"
-			>
-				<RouterLink v-if="el.id" :to="el.id">
-					{{ el.name }}
-				</RouterLink>
-				<button>{{ el.name }}
-					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
-				</button>
-			</nav>
-			<nav>
-				<ul v-show="isOpen(index)" v-if="isFolder(index)">
-					<li v-for="child in el.children" :key="child.id">
-						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-							{{ child.name }}
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
+		<li>
+			<button @click="toggle(0)">Friends [{{ isOpen(0) ? '-' : '+' }}]</button>
+			<nav class="bold">
+				<ul v-show="isOpen(0)">
+					<li v-for="el in usersStore.getUsersListForChat(userStore.getFriendsList())" :key="el.id">
+						<RouterLink v-if="el.id" :to="el.id" class="channel_link" :title="el.name">
+							{{ el.name }}
 						</RouterLink>
-						<button v-else>{{ child.name }}</button>
 					</li>
 				</ul>
 			</nav>
-		</li> -->
+			<button @click="toggle(1)">Current user [{{ isOpen(1) ? '-' : '+' }}]</button>
+			<nav class="bold">
+				<ul v-show="isOpen(1)">
+					<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
+						{{ el.name }}
+					</li>
+				</ul>
+			</nav>
+		</li>
 	</ul>
 </template>
 
 <style scoped>
 .second_side_menu {
-	min-height: 100vh;
+	height: calc(100vh - 89px);
+	overflow-y: scroll;
+	overflow-x: hidden;
 	display: none;
 	background: #000;
 	position: absolute;
@@ -153,7 +129,7 @@ onBeforeUnmount(() => {
 	left: 0;
 	right: 0;
 	z-index: 10;
-	padding: 20px;
+	padding: 20px 10px;
 }
 
 .channel_link {
@@ -198,6 +174,16 @@ ul a, .like-link {
 	word-break: break-all;
 }
 
+ul li button {
+	border: none;
+	background: none;
+	color: gray;
+}
+
+ul li nav {
+	padding-left: 15px;
+}
+
 ul li ul {
 	padding: 0;
 	margin: 10px 0;
@@ -213,13 +199,13 @@ ul li ul li a, .like-link {
 } */
 
 ul li ul li:nth-child(n+2) a{
-	border-top: 1px solid #fff;
+	/* border-top: 1px solid #fff; */
 }
 
 @media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
-		max-width: 15vw;
+		width: 20vw;
 	}
 }
 

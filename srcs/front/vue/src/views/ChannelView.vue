@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onUpdated, onBeforeMount, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import type {TMessage, TChannelType, TRestrictUserTime, IChannel, IChannelRestrict} from '../../typesChat'
 import type {IOtherUserRestrict} from '../../types'
 import { useUserStore } from "@/stores/user"
@@ -19,6 +20,7 @@ const channelIdNumber = Number(props.channelId)
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 const channelsStore = useChannelsStore()
+const route = useRoute()
 let msg = ref("")
 
 
@@ -36,24 +38,38 @@ function submit(e: Event) {
 	e.preventDefault()
 	// emit to server
 	if (msg.value != "") {
-		channelsStore.emitMessage(channelIdNumber, msg.value)
-		if (channelsStore.currentChan) { // && emitMessage return true
-			channelsStore.currentChan.sendMessage({
-				sender: userStore.user.id,
-				receiver: channelIdNumber,
-				msg: msg.value,
-				isDirect: props.direct,
-				date: new Date()
-			})
-		}
+		if (channelsStore.currentChan)
+			if (channelsStore.currentChan.getType() != "direct") {
+				if (channelsStore.currentChan.canSendMessage(userStore.user.id))
+					channelsStore.emitMessage(channelIdNumber, msg.value)
+			}
+			else {
+				channelsStore.emitDirectMessage(channelIdNumber, msg.value)
+				console.log("direct message ", msg.value)
+			}
+			
+				
+		// if (channelsStore.currentChan) { // && emitMessage return true
+		// 	channelsStore.currentChan.sendMessage({
+		// 		sender: userStore.user.id,
+		// 		receiver: channelIdNumber,
+		// 		msg: msg.value,
+		// 		isDirect: props.direct,
+		// 		date: new Date()
+		// 	})
+		// }
 	}
 	msg.value = ""
 }
 
 onBeforeMount(async() => {
 	// fetch Channel
-	console.log(`----------before mount getChan id '${channelIdNumber}'`)
-	await channelsStore.getChan(channelIdNumber)
+	const isDirectMsg = route.name == "channelDirect" ? true : false
+	console.log(`----------before mount getChan id '${channelIdNumber}' is direct message ? => `, isDirectMsg)
+	if (isDirectMsg)
+		await channelsStore.getDirectChan(channelIdNumber)
+	else
+		await channelsStore.getChan(channelIdNumber)
 	console.log(`----------before mount getChan id 2 '${channelIdNumber}'`)
 	channelsStore.selectCurrentChan(channelIdNumber)
 })
@@ -77,17 +93,13 @@ onUpdated(() => {
 
 <template>
 	<div class="room" v-if="channelsStore.currentChan && !channelsStore.currentChan.isBan(userStore.user.id) && channelsStore.currentChan.isInChannel(userStore.user.id)">
-		<p>
-			<span v-if="props.direct">/direct/</span>{{ props.channelId }}
-		</p>
-		<AdminPanel></AdminPanel>
 		<div class="chatRoom" id="room-view">
 			<div v-for="msg in channelsStore.currentChan.messages" :key="usersStore.getUserNickById(msg.sender)" class="message-wrapper">
 				<!-- if msg.sender < 0 ===> print as server info -->
 				<div v-if="msg.sender < 0" class="message robot-message">
 					{{ msg.msg }}
 				</div>
-				<div v-if="!userStore.isBan(msg.sender)" class="message">
+				<div v-else-if="!userStore.isBan(msg.sender)" class="message" :class="{me: msg.sender == userStore.user.id}">
 					<figure>
 						<UserLink :other-user="usersStore.getUserRestrictById(msg.sender)" remove-status remove-name remove-hover></UserLink>
 					</figure>
@@ -127,7 +139,8 @@ onUpdated(() => {
 	align-self: flex-start;
 	width: 100%;
 	height: calc(90vh - 89px);
-	overflow: scroll;
+	overflow-y: scroll;
+	overflow-x: hidden;
 	padding: 0px;
 	position: relative;
 }
@@ -165,6 +178,14 @@ onUpdated(() => {
 .room .message-wrapper:nth-child(2n) {
 	background: var(--color-background-mute);
 }
+
+/* .room .message-wrapper:nth-child(2n) .message{
+	flex-flow: row-reverse;
+} */
+/* .room .message.me {
+	flex-flow: row-reverse;
+} */
+
 .room .message {
 	padding: 10px 20px;
 	display: flex;

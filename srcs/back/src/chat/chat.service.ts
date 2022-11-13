@@ -71,8 +71,9 @@ export class ChatService {
     async getChannel(channel_id: number, req) {
         const token = await this.getToken(req);
 
-        if (!await this.chatHelper.isInChannel(channel_id, token.id)) {
-            throw new ForbiddenException("You have no right to request this channel")
+
+        if (!await this.chatHelper.isInChannel(channel_id, token.id) || await this.chatHelper.getBan(token, channel_id)) {
+           return false
         }
         return await this.chatHelper.formatChannels(channel_id)
     }
@@ -115,7 +116,7 @@ export class ChatService {
     async banUser(channel_id: number, banned: number, expires: Date, id: number) {
         // check if ban is in admin
         if (await this.banPolicy(channel_id, banned, id) == false)
-            throw new ForbiddenException("You have no right to ban this user")
+            return false
         return (await this.chatHelper.banOne(banned, channel_id, expires))
     }
     
@@ -145,17 +146,20 @@ export class ChatService {
             return false
         }
         const mute = await this.chatHelper.getMute(channel_id, user_id)
+        console.log("channel_id, user_id ", channel_id, user_id)
+        console.log("mute ", mute)
         if (mute && mute.mute_date > new Date()) {
+            console.log("tout va bien")
             return false
         }
         else if (mute) {
-            this.chatHelper.unMute(user_id, channel_id)
+            this.chatHelper.unMute(channel_id, user_id)
         }
         return true
     }
 
     async sendMessageToChannel(channel_id: number, content: string, date: Date, user_id: number) {
-        if (!this.canSend(user_id, channel_id)) {
+        if (!await this.canSend(user_id, channel_id)) {
             return false
         }
         await this.chatHelper.sendMessageToChannel(channel_id, user_id, content, date)
@@ -172,7 +176,21 @@ export class ChatService {
 
     async getDirectConversation(friend: number, req) {
         const {id: user_id} = await this.getToken(req)
-        return await this.chatHelper.getDirectMessages(user_id, friend)
+
+        const directMessages = await this.chatHelper.getDirectMessages(user_id, friend)
+        const likeTMessage = directMessages.map((el) => {
+            const newMessage = {
+                sender: el.user_id,
+                receiver: el.second_user_id,
+                msg: el.content,
+                isDirect: true,
+                date: el.date
+            }
+            return newMessage
+        })
+
+        console.log("le nouveau direct message ", likeTMessage)
+        return likeTMessage
     }
 
     async joinChannel(user_id: number, channel_id: number, pass?: string) {
@@ -186,10 +204,11 @@ export class ChatService {
             if (!pass) {
                 return {msg: 'need pass', status: false}
             }
-            else if (this.chatHelper.checkPass(pass, channel_id)) {
+            else if (await this.chatHelper.checkPass(pass, channel_id)) {
                 await this.chatHelper.joinChannel(channel_id, user_id)
                 return {msg: 'joined', status: true}
             }
+            console.log("OULA")
             return {msg: 'password incorrect', status: false}
         }
         else if (type === "public") {
@@ -212,6 +231,7 @@ export class ChatService {
         if (await this.chatHelper.isOwner(channel_id, id) == false) {
             return false
         }
+        console.log("arg == ", id, pass)
         await this.chatHelper.changePass(channel_id, pass)
         return true
     }

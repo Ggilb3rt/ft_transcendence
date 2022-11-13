@@ -1,6 +1,8 @@
 import { defineStore, mapGetters } from "pinia";
 import { useUsersStore } from "./users";
 import { ref } from 'vue'
+import { useRoute } from "vue-router";
+import router from "@/router";
 import { io } from "socket.io-client"
 import { CChannel } from "@/helpers/class.channel"
 import type { IChannel, IChannelRestrict, TChannelType, TMessage } from "../../typesChat"
@@ -17,19 +19,13 @@ interface IChannelsStore {
 
 
 export const useChannelsStore = defineStore('channels', () => {
-	
-	// const socket = ref(io('http://localhost:3000/chat'))
-
-	// ==> se connecte auto au serveur et declenche handleconnection // cote serveur se fait join ses rooms
-	// --> recupere la liste des rooms ou il est
-	// -->
 	const usersStore = useUsersStore();
 	const userStore = useUserStore();
+	const route = useRoute()
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
-	const openChan = ref<CChannel[]>([
-		new CChannel(10, "fake", "public", "", 1, [1,2,3, 7, 8, 9], [1, 2, 7, 8], [{userId: 3, expire: new Date(2023,0,1)}], [], [])
-	])
+	const openChan = ref<CChannel[]>([])
+	const openDirect = ref<CChannel[]>([])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
@@ -40,71 +36,191 @@ export const useChannelsStore = defineStore('channels', () => {
 	const loading = ref<boolean>(false)
 	const myRooms: string[] = [];
 
-	function getChanIndex(rhs: number): number {
+	function getChanIndex(rhs: number, isDirect: boolean): number {
+		const directType: TChannelType = "direct"
+		if (!isDirect) {
+			return openChan.value.findIndex((elem) => {
+				return elem.getId() === rhs && elem.getType() != directType
+			})
+		}
 		return openChan.value.findIndex((elem) => {
-			return elem.getId() === rhs
+			console.log("elem values ", elem.getType() === directType)
+			return elem.getId() === rhs && elem.getType() === directType
 		})
+	}
+	// privates functions
+	function moveToAnotherArray<T>(arrFrom: Array<T>, arrTo: Array<T>, index: number) {
+		arrTo.push(arrFrom[index])
+		arrFrom.splice(index, 1)
+	}
+	function switchJoinedAvailable(chan: number, isFromJoined: boolean): boolean {
+		let findIndex
+		
+		if (isFromJoined) {
+			findIndex = joinedChannels.value.findIndex(el => el.id == chan)
+			if (findIndex != -1) {
+				moveToAnotherArray<IChannelRestrict>(joinedChannels.value, availableChannels.value, findIndex)
+				return true
+			}
+		}
+		else {
+			findIndex = availableChannels.value.findIndex(el => el.id == chan)
+			if (findIndex != -1) {
+				moveToAnotherArray<IChannelRestrict>(availableChannels.value, joinedChannels.value, findIndex)
+				return true
+			}
+		}
+		return false
 	}
 
 	// sockets emiters
-	function emitMessage(chanId: number, content: string) {
+	function emitMessage(channel_id: number, content: string) {
 		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
 		// date que je recois n'est pas de type date (peut etre dû aux sockets)
-		refsocket.value.emit("sendMessageToChannel", {channel_id: chanId, content: content, date: new Date()})
+		const date = new Date()
+		refsocket.value.emit("sendMessageToChannel", {channel_id: channel_id, content: content, date: date}, (res: boolean) => {
+			if (res && currentChan.value) {
+				currentChan.value.sendMessage({
+					sender: userStore.user.id,
+					receiver: channel_id,
+					msg: content,
+					isDirect: false,
+					date: date
+				})
+				//!  si on a le temps; mettre un système de check en front pour savoir si le message est envoyé
+				// en vrai je pense pas, ca voudrai dire un système qui re emit à l'infini, c'est chiant
+			}
+		})
 	}
 
 	function emitDirectMessage(receiver: number, content: string) {
 		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
 		// date que je recois n'est pas de type date (peut etre dû aux sockets)
-		refsocket.value.emit("sendMessageToChannel", {content: content, receiver, date: new Date()})
+		const date = new Date()
+		refsocket.value.emit("sendDirectMessage", {content: content, receiver, date: date}, (res: boolean) => {
+			console.log("direct message res ", res)
+			if (res && currentChan.value) {
+				currentChan.value.sendMessage({
+					sender: userStore.user.id,
+					receiver: receiver,
+					msg: content,
+					isDirect: true,
+					date: date
+				})
+			}
+		})
 	}
 
 
-	function emitPromoteUser(promoted_id: number, channel_id: number) {
-		refsocket.value.emit("promote", {promoted_id: promoted_id, channel_id: channel_id})
+	function emitPromoteUser(channel_id: number, promoted_id: number) {
+		refsocket.value.emit("promote", {promoted_id: promoted_id, channel_id: channel_id}, (res: boolean) => {
+			if (res && currentChan.value)
+				currentChan.value.addAdmin(userStore.user.id, promoted_id)
+		})
+	}
+
+	function emitDemoteUser(channel_id: number, demoted_id: number) {
+		refsocket.value.emit("demoted", {channel_id, demoted_id}, (res: boolean) => {
+			if (res && currentChan.value)
+				currentChan.value.removeAdmin(userStore.user.id, demoted_id)
+		})
 	}
 
 	function emitKickUser(channel_id: number, kicked_id: number) {
-		refsocket.value.emit("kick", {channel_id: channel_id, kicked_id: kicked_id})
-	}
-
-	function emitRestrictUser(isMute: boolean, channel_id: number, banned_id: number, expires?: number) {
-		// si le user est déjà ban il faut remplacer avec la nouvelle date
-		let localExpires: Date | undefined
-		if (expires)
-			localExpires = currentChan.value?.getRestrictTime(banned_id, !isMute, expires)
-		else
-			localExpires = currentChan.value?.getRestrictTime(banned_id, !isMute)
-		if (localExpires == undefined)
-			localExpires = new Date()
-		if (isMute)
-			refsocket.value.emit("mute", {channel_id: channel_id, banned_id: banned_id, expires: localExpires})
-		else
-			refsocket.value.emit("ban", {channel_id: channel_id, banned_id: banned_id, expires: localExpires})
-	}
-
-	function emitJoin(chanId: number, pass?: string): boolean {
-
-		let emitRes: boolean = false
-		refsocket.value.emit("join", {channel_id: chanId, pass}, (res: any) => {
-			emitRes = res.status
+		refsocket.value.emit("kick", {channel_id: channel_id, kicked_id: kicked_id}, (res: boolean) => {
+			if (res && currentChan.value) {
+				currentChan.value.kickUser(userStore.user.id, kicked_id)
+			}
 		})
-		console.log("la reponse du join ", emitRes)
-		// ici emitRes est false alors que le back me renvoi un status: true
-		// je peux pas me rediriger correctement si ok
-		// je suis bien ajouté dans la bdd mais pas dans en vrai
-		return emitRes
+	}
+
+	function emitTypeChange(channel_id: number, type: TChannelType, pass: string) {
+		if (type == "pass" && pass) {
+			refsocket.value.emit("typeChange", {channel_id, type, pass}, (res: boolean) => {
+				if (res && currentChan.value) {
+					currentChan.value.changeChannelType(userStore.user.id, type, pass)
+				}
+			})
+		}
+		else {
+			refsocket.value.emit("typeChange", {channel_id, type}, (res: boolean) => {
+				if (res && currentChan.value) {
+					currentChan.value.changeChannelType(userStore.user.id, type, pass)
+				}
+			})
+		}
+	}
+
+	function emitPassChange(channel_id: number, pass: string) {
+		refsocket.value.emit("passChange", {channel_id, pass}, (res: boolean) => {
+			if (res && currentChan.value) {
+				currentChan.value.changePass(userStore.user.id, pass)
+			}
+		})
+	}
+
+	function emitRestrictUser(isMute: boolean, channel_id: number, banned_id: number, expires: string) {
+		// si le user est déjà ban il faut remplacer avec la nouvelle date
+		let dateExpires: Date = new Date(expires)
+		let whereToSend: "mute" | "ban" = "ban"
+
+		if (isMute)
+			whereToSend = "mute"
+		refsocket.value.emit(whereToSend, {channel_id: channel_id, banned_id: banned_id, expires: dateExpires}, (res: boolean) => {
+			if (currentChan.value && res)
+				currentChan.value.restrictUser(userStore.user.id, banned_id, isMute, dateExpires)
+		})
+
+		// if (currentChan.value)
+		// 	if (expires)
+		// 		localExpires = currentChan.value.getRestrictTime(banned_id, !isMute, expires)
+		// 	else
+		// 		localExpires = currentChan.value.getRestrictTime(banned_id, !isMute)
+		// if (isMute)
+		// 	refsocket.value.emit("mute", {channel_id: channel_id, banned_id: banned_id, expires: localExpires}, (res: boolean) => {
+		// 		if (currentChan.value && res)
+		// 			currentChan.value.restrictUser(userStore.user.id, banned_id, isMute, localExpires)
+		// 	})
+		// else
+		// 	refsocket.value.emit("ban", {channel_id: channel_id, banned_id: banned_id, expires: localExpires}, (res: boolean) => {
+		// 		if (currentChan.value && res)
+		// 			currentChan.value.restrictUser(userStore.user.id, banned_id, !isMute, localExpires)
+		// 	})
+	}
+
+	function emitJoin(channel_id: number, pass?: string) {
+		refsocket.value.emit("join", {channel_id: channel_id, pass},  (res: any) => {
+			console.log("le joiiiiiin ", res)
+			if (res.status === false && res.msg.includes("pass")) {
+				console.log("need password")
+				error.value = `${res.msg}/${channel_id}`
+			}
+			else {
+				// ce serai cool d'avoir les infos direct si le join est ok
+				error.value = ""
+				switchJoinedAvailable(channel_id, false)
+				getChan(channel_id)	// can't await but works
+				selectCurrentChan(channel_id)
+				router.push(`/chat/room/${channel_id}`)
+			}
+		})
 	}
 	
 	function emitQuitChannel(channel_id: number) {
-		refsocket.value.emit("quit", {channel_id: channel_id})
+		refsocket.value.emit("quit", {channel_id: channel_id}, (res: any) => {
+			if (res) {
+				if (switchJoinedAvailable(channel_id, true))
+					if (route.params.id == String(channel_id))
+						router.push('/chat')
+			}
+		})
 	}
 
 	// sockets handlers
 	function handleMessage(msg: TMessage) {
 		if (!msg.isDirect) {
 			console.log("la roome id quand je recois un message", msg.receiver)
-			const index : number = getChanIndex(msg.receiver)
+			const index : number = getChanIndex(msg.receiver, false)
 			console.log("son index", index)
 			if (index === -1)
 				return
@@ -112,7 +228,13 @@ export const useChannelsStore = defineStore('channels', () => {
 			openChan.value[index].messages.push(msg)
 		}
 		else {
-			//handle direct msg
+			console.log("le direct message est ", msg)
+			const index : number = getChanIndex(msg.sender, true)
+			console.log("l'index est ", index)
+			if (index === -1)
+				return
+			openChan.value[index].messages.push(msg)
+
 		}
 	}
 
@@ -150,7 +272,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		promoted_by: number	})
 		
 		{
-		const index: number = getChanIndex(args.channel_id)
+		const index: number = getChanIndex(args.channel_id, false)
 		if (index === -1) {
 			return
 		}
@@ -165,12 +287,12 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 		}) 
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
 			openChan.value[index].banList.push({userId: args.banned_id, expire: args.expires})
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_by, -2))
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_id, -2))
 		}
 
 	function handleMute(args: {
@@ -178,36 +300,40 @@ export const useChannelsStore = defineStore('channels', () => {
 		banned_by: number,
 		expires: Date,
 		channel_id: number
-		}) 
+		})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
 			openChan.value[index].muteList.push({userId: args.banned_id, expire: args.expires})
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_by, -3))
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_id, -3))
 		}
 		
 	function handleKick(args: {
-		banned_id: number,
-		banned_by: number,
+		kicked_id: number,
+		kicked_by: number,
 		channel_id: number
-		}) 
+		})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
-			// openChan.value[index].banList.push()
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'kicked', args.banned_by, -4))
-			
+
+			openChan.value[index].messages.push(createCustomMessage(args.kicked_by, 'kicked', args.kicked_id, -4))
+			if (args.kicked_id == userStore.user.id) {
+				if (switchJoinedAvailable(args.channel_id, true))
+					if (route.params.id == String(args.channel_id))
+						router.push('/chat')
+			}
 		}
 
 	function handleJoin(args: {
 		new_client: number,
 		channel_id: number
 		}) {
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -220,7 +346,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 	})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -230,7 +356,7 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	function handleTypeChange(args: {channel_id: number, type: TChannelType, user_id: number, pass?: string}){
 		const {channel_id, type, user_id, pass} = args;
-		const index: number = getChanIndex(args.channel_id)
+		const index: number = getChanIndex(args.channel_id, false)
 		if (index === -1) {
 			return
 		}
@@ -242,7 +368,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handleDemote(arg: {channel_id: number, demoted_id: number, id: number}) {
 		const { channel_id, demoted_id, id} = arg;
 
-		const index: number = getChanIndex(channel_id)
+		const index: number = getChanIndex(channel_id, false)
 		if (index === -1) {
 			return
 		}
@@ -258,7 +384,6 @@ export const useChannelsStore = defineStore('channels', () => {
 			else {
 					availableChannels.value = res.availableChannels
 					joinedChannels.value = res.joinedChannels
-					joinedChannels.value.push({name: "fake", id: 10})
 				}
 		})
 		refsocket.value.on('messageSentToChannel', handleMessage)
@@ -276,12 +401,54 @@ export const useChannelsStore = defineStore('channels', () => {
 		async function getChansLists() {
 			loading.value = true
 			try {
-				// la reponse va être un obj avec deux tableaux, un avaec les chanRestrict dispo et un avec ceux dans lequel je me trouve
 				// const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
 				
-			setup()
+				setup()
 			} catch (error: any) {
-				const tempErr = JSON.parse(error.message)
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
+				error.value = tempErr.body
+			} finally {
+				loading.value = false
+			}
+		}
+		async function getDirectChan(id:number) {
+			loading.value = true
+			try {
+				const response = await fetch(`http://localhost:3000/channels/user/${id}`, {credentials: "include"})
+				let data: TMessage[];
+				if (response.status >= 200 && response.status < 300)
+					data = await response.json()
+				else
+					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+				if (data) {
+					console.log("MY DIRECT MESSAGE: ", data);
+					// check if chan exist
+						// update data
+					// const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					// const alreadyOpen = openChan.value.find((el) => el.id == data.id)
+					console.log("complete channel = ", data)
+					// if (chanIndex != undefined && alreadyOpen == undefined) {
+					if (true) {
+						let newChan = new CChannel(
+							id, 
+							usersStore.getUserNickById(id), 
+							"direct",
+							"",
+							null,
+							[id, userStore.user.id],
+							[],
+							[],
+							[],
+							data
+						)
+						console.log("newDirectChan ", newChan)
+						openChan.value.push(newChan)
+					}
+				}
+			} catch (error: any) {
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
 				error.value = tempErr.body
 			} finally {
 				loading.value = false
@@ -289,10 +456,10 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 		async function getChan(id: number) {
 			loading.value = true
-			if (isChanInList(id))
-				return
+			// if (isChanInList(id))
+			// 	return
 			try {
-				const response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
+				const response: Response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)
 					data = await response.json()
@@ -303,10 +470,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// check if chan exist
 						// update data
 					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					const alreadyOpen = openChan.value.find((el) => el.getId() == data.id)
 					console.log("complete channel = ", data)
-					console.log("typeof ban.expired = ", typeof data.banList[0].expire)
-					console.log("typeof ban.mute = ", typeof data.muteList[0].expire)
-					if (chanIndex != undefined) {
+					if (chanIndex != undefined && alreadyOpen == undefined) {
 						let newChan = new CChannel(
 							data.id, 
 							data.ChanName, 
@@ -324,7 +490,8 @@ export const useChannelsStore = defineStore('channels', () => {
 					}
 				}
 			} catch (error: any) {
-				const tempErr = JSON.parse(error.message)
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
 				error.value = tempErr.body
 			} finally {
 				loading.value = false
@@ -344,14 +511,14 @@ export const useChannelsStore = defineStore('channels', () => {
 
 		// Checker
 		function isChanInList(id: number): boolean {
-			return openChan.value.find((el) => el.id == id) ? true : false
+			return openChan.value.find((el) => el.getId() == id) ? true : false
 		}
 		
 		// Getter
 		function selectCurrentChan(id: number) {
 			if (!isChanInList(id))
 				return
-			const found = openChan.value.find((el) => el.id == id)
+			const found = openChan.value.find((el) => el.getId() == id)
 			if (found)
 				currentChan.value = found
 		}
@@ -360,7 +527,6 @@ export const useChannelsStore = defineStore('channels', () => {
 		}
 		function getChanListForSideBar(isJoin: boolean): {id: string, name: string}[] {
 			let list: {id: string, name: string}[] = []
-			console.log("create side navbar info oooooooooooo", isJoin )
 			if (isJoin) {
 				joinedChannels.value.forEach((el: IChannelRestrict) => {
 					list.push({
@@ -371,14 +537,12 @@ export const useChannelsStore = defineStore('channels', () => {
 			}
 			else {
 				availableChannels.value.forEach((el: IChannelRestrict) => {
-					console.log("inAvailable")
 					list.push({
 						name: el.name,
 						id: `/chat/room/${el.id}`
 					})
 				})
 			}
-			console.log("la liiiiiiiiiiiiiiiiiiiiistetteeeteeteeee ", list)
 			return list
 		}
 		function getUsersInChannel(): number[] {
@@ -408,6 +572,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		loading,
 		error,
 		getChansLists,
+		getDirectChan,
 		getChan,
 		createChan,
 		selectCurrentChan,
@@ -416,10 +581,14 @@ export const useChannelsStore = defineStore('channels', () => {
 		getChanListForSideBar,
 		// emits
 		emitMessage,
+		emitDirectMessage,
 		emitPromoteUser,
-		emitJoin,
+		emitDemoteUser,
 		emitKickUser,
+		emitTypeChange,
+		emitPassChange,
 		emitRestrictUser,
+		emitJoin,
 		emitQuitChannel
 	}
 })

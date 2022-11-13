@@ -105,17 +105,18 @@ model users_list {
 }
 
 model users {
-  id                                         Int            @id @default(autoincrement())
-  first_name                                 String?
-  last_name                                  String?
-  nickname                                   String?   @unique
+  id                                         Int      @id @default(autoincrement())
+  first_name                                 String
+  last_name                                  String
+  nickname                                   String   @unique
   nick_fourtytwo                             String   @unique          
-  avatar_url                                 String?  @default("/app/resources/default.jpg")       
+  avatar_url                                 String   @default("/app/resources/default.jpg")       
   ranking                                    Int? @default(0)
   wins                                       Int? @default(0)
   loses                                      Int? @default(0)
   two_factor_auth                            Boolean? @default(false)
   two_factor_secret                          String?
+  first_connection                           Boolean @default(true)
   admin_of_channel                           admins[]
   friends                                    friends[] @relation("friends")
   friendsWithMe                              friends[] @relation("friendsWithMe")

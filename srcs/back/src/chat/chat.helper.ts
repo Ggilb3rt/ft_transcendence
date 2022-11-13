@@ -11,7 +11,7 @@ export class ChatHelper {
     // TODO: hash all passwords
     async formatChannels(channel_id: number) {
 
-        const { id, name, type, owner, users_list, banned, messages, muted, admins, pass } = await this.getChannel(channel_id)
+        const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
 
         const ChannelTypes = ["public" , "private" , "pass" , "direct"] as const
         const isChannelType = (type): type is TChannelType => ChannelTypes.includes(type)
@@ -47,14 +47,13 @@ export class ChatHelper {
                 ChanName: name,
                 type,
                 owner,
-                pass,
                 userList,
                 banList,
                 muteList,
                 adminList,
                 messages: messagesTrimmed
             }
-            console.log("Channel = ", formated_channel)
+            console.log("Channel on reload = ", formated_channel)
             return formated_channel
         }
 
@@ -217,7 +216,7 @@ export class ChatHelper {
                     expires,
                 }
             })
-            return ban
+            return true
         }
         } catch (e) {
             console.log(e);
@@ -256,12 +255,16 @@ export class ChatHelper {
 
     async getBan(user_id: number, channel_id: number) {
         try {
+
+            console.log("JE SUIS LAAAA", user_id, channel_id)
             // if (typeof(channel_id) == 'string')
             //     channel_id = parseInt(channel_id)
+
             const ban = await prisma.ban_channels.findFirst({where: {
                 user_id,
                 channel_id
             }})
+            console.log("ban = ", ban)
             return (ban)
         } catch (e) {
             console.log(e);
@@ -461,11 +464,15 @@ export class ChatHelper {
     async unMute(channel_id: number, muted) {
         try {
             const mute = await this.getMute(channel_id, muted)
+            console.log("mute ", mute)
+            if (!mute)
+                return false
             await prisma.muted.delete({
                 where: {
                     id: mute.id
                 }
             })
+            return true
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -598,16 +605,16 @@ export class ChatHelper {
 
     async changePass(channel_id: number, pass: string) {
         try {
-            return await bcrypt.hash(pass, 10, async (hash) => {
+
+            const hash =  await bcrypt.hash(pass, 10)
                 return await prisma.channels.update({
                     where: {
                         id: channel_id
                     },
                     data: {
-                        pass
+                        pass: hash
                     }
                 })
-            })
         } catch (e) {
             console.log(e);
             throw new Error("Error modifying channel passs")
@@ -617,9 +624,13 @@ export class ChatHelper {
     async checkPass(pass: string, channel_id) {
         const channel = await this.getChannel(channel_id)
 
-        if (await bcrypt.compare(pass, channel.pass))
-            return true
-        return false
+        console.log("channel = ", channel)
+        console.log("pass = ", pass)
+
+
+        const checked = await bcrypt.compare(pass, channel.pass)
+        console.log("Checked == ", checked)
+        return checked
     }
 
     async sendMessageToChannel(channel_id: number, sender: number, content: string, date: Date) {
@@ -665,7 +676,7 @@ export class ChatHelper {
                     users_list: true,
                     admins: true,
                     banned: true,
-                    muted: true
+                    muted: true,
                 }
             })
         } catch (error) {

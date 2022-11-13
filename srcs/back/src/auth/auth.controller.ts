@@ -16,10 +16,10 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body('code') code: string, @Res() res: Response) {
-      //console.log("debut 2fa; code: ", code)
-      //console.log("validate == ", await this.jwtAuthService.validate(req.cookies.jwt).validate)
+      console.log("debut 2fa; code: ", code)
+      console.log("validate == ", await this.jwtAuthService.validate(req.cookies.jwt).validate)
       let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
-      //console.log("id and username valides ", id, username)
+      console.log("id and username valides ", id, username)
       // const isCodeValid = await this.usersService.isCodeValid(code, id)
       // console.log("code is valide ?", code, isCodeValid)
       // if (!isCodeValid) {
@@ -35,14 +35,14 @@ export class AuthController {
 
   @Get()
   @UseGuards(FourtyTwoGuard)
-  async googleAuth(@Req() _req) {
+  async auth(@Req() _req) {
     // Guard redirects
   }
 
   @Get('redirect')
   @HttpCode(200)
    @UseGuards(FourtyTwoGuard)
-  async googleAuthRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
+  async authRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
 
     const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
     res.cookie('jwt', accessToken, {
@@ -53,6 +53,18 @@ export class AuthController {
     }
     else
       return res.redirect(process.env.URL_LOGIN_2FA)
+  }
+
+  @Post('first')
+  @UseGuards(FourtyTwoGuard)
+  async secondTime (@Req() req, @Res({passthrough: true}) res: Response) {
+    await this.authService.secondTime(req.cookies.jwt)
+    const { accessToken } = await this.jwtAuthService.login(req.user);
+    res.cookie("jwt", accessToken, {
+      httpOnly:true
+    });
+    return res.send({status:200, msg: true})
+
   }
 
   @Get('verify')

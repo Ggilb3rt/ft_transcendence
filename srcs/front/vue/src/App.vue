@@ -58,7 +58,7 @@ async function testConnection() {
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
         if (!isSetupStoreChannel) {
-          channelStore.getChansLists();
+          await channelStore.getChansLists();
           isSetupStoreChannel = true
         }
       }
@@ -114,6 +114,8 @@ watch(route, (newRoute) => {
 onMounted(() => {
   userStore.loading = false
 })
+
+const timeDate = ref<string>("")
 </script>
 
 <template>

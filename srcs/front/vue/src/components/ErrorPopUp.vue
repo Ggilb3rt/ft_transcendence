@@ -4,12 +4,14 @@ import { onUpdated } from "@vue/runtime-core";
 import { useUserStore } from '@/stores/user';
 import type { IUserStoreState } from "@/stores/user"
 import { useUsersStore } from "@/stores/users";
+import { useChannelsStore } from "@/stores/channels";
 import type { IUsersStoreState } from "@/stores/users"
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
-const userStore = useUserStore();
-const usersStore = useUsersStore();
-const stores = [userStore, usersStore]
+const userStore = useUserStore()
+const usersStore = useUsersStore()
+const channelsStore = useChannelsStore()
+const stores = [userStore, usersStore, channelsStore]
 
 onUpdated(() => {
 	stores.forEach((store) => {
@@ -17,7 +19,7 @@ onUpdated(() => {
 			if (store.error.statusCode == 401) {
 				//console.log("error popup ", store.error.statusCode)
 				// if (store.hasOwnProperty("connected"))
-				store.connected = false
+				userStore.connected = false
 				// le reset fonctionne pas pour une raison qui m'échappe, mais en vrai c'est pas obligatoire notamment pour garder le message d'erreur
 				// store.$reset() 
 				router.push('/login')

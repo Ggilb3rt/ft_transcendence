@@ -9,6 +9,7 @@ import { useChannelsStore } from '@/stores/channels'
 import SideNav from '../components/navigation/SideNav.vue';
 import BtnChallenge from '@/components/navigation/BtnChallenge.vue'
 import CreateChanForm from '@/components/chat/CreateChanForm.vue'
+import ModalNeedPass from '@/components/chat/ModalNeedPass.vue';
 import Loader from '@/components/navigation/loader.vue'
 import chatSideNav from '@/components/navigation/chatSideNav.vue';
 import chatSideNavLeft from '@/components/navigation/chatSideNavLeft.vue';
@@ -203,13 +204,16 @@ onBeforeMount(() => {
 		<button class="btn_side" @click="sideNavDataLeft.isOpen = !sideNavDataLeft.isOpen">{{ sideNavDataLeft.name }}</button>
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<!-- <SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav> -->
-		<chatSideNavLeft  class="item open" :onRight="false"></chatSideNavLeft>
+		<chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft>
 
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
 		<router-view v-else></router-view>
 		<chatSideNav class="item open" :onRight="true"></chatSideNav>
 		<!-- <SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav> -->
+		<!-- <ModalNeedPass v-if="channelsStore.error.includes('pass')"></ModalNeedPass> -->
+		<ModalNeedPass></ModalNeedPass>
+		
 	</div>
 </template>
 
@@ -225,7 +229,7 @@ onBeforeMount(() => {
 @media screen and (min-width: 768px) {
 	.vue_wrapper.chat {
 		/* min-height: 90vh; */
-		align-items: center;
+		align-items: flex-start;
 		flex-flow: row;
 	}
 

@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export type JwtPayload = { id: number; username: string, isAuth: boolean, two_factor_auth: boolean};
+export type JwtPayload = { id: number; username: string, isAuth: boolean, two_factor_auth: boolean, first_time: boolean};
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy) {
