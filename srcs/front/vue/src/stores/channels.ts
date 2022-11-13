@@ -25,6 +25,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
 	const openChan = ref<CChannel[]>([])
+	const openDirect = ref<CChannel[]>([])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
@@ -35,9 +36,16 @@ export const useChannelsStore = defineStore('channels', () => {
 	const loading = ref<boolean>(false)
 	const myRooms: string[] = [];
 
-	function getChanIndex(rhs: number): number {
+	function getChanIndex(rhs: number, isDirect: boolean): number {
+		const directType: TChannelType = "direct"
+		if (!isDirect) {
+			return openChan.value.findIndex((elem) => {
+				return elem.getId() === rhs && elem.getType() != directType
+			})
+		}
 		return openChan.value.findIndex((elem) => {
-			return elem.getId() === rhs
+			console.log("elem values ", elem.getType() === directType)
+			return elem.getId() === rhs && elem.getType() === directType
 		})
 	}
 	// privates functions
@@ -212,7 +220,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handleMessage(msg: TMessage) {
 		if (!msg.isDirect) {
 			console.log("la roome id quand je recois un message", msg.receiver)
-			const index : number = getChanIndex(msg.receiver)
+			const index : number = getChanIndex(msg.receiver, false)
 			console.log("son index", index)
 			if (index === -1)
 				return
@@ -220,7 +228,13 @@ export const useChannelsStore = defineStore('channels', () => {
 			openChan.value[index].messages.push(msg)
 		}
 		else {
-			//handle direct msg
+			console.log("le direct message est ", msg)
+			const index : number = getChanIndex(msg.sender, true)
+			console.log("l'index est ", index)
+			if (index === -1)
+				return
+			openChan.value[index].messages.push(msg)
+
 		}
 	}
 
@@ -258,7 +272,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		promoted_by: number	})
 		
 		{
-		const index: number = getChanIndex(args.channel_id)
+		const index: number = getChanIndex(args.channel_id, false)
 		if (index === -1) {
 			return
 		}
@@ -273,7 +287,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 		}) 
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -288,7 +302,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 		})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -302,7 +316,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 		})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -319,7 +333,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		new_client: number,
 		channel_id: number
 		}) {
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -332,7 +346,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 	})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -342,7 +356,7 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	function handleTypeChange(args: {channel_id: number, type: TChannelType, user_id: number, pass?: string}){
 		const {channel_id, type, user_id, pass} = args;
-		const index: number = getChanIndex(args.channel_id)
+		const index: number = getChanIndex(args.channel_id, false)
 		if (index === -1) {
 			return
 		}
@@ -354,7 +368,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handleDemote(arg: {channel_id: number, demoted_id: number, id: number}) {
 		const { channel_id, demoted_id, id} = arg;
 
-		const index: number = getChanIndex(channel_id)
+		const index: number = getChanIndex(channel_id, false)
 		if (index === -1) {
 			return
 		}

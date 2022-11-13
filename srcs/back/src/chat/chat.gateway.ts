@@ -148,17 +148,22 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     @SubscribeMessage('sendDirectMessage')
     async sendDirectMessage(client: Socket, arg: { content: string, receiver: number, date: Date}) {
-    
+        console.log("starting sendDirectMessage handler", arg)
         
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+
+        console.log("after getGatewayToken before check ban", id)
 
         const { content, receiver, date} = arg
 
         if (await this.usersService.isBan(id, receiver) == true)
             return
 
+        console.log("send direct message after check ban, before send to chat service", arg)
+
         const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
 
+        console.log("res of service", res)
 
         if (!res)
             return false
@@ -169,7 +174,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: true,
             date,
         }
-        client.to(makeId(true, id)).emit('directMessageSent', message)
+        console.log("before emit ", message)
+        client.to(makeId(true, receiver)).emit('directMessageSent', message)
         return (true)
     }
 
