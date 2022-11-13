@@ -95,9 +95,19 @@ onBeforeUnmount(() => {
 		</button>
 
 		<li>
-			<button @click="toggle(0)">Current user [{{ isOpen(0) ? '-' : '+' }}]</button>
+			<button @click="toggle(0)">Friends [{{ isOpen(0) ? '-' : '+' }}]</button>
 			<nav class="bold">
 				<ul v-show="isOpen(0)">
+					<li v-for="el in usersStore.getUsersListForChat(userStore.getFriendsList())" :key="el.id">
+						<RouterLink v-if="el.id" :to="el.id" class="channel_link" :title="el.name">
+							{{ el.name }}
+						</RouterLink>
+					</li>
+				</ul>
+			</nav>
+			<button @click="toggle(1)">Current user [{{ isOpen(1) ? '-' : '+' }}]</button>
+			<nav class="bold">
+				<ul v-show="isOpen(1)">
 					<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
 						{{ el.name }}
 					</li>

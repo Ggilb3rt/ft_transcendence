@@ -88,7 +88,19 @@ export const useChannelsStore = defineStore('channels', () => {
 	function emitDirectMessage(receiver: number, content: string) {
 		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
 		// date que je recois n'est pas de type date (peut etre dû aux sockets)
-		refsocket.value.emit("sendMessageToChannel", {content: content, receiver, date: new Date()})
+		const date = new Date()
+		refsocket.value.emit("sendDirectMessage", {content: content, receiver, date: date}, (res: boolean) => {
+			console.log("direct message res ", res)
+			if (res && currentChan.value) {
+				currentChan.value.sendMessage({
+					sender: userStore.user.id,
+					receiver: receiver,
+					msg: content,
+					isDirect: true,
+					date: date
+				})
+			}
+		})
 	}
 
 
@@ -386,12 +398,54 @@ export const useChannelsStore = defineStore('channels', () => {
 				loading.value = false
 			}
 		}
+		async function getDirectChan(id:number) {
+			loading.value = true
+			try {
+				const response = await fetch(`http://localhost:3000/channels/user/${id}`, {credentials: "include"})
+				let data: TMessage[];
+				if (response.status >= 200 && response.status < 300)
+					data = await response.json()
+				else
+					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+				if (data) {
+					console.log("MY DIRECT MESSAGE: ", data);
+					// check if chan exist
+						// update data
+					// const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					// const alreadyOpen = openChan.value.find((el) => el.id == data.id)
+					console.log("complete channel = ", data)
+					// if (chanIndex != undefined && alreadyOpen == undefined) {
+					if (true) {
+						let newChan = new CChannel(
+							id, 
+							usersStore.getUserNickById(id), 
+							"direct",
+							"",
+							null,
+							[id, userStore.user.id],
+							[],
+							[],
+							[],
+							data
+						)
+						console.log("newDirectChan ", newChan)
+						openChan.value.push(newChan)
+					}
+				}
+			} catch (error: any) {
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
+				error.value = tempErr.body
+			} finally {
+				loading.value = false
+			}
+		}
 		async function getChan(id: number) {
 			loading.value = true
 			// if (isChanInList(id))
 			// 	return
 			try {
-				const response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
+				const response: Response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)
 					data = await response.json()
@@ -402,8 +456,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// check if chan exist
 						// update data
 					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					const alreadyOpen = openChan.value.find((el) => el.getId() == data.id)
 					console.log("complete channel = ", data)
-					if (chanIndex != undefined) {
+					if (chanIndex != undefined && alreadyOpen == undefined) {
 						let newChan = new CChannel(
 							data.id, 
 							data.ChanName, 
@@ -442,14 +497,14 @@ export const useChannelsStore = defineStore('channels', () => {
 
 		// Checker
 		function isChanInList(id: number): boolean {
-			return openChan.value.find((el) => el.id == id) ? true : false
+			return openChan.value.find((el) => el.getId() == id) ? true : false
 		}
 		
 		// Getter
 		function selectCurrentChan(id: number) {
 			if (!isChanInList(id))
 				return
-			const found = openChan.value.find((el) => el.id == id)
+			const found = openChan.value.find((el) => el.getId() == id)
 			if (found)
 				currentChan.value = found
 		}
@@ -503,6 +558,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		loading,
 		error,
 		getChansLists,
+		getDirectChan,
 		getChan,
 		createChan,
 		selectCurrentChan,

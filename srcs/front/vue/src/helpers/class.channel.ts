@@ -2,18 +2,18 @@ import type { IChannel, TChannelType, TRestrictUserTime, TMessage } from "typesC
 
 // must protect if channel type is direct (remove possibility of add or remove user, ban, kick, change type, etc)
 export class CChannel {
-	id: number;
-	ChanName: string;
-	type: TChannelType;
-	pass: string;
-	owner: number | null;
-	userList: number[];
-	adminList: number[];
-	banList: TRestrictUserTime[];
-	muteList: TRestrictUserTime[];
-	messages: TMessage[];
-	passMinLength: number;
-	maxUser: number;
+	private id: number;
+	private ChanName: string;
+	private type: TChannelType;
+	private pass: string;
+	private owner: number | null;
+	public userList: number[];
+	public adminList: number[];
+	public banList: TRestrictUserTime[];
+	public muteList: TRestrictUserTime[];
+	public messages: TMessage[];
+	private passMinLength: number;
+	private maxUser: number;
 
 	constructor(
 		id:number,

@@ -250,8 +250,10 @@ ul li button {
 }
 
 ul li nav {
-	padding-left: 15px;
+	padding-left: 5px;
+	margin-left: 15px;
 	margin-bottom: 15px;
+	border-left: 1px solid rgba(255,255,255,.2);
 }
 
 ul li ul {
