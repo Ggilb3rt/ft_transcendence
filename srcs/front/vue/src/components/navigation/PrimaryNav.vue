@@ -5,6 +5,7 @@ import router from "@/router/index"
 import { useUserStore } from '@/stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
+import UserBtnCancelChallenge from "../user/UserBtnCancelChallenge.vue";
 import IconSupport from "@/components/icons/IconSupport.vue"
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 import CarbonLogout from "@/components/icones-bags/CarbonLogout.vue"
@@ -71,6 +72,7 @@ onBeforeUnmount(() => {
 				<img v-if="userStore.user" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>
 			</RouterLink>
+			<UserBtnCancelChallenge></UserBtnCancelChallenge>
 			<ModalSearch></ModalSearch>
 			<button @click="disconnect()" title="disconnect">
 				<i class="icon_btn">
