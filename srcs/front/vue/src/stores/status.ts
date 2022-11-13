@@ -106,8 +106,12 @@ export const useStatusStore = defineStore({
                      console.log('res == ', res, "\nelem = ", this.statusList[changedIndex])
                      if (changedIndex != -1)
                        this.statusList[changedIndex].userStatus = res.userStatus
-                    if (this.id == res.userId)
+                      console.log("par ici")
+                    console.log("this id", this.id, "res")
+                    if (this.id == res.userId) {
                       this.status = res.userStatus
+                      console.log("par la")
+                    }
                  })
              
                  //Messages for challenges

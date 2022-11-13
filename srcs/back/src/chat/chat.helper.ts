@@ -53,6 +53,7 @@ export class ChatHelper {
                 adminList,
                 messages: messagesTrimmed
             }
+            console.log("Channel on reload = ", formated_channel)
             return formated_channel
         }
 
@@ -254,12 +255,16 @@ export class ChatHelper {
 
     async getBan(user_id: number, channel_id: number) {
         try {
+
+            console.log("JE SUIS LAAAA", user_id, channel_id)
             // if (typeof(channel_id) == 'string')
             //     channel_id = parseInt(channel_id)
+
             const ban = await prisma.ban_channels.findFirst({where: {
                 user_id,
                 channel_id
             }})
+            console.log("ban = ", ban)
             return (ban)
         } catch (e) {
             console.log(e);
@@ -459,11 +464,15 @@ export class ChatHelper {
     async unMute(channel_id: number, muted) {
         try {
             const mute = await this.getMute(channel_id, muted)
+            console.log("mute ", mute)
+            if (!mute)
+                return false
             await prisma.muted.delete({
                 where: {
                     id: mute.id
                 }
             })
+            return true
         } catch (e) {
             console.log(e);
             throw new Error("Database Chat Error")
@@ -596,7 +605,7 @@ export class ChatHelper {
 
     async changePass(channel_id: number, pass: string) {
         try {
-            console.log("pass = ", pass)
+
             const hash =  await bcrypt.hash(pass, 10)
                 return await prisma.channels.update({
                     where: {

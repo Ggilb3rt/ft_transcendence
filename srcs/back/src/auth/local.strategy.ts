@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client'
 import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/createUserDto";
 
+
   const prisma = new PrismaClient();
 
 @Injectable()
@@ -26,13 +27,21 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
         const nick_fourtytwo = profile.username;
         const first_name = profile.name.givenName;
         const last_name = profile.name.familyName;
+        const nickname = nick_fourtytwo
+
+        console.log("profile = ", profile.name)
+
+        console.log("after destructure: ", first_name, last_name)
         
         const user: CreateUserDto = {
             nick_fourtytwo,
+            nickname,
+            first_name,
+            last_name,
             ranking: 0,
             wins: 0,
             loses: 0,
-            two_factor_auth: false
+            two_factor_auth: false,
         }
 
         const ret = await prisma.users.findFirst({

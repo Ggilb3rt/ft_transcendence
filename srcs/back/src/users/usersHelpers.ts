@@ -300,6 +300,9 @@ class UsersHelper {
         }
         const ret = await prisma.users.create( {data: {
           nick_fourtytwo: user.nick_fourtytwo,
+          nickname: user.nickname,
+          first_name: user.first_name,
+          last_name: user.last_name
         } })
         return ret;
       } catch (e) {
