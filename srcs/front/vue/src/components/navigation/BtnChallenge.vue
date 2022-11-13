@@ -45,7 +45,7 @@ async function goSpectate() {
 </script>
 
 <template>
-	<div v-if="usersStore.getUserRestrictById(userId)">
+	<div class="anime" v-if="usersStore.getUserRestrictById(userId)">
 		<div v-if="userStore.user.id != userId">
 			<button @click="showModal = true" v-if="!userStore.isBan(userId) && statusStore.socketIsAvailable(userId)">Challenge</button>
 			<button @click="goSpectate()" v-else-if="!userStore.isBan(userId) && statusStore.socketIs(userId, 'inGame')">Spectate</button>
@@ -59,8 +59,8 @@ async function goSpectate() {
 			<template #body>
 				<select v-model="gameType" id="gameTypeSelector">
 					<option value=0>Pong</option>
-					<option value=1>FancyPong</option>
-					<option value=2>Fong</option>
+					<option value=1>FoxPong</option>
+					<option value=2>Custom Pong</option>
 				</select>
 				<button @click="selecteGameType()">Go !</button>
 				<button @click="showModal = false">Cancel</button>
@@ -74,5 +74,15 @@ async function goSpectate() {
 <style scoped>
 h2 {
 	color: var(--vt-c-black-mute);
+}
+
+.modal-leave-to {
+    opacity: 0;
+}
+
+.anime .modal-leave-to .modal-container {
+	-webkit-transform: translate(120%, -220%) scale(.1);
+	transform: translate(120%, -220%) scale(.1);
+
 }
 </style>

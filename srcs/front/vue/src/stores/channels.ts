@@ -39,14 +39,19 @@ export const useChannelsStore = defineStore('channels', () => {
 	function getChanIndex(rhs: number, isDirect: boolean): number {
 		const directType: TChannelType = "direct"
 		if (!isDirect) {
-			return openChan.value.findIndex((elem) => {
+			const toto = openChan.value.findIndex((elem) => {
+				console.log("promoet getCHanIndex", elem)
 				return elem.getId() === rhs && elem.getType() != directType
 			})
+			console.log("toto = ", toto)
+			return toto
 		}
-		return openChan.value.findIndex((elem) => {
-			console.log("elem values ", elem.getType() === directType)
-			return elem.getId() === rhs && elem.getType() === directType
-		})
+		else {
+			return openChan.value.findIndex((elem) => {
+				console.log("elem values ", elem.getType() === directType)
+				return elem.getId() === rhs && elem.getType() === directType
+			})
+		}
 	}
 	// privates functions
 	function moveToAnotherArray<T>(arrFrom: Array<T>, arrTo: Array<T>, index: number) {
@@ -269,16 +274,17 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handlePromotion(args: {
 		promoted: number,
 		channel_id: number,
-		promoted_by: number	})
-		
-		{
+		promoted_by: number
+	})
+	{
+		console.log("_________before index", args)
 		const index: number = getChanIndex(args.channel_id, false)
-		console.log("index = ", index)
-		if (index === -1) {
+		console.log("__________promote index ", index)
+		if (index == -1) {
 			return
 		}
-		openChan.value[index].adminList.push(args.promoted)
-		openChan.value[index].messages.push(createCustomMessage(args.promoted_by, 'promoted', args.promoted, -1))
+		openChan.value[index].adminList.push(args.promoted_by)
+		openChan.value[index].messages.push(createCustomMessage(args.promoted, 'promoted', args.promoted_by, -1))
 	}
 
 	function handleBan(args: {
@@ -390,7 +396,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		refsocket.value.on('messageSentToChannel', handleMessage)
 		refsocket.value.on('directMessageSent', handleMessage)
 		refsocket.value.on('typeChanged', handleTypeChange)
-		refsocket.value.on('promote', handlePromotion)
+		refsocket.value.on('promoted', handlePromotion)
 		refsocket.value.on('demoted', handleDemote)
 		refsocket.value.on('ban', handleBan)
 		refsocket.value.on('kick', handleKick)

@@ -34,7 +34,6 @@ const usersStore = useUsersStore()
 const statusStore = useStatusStore()
 let isSetupStoreChannel = false
 
-
 async function testConnection() {
   try {
     console.log("Test Connection premiere ligne == ", userStore.conStatus)

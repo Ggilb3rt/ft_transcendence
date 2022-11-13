@@ -5,6 +5,7 @@ import router from "@/router/index"
 import { useUserStore } from '@/stores/user';
 import ModalSearch from "../ModalSearch.vue";
 import { classPrivateMethod } from "@babel/types";
+import UserBtnCancelChallenge from "../user/UserBtnCancelChallenge.vue";
 import IconSupport from "@/components/icons/IconSupport.vue"
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 import CarbonLogout from "@/components/icones-bags/CarbonLogout.vue"
@@ -16,10 +17,24 @@ let winWidth = ref(window.innerWidth)
 
 // Disconnection, need to put it in component
 async function disconnect() {
-	// document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
-	userStore.connected = false
-	userStore.twoFactorAuth = false
-	router.push("/login")
+	try {
+		const response = await fetch(`http://localhost:3000/auth/logout`, {credentials: "include"})
+		var data;
+		if (response.status >= 200 && response.status < 300) {
+			data = await response.json()
+		}
+		else {
+			throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+		}
+		if (data) {
+			userStore.connected = false
+			userStore.twoFactorAuth = false
+			router.push("/login")
+		}
+	} catch (error: any) {
+		const tempErr = JSON.parse(error.message);
+		userStore.error = tempErr.body;
+	}
 }
 
 
@@ -71,6 +86,7 @@ onBeforeUnmount(() => {
 				<img v-if="userStore.user" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'" class="userAvatar">
 				<span v-else>Account</span>
 			</RouterLink>
+			<UserBtnCancelChallenge></UserBtnCancelChallenge>
 			<ModalSearch></ModalSearch>
 			<button @click="disconnect()" title="disconnect">
 				<i class="icon_btn">
