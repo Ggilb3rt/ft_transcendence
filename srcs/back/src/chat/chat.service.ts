@@ -176,7 +176,21 @@ export class ChatService {
 
     async getDirectConversation(friend: number, req) {
         const {id: user_id} = await this.getToken(req)
-        return await this.chatHelper.getDirectMessages(user_id, friend)
+
+        const directMessages = await this.chatHelper.getDirectMessages(user_id, friend)
+        const likeTMessage = directMessages.map((el) => {
+            const newMessage = {
+                sender: el.user_id,
+                receiver: el.second_user_id,
+                msg: el.content,
+                isDirect: true,
+                date: el.date
+            }
+            return newMessage
+        })
+
+        console.log("le nouveau direct message ", likeTMessage)
+        return likeTMessage
     }
 
     async joinChannel(user_id: number, channel_id: number, pass?: string) {

@@ -4,12 +4,14 @@ import { onUpdated } from "@vue/runtime-core";
 import { useUserStore } from '@/stores/user';
 import type { IUserStoreState } from "@/stores/user"
 import { useUsersStore } from "@/stores/users";
+import { useChannelsStore } from "@/stores/channels";
 import type { IUsersStoreState } from "@/stores/users"
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 
-const userStore = useUserStore();
-const usersStore = useUsersStore();
-const stores = [userStore, usersStore]
+const userStore = useUserStore()
+const usersStore = useUsersStore()
+const channelsStore = useChannelsStore()
+const stores = [userStore, usersStore, channelsStore]
 
 onUpdated(() => {
 	stores.forEach((store) => {

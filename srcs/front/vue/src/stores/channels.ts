@@ -25,6 +25,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	const availableChannels = ref<IChannelRestrict[]>([])
 	const joinedChannels = ref<IChannelRestrict[]>([])
 	const openChan = ref<CChannel[]>([])
+	const openDirect = ref<CChannel[]>([])
 	const currentChan = ref<CChannel | null>(null)
 	const error = ref<string>("")
 
@@ -35,9 +36,16 @@ export const useChannelsStore = defineStore('channels', () => {
 	const loading = ref<boolean>(false)
 	const myRooms: string[] = [];
 
-	function getChanIndex(rhs: number): number {
+	function getChanIndex(rhs: number, isDirect: boolean): number {
+		const directType: TChannelType = "direct"
+		if (!isDirect) {
+			return openChan.value.findIndex((elem) => {
+				return elem.getId() === rhs && elem.getType() != directType
+			})
+		}
 		return openChan.value.findIndex((elem) => {
-			return elem.getId() === rhs
+			console.log("elem values ", elem.getType() === directType)
+			return elem.getId() === rhs && elem.getType() === directType
 		})
 	}
 	// privates functions
@@ -88,7 +96,19 @@ export const useChannelsStore = defineStore('channels', () => {
 	function emitDirectMessage(receiver: number, content: string) {
 		// j'aimerai bien savoir si il y a eu une erreur mais j'ai pas envie de casser la structure de Pierre
 		// date que je recois n'est pas de type date (peut etre dû aux sockets)
-		refsocket.value.emit("sendMessageToChannel", {content: content, receiver, date: new Date()})
+		const date = new Date()
+		refsocket.value.emit("sendDirectMessage", {content: content, receiver, date: date}, (res: boolean) => {
+			console.log("direct message res ", res)
+			if (res && currentChan.value) {
+				currentChan.value.sendMessage({
+					sender: userStore.user.id,
+					receiver: receiver,
+					msg: content,
+					isDirect: true,
+					date: date
+				})
+			}
+		})
 	}
 
 
@@ -200,7 +220,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handleMessage(msg: TMessage) {
 		if (!msg.isDirect) {
 			console.log("la roome id quand je recois un message", msg.receiver)
-			const index : number = getChanIndex(msg.receiver)
+			const index : number = getChanIndex(msg.receiver, false)
 			console.log("son index", index)
 			if (index === -1)
 				return
@@ -208,7 +228,13 @@ export const useChannelsStore = defineStore('channels', () => {
 			openChan.value[index].messages.push(msg)
 		}
 		else {
-			//handle direct msg
+			console.log("le direct message est ", msg)
+			const index : number = getChanIndex(msg.sender, true)
+			console.log("l'index est ", index)
+			if (index === -1)
+				return
+			openChan.value[index].messages.push(msg)
+
 		}
 	}
 
@@ -246,7 +272,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		promoted_by: number	})
 		
 		{
-		const index: number = getChanIndex(args.channel_id)
+		const index: number = getChanIndex(args.channel_id, false)
 		if (index === -1) {
 			return
 		}
@@ -261,12 +287,12 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 		}) 
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
 			openChan.value[index].banList.push({userId: args.banned_id, expire: args.expires})
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_by, -2))
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'banned', args.banned_id, -2))
 		}
 
 	function handleMute(args: {
@@ -276,27 +302,27 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 		})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
 			openChan.value[index].muteList.push({userId: args.banned_id, expire: args.expires})
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_by, -3))
+			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'muted', args.banned_id, -3))
 		}
 		
 	function handleKick(args: {
-		banned_id: number,
-		banned_by: number,
+		kicked_id: number,
+		kicked_by: number,
 		channel_id: number
 		})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
 
-			openChan.value[index].messages.push(createCustomMessage(args.banned_by, 'kicked', args.banned_by, -4))
-			if (args.banned_id == userStore.user.id) {
+			openChan.value[index].messages.push(createCustomMessage(args.kicked_by, 'kicked', args.kicked_id, -4))
+			if (args.kicked_id == userStore.user.id) {
 				if (switchJoinedAvailable(args.channel_id, true))
 					if (route.params.id == String(args.channel_id))
 						router.push('/chat')
@@ -307,7 +333,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		new_client: number,
 		channel_id: number
 		}) {
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
@@ -320,21 +346,21 @@ export const useChannelsStore = defineStore('channels', () => {
 		channel_id: number
 	})
 		{
-			const index: number = getChanIndex(args.channel_id)
+			const index: number = getChanIndex(args.channel_id, false)
 			if (index === -1) {
 				return
 			}
-			openChan.value[index].userList.push(args.client_quit)
+			openChan.value[index].removeUserFromUserList(args.client_quit)
 			openChan.value[index].messages.push(createCustomMessage(args.client_quit, 'left', args.channel_id, -6))
 		}
 
 	function handleTypeChange(args: {channel_id: number, type: TChannelType, user_id: number, pass?: string}){
 		const {channel_id, type, user_id, pass} = args;
-		const index: number = getChanIndex(args.channel_id)
+		const index: number = getChanIndex(args.channel_id, false)
 		if (index === -1) {
 			return
 		}
-        if (type != "direct" && type != "pass" && type != "private" && type != "public")
+		if (type != "direct" && type != "pass" && type != "private" && type != "public")
 			return
 		openChan.value[index].changeChannelType(user_id, type, pass)
 	}
@@ -342,12 +368,12 @@ export const useChannelsStore = defineStore('channels', () => {
 	function handleDemote(arg: {channel_id: number, demoted_id: number, id: number}) {
 		const { channel_id, demoted_id, id} = arg;
 
-		const index: number = getChanIndex(channel_id)
+		const index: number = getChanIndex(channel_id, false)
 		if (index === -1) {
 			return
 		}
 		openChan.value[index].demote(demoted_id)
-		openChan.value[index].messages.push(createCustomMessage(demoted_id, 'demoted', id, -1))
+		openChan.value[index].messages.push(createCustomMessage(id, 'demoted', demoted_id, -1))
 	}
 
 	async function setup() {
@@ -386,12 +412,54 @@ export const useChannelsStore = defineStore('channels', () => {
 				loading.value = false
 			}
 		}
+		async function getDirectChan(id:number) {
+			loading.value = true
+			try {
+				const response = await fetch(`http://localhost:3000/channels/user/${id}`, {credentials: "include"})
+				let data: TMessage[];
+				if (response.status >= 200 && response.status < 300)
+					data = await response.json()
+				else
+					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+				if (data) {
+					console.log("MY DIRECT MESSAGE: ", data);
+					// check if chan exist
+						// update data
+					// const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					// const alreadyOpen = openChan.value.find((el) => el.id == data.id)
+					console.log("complete channel = ", data)
+					// if (chanIndex != undefined && alreadyOpen == undefined) {
+					if (true) {
+						let newChan = new CChannel(
+							id, 
+							usersStore.getUserNickById(id), 
+							"direct",
+							"",
+							null,
+							[id, userStore.user.id],
+							[],
+							[],
+							[],
+							data
+						)
+						console.log("newDirectChan ", newChan)
+						openChan.value.push(newChan)
+					}
+				}
+			} catch (error: any) {
+				console.log("err = ", error)
+				const tempErr = await JSON.parse(error.message)
+				error.value = tempErr.body
+			} finally {
+				loading.value = false
+			}
+		}
 		async function getChan(id: number) {
 			loading.value = true
 			// if (isChanInList(id))
 			// 	return
 			try {
-				const response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
+				const response: Response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)
 					data = await response.json()
@@ -402,8 +470,9 @@ export const useChannelsStore = defineStore('channels', () => {
 					// check if chan exist
 						// update data
 					const chanIndex = joinedChannels.value.find((el) => el.id == data.id)
+					const alreadyOpen = openChan.value.find((el) => el.getId() == data.id)
 					console.log("complete channel = ", data)
-					if (chanIndex != undefined) {
+					if (chanIndex != undefined && alreadyOpen == undefined) {
 						let newChan = new CChannel(
 							data.id, 
 							data.ChanName, 
@@ -442,14 +511,14 @@ export const useChannelsStore = defineStore('channels', () => {
 
 		// Checker
 		function isChanInList(id: number): boolean {
-			return openChan.value.find((el) => el.id == id) ? true : false
+			return openChan.value.find((el) => el.getId() == id) ? true : false
 		}
 		
 		// Getter
 		function selectCurrentChan(id: number) {
 			if (!isChanInList(id))
 				return
-			const found = openChan.value.find((el) => el.id == id)
+			const found = openChan.value.find((el) => el.getId() == id)
 			if (found)
 				currentChan.value = found
 		}
@@ -503,6 +572,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		loading,
 		error,
 		getChansLists,
+		getDirectChan,
 		getChan,
 		createChan,
 		selectCurrentChan,

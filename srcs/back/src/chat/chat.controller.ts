@@ -19,7 +19,7 @@ export class ChatController {
         return this.chatService.getChannel(channel_id, req)
     }
 
-    @Get('/user:id')
+    @Get('/user/:id')
     getDirectConversation(@Param('id', ParseIntPipe) friend: number, @Req() req: Request) {
         return this.chatService.getDirectConversation(friend, req)
     }

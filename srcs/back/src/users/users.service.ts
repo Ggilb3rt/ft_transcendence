@@ -389,7 +389,8 @@ export class UsersService {
   }
 
   async isBan(id: number, ban: number) {
-    const banned =  this.usersHelper.getBan(id, ban)
+    const banned = await this.usersHelper.getBan(id, ban)
+    console.log("return of isBan", id, ban, banned)
     if (banned)
       return true
     return false
