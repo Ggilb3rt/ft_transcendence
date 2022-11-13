@@ -17,10 +17,24 @@ let winWidth = ref(window.innerWidth)
 
 // Disconnection, need to put it in component
 async function disconnect() {
-	// document.cookie = "jwt= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
-	userStore.connected = false
-	userStore.twoFactorAuth = false
-	router.push("/login")
+	try {
+		const response = await fetch(`http://localhost:3000/auth/logout`, {credentials: "include"})
+		var data;
+		if (response.status >= 200 && response.status < 300) {
+			data = await response.json()
+		}
+		else {
+			throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
+		}
+		if (data) {
+			userStore.connected = false
+			userStore.twoFactorAuth = false
+			router.push("/login")
+		}
+	} catch (error: any) {
+		const tempErr = JSON.parse(error.message);
+		userStore.error = tempErr.body;
+	}
 }
 
 
