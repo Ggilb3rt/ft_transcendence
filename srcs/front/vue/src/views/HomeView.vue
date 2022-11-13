@@ -4,6 +4,8 @@ import router from "@/router";
 import { onBeforeUnmount, ref } from "vue";
 import { useStatusStore } from "@/stores/status";
 import { useUserStore } from "@/stores/user";
+import Modal from "@/components/Modal.vue";
+import { shallowEqual } from "@babel/types";
 
 const userStore = useUserStore();
 const userId = userStore.user.id;
@@ -13,22 +15,23 @@ const socket = io("http://localhost:3000/game", {
   },
 });
 
+const canPlay = ref(true);
+const show = ref(false);
+socket.emit("isUserInGame", { userId });
+socket.on("isUserInGame", (data) => {
+  console.log("DATA BOOL " + data.bool);
+  if (data.userId === userId) {
+    canPlay.value = !data.bool;
+  }
+});
+
 async function findGame(event: Event, game: string, spectator: boolean) {
   event.preventDefault();
-
-  if (spectator === true) {
+  show.value = false;
+  if (spectator || canPlay.value) {
     router.push({ path: `/game/${game}` });
   } else {
-    socket.emit("isUserInGame", { userId });
-    socket.on("isUserInGame", (bool) => {
-      console.log(bool);
-      if (bool === true) {
-        alert("YOU ARE ALREADY IN A GAME");
-        return;
-      } else {
-        router.push({ path: `/game/${game}` });
-      }
-    });
+    show.value = true;
   }
 }
 
@@ -46,6 +49,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="vue_wrapper home">
+    <div v-if="canPlay === true">
+      <p>can play</p>
+    </div>
+    <div v-else>
+      <p>cannot play</p>
+    </div>
     <h1>Let's play a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
@@ -91,20 +100,28 @@ onBeforeUnmount(() => {
     </nav>
     <h1>Let's watch a <span class="red">game</span></h1>
     <nav>
-       <ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0"> 
-      <!-- <p v-for="room in activeRoomNames" :key="room"> -->
-      <p v-for="value in activeRoomNames" :key="value">
-        <button
-          id="customizable"
-          @click="findGame($event, `${value.level}/${value.id}`, true)"
-          class="pongLink"
-        >
-          {{ value.id }} {{ value.level }}
-        </button>
-      </p>
+      <ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
+        <!-- <p v-for="room in activeRoomNames" :key="room"> -->
+        <p v-for="value in activeRoomNames" :key="value">
+          <button
+            id="customizable"
+            @click="findGame($event, `${value.level}/${value.id}`, true)"
+            class="pongLink"
+          >
+            {{ value.id }} {{ value.level }}
+          </button>
+        </p>
       </ul>
       <p v-else>No game</p>
     </nav>
+    <Modal v-if="!canPlay" :show="show" removeOK>
+      <template #header>
+        <h2>YOU ALREADY ARE IN A GAME OR WAITING ROOM</h2>
+      </template>
+      <template #body>
+        <button @click="show = false">OK</button>
+      </template>
+    </Modal>
   </div>
 </template>
 

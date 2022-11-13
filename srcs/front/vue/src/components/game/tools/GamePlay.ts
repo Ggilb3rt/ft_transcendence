@@ -43,13 +43,11 @@ export default class GamePlay {
       scene.playerNumber = data.playerNumber;
       scene.roomName = data.gameCode;
       scene.playerInit = true;
-      //router.replace({ path: `/game/${scene.roomName}` });
     });
   }
 
   listenInitGame(scene) {
     scene.socket.on("roomComplete", (state) => {
-      //router.replace({ path: `/game/${scene.roomName}` });
       scene.roomComplete = true;
       eventsCenter.emit("ready");
       scene.paddleSpeed = state.players[0].speed;
@@ -389,7 +387,6 @@ export default class GamePlay {
     this.initBallObject(level, settings, images, width, height, scene);
     this.initPlayerObjects(level, settings, images, width, height, scene);
     if (level === 2) {
-      console.log("CUSTOMIzE SETTINGS");
       this.customizeSettings(settings, scene);
     }
     if (level === 3) {
@@ -433,11 +430,6 @@ export default class GamePlay {
       height / 2,
       images.playerTwo
     );
-    console.log(scene.playerOne.body.y);
-    console.log(scene.playerOne.body.height);
-    console.log(scene.playerOne.displayHeight);
-    console.log(scene.playerOne.body.displayHeight);
-    console.log("-----");
 
     scene.playerOne.setCollideWorldBounds(true);
     scene.playerOne.setImmovable(true);
@@ -459,10 +451,6 @@ export default class GamePlay {
       scene
     );
 
-    console.log(scene.playerOne.body.y);
-    console.log(scene.playerOne.body.height);
-    console.log(scene.playerOne.displayHeight);
-    console.log(scene.playerOne.body.displayHeight);
     scene.playerTwo.setCollideWorldBounds(true);
     scene.playerTwo.setImmovable(true);
     if (level === 1 || level === 2) {
@@ -527,61 +515,47 @@ export default class GamePlay {
     scene.fox.setImmovable(true);
   }
 
-  initColliders(level, scene) {
-    let dirx;
-    let diry;
-    scene.physics.add.collider(scene.ball, scene.playerOne, () => {
-      const relativeIntersectY =
-        scene.playerOne.y +
-        scene.playerOne.displayHeight / 2 -
-        scene.ball.y +
-        scene.ball.body.y / 2;
-      const normalizedRelativeintersectionY =
-        relativeIntersectY / (scene.playerOne.displayHeight / 2);
-      let bounceAngle = normalizedRelativeintersectionY * ((5 * Math.PI) / 12);
-      if (bounceAngle > 3.5) {
+  getBounceAngle(ball, player, scene): number {
+    const relativeIntersectY =
+      player.y + player.displayHeight / 2 - ball.y + ball.body.y / 2;
+    const normalizedRelativeIntersectionY =
+      relativeIntersectY / (player.displayHeight / 2);
+    let bounceAngle = normalizedRelativeIntersectionY * ((5 * Math.PI) / 12);
+    bounceAngle = bounceAngle > 3.5 ? 3.5 : bounceAngle;
+    bounceAngle = bounceAngle < 2.5 ? 2.5 : bounceAngle;
+    return bounceAngle;
+    /*if (bounceAngle > 3.5) {
         bounceAngle = 3.5;
       } if (bounceAngle < 2.5) {
 		bounceAngle = 2.5;
-	  }
+	  }*/
+  }
 
-      dirx = -Math.cos(bounceAngle) * 500;
-      diry = Math.sin(bounceAngle) * 500;
-
+  initColliders(level, scene) {
+    scene.physics.add.collider(scene.ball, scene.playerOne, () => {
+      const bounceAngle = this.getBounceAngle(
+        scene.ball,
+        scene.playerOne,
+        scene
+      );
       if (scene.playerNumber === 1) {
-		scene.ball.setVelocityX(dirx);
-		scene.ball.setVelocityY(diry);
-        //scene.ball.setVelocityX(500 * -Math.cos(bounceAngle));
-        //scene.ball.setVelocityY(500 * Math.sin(bounceAngle));
+        scene.ball.setVelocity(
+          -Math.cos(bounceAngle) * 500,
+          Math.sin(bounceAngle) * 500
+        ); // 500 = ball speed
       }
     });
     scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
-      const relativeIntersectY =
-        scene.playerTwo.y +
-        scene.playerTwo.displayHeight / 2 -
-        scene.ball.y +
-        scene.ball.body.y / 2;
-      const normalizedRelativeintersectionY =
-        relativeIntersectY / (scene.playerTwo.displayHeight / 2);
-      let bounceAngle = normalizedRelativeintersectionY * ((5 * Math.PI) / 12);
-      //if (bounceAngle < 3.5) {
-       // bounceAngle = 3.5;
-      //}
-
-	  if (bounceAngle > 3.5) {
-    	  bounceAngle = 3.5;
-      } if (bounceAngle < 2.5) {
-		bounceAngle = 2.5;
-	  }
-      dirx = Math.cos(bounceAngle) * 500;
-      diry = -Math.sin(bounceAngle) * 500;
-	  console.log("BOUNCE ANGLE " + bounceAngle)
-
+      const bounceAngle = this.getBounceAngle(
+        scene.ball,
+        scene.playerTwo,
+        scene
+      );
       if (scene.playerNumber === 1) {
-        //scene.ball.setVelocityX(500 * Math.cos(bounceAngle));
-        //scene.ball.setVelocityY(500 * -Math.sin(bounceAngle));
-		scene.ball.setVelocityX(dirx);
-		scene.ball.setVelocityY(diry);
+        scene.ball.setVelocity(
+          Math.cos(bounceAngle) * 500,
+          -Math.sin(bounceAngle) * 500
+        ); // 500 = ball speed
       }
     });
 

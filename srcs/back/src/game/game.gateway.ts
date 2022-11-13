@@ -114,7 +114,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
 	@SubscribeMessage("addUserId")
 	handleAddUserId(client: Socket, data: any) {
-		this.gameService.handleAddUserId(client, data);
+		this.gameService.handleAddUserId(client, data, this.server);
 	}
 
 }

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from "vue";
 import { useUserStore } from "@/stores/user";
+import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
-import router from "@/router";
 import { useRoute } from "vue-router";
 import Phaser from "phaser";
 import io from "socket.io-client";
+import router from "@/router";
+import UserLink from "@/components/user/UserLink.vue";
+
 
 import config from "./game/config";
 import Preloader from "./game/scenes/Preloader";
@@ -14,17 +17,22 @@ import GameScene from "./game/scenes/GameScene";
 
 const containerId = "game-container";
 const userStore = useUserStore();
+const usersStore = useUsersStore();
 const statusStore = useStatusStore();
+const userId = userStore.user.id;
 const route = useRoute();
 const socket = io("http://localhost:3000/game");
-const str = route.query.challenge;
-const level = route.params.ourGames;
-const key = route.params.id;
-let activeRoomNames = {};
+const urlQuery = route.query.challenge;
+const urlLevel = String(route.params.ourGames);
+const urlRoomId = String(route.params.id);
+const validLevels = ["pong", "catPong", "customizable"];
+let inGame = false;
+let oppInGame = false;
 let error = false;
-let gameInstance;
+let activeRoomNames: string[];
+let gameInstance: Game;
 const data = {
-  userId: userStore.user.id,
+  userId,
   spectator: false,
   challenge: false,
   key: "",
@@ -38,14 +46,98 @@ const data = {
 
 window.addEventListener("beforeunload", (e) => {
   disconnectGameSocket();
-  if (gameInstance !== undefined && gameInstance.scene.scenes[2].level === 2) {
-    destroyGame();
-  }
+  destroyGame();
   if (socket) {
     socket.disconnect();
   }
-  //router.push("/");
+  statusStore.changeCurrentUserStatus("available", userId);
 });
+
+socket.emit("isUserInGame", { userId });
+socket.on("isUserInGame", (data) => {
+	if (data.userId === userId) {
+  		inGame = data.bool;
+	} else {
+		oppInGame = data.bool;
+	}
+});
+
+onMounted(() => {
+
+	filterUsers(userId);
+  if (inGame || (!urlLevel && !urlQuery)) {
+    alert("YOU ALREADY ARE IN A GAME/CANNOT ACCESS DIRECT");
+    router.push("/");
+  } else {
+    initGame();
+  }
+});
+
+onBeforeUnmount(() => {
+  statusStore.changeCurrentUserStatus("available", userId);
+  disconnectGameSocket();
+  destroyGame();
+  if (socket) {
+    socket.disconnect();
+  }
+});
+
+function initGame() {
+  socket.emit("getActiveRoomNames", { type: 2 });
+  socket.on("getActiveRoomNames", (payload) => {
+    activeRoomNames = Object.keys(payload.roomNames);
+
+    if ((isChallenge() || isValidGame()) && !error) {
+      launchGame();
+    } else if ((!isChallenge() && !isValidGame) || error) {
+      router.replace("/");
+    }
+  });
+}
+
+function isChallenge(): boolean {
+  if (!urlQuery) {
+    return false;
+  }
+  const challenge = JSON.parse(String(urlQuery)); // A VERIF
+  const opponent = challenge.challenged;
+  socket.emit("isUserInGame", { userId });
+
+  if (!oppInGame) { // Si l'autre utilisateur n'est plus ingame, c'est que c'est un reload;
+	error = true;
+  } else {
+	data.challenge = true;
+  data.challengeInfo.challenger = challenge.challenger;
+  data.challengeInfo.level = Number(challenge.level);
+  data.challengeInfo.challenged = challenge.challenged;
+  }
+
+  return true;
+  /*data.challenge = true;
+  data.challengeInfo.challenger = challenge.challenger;
+  data.challengeInfo.level = Number(challenge.level);
+  data.challengeInfo.challenged = challenge.challenged;
+  return true;*/
+}
+
+function isValidGame(): boolean {
+  if (!urlLevel) {
+    return false;
+  }
+
+  if (validLevels.includes(urlLevel)) {
+    data.level = urlLevel;
+    if (urlRoomId) {
+      if (activeRoomNames.includes(urlRoomId)) {
+        data.key = urlRoomId;
+        data.spectator = true;
+      } else {
+        error = true;
+      }
+    }
+  }
+  return true;
+}
 
 class Game extends Phaser.Game {
   constructor() {
@@ -57,70 +149,11 @@ class Game extends Phaser.Game {
   }
 }
 
-onMounted(() => {
-  if (launchGame() === false) {
-    router.push("/");
-  }
-});
-
-onBeforeUnmount(() => {
-  statusStore.changeCurrentUserStatus("available", userStore.user.id);
-  disconnectGameSocket();
-  destroyGame();
-  if (socket) {
-    socket.disconnect();
-  }
-});
-
-function launchGame(): bool {
-  socket.emit("getActiveRoomNames", { type: 2 });
-
-  socket.on("getActiveRoomNames", (payload) => {
-    activeRoomNames = payload.roomNames;
-    const array = Object.keys(activeRoomNames);
-
-    // A CHALLENGE HAS BEEN ACCEPTED
-    if (str) {
-      data.challenge = true;
-      const challenge = JSON.parse(str);
-      data.challengeInfo.challenger = challenge.challenger;
-      data.challengeInfo.level = Number(challenge.level);
-      data.challengeInfo.challenged = challenge.challenged;
-    } else if (level !== "") {
-      // NO CHALLENGE
-      if (level === "pong" || level === "catPong" || level === "customizable") {
-        data.level = level;
-        if (key) {
-          if (array.includes(key)) {
-            console.log("key coorect");
-            data.key = key;
-            data.spectator = true;
-          } else {
-            error = true;
-            console.log("key incorrect");
-            router.replace("/");
-          }
-        }
-      } else {
-        error = true;
-        console.log("level incorrect");
-        router.replace("/");
-      }
-    } else {
-      error = true;
-      console.log("/game direct access unauthorized");
-      router.replace("/");
-    }
-    if (!error) {
-      socket.emit("addUserId", { userId: userStore.user.id });
-      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
-      socket.on("userAdded", () => {
-        gameInstance = new Game();
-      });
-      return true;
-    } else {
-      return false;
-    }
+function launchGame() {
+  socket.emit("addUserId", { userId });
+  statusStore.changeCurrentUserStatus("inGame", userId);
+  socket.on("userAdded", () => {
+    gameInstance = new Game();
   });
 }
 
@@ -132,11 +165,33 @@ function disconnectGameSocket() {
 
 function destroyGame() {
   if (gameInstance !== undefined) {
-    gameInstance.destroy();
+    gameInstance.destroy(false);
   }
 }
+
+function filterUsers(id: number) {
+	console.log("USER LIST")
+	console.log(usersStore.userList);
+	usersStore.userList.forEach((user, i) => {
+		console.log(usersStore.userList[i]);
+		if (user.id === id) {
+			console.log(usersStore.userList[i])
+			return usersStore.userList[i];
+		}
+	})
+}
+
+
 </script>
 
 <template>
+	<div id="player-info">
+		<p>hahahehe</p>
+		<!-- <button id="haha" -->
+		<!-- @click="filterUsers(1)" -->
+		<!-- > -->
+		<!-- Pong<br /></button> -->
+		<!-- <UserLink :other-user=userId></UserLink> -->
+	</div>
   <div :id="containerId" />
 </template>

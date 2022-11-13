@@ -10,15 +10,14 @@ export class GameService {
     private activeGames = {};
 	private userIds = {};
     private players = {};
-	private i = 4;
 
 	constructor(private readonly usersHelper: UsersHelper) {
 		this.waitingRooms[1] = WR1;
 		this.waitingRooms[2] = WR2;
 		this.waitingRooms[3] = WR3;
-
-        //console.log(this.waitingRooms);
 	}
+
+
 
     handleConnection(client: Socket, server: Server) {
 		console.log('CLIENT CONNECTED ' + client.id)
@@ -30,17 +29,19 @@ export class GameService {
             spectator: false,
 			userId: 0,
 			type: "player",
-			challengeId: 0,
+			challenged: false,
+			challengeInfo: {},
 		}
 	}
 
-	handleAddUserId(client: Socket, data: any) {
+	handleAddUserId(client: Socket, data: any, server: Server) {
 		const userId = Number(data.userId);
 		console.log("USER ID1 " + userId);
 		this.userIds[userId] = userId;
 		console.log("ADD USER ");
 		console.log(this.userIds);
 		client.emit("userAdded");
+		server.emit("isUserInGame", { userId, bool: true});
 	} 
 
 	handleIsUserInGame(client: Socket, data: any) {
@@ -48,31 +49,35 @@ export class GameService {
 		console.log("USER ID2 " + userId);
 		console.log("array")
 		console.log(this.userIds);
-		if (this.userIds.hasOwnProperty(userId)) { client.emit("isUserInGame", true); } 
-		else { client.emit("isUserInGame", false);}
+		if (this.userIds.hasOwnProperty(userId)) { client.emit("isUserInGame", { userId, bool: true }); } 
+		else { client.emit("isUserInGame", { userId, bool: false });}
 	}
 
     handleJoinQueue(client: Socket, data: any, server: Server) {
-		//console.log(data);
         const level = data.level;
 		const userId = data.userId;
 		const player = this.players[client.id];
 
+		console.log("waitingRooms");
+		console.log(this.waitingRooms)
+
         let wr = this.waitingRooms[level];
+		if (wr === undefined) {
+			console.log("HEREEEE");
+			this.waitingRooms[level] = WR;
+			wr = this.waitingRooms[level];
+		}
 
 		console.log('JOINING QUEUE level ' + level)
 		console.log(client.id + " " + userId);
-		//console.log(wr);
 
         this.players[client.id].level = level;
 		this.players[client.id].userId = userId;
-
 
         // Waiting room is empty
         if (wr.playerOne.id === "" && wr.playerTwo.id === "") {
             console.log("room empty");
             const roomId = this.codeGenerator(5);
-            //const roomId = "abcdef";
             wr.roomId = roomId;
             wr.playerOne.id = player.id;
             wr.playerOne.socket = player.socket;
@@ -81,7 +86,6 @@ export class GameService {
 			wr.playerOne.userId = userId;
             wr.level = level;
             this.players[player.id].roomId = wr.roomId;
-            //console.log(wr);
         }
         // Waiting room has 1 player
         else if (wr.playerOne.id !== "" && wr.playerTwo.id === "") {
@@ -108,22 +112,8 @@ export class GameService {
                     playerTwo: p2,
                     level: level,
                 }
-
                 this.initGame(wr.roomId, server);
-
-                // Reset waiting Rooms
-				wr.roomId = "";
-                wr.playerOne.id = "";
-                wr.playerOne.socket = "";
-                wr.playerOne.roomId = "";
-				wr.playerOne.level = 0;
-				wr.playerOne.userId = 0;
-                wr.playerTwo.id = "";
-                wr.playerTwo.socket = "";
-                wr.playerTwo.roomId = "";
-				wr.playerTwo.level = 0;
-				wr.playerTwo.userId = 0;
-				wr.level = 0;
+				Reflect.deleteProperty(this.waitingRooms, level);
             }
         }
     }
@@ -151,8 +141,8 @@ export class GameService {
 		this.updateActiveRoomNames();
 	}
 
-	async updateActiveRoomNames() {
-		const roomNames = await this.getActiveRoomNames(null, null);
+	updateActiveRoomNames() {
+		const roomNames = this.getActiveRoomNames(null, null);
 		let genSock = [];
 		for (var player in this.players) {
 			if (this.players[player].type === "general") {
@@ -197,17 +187,12 @@ export class GameService {
     }
 
     initBall(ball: Ball) {
-        let dirx = 0;
-        let diry = 0;
+        let dirx = 0, diry = 0;
         while (Math.abs(dirx) <= 0.8 || Math.abs(dirx) >= 0.9) {
-            //console.log("DIRX 1 " + dirx)
 			const heading = this.randomNumberBetween(0, 2 * Math.PI);
-            //console.log("HEADING " + heading)
 			dirx = Math.cos(heading);
             diry = Math.sin(heading);
         }
-		//console.log("DIRX 2 " + dirx)
-		//console.log("DIRY" + diry)
         ball.initialVelocity.x = dirx * ball.speed;
         ball.initialVelocity.y = diry * ball.speed;
     }
@@ -278,11 +263,8 @@ export class GameService {
 		const level = this.players[client.id].level;
 		const spectator = this.players[client.id].spectator;
 
-		//console.log("roomName " + roomName);
+		console.log("roomName " + roomName);
 		console.log("level  " +level);
-
-		//console.log("ACTIVE GAMES 1")
-		//console.log(this.activeGames);
 
 		if (spectator) {
 			client.leave(roomName);
@@ -302,11 +284,14 @@ export class GameService {
 		}
 
 		if (level !== 0) {
-			if (this.players[client.id].challengeId !== 0) {
-				Reflect.deleteProperty(this.waitingRooms, level);
+			if (this.players[client.id].challenge) {
+				console.log("deleting wr");
+				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].challengeInfo.challenger + 10);
 			} else {
             	let wr = this.waitingRooms[level];
-				if (level === 1 || level === 2 || level === 3) {
+				console.log("HAHAH");
+				console.log(this.waitingRooms[level]);
+				if (wr !== undefined && (level === 1 || level === 2 || level === 3)) {
            			if (wr.playerOne.id === client.id) {
                 		this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
             		} else if (wr.playerTwo.id === client.id) {
@@ -315,22 +300,15 @@ export class GameService {
 				}
 			}
 			client.emit("leftGame", 1);
-			//Reflect.deleteProperty(this.waitingRooms, level);
 		}
-
+		server.emit("isUserInGame", { userId, bool: false});
 		Reflect.deleteProperty(this.userIds, userId);
 		Reflect.deleteProperty(this.players, client.id);
-
 
 		console.log("REMAINING CLIENTS ")
 		console.log(Object.keys(this.players));
 		console.log("USER IDS")
 		console.log(this.userIds);
-
-		//console.log("ACTIVE GAMES2")
-		//console.log(this.activeGames);
-
-		//console.log(this.waitingRooms);
     }
 
     switchPlayers(playerOne, playerTwo, wr, n) {
@@ -401,29 +379,16 @@ export class GameService {
 		const userId = data.userId;
 		const player = this.players[client.id];
 
-		// A COMPLETER POUR TROUVER LA BONNE WR POUR CHAQUE CHALLENGE
-		
-	/*	if (this.waitingRooms[this.i] === undefined) {
-			this.waitingRooms[this.i] = WR4;
-			this.players[client.id].challengeId = this.i;
-		}
-		if (this.waitingRooms[this.i] !== undefined) {
-			if (userId !== data.challengeInfo.challenger && userId !== data.challengeInfo.challenged) {
-				this.waitingRooms[++this.i] = WR4;
-				player.challengeId = this.i;
-			}
-		}*/
-
-		//this.waitingRooms[this.i] = WR4;
-		//let wr = this.waitingRooms[this.i];
-
-		this.waitingRooms[4] = WR4;
-		let wr = this.waitingRooms[4];
-
-		// console.log("USER ID CREATE " + userId)
-
 		player.userId = userId;
 		player.level = level;
+		player.challenge = true;
+		player.challengeInfo = data.challeneInfo;
+	
+		let wr = this.waitingRooms[data.challengerInfo.challenger + 10];
+		if (!wr) {
+			this.waitingRooms[data.challengerInfo.challenger + 10] = WR4;
+			wr = this.waitingRooms[data.challengerInfo.challenger + 10]
+		}
 
 		if (player.userId === data.challengeInfo.challenger ) {
 			wr.playerOne.id = player.id;
@@ -438,9 +403,6 @@ export class GameService {
 			wr.playerTwo.userId = userId;
 			wr.level = level;
 		}
-
-		//console.log("WROOM4");
-		//console.log(this.waitingRooms[this.i]);
 
 		if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
 			//console.log("room CREATION COMPLETE")
@@ -462,9 +424,7 @@ export class GameService {
 
 			this.initGame(wr.roomId, server);
 
-			//Reflect.deleteProperty(this.waitingRooms, this.i);
-			Reflect.deleteProperty(this.waitingRooms, 4);
-			//++this.i;
+			Reflect.deleteProperty(this.waitingRooms, data.challeneInfo.challeneger + 10);
 		}
 	}
 
