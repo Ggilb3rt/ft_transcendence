@@ -9,7 +9,6 @@ import io from "socket.io-client";
 import router from "@/router";
 import UserLink from "@/components/user/UserLink.vue";
 
-
 import config from "./game/config";
 import Preloader from "./game/scenes/Preloader";
 import WaitingRoom from "./game/scenes/WaitingRoom";
@@ -55,17 +54,15 @@ window.addEventListener("beforeunload", (e) => {
 
 socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
-	if (data.userId === userId) {
-  		inGame = data.bool;
-	} else {
-		oppInGame = data.bool;
-	}
+  if (data.userId === userId) {
+    inGame = data.bool;
+  } else {
+    oppInGame = data.bool;
+  }
 });
 
 onMounted(() => {
-
-	filterUsers(userId);
-  if (inGame || (!urlLevel && !urlQuery)) {
+  if (!urlLevel && !urlQuery) {
     alert("YOU ALREADY ARE IN A GAME/CANNOT ACCESS DIRECT");
     router.push("/");
   } else {
@@ -99,18 +96,30 @@ function isChallenge(): boolean {
   if (!urlQuery) {
     return false;
   }
+  console.log("urlQUERY " + urlQuery);
   const challenge = JSON.parse(String(urlQuery)); // A VERIF
-  const opponent = challenge.challenged;
-  socket.emit("isUserInGame", { userId });
+  console.log("challenge" + challenge.challenger);
 
-  if (!oppInGame) { // Si l'autre utilisateur n'est plus ingame, c'est que c'est un reload;
-	error = true;
+  /*let opponent; 
+  if (challenge.challenger === userId) {
+	opponent = challenge.challenged;
   } else {
-	data.challenge = true;
+	opponent = challenge.challenger;
+  }
+  //const opponent = challenge.challenged;
+  socket.emit("isUserInGame", { opponent });
+  console.log("OPPINGAME " + oppInGame)
+   if (!oppInGame) { // Si l'autre utilisateur n'est plus ingame, c'est que c'est un reload;
+   	error = true;
+   } else {*/
+  data.challenge = true;
   data.challengeInfo.challenger = challenge.challenger;
   data.challengeInfo.level = Number(challenge.level);
   data.challengeInfo.challenged = challenge.challenged;
-  }
+  //}
+
+  console.log("DATA CHALLENGE ");
+  console.log(data.challengeInfo);
 
   return true;
   /*data.challenge = true;
@@ -158,9 +167,11 @@ function launchGame() {
 }
 
 function disconnectGameSocket() {
-	const gameSocket = gameInstance.scene.scenes[2].socket
-  if (gameInstance !== undefined && gameSocket !== undefined) {
-    gameSocket.disconnect();
+  if (gameInstance !== undefined) {
+    const gameSocket = gameInstance.scene.scenes[2].socket;
+    if (gameSocket !== undefined) {
+      gameSocket.disconnect();
+    }
   }
 }
 
@@ -171,28 +182,26 @@ function destroyGame() {
 }
 
 function filterUsers(id: number) {
-	console.log("USER LIST")
-	console.log(usersStore.userList);
-	usersStore.userList.forEach((user, i) => {
-		console.log(usersStore.userList[i]);
-		if (user.id === id) {
-			console.log(usersStore.userList[i])
-			return usersStore.userList[i];
-		}
-	})
+  console.log("USER LIST");
+  console.log(usersStore.userList);
+  usersStore.userList.forEach((user, i) => {
+    console.log(usersStore.userList[i]);
+    if (user.id === id) {
+      console.log(usersStore.userList[i]);
+      return usersStore.userList[i];
+    }
+  });
 }
-
-
 </script>
 
 <template>
-	<div id="player-info">
-		<p>hahahehe</p>
-		<!-- <button id="haha" -->
-		<!-- @click="filterUsers(1)" -->
-		<!-- > -->
-		<!-- Pong<br /></button> -->
-		<!-- <UserLink :other-user=userId></UserLink> -->
-	</div>
+  <div id="player-info">
+    <p>hahahehe</p>
+    <!-- <button id="haha" -->
+    <!-- @click="filterUsers(1)" -->
+    <!-- > -->
+    <!-- Pong<br /></button> -->
+    <!-- <UserLink :other-user=userId></UserLink> -->
+  </div>
   <div :id="containerId" />
 </template>

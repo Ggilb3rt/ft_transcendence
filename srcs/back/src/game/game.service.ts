@@ -36,10 +36,10 @@ export class GameService {
 
 	handleAddUserId(client: Socket, data: any, server: Server) {
 		const userId = Number(data.userId);
-		console.log("USER ID1 " + userId);
+		//console.log("USER ID " + userId);
 		this.userIds[userId] = userId;
-		console.log("ADD USER ");
-		console.log(this.userIds);
+		//console.log("ADD USER ");
+		//console.log(this.userIds);
 		client.emit("userAdded");
 		server.emit("isUserInGame", { userId, bool: true});
 	} 
@@ -58,15 +58,7 @@ export class GameService {
 		const userId = data.userId;
 		const player = this.players[client.id];
 
-		console.log("waitingRooms");
-		console.log(this.waitingRooms)
-
 		let wr = this.waitingRooms[level]
-
-		console.log("waitingRooms");
-		console.log(this.waitingRooms)
-
-	
 		console.log('JOINING QUEUE level ' + level)
 		console.log(client.id + " " + userId);
 
@@ -222,7 +214,8 @@ export class GameService {
         let score = ++this.activeGames[data.roomName].state.players[data.player - 1].match_score;
         if (score === 10) {
             server.to(data.roomName).emit('gameResult', { winner: data.player });
-			console.log("HERE1")
+			server.emit("isUserInGame", { userId: this.players[client.id].userId, bool: false});
+			Reflect.deleteProperty(this.userIds, this.players[client.id].userId);
 			this.injectScoresDB(this.activeGames[data.roomName], null);
 		} else {
             server.to(data.roomName).emit('addPoint', { playerNumber: data.player, score });
@@ -386,9 +379,10 @@ export class GameService {
 	}
 
 	handleCreateGame(client:Socket, data: any, server: Server ) {
-		//console.log("HANDLE CREATE GAME |||")
-		//console.log(data);
-		//console.log("||||")
+		console.log("HANDLE CREATE GAME |||")
+		console.log(data);
+		console.log("||||")
+		const challenger = Number(data.challengeInfo.challenger);
 		const level = data.challengeInfo.level;
 		const userId = data.userId;
 		const player = this.players[client.id];
@@ -396,14 +390,14 @@ export class GameService {
 		player.userId = userId;
 		player.level = level;
 		player.challenge = true;
-		player.challengeInfo = data.challeneInfo;
+		player.challengeInfo = data.challengeInfo;
 
 		let wr;
-		if (this.waitingRooms.hasOwnProperty(data.challengerInfo.challenger + 3)) {
-			wr = this.waitingRooms[data.challengerInfo.challenger + 3];
+		if (this.waitingRooms.hasOwnProperty(challenger + 3)) {
+			wr = this.waitingRooms[challenger + 3];
 		} else {
-			this.waitingRooms[data.challengerInfo.challenger + 3] = WR4;
-			wr = this.waitingRooms[data.challengerInfo.challenger + 3]
+			this.waitingRooms[challenger + 3] = WR4;
+			wr = this.waitingRooms[challenger + 3]
 		}
 
 		if (player.userId === data.challengeInfo.challenger ) {
