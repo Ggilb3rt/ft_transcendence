@@ -126,8 +126,7 @@ export default class GamePlay {
       scene.ball.y = height / 2;
       scene.playerOne.y = height / 2;
       scene.playerTwo.y = height / 2;
-      scene.p1oldposy = scene.playerOne.y;
-      scene.p1oldposy = scene.playerTwo.y;
+
       if (level === 3) {
         scene.fox.x = width / 2 - 30;
         scene.fox.y = height / 2 - 60;
@@ -178,7 +177,7 @@ export default class GamePlay {
       scene.playerNumber = 0;
       scene.roomComplete = false;
       scene.socket.disconnect();
-      router.push("/");
+     // router.push("/");
     });
   }
 
@@ -346,41 +345,34 @@ export default class GamePlay {
 
   checkPlayerMovement(scene) {
     if (scene.playerNumber === 1) {
-      if (
-        this.playerMoved(scene.playerOne, scene) ||
-        scene.p1oldposy != scene.playerOne.y
-      ) {
+      if (this.playerMoved(scene.playerOne, scene)) {
+        console.log("playerone y " + scene.playerOne.y)
         scene.socket.emit("playerMovement", {
           y: scene.playerOne.y,
           roomName: scene.roomName,
           playerNumber: scene.playerNumber,
         });
-        scene.p1oldposy = scene.playerOne.y;
       }
     } else if (scene.playerNumber === 2) {
-      if (
-        this.playerMoved(scene.playerTwo, scene) ||
-        scene.p2oldposy != scene.playerTwo.y
-      ) {
+      if (this.playerMoved(scene.playerTwo, scene)) {
         scene.socket.emit("playerMovement", {
           y: scene.playerTwo.y,
           roomName: scene.roomName,
           playerNumber: scene.playerNumber,
         });
-        scene.p2oldposy = scene.playerTwo.y;
       }
     }
   }
 
   playerMoved(player, scene) {
-    //const speed = 500;
+    const speed = 500;
     let playerMoved = false;
     player.body.setVelocityY(0);
     if (scene.cursors.up.isDown) {
-      player.body.setVelocityY(-scene.paddleSpeed);
+      player.body.setVelocityY(-speed);
       playerMoved = true;
     } else if (scene.cursors.down.isDown) {
-      player.body.setVelocityY(scene.paddleSpeed);
+      player.body.setVelocityY(speed);
       playerMoved = true;
     }
     return playerMoved;
@@ -446,7 +438,6 @@ export default class GamePlay {
       scene.playerOne.setScale(1);
     }
     scene.playerOne.scaleY = scene.playerOne.scaleX;
-    scene.p1oldposy = scene.playerOne.y;
     scene.playerOne.setInteractive({ draggable: true }).on(
       "drag",
       function (pointer, dragX, dragY) {
@@ -466,7 +457,6 @@ export default class GamePlay {
       scene.playerTwo.setScale(1);
     }
     scene.playerTwo.scaleY = scene.playerTwo.scaleX;
-    scene.p2oldposy = scene.playerTwo.y;
     scene.playerTwo.setInteractive({ draggable: true }).on(
       "drag",
       function (pointer, dragX, dragY) {
@@ -547,8 +537,7 @@ export default class GamePlay {
       if (scene.playerNumber === 1) {
         scene.ball.setVelocity(
           -Math.cos(bounceAngle) * 500,
-          Math.sin(bounceAngle) * 500
-        ); // 500 = ball speed
+          Math.sin(bounceAngle) * 500); 
       }
     });
     scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
@@ -560,8 +549,7 @@ export default class GamePlay {
       if (scene.playerNumber === 1) {
         scene.ball.setVelocity(
           Math.cos(bounceAngle) * 500,
-          -Math.sin(bounceAngle) * 500
-        ); // 500 = ball speed
+          -Math.sin(bounceAngle) * 500); 
       }
     });
 
@@ -636,8 +624,6 @@ export default class GamePlay {
     scene.ball.y = height / 2;
     scene.playerOne.y = height / 2;
     scene.playerTwo.y = height / 2;
-    scene.p1oldposy = scene.playerOne.y;
-    scene.p1oldposy = scene.playerTwo.y;
 
     scene.playerOneScoreText.setText(scene.playerOneScore);
     scene.playerTwoScoreText.setText(scene.playerTwoScore);

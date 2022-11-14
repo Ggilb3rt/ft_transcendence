@@ -50,7 +50,7 @@ window.addEventListener("beforeunload", (e) => {
   }
   //statusStore.changeCurrentUserStatus("available", userId);
   //statusStore.changeChallengeForIngame(false);
-  //router.push("/");
+ // router.push("/");
 });
 
 /*socket.emit("isUserInGame", { userId });

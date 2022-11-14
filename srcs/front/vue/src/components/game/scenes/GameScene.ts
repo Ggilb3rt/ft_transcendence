@@ -39,8 +39,6 @@ export default class GameScene extends Phaser.Scene {
     this.playerTwoScore = 0;
     this.playerOneScoreText = {};
     this.playerTwoScoreText = {};
-    this.p1oldposy;
-    this.p2oldposy;
     this.fox = {};
     this.foxSpeed = 100;
     this.foxVelocityLeftUP = -this.foxSpeed;
