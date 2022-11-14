@@ -13,80 +13,46 @@ const props = defineProps({
 })
 
 let winWidth = ref(window.innerWidth)
+const panelIsOpen = ref(false)
 const channelsStore = useChannelsStore()
 const usersStore = useUsersStore()
 
 function isOpen(index: number) {
-	return props.model.items[index].isOpen
+	return panelIsOpen.value
+	// return props.model.items[index].isOpen
 }
 function isFolder(index: number) {
 	return props.model.items[index].children && props.model.items[index].children.length
 }
 function toggle(index: number) {
-	props.model.items[index].isOpen = !props.model.items[index].isOpen
+	panelIsOpen.value = !panelIsOpen
+	// props.model.items[index].isOpen = !props.model.items[index].isOpen
 }
 
 function updateWinWidthValue(e: Event) {
 	winWidth.value = window.innerWidth
 		if (winWidth.value >= 768)
-			props.model.isOpen = true
+			panelIsOpen.value = true
+			// props.model.isOpen = true
 		else
-			props.model.isOpen = false
-}
-
-function getChanIdFromLink(link: string): number {
-	return parseInt(link.split('/').at(-1))
-}
-
-function leaveChannel(link: string) {
-	const id: number = getChanIdFromLink(link)
-	
-	if(id && confirm(`You want to leave chan ${id} ?`)) {
-		// emit to server
-		if (channelsStore.currentChan)
-			channelsStore.emitQuitChannel(channelsStore.currentChan.getId())
-		console.log("you leave chan", id)
-	}
-}
-
-function joinChannel(e: Event, link: string) {
-	e.preventDefault()
-	const id: number = getChanIdFromLink(link)
-	// emit sur join et attendre la réponse
-	if (confirm(`join channel '${id}' from '${link}' ?`))
-		if (channelsStore.emitJoin(id))
-			router.push(link)
+			panelIsOpen.value = false
+			// props.model.isOpen = false
 }
 
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+	console.log("winWidth value ", winWidth.value)
 	// check on start
 	if (winWidth.value >= 768)
-		props.model.isOpen = true
+		panelIsOpen.value = true
+		// props.model.isOpen = true
 	else
-		props.model.isOpen = false
-
-	if (props.onRight) {
-		if (channelsStore.currentChan) {
-			if (props.model.items.length > 1) {
-				props.model.items[1].children = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
-			}
-		}
-		else{
-			if (props.model.items.length > 1) {
-				props.model.items[1].children = []
-			}
-		}
-	}
-	console.log("la side nav ", props.model.items)
+		panelIsOpen.value = false
+		// props.model.isOpen = false
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
-})
-
-onRenderTriggered((e) => {
-	debugger
 })
 
 </script>
@@ -96,12 +62,13 @@ onRenderTriggered((e) => {
 		<button 
 			v-if="winWidth < 768"
 			class="btn_side"
-			@click="props.model.isOpen = !props.model.isOpen"
+			@click="panelIsOpen = !panelIsOpen"
 		>
 			<i class="icon_btn">
 				<CarbonClose></CarbonClose>
 			</i>
 		</button>
+		<slot></slot>
 		<li v-for="el, index in model.items" :key="el">
 			<nav
 				:class="{ bold: isFolder(index) }"

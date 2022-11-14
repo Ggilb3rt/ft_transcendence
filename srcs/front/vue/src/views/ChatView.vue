@@ -210,7 +210,10 @@ onBeforeMount(() => {
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
 		<router-view v-else></router-view>
 		<chatSideNav class="item open" :onRight="true"></chatSideNav>
-		<!-- <SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav> -->
+		WTF?
+		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true">
+			<li>lol</li>
+		</SideNav>
 		<!-- <ModalNeedPass v-if="channelsStore.error.includes('pass')"></ModalNeedPass> -->
 		<ModalNeedPass></ModalNeedPass>
 		
