@@ -73,8 +73,9 @@ async function testConnection() {
   }
 }
 
-router.beforeResolve(async (to) => {
-    await testConnection();
+router.beforeResolve((to) => {
+  testConnection()
+  // alert(`${JSON.stringify(to)}`)
         if (to.name == "game" ) {
       //console.log(newRoute.name)
       // change my status by 'inGame' and emit it

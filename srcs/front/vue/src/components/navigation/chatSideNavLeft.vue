@@ -43,6 +43,7 @@ function updateWinWidthValue() {
 }
 
 function getChanIdFromLink(link: string): number {
+	alert(`bonjour du link split ${link}`)
 	return parseInt(link.split('/').at(-1))
 }
 
@@ -61,9 +62,9 @@ function joinChannel(e: Event, link: string) {
 	e.preventDefault()
 	const id: number = getChanIdFromLink(link)
 	// emit sur join et attendre la réponse
-	// if (confirm(`join channel '${id}' from '${link}' ?`)) {
+	if (confirm(`join channel '${id}' from '${link}' ?`)) {
 		channelsStore.emitJoin(id)
-	// }
+	}
 }
 
 onBeforeMount(() => {
@@ -119,7 +120,7 @@ const sideNavDataLeft = ref({
 			<nav class="bold" >
 				<ul v-show="isOpen(0)">
 					<li v-for="child in channelsStore.getChanListForSideBar(false)" :key="child.id">
-						<a href="#" rel="nofollow" v-if="child.id" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
+						<a href="#" :title="child.id" rel="nofollow" v-if="child.id" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
 					</li>
 				</ul>
 			</nav>

@@ -148,44 +148,11 @@ const route = useRoute()
 const sideNavDataLeft = ref({
 	name: 'Channels',
 	isOpen: false,
-	items: [
-		// {
-		// 	name: 'New',
-		// 	children: null,
-		// 	id '/chat/new'
-		// },
-		{
-			name: 'All channels3',
-			// children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
-			children: channelsStore.getChanListForSideBar(false),
-			canJoin: true,
-			isOpen: false
-		},
-		{
-			name: 'My channels',
-			children: channelsStore.getChanListForSideBar(true),
-			isOpen: true
-		}
-	]
 })
 
 const sideNavDataRight = ref({
 	name: 'Friends',
 	isOpen: false,
-	items: [
-		{
-			name: 'All friends',
-			children: usersStore.getUsersListForChat(userStore.getFriendsList()),
-			isOpen: false
-		},
-		{
-			name: 'Currents users in channel',
-			// children: currentUserList.value,
-			// children: childMounted.value,	// marche pas parceque je devrai props au sideNav qu'il doit se mettre à jour
-			children: usersStore.getUsersListForChat(channelsStore.getUsersInChannel()), // bug, la mise à jour se fait en décalé
-			isOpen: true
-		}
-	]
 })
 
 
