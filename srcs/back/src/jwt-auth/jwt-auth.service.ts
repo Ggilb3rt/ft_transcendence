@@ -27,15 +27,10 @@ export class JwtAuthService {
     };
   }
 
-  validate(token, res) {
+  validate(token) {
     // console.log("token in validate in jwt-auth service", token)
-    try {
       return {
         validate: this.jwtService.verify(token)
       }
-    } catch {
-      res.clearCookie('jwt')
-      throw new ForbiddenException("JWT malformed")
-    }
   }
 }

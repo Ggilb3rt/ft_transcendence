@@ -43,7 +43,7 @@ function updateWinWidthValue() {
 }
 
 function getChanIdFromLink(link: string): number {
-	alert(`bonjour du link split ${link}`)
+	console.log("LINK == ", link)
 	return parseInt(link.split('/').at(-1))
 }
 

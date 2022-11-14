@@ -31,6 +31,9 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	const refsocket = ref(io('http://localhost:3000/chat', {
 		withCredentials: true,
+		query: {
+			userId: userStore.user.id
+		}
 	}));
 
 	const loading = ref<boolean>(false)
@@ -227,6 +230,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			console.log("la roome id quand je recois un message", msg.receiver)
 			const index : number = getChanIndex(msg.receiver, false)
 			console.log("son index", index)
+			console.log("le message ", msg)
 			if (index === -1)
 				return
 			openChan.value[index].unBan(msg.sender)
@@ -467,6 +471,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			// if (isChanInList(id))
 			// 	return
 			try {
+				console.log(`JE FETCH LE CHANNEL ${id}`)
 				const response: Response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)

@@ -23,11 +23,11 @@ export class UsersService {
 
   // ban user
 
-  async verify(token: string | null, res) {
+  async verify(token: string) {
     if (!token) {
       throw new ForbiddenException("No Token")
     }
-    const {validate} = await this.jwtAuthService.validate(token, res);
+    const {validate} = await this.jwtAuthService.validate(token);
     if (!validate.id) {
       throw new ForbiddenException("Invalid Token")
     }
