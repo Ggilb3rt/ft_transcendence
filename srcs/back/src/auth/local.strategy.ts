@@ -27,7 +27,7 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
         const nick_fourtytwo = profile.username;
         const first_name = profile.name.givenName;
         const last_name = profile.name.familyName;
-        const nickname = nick_fourtytwo
+        let nickname = nick_fourtytwo
 
         console.log("profile = ", profile.name)
 
@@ -47,6 +47,18 @@ export class FourtyTwoStrategy extends PassportStrategy(Strategy, '42') {
         const ret = await prisma.users.findFirst({
             where: {nick_fourtytwo: profile.username}
         })
+        let i = 0;
+        let userrr;
+        while (userrr = await prisma.users.findFirst({
+            where: {
+                nickname
+            }
+        })) {
+            console.log("j'ai trouve le user = userr", user)
+            nickname = nickname + i.toString()
+            user.nickname = nickname
+            i++;
+        }
 
         if (!ret) {
             return await this.usersService.postOneUser(user)

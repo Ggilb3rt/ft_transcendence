@@ -20,23 +20,24 @@ import { useChannelsStore } from "./stores/channels";
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
-import ModalChallenge from "@/components/ModalChallenge.vue";
+import ModalChallenge from "@/components/ModalChallenge.vue"
 import Loader from "./components/navigation/loader.vue";
 
 //! Deux problèmes :
 // problème important : il est necessaire de cliquer deux fois sur connection pour se connecter
 // la première fois qu'on arrive on est pas connecter donc redirigé sur /login ==> erreur se print (pas userFriendly mais pas génant non plus)
 
-const route = useRoute();
-const channelStore = useChannelsStore();
-const userStore = useUserStore();
-const usersStore = useUsersStore();
-const statusStore = useStatusStore();
-let isSetupStoreChannel = false;
+const route = useRoute()
+const channelStore = useChannelsStore()
+const userStore = useUserStore()
+const usersStore = useUsersStore()
+const statusStore = useStatusStore()
+let isSetupStoreChannel = false
+
 
 async function testConnection() {
   try {
-    console.log("Test Connection premiere ligne == ", userStore.conStatus);
+    console.log("Test Connection premiere ligne == ", userStore.conStatus)
     // userStore.loading = true
   if (userStore.conStatus == setStatus.connected || userStore.conStatus == setStatus.first_co) {
     const response = await fetch(`http://localhost:3000/users/current`, {credentials: "include"})
@@ -58,35 +59,20 @@ async function testConnection() {
         statusStore.setup(userStore.user.id);
         if (!isSetupStoreChannel) {
           channelStore.getChansLists();
-          isSetupStoreChannel = true;
+          isSetupStoreChannel = true
         }
       }
-    }
+  }
   } catch (error: any) {
     // maintenant ca marche avec le reload mais en fait c'est chiant parceque ca print une erreur à la 1er connection
     const tempErr = JSON.parse(error.message);
     userStore.error = tempErr.body;
   } finally {
-    userStore.loading = false;
-    console.log("end of testConnection");
+    userStore.loading = false
+    console.log("end of testConnection")
   }
 }
 
-router.beforeResolve(async (to) => {
-  
-	const ret = await testConnection();
-if (usersStore.socketStatus) {
-    if (to.name == "game") {
-      console.log("bonjour");
-      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
-    }
-  }
-
-
-  return ret;
-});
-
-/*
 router.beforeResolve((to) => {
   testConnection()
   // alert(`${JSON.stringify(to)}`)
@@ -99,20 +85,21 @@ router.beforeResolve((to) => {
     } 
 })
 
-window.addEventListener("beforeunload", (e) => {
-  statusStore.refuseChallenge(userStore.user.id);
-  statusStore.onClose();
+window.addEventListener('beforeunload', (e) => {
+  statusStore.refuseChallenge(userStore.user.id)
+  statusStore.onClose()
   // const res = await fetch('http://localhost:3000/auth/verify', {
   //   credentials: "include"
   // })
   // console.log("res == ", res);
   // if (res.status < 300) {
   //   if (userStore.conStatus == setStatus.connected) {
-  if (route.name) localStorage.setItem("last_page", route.name.toString());
-  // }
+  if (route.name)
+    localStorage.setItem('last_page', route.name.toString());
+    // }
   // }
   // localStorage.setItem('log', res.toString());
-});
+})
 
 // Socket Status
 watch(route, (newRoute) => {
@@ -126,8 +113,8 @@ watch(route, (newRoute) => {
 });
 
 onMounted(() => {
-  userStore.loading = false;
-});
+  userStore.loading = false
+})
 </script>
 
 <template>

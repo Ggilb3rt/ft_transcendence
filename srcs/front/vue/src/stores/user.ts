@@ -75,7 +75,7 @@ export const useUserStore = defineStore({
       return this.user.friends;
     },
     getWinRate(): string {
-      return (this.user.wins / this.user.loses).toPrecision(2);
+      return (this.user.wins / (this.user.loses + this.user.wins) * 100).toPrecision(2) + "%";
     },
     setUserNick(newTag: string) {
       if (this.user) this.user.nickname = newTag;
@@ -96,11 +96,14 @@ export const useUserStore = defineStore({
     },
     async getUser(data: any) {
       // this.loading = true;
+      let winrate = ""
         if (data) {
           this.user = data
           
           if (this.user) {
             this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
+            winrate = this.getWinRate()
+            this.user.ranking = (this.user.wins / (this.user.loses + this.user.wins) * 100) % 100 / 2
             if (!this.user.match_history && !this.error) {
               this.user.match_history = new Array();
               if (this.user.matches) {

@@ -230,7 +230,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const res = await this.chatService.kickUser(channel_id, kicked_id, id)
         if (!res)
             return false
-        this.leaveChannelId(channel_id, id)
+        this.leaveChannelId(channel_id, kicked_id)
         client.broadcast.to(makeId(false, channel_id)).emit('kick', {
             kicked_id,
             kicked_by: id,
@@ -315,7 +315,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         // console.log("res == ", res)
         if (res.status == false)
             return res
-        client.broadcast.to(makeId(false, channel_id)).emit('join', {
+        this.server.to(makeId(false, channel_id)).emit('join', {
             new_client: id,
             channel_id
         })

@@ -177,7 +177,7 @@ export default class GamePlay {
       scene.playerNumber = 0;
       scene.roomComplete = false;
       scene.socket.disconnect();
-     // router.push("/");
+      router.push("/");
     });
   }
 

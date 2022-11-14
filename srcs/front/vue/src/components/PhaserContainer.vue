@@ -44,13 +44,13 @@ const data = {
 
 window.addEventListener("beforeunload", (e) => {
   disconnectGameSocket();
-  destroyGame();
+  //destroyGame();
   if (socket !== undefined) {
     socket.disconnect();
   }
-  //statusStore.changeCurrentUserStatus("available", userId);
-  //statusStore.changeChallengeForIngame(false);
- // router.push("/");
+  statusStore.changeCurrentUserStatus("available", userId);
+  statusStore.changeChallengeForIngame(false);
+  router.push("/");
 });
 
 /*socket.emit("isUserInGame", { userId });

@@ -248,8 +248,25 @@ class UsersHelper {
       }
     }
 
-	async addMatch(match: CreateMatchDto) {
-		await prisma.match.create({ data: match })
+	async addMatch(match: CreateMatchDto, winner: number, loser: number) {
+        try {
+            await prisma.match.create({ data: match })
+
+            await prisma.users.update({
+                where: {id: winner},
+                data: {
+                    wins: {increment: 1}
+                }
+            })
+            await prisma.users.update({
+                where: {id: loser},
+                data: {
+                    loses: {increment: 1}
+                }
+            })
+        } catch(e) {
+            throw new Error(e)
+        }
 	}
 	
     async getMatches(id: number) {

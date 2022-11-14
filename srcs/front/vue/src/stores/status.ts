@@ -31,10 +31,10 @@ export const useStatusStore = defineStore({
     //}),
     socket: null,
     socketGame: io("http://localhost:3000/game", {
-		query: {
-		  type: "storeGameSocket",
-		},
-	  }),
+      query: {
+        type: "storeGameSocket",
+      },
+    }),
     //socketGame: null,
     statusList: [],
     setuped: false,
@@ -97,6 +97,8 @@ export const useStatusStore = defineStore({
     },
 
     async setupSocket() {
+        console.log("je sais paaaas")
+
       if (this.socket.connected) {
         this.socket.emit("connectionStatus", this.id);
 
@@ -189,7 +191,7 @@ export const useStatusStore = defineStore({
             } else if (challenger == this.id) {
               this.challengeAccepted = true;
               if (this.iChallenged == true) {
-                let levelName;
+                let levelName = "";
                 if (Number(level) === 0) {
                   levelName = "pong";
                   challenge.level = 1;
@@ -212,28 +214,32 @@ export const useStatusStore = defineStore({
                   });
                 });
               }
-            }
-            else {
-                setTimeout(this.setupSocket, 100)
-            }
-        },
-        
-        async setup(id: number) {
-            // Check to do it only once
-            if (this.setuped == false) {
-              console.log("MY ID IN SETUP == ", id)
-              this.socket = io('http://localhost:3000/userStatus', {
-      withCredentials: true,
-      query: {
-        userId: id
+            } 
+          }
+        });
+      }else {
+        console.log("as con")
+      setTimeout(this.setupSocket, 100);
+    }
+    },
+
+    async setup(id: number) {
+      // Check to do it only once
+      if (this.setuped == false) {
+        console.log("MY ID IN SETUP == ", id);
+        this.socket = io("http://localhost:3000/userStatus", {
+          withCredentials: true,
+          query: {
+            userId: id,
+          },
+        });
+        this.id = id;
+        this.setupSocket();
+        this.status = "available";
+        this.setuped = true;
       }
-    })
-                this.id = id
-                this.setupSocket()
-                this.status = 'available'
-                this.setuped = true;
-            }
-        },
+
+    },
 
     onClose() {
       this.socket.close();
@@ -305,8 +311,8 @@ export const useStatusStore = defineStore({
         path: "/game",
         query: { challenge: JSON.stringify({ challenger, level, challenged }) },
       });*/
-      let levelName;
-      console.log("CHALLENGE LEVEL A " + this.challenge.level);
+      let levelName = "";
+      //console.log("CHALLENGE LEVEL A " + this.challenge.level);
       if (Number(this.challenge.level) === 0) {
         levelName = "pong";
         this.challenge.level = 1;

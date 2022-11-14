@@ -4,8 +4,8 @@ import { useUserStore} from '@/stores/user'
 import MdiCrown from "@/components/icones-bags/MdiCrown.vue"
 import ArcticonsPong from "@/components/icones-bags/ArcticonsPong.vue"
 import MdiSwordCross from "@/components/icones-bags/MdiSwordCross.vue"
-import MdiSword from "@/components/icones-bags/MdiSword.vue"
-import LucideSword from "@/components/icones-bags/LucideSwords.vue"
+// import MdiSword from "@/components/icones-bags/MdiSword.vue"
+// import LucideSword from "@/components/icones-bags/LucideSwords.vue"
 
 const userStore = useUserStore()
 const statusStore = useStatusStore()
@@ -27,8 +27,8 @@ function refuseChallenge() {
 			<i>
 				<!-- <MdiCrown></MdiCrown> -->
 				<MdiSwordCross></MdiSwordCross>
-				<MdiSword></MdiSword>
-				<LucideSword></LucideSword>
+				<!-- <MdiSword></MdiSword> -->
+				<!-- <LucideSword></LucideSword> -->
 				<!-- <ArcticonsPong></ArcticonsPong> -->
 			</i>
 			<!-- Cancel challenge -->
