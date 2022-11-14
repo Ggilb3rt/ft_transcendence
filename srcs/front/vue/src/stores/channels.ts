@@ -227,6 +227,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			console.log("la roome id quand je recois un message", msg.receiver)
 			const index : number = getChanIndex(msg.receiver, false)
 			console.log("son index", index)
+			console.log("le message ", msg)
 			if (index === -1)
 				return
 			openChan.value[index].unBan(msg.sender)

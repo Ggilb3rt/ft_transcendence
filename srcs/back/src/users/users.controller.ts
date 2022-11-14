@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, ParseIntPipe, UseGuards, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseInterceptors, Header, StreamableFile, ParseBoolPipe, Req, Res, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './createUserDto';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
@@ -38,8 +38,13 @@ export class UsersController {
     @Get('/current')
     @UseGuards(JwtAuthGuard)
     async getOneUser(@Req() req): Promise<userFront> {
-        const id = await this.usersService.verify(req.cookies.jwt)
-        return (this.usersService.getUserById(id))
+        try {
+            const id = await this.usersService.verify(req.cookies.jwt)
+            return (this.usersService.getUserById(id))
+        } catch {
+            throw new ForbiddenException("token bad bouuuh")
+        }
+
     }
 
     @Get(':id/friends')
