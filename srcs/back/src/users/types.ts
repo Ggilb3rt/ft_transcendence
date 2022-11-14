@@ -10,13 +10,11 @@ type userFront = users & {
 
 class userRestrict {
     id: number;
-    avatar_url: string;
     nickname: string;
 }
 
 class otherFormat {
     id: number;
-    avatar_url: string;
     nickname: string;
     first_name: string;
     last_name: string;
