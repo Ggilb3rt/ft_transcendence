@@ -228,7 +228,7 @@ export class ChatService {
             return false
         if (!await this.chatHelper.isInChannel(channel_id, id))
             return false
-        if (await this.chatHelper.isAdmin(channel_id, user_id))
+        if (await this.chatHelper.isAdmin(channel_id, id))
             return false
         await this.chatHelper.addAdmin(id, channel_id)
         return true

@@ -180,8 +180,12 @@ export const useStatusStore = defineStore({
         async setup(id: number) {
             // Check to do it only once
             if (this.setuped == false) {
+              console.log("MY ID IN SETUP == ", id)
               this.socket = io('http://localhost:3000/userStatus', {
       withCredentials: true,
+      query: {
+        userId: id
+      }
     })
                 this.id = id
                 this.setupSocket()
