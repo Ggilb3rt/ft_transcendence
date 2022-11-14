@@ -4,6 +4,8 @@ import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
 import { useStatusStore } from '../../stores/status'
 import Modal from "@/components/Modal.vue"
+import MdiSwordCross from "@/components/icones-bags/MdiSwordCross.vue"
+
 
 
 const props = defineProps({
@@ -25,30 +27,33 @@ async function selecteGameType() {
 }
 
 async function challenge() {
-    if (usersStore.user)
-        statusStore.challengeUser(userStore.user.id, gameType.value, props.userId)
-
-    if (usersStore.user && statusStore.socketIsAvailable(props.userId)) {
-        //console.log(`challenge from ${userStore.user.id} to ${props.userId}`)
-        // put invitation in a modal in the other side
-    }
+	console.log("lkdfjgbsdfkjhbsdjhbsdvjksd gvjl ")
+	if (userStore.user)
+		statusStore.challengeUser(userStore.user.id, gameType.value, props.userId)
+	
+    // if (usersStore.user && statusStore.socketIsAvailable(props.userId)) {
+    //     //console.log(`challenge from ${userStore.user.id} to ${props.userId}`)
+    //     // put invitation in a modal in the other side
+    // }
 }
 
-async function goSpectate() {
-    if (usersStore.user && statusStore.socketIs(usersStore.user.id, 'inGame')) {
-       // console.log("go to game with user ", usersStore.user.id)
-    // fetch gameId from back
-    // router.push(/game/${gameId})
-    }
-}
+// async function goSpectate() {
+//     if (usersStore.user && statusStore.socketIs(usersStore.user.id, 'inGame')) {
+//        // console.log("go to game with user ", usersStore.user.id)
+//     // fetch gameId from back
+//     // router.push(/game/${gameId})
+//     }
+// }
 
 </script>
 
 <template>
 	<div class="anime" v-if="usersStore.getUserRestrictById(userId)">
 		<div v-if="userStore.user.id != userId">
-			<button @click="showModal = true" v-if="!userStore.isBan(userId) && statusStore.socketIsAvailable(userId)">Challenge</button>
-			<button @click="goSpectate()" v-else-if="!userStore.isBan(userId) && statusStore.socketIs(userId, 'inGame')">Spectate</button>
+			<button @click="showModal = true" v-if="!userStore.isBan(userId) && statusStore.socketIsAvailable(userId)">
+				<MdiSwordCross></MdiSwordCross>
+			</button>
+			<!-- <button @click="goSpectate()" v-else-if="!userStore.isBan(userId) && statusStore.socketIs(userId, 'inGame')">Spectate</button> -->
 		</div>
 		<!-- <button @click="challenge()" v-else>Pouet</button> -->
 		<Modal :show="showModal" @close="showModal = false" removeOK>

@@ -25,7 +25,7 @@ function freeNick(newNick: string): boolean {
 async function validNickChange(newNick: string) {
 	if (freeNick(newNick) && (newNick.length > 0 && newNick.length <= maxNickLength)) {
 		try {
-			const api = mande(`http://localhost:3000/users/${userStore.user.id}/nick`);
+			const api = mande(`http://localhost:3000/users/nick`);
 			await api.post({
 				nickname: newNick
 			})

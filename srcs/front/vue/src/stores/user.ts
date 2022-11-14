@@ -143,7 +143,7 @@ export const useUserStore = defineStore({
     },
     async refuseInvite(id: number) {
       const api = mande(
-        "http://localhost:3000/users/friends",
+        `http://localhost:3000/users/${this.user.id}/pending`,
         { credentials: "include" }
       );
       try {
@@ -162,6 +162,29 @@ export const useUserStore = defineStore({
       }
       if (this.isInvite(id))
         this.user.invites = this.user.invites.filter((item) => item != id);
+    },
+    async acceptInvite(id: number) {
+      const api = mande(
+        `http://localhost:3000/users/${this.user.id}/pending`,
+        { credentials: "include" }
+      );
+      try {
+        await api
+          .post({
+            friend: id,
+            valid: true,
+          })
+          .then((data) => {
+            //console.log("data refuse friend invite", data);
+          });
+      } catch (error: any) {
+        //console.log("refuse friend invite err ", error.message);
+        this.error = error.body;
+        return;
+      }
+      if (this.isInvite(id))
+        this.user.invites = this.user.invites.filter((item) => item != id);
+      this.user.friends.push(id);
     },
     async addFriend(id: number) {
       if (id && !this.isFriends(id)) {
@@ -190,7 +213,7 @@ export const useUserStore = defineStore({
         }
         if (this.isInvite(id))
           this.user.invites = this.user.invites.filter((item) => item != id);
-        this.user.friends.push(id);
+        // this.user.friends.push(id);
       }
     },
     async addBan(id: number) {

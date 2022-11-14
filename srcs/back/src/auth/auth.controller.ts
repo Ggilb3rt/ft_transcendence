@@ -89,5 +89,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async logout(@Res() res: Response) {
     res.clearCookie('jwt')
+    res.send({statusCode: 200, message: 'Bye !!'})
   }
 }

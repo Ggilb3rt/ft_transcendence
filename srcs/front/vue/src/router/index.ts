@@ -155,7 +155,10 @@ router.beforeEach(async (to, from) => {
     const {status} = await res.json();
     console.log("les status ", status, to)
     userStore.conStatus = status
-    if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
+    if (status == setStatus.first_co && to.name != "first") {
+      return { name: "first" }
+    }
+    else if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
       console.log('userStore.conStatus === ', userStore.conStatus)
       return { name: "2fa"}
     }

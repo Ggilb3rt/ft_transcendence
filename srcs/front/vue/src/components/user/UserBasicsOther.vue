@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref} from "vue"
 import { useUserStore } from '@/stores/user';
 import { useUsersStore } from '@/stores/users';
 import BtnChallenge from '../navigation/BtnChallenge.vue';
@@ -10,6 +11,16 @@ const usersStore = useUsersStore()
 // async function sendInvite() {
 //     console.log(`invitation from ${userStore.user.id} to ${usersStore.user.id}`)
 // }
+
+const inviteSend = ref<boolean>(false)
+
+function befriend() {
+    if (usersStore.user) {
+        userStore.addFriend(usersStore.user.id)
+        inviteSend.value = true
+    }
+}
+
 
 </script>
 
@@ -26,8 +37,8 @@ const usersStore = useUsersStore()
                 </div>
             </div>
         </div>
-        <div class="invite" v-if="userStore.user.id != usersStore.user.id && !userStore.isBanBy(usersStore.user.id)">
-            <button @click="userStore.addFriend(usersStore.user.id)" v-if="!userStore.isFriends(usersStore.user.id)">Be friends</button>
+        <div class="invite" v-if="usersStore.user && userStore.user.id != usersStore.user.id && !userStore.isBanBy(usersStore.user.id)">
+            <button @click="befriend()" v-if="!userStore.isFriends(usersStore.user.id) || !inviteSend">Be friends</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnFriend</button>
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnBan</button>

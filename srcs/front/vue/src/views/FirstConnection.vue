@@ -20,6 +20,7 @@ async function valid() {
 		}
 		if (data) {
 			console.log("first time ", data)
+			router.push("/home")
 		}
 	} catch (error: any) {
 		const tempErr = JSON.parse(error.message);

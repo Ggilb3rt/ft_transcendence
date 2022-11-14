@@ -27,7 +27,7 @@ const userStore = useUserStore()
 			:user-win-rate="usersStore.getUserWinRate()"
 		/>
 
-			<div v-if="userStore.isFriends(usersStore.user)">
+			<div v-if="userStore.isFriends(usersStore.user.id)">
 				<UserMatchHistory :user="usersStore.user" />
 				<UserList title="Friends" :user="usersStore.user" :list="usersStore.user.friends"></UserList>
 			</div>

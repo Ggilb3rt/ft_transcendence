@@ -119,7 +119,7 @@ onMounted(() => {
 
 <template>
   <main>
-    <ErrorPopUp></ErrorPopUp>
+    <ErrorPopUp v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'"></ErrorPopUp>
 
     <header
       v-if="
