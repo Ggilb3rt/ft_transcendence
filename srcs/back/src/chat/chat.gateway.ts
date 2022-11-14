@@ -305,7 +305,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const {channel_id, pass} = basicJoin
         const type: string = await this.chatService.getChannelType(channel_id)
         if (!type || type == 'private') {
-            return false
+            return {msg: "private", status: false}
         }
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
         // console.log("res == ", res)
