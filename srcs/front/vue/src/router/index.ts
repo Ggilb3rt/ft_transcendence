@@ -20,6 +20,7 @@ const ourGames: gameList = 'pong';
 const Dashboard = () => import("@/views/DashboardView.vue")
 // const DashOther = () => import("@/views/DashOtherView.vue")
 const Game = () => import("@/views/GameView.vue")
+const FisrtConnection = () => import("@/views/FirstConnection.vue")
 
 function goToDisconnect() {
   const userStore = useUserStore()
@@ -110,6 +111,11 @@ const router = createRouter({
       path: "/game/:ourGames?/:id?",
       name: "game",
       component: Game,
+    },
+    {
+      path: "/first",
+      name: "first",
+      component: FisrtConnection,
     },
     // {
     //   // cf https://router.vuejs.org/guide/essentials/named-views.html
