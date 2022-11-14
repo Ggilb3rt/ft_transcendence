@@ -68,8 +68,10 @@ onBeforeMount(async() => {
 	console.log(`----------before mount getChan id '${channelIdNumber}' is direct message ? => `, isDirectMsg)
 	if (isDirectMsg)
 		await channelsStore.getDirectChan(channelIdNumber)
-	else
+	else {
+		console.log("I FETCH CHAN = ", channelIdNumber)
 		await channelsStore.getChan(channelIdNumber)
+	}
 	console.log(`----------before mount getChan id 2 '${channelIdNumber}'`)
 	channelsStore.selectCurrentChan(channelIdNumber)
 })

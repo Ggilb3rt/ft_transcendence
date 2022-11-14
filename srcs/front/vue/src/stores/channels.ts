@@ -31,6 +31,9 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	const refsocket = ref(io('http://localhost:3000/chat', {
 		withCredentials: true,
+		query: {
+			userId: userStore.user.id
+		}
 	}));
 
 	const loading = ref<boolean>(false)
@@ -468,6 +471,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			// if (isChanInList(id))
 			// 	return
 			try {
+				console.log(`JE FETCH LE CHANNEL ${id}`)
 				const response: Response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)

@@ -92,7 +92,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     @SubscribeMessage('getMyRooms')
     async getMyRooms(client: Socket) {
 
-        const user_id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+        let user_id;
+        if (!client.handshake.headers.cookie)
+            user_id = client.handshake.query.userId;
+        else
+            user_id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const ids: number[] = [];
         const rooms: string[] = [];

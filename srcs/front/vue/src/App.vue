@@ -74,7 +74,7 @@ async function testConnection() {
 }
 
 router.beforeResolve(async (to) => {
-    await testConnection();
+    testConnection();
         if (to.name == "game" ) {
       //console.log(newRoute.name)
       // change my status by 'inGame' and emit it
@@ -82,7 +82,6 @@ router.beforeResolve(async (to) => {
       statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
       //console.log("should be inGame")
     } 
-    return true
 })
 
 window.addEventListener('beforeunload', (e) => {

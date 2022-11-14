@@ -56,8 +56,11 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     async getSockets(client: Socket) {
-
-            const id = await this.usersService.getGatewayToken(client.handshake.headers, client)
+        let id
+        if (client.handshake.headers.cookie)
+            id = await this.usersService.getGatewayToken(client.handshake.headers, client)
+        else
+            id = client.handshake.query.userId
         console.log("id == ", id)
         const sockets = await this.fetchUserSockets(id)
         const arr = this.getArrOfId(sockets)
@@ -85,9 +88,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     @SubscribeMessage('connectionStatus')
     async handleConnection(client: Socket) {
-        if (client.handshake.headers.cookie) {
-            
-        }
         const {id, sockets} = await this.getSockets(client)
 
         client.join(makeId(id))
@@ -95,7 +95,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         console.log("DEUXIEME FOIS -------------")
         await this.getSockets(client);
         client.broadcast.emit('newStatusConnection', {userId: id, newClient: client.id})
-            
     }
 
     @SubscribeMessage('changeStatus')
