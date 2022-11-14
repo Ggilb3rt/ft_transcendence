@@ -37,9 +37,14 @@ export class UsersController {
 
     @Get('/current')
     @UseGuards(JwtAuthGuard)
-    async getOneUser(@Req() req): Promise<userFront> {
+    async getOneUser(@Req() req, @Res() res) {
+        try {
         const id = await this.usersService.verify(req.cookies.jwt)
-        return (this.usersService.getUserById(id))
+        res.send( await this.usersService.getUserById(id))
+
+          } catch{
+            res.clearCookie()
+          }
     }
 
     @Get(':id/friends')
