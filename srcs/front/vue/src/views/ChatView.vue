@@ -204,15 +204,19 @@ onBeforeMount(() => {
 		<button class="btn_side" @click="sideNavDataLeft.isOpen = !sideNavDataLeft.isOpen">{{ sideNavDataLeft.name }}</button>
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<!-- <SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav> -->
-		<chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft>
+		<!-- <chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft> -->
+		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false">
+			<chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft>
+		</SideNav>
+
 
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
 		<router-view v-else></router-view>
-		<chatSideNav class="item open" :onRight="true"></chatSideNav>
-		WTF?
+		<!-- <chatSideNav class="item open" :onRight="true"></chatSideNav> -->
+
 		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true">
-			<li>lol</li>
+			<chatSideNav class="item open" :onRight="true"></chatSideNav>
 		</SideNav>
 		<!-- <ModalNeedPass v-if="channelsStore.error.includes('pass')"></ModalNeedPass> -->
 		<ModalNeedPass></ModalNeedPass>

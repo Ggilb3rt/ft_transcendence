@@ -216,6 +216,7 @@ onUpdated(() => {
 	z-index: 9;
 	display: grid;
 	grid-template-columns: 4fr 1fr;
+	width: 100%;
 }
 
 .room form textarea {

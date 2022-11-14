@@ -112,21 +112,10 @@ const sideNavDataLeft = ref({
 </script>
 
 <template>
-	<ul :class="{side_right: onRight, side_left: !onRight}" class="second_side_menu">
-		<button 
-			v-if="winWidth < 768"
-			class="btn_side"
-			@click="toggle(0)"
-		>
-			<i class="icon_btn">
-				<CarbonClose></CarbonClose>
-			</i>
-		</button>
-
 		<li>
 			<AdminPanel></AdminPanel>
 
-			<button @click="toggle(0)">Availables [{{ isOpen(0) ? '-' : '+' }}]</button>
+			<button @click="toggle(0)" class="folder">Availables [{{ isOpen(0) ? '-' : '+' }}]</button>
 			<nav class="bold" >
 				<ul v-show="isOpen(0)">
 					<li v-for="child in channelsStore.getChanListForSideBar(false)" :key="child.id">
@@ -135,7 +124,7 @@ const sideNavDataLeft = ref({
 				</ul>
 			</nav>
 
-			<button @click="toggle(1)">Joined [{{ isOpen(1) ? '-' : '+' }}]</button>
+			<button @click="toggle(1)" class="folder">Joined [{{ isOpen(1) ? '-' : '+' }}]</button>
 			<nav class="bold">
 				<ul v-show="isOpen(1)">
 					<li v-for="child in channelsStore.getChanListForSideBar(true)" :key="child.id">
@@ -148,147 +137,9 @@ const sideNavDataLeft = ref({
 				</ul>
 			</nav>
 		</li>
-		<!-- <li v-for="el, index in currentSideNav.items" :key="el.name">
-			<nav
-				:class="{ bold: isFolder(index) }"
-				@click="toggle(index)"
-			>
-				<RouterLink v-if="el.id" :to="el.id">
-					{{ el.name }}
-				</RouterLink>
-				<button>{{ el.name }}
-					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
-				</button>
-			</nav>
-			<nav>
-				<ul v-show="isOpen(index)" v-if="isFolder(index)">
-					<li v-for="child in el.children" :key="child.id">
-						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-							{{ child.name }}
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
-						</RouterLink>
-						<button v-else>{{ child.name }}</button>
-					</li>
-				</ul>
-			</nav>
-		</li> -->
-	</ul>
 </template>
 
 <style scoped>
-.second_side_menu {
-	height: calc(100vh - 89px);
-	overflow-y: scroll;
-	overflow-x: hidden;
-	display: none;
-	background: #000;
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 10;
-	padding: 20px 10px;
-}
-
-.channel_link {
-	/* display: flex; */
-	overflow: hidden;
-	position: relative;
-}
-.channel_link:hover .btn_hide {
-	right: 0;
-}
-.channel_link.router-link-active.router-link-exact-active::before {
-	content: '';
-	display: block;
-	width: 10px;
-	height: 10px;
-	border-radius: 10px;
-	background: white;
-	position: absolute;
-	top: calc(50% - 5px);
-	right: -5px;
-}
-
-.btn_hide {
-	position: absolute;
-	border: none;
-	color: var(--vt-c-white-mute);
-	width: 25px;
-	height: 25px;
-	right: -25px;
-	top: calc(50% - 12px);
-	transition: right .3s ease-in-out;
-}
-.btn_join {
-	background: var(--global-c-blue);
-}
-.btn_leave {
-	background: var(--global-c-red);
-}
-
-.btn_side {
-	font-size: 1.5rem;
-	display: inline-flex;
-}
-
-.side_left.open {
-	display: block;
-}
-
-.side_right.open {
-	display: block;
-}
-
-ul a, .like-link {
-	word-break: break-all;
-}
-
-ul li button {
-	border: none;
-	background: none;
-	color: gray;
-	font-size: 15px;
-}
-
-ul li nav {
-	padding-left: 5px;
-	margin-left: 15px;
-	margin-bottom: 15px;
-	border-left: 1px solid rgba(255,255,255,.2);
-}
-
-ul li ul {
-	padding: 0;
-	margin: 0;
-}
-
-ul li ul li a, .like-link {
-	padding: 5px;
-	display: block;
-}
-
-/* ul li ul li:nth-child(even) a{
-	background: var(--color-background-soft);
-} */
-
-ul li ul li:nth-child(n+2) a{
-	/* border-top: 1px solid #fff; */
-}
-
-@media screen and (min-width: 768px) {
-	.second_side_menu {
-		position: relative;
-		width: 20vw;
-	}
-}
-
-@media screen and (min-width: 1024px) {
-	.side_right, .side_left {
-		width: calc(1 / 6 * 100%);
-	}
-}
 
 
 </style>

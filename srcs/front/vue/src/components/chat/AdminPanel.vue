@@ -83,6 +83,7 @@ const adminPanel = ref(false)
 	background: var(--global-c-blue);
 	padding: 10px;
 	z-index: 9;
+	color: var(--color-text);
 }
 
 .admin-bar button {

@@ -13,30 +13,22 @@ const props = defineProps({
 })
 
 let winWidth = ref(window.innerWidth)
-const panelIsOpen = ref(false)
 const channelsStore = useChannelsStore()
 const usersStore = useUsersStore()
 
 function isOpen(index: number) {
-	return panelIsOpen.value
-	// return props.model.items[index].isOpen
-}
-function isFolder(index: number) {
-	return props.model.items[index].children && props.model.items[index].children.length
+	return props.model.items[index].isOpen
 }
 function toggle(index: number) {
-	panelIsOpen.value = !panelIsOpen
-	// props.model.items[index].isOpen = !props.model.items[index].isOpen
+	props.model.items[index].isOpen = !props.model.items[index].isOpen
 }
 
 function updateWinWidthValue(e: Event) {
 	winWidth.value = window.innerWidth
 		if (winWidth.value >= 768)
-			panelIsOpen.value = true
-			// props.model.isOpen = true
+			props.model.isOpen = true
 		else
-			panelIsOpen.value = false
-			// props.model.isOpen = false
+			props.model.isOpen = false
 }
 
 onBeforeMount(() => {
@@ -44,11 +36,9 @@ onBeforeMount(() => {
 	console.log("winWidth value ", winWidth.value)
 	// check on start
 	if (winWidth.value >= 768)
-		panelIsOpen.value = true
-		// props.model.isOpen = true
+		props.model.isOpen = true
 	else
-		panelIsOpen.value = false
-		// props.model.isOpen = false
+		props.model.isOpen = false
 })
 
 onBeforeUnmount(() => {
@@ -62,44 +52,21 @@ onBeforeUnmount(() => {
 		<button 
 			v-if="winWidth < 768"
 			class="btn_side"
-			@click="panelIsOpen = !panelIsOpen"
+			@click="props.model.isOpen = !props.model.isOpen"
 		>
 			<i class="icon_btn">
 				<CarbonClose></CarbonClose>
 			</i>
 		</button>
 		<slot></slot>
-		<li v-for="el, index in model.items" :key="el">
-			<nav
-				:class="{ bold: isFolder(index) }"
-				@click="toggle(index)"
-			>
-				<RouterLink v-if="el.id" :to="el.id">
-					{{ el.name }}
-				</RouterLink>
-				<button v-else>{{ el.name }}
-					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
-				</button>
-			</nav>
-			<nav>
-				<ul v-show="isOpen(index)" v-if="isFolder(index)">
-					<li v-for="child in el.children" :key="child">
-						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-							{{ child.name }}
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
-						</RouterLink>
-						<button v-else>{{ child.name }}</button>
-					</li>
-				</ul>
-			</nav>
-		</li>
 	</ul>
 </template>
 
-<style scoped>
+<style>
 .second_side_menu {
-	min-height: 100vh;
+	height: calc(100vh - 89px);
+	overflow-y: scroll;
+	overflow-x: hidden;
 	display: none;
 	background: #000;
 	position: absolute;
@@ -107,7 +74,7 @@ onBeforeUnmount(() => {
 	left: 0;
 	right: 0;
 	z-index: 10;
-	padding: 20px;
+	padding: 20px 10px;
 }
 
 .channel_link {
@@ -118,6 +85,17 @@ onBeforeUnmount(() => {
 .channel_link:hover .btn_hide {
 	right: 0;
 }
+.channel_link.router-link-active.router-link-exact-active::before {
+	content: '';
+	display: block;
+	width: 10px;
+	height: 10px;
+	border-radius: 10px;
+	background: white;
+	position: absolute;
+	top: calc(50% - 5px);
+	right: -5px;
+}
 
 .btn_hide {
 	position: absolute;
@@ -126,6 +104,7 @@ onBeforeUnmount(() => {
 	width: 25px;
 	height: 25px;
 	right: -25px;
+	top: calc(50% - 12px);
 	transition: right .3s ease-in-out;
 }
 .btn_join {
@@ -152,9 +131,23 @@ ul a, .like-link {
 	word-break: break-all;
 }
 
+ul li button.folder {
+	border: none;
+	background: none;
+	color: gray;
+	font-size: 15px;
+}
+
+ul li nav {
+	padding-left: 5px;
+	margin-left: 15px;
+	margin-bottom: 15px;
+	border-left: 1px solid rgba(255,255,255,.2);
+}
+
 ul li ul {
 	padding: 0;
-	margin: 10px 0;
+	margin: 0;
 }
 
 ul li ul li a, .like-link {
@@ -167,13 +160,13 @@ ul li ul li a, .like-link {
 } */
 
 ul li ul li:nth-child(n+2) a{
-	border-top: 1px solid #fff;
+	/* border-top: 1px solid #fff; */
 }
 
 @media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
-		max-width: 15vw;
+		width: 20vw;
 	}
 }
 
@@ -182,6 +175,5 @@ ul li ul li:nth-child(n+2) a{
 		width: calc(1 / 6 * 100%);
 	}
 }
-
 
 </style>

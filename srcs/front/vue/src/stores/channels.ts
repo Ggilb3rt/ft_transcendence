@@ -196,9 +196,9 @@ export const useChannelsStore = defineStore('channels', () => {
 	function emitJoin(channel_id: number, pass?: string) {
 		refsocket.value.emit("join", {channel_id: channel_id, pass},  (res: any) => {
 			console.log("le joiiiiiin ", res)
-			if (res.status === false && res.msg.includes("pass")) {
-				console.log("need password")
-				error.value = `${res.msg}/${channel_id}`
+			if (res.status === false) {
+				if (res.msg.include("pass"))
+					error.value = `${res.msg}/${channel_id}`
 			}
 			else {
 				// ce serai cool d'avoir les infos direct si le join est ok
