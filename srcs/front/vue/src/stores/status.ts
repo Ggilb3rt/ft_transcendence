@@ -168,6 +168,7 @@ export const useStatusStore = defineStore({
                  })
                  this.socket.on("refuseChallenge", () => {
                      this.finishChallenge()
+                     this.changeCurrentUserStatus('available', this.id)
                  })
                 return
             }
