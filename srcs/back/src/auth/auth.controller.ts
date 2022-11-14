@@ -55,7 +55,7 @@ export class AuthController {
       return res.redirect(process.env.URL_LOGIN_2FA)
   }
 
-  @Post('first')
+  @Get('first')
   @UseGuards(FourtyTwoGuard)
   async secondTime (@Req() req, @Res({passthrough: true}) res: Response) {
     await this.authService.secondTime(req.cookies.jwt)
