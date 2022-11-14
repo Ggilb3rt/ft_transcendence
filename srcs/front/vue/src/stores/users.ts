@@ -77,6 +77,13 @@ export const useUsersStore = defineStore({
 
     },
     actions: {
+        isUserConnected(id: number): boolean {
+            const found = this.userList.findIndex((user) => {return user.id == id})
+            if (found == -1)
+                return false
+            return true
+        },
+
         getUserRestrictById(id: number): IOtherUserRestrict | null {
             const finded = this.userList.filter((user) => user.id == id)
             return finded.length > 0 ? finded[0] : null

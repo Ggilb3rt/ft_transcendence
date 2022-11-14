@@ -64,6 +64,23 @@ export class ChatHelper {
         // }
     }
 
+    async getChannelType(channel_id: number) {
+        try {
+            const chan = await prisma.channels.findFirst({where: {
+                    id: channel_id
+                },
+                select: {
+                    type: true
+                }
+            })
+            return chan
+        } catch (e) {
+            console.log(e);
+            throw new Error("Database error")
+        }
+
+    }
+
     async createChannel(chan: TChannel) {
         try {
             if (chan.pass) {

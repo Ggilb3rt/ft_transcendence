@@ -3,20 +3,21 @@ import { friends, match, PrismaClient, users } from '@prisma/client'
 import { UsersHelper } from './usersHelpers';
 import { CreateUserDto } from './createUserDto';
 const path = require('path');
-import * as base32 from 'hi-base32'
+import { Socket } from 'socket.io';
 const util = require('util');
 import { writeFile } from 'fs';
 import { otherFormat, userFront, userRestrict } from './types';
 import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
+import { JwtService } from '@nestjs/jwt';
 
   const prisma = new PrismaClient();
 
 
 @Injectable()
 export class UsersService {
-  constructor(private usersHelper: UsersHelper, private jwtAuthService: JwtAuthService) {}
+  constructor(private usersHelper: UsersHelper, private jwtAuthService: JwtAuthService, private jwtService: JwtService) {}
   // OPERATIONS AROUND USERS AND RELATIONS BETWEEN THEM
 
   // ban user
@@ -158,6 +159,35 @@ export class UsersService {
     const ban = await this.usersHelper.getBan(id, banned)
     await this.usersHelper.unBan(ban)
   }
+
+  extractToken = (req) => {
+    let token = null;
+
+    if (req && req.cookie) {
+      token = req.cookie;
+      if (typeof(token) == "string") {
+            const value = token.slice(4)
+            return value;
+      }
+    }
+  };
+
+  validate(token) {
+    // console.log("token in validate in jwt-auth service", token)
+    return {
+        validate: this.jwtService.verify(token, {secret: process.env.JWT_SECRET})
+    }
+  }
+
+  async getGatewayToken(headers, client: Socket) {
+    const token = this.extractToken(headers)
+    const verifier = this.validate(token)
+    if (!verifier.validate.id) {
+        client.disconnect()
+        throw new ForbiddenException("Token invalid")
+    }
+    return verifier.validate.id
+}
 
   //create an unresolved friendship: invitation
   async addFriend(id: number, friend: number): Promise<friends> {
@@ -305,6 +335,24 @@ export class UsersService {
     const user = await this.usersHelper.getUser(id);
     return user.avatar_url;
   }
+
+  extractTokenFromReq = (req) => {
+    let token = null;
+
+    // console.log("extractJwtfromCookie ", req.cookies)
+    if (req && req.cookies) {
+      token = req.cookies['jwt'];
+      // console.log(token)
+    }
+    return token;
+  };
+
+
+  async getToken(req) {
+    const token = this.extractTokenFromReq(req)
+    const verifier = this.validate(token)
+    return verifier.validate.id
+}
 
   async changeAvatar(id:number, file: Express.Multer.File): Promise<string> {
     

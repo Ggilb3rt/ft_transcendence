@@ -5,22 +5,15 @@ import {
     OnGatewayInit,
     OnGatewayDisconnect} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
+import { UsersService } from 'src/users/users.service';
 
-function getUser(arr: IStatus[], i: string) {
-    return arr.findIndex((e) => {return e.socketId.includes(i)})
+function makeId(id: number) {
+    return "user_" + id
 }
 
-type TStatus = "available" | "disconnected" | "inGame" | "challenged"
+type TStatus = "available" | "inGame" | "challenged"
 
-interface IStatus {
-    socketId: string[];
-    userId: number;
-    userStatus: TStatus;
-    inGame: string | null
-    challenge: TChallenge
-}
-
-type TChallenge = {challenger: Number, level: Number, challenged: Number, socketId: string}
+type TChallenge = {challenger: number, level: number, challenged: number, socketId: string}
 
 type TSend = {userId: number, userStatus: TStatus}
 
@@ -32,166 +25,258 @@ type TSend = {userId: number, userStatus: TStatus}
     namespace: 'userStatus',
 })
 export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
- 
+
+    constructor(private usersService: UsersService) {}
     @WebSocketServer() server: Server;
 
 
     //private logger: Logger = new Logger('usersStatusGateway');
-    private userArr: IStatus[] = []
-    private toSend: TSend[] = []
 
     afterInit(server: Server) {
         //this.logger.log('Initialized')
     }
 
 
-    async handleDisconnect(client: Socket) {
-        const uIndex = getUser(this.userArr, client.id)
-        if (uIndex == -1) {
-            return
-        }
-        if (this.userArr[uIndex].socketId.length == 1) {
-            client.broadcast.emit('newStatusDisconnection', {ISocket: this.userArr[uIndex], ExistsAlready: false, sender: client.id})
-            this.userArr.splice(uIndex, 1)
-            this.toSend.splice(uIndex, 1)
-        } else {
-            console.log("je retire mon client")
 
-            const index = this.userArr[uIndex].socketId.findIndex((e) => {
-            e === client.id;
-           })
-           this.userArr[uIndex].socketId.splice(index, 1)
-        }
-            
+    async fetchUserSockets(id: number) {
+        const room = makeId(id)
+        console.log(room)
+
+        const clients = await this.server.in(room).fetchSockets();
+        console.log("number of clients = ", clients.length)
+        return clients
+    }
+
+    getArrOfId(clients) {
+        const arr: string[] = [];
+
+        clients.forEach((client) => {
+            arr.push(client.id);
+        })
+    }
+
+    async getSockets(client: Socket) {
+
+            const id = await this.usersService.getGatewayToken(client.handshake.headers, client)
+        console.log("id == ", id)
+        const sockets = await this.fetchUserSockets(id)
+        const arr = this.getArrOfId(sockets)
+        const arg = {id, sockets}
+        return (arg)
+    }
+
+
+    async handleDisconnect(client: Socket) {
+        const {id, sockets} = await this.getSockets(client)
+
+        console.log("sockets == ", sockets.length)
+        if (sockets.length == 0) {
+            client.broadcast.emit('newStatusDisconnection', id)
+            console.log("je retire 1 user")
+        } 
+        client.leave(makeId(id))
+    }
+
+    @SubscribeMessage('takeThat')
+    async takeThat(client: Socket, arg: {userId: number, userStatus: string, newClient: string}) {
+        const {userId, userStatus, newClient } = arg
+        this.server.to(newClient).emit('takeThat', {userId, userStatus})
     }
 
     @SubscribeMessage('connectionStatus')
-    handleConnection2(client: Socket, arg: number) {
-        const index = this.userArr.findIndex((e) => {
-            return e.userId == arg;
-        })
+    async handleConnection(client: Socket) {
+        if (client.handshake.headers.cookie) {
+            
+        }
+        const {id, sockets} = await this.getSockets(client)
 
-        const newClients : string[] = []
-        const u: IStatus = {socketId: newClients, userStatus: 'available', userId: arg, inGame: null, challenge: null}
-        const msg: TSend = {userStatus: 'available', userId: arg}
-        client.join("user_" + arg)
-        if (index == -1) {
-            newClients.push(client.id)
-            this.userArr.push(u)
-            this.toSend.push(msg)
-            client.broadcast.emit('newStatusConnection', {ISocket: msg, ExistsAlready: false})
-        }
-        else {
-            this.userArr[index].socketId.push(client.id)
-        }
-        this.server.to(client.id).emit('takeThat', this.toSend)
+        client.join(makeId(id))
+        
+        console.log("DEUXIEME FOIS -------------")
+        await this.getSockets(client);
+        client.broadcast.emit('newStatusConnection', {userId: id, newClient: client.id})
+            
     }
 
     @SubscribeMessage('changeStatus')
-    handleChangeStatus(client: Socket, arg: {userStatus: "available" | "inGame" | "challenged", userId: number, force? : boolean}) {
-        const index = this.userArr.findIndex((elem) => {
-            return elem.userId == arg.userId
-        })
-        if (index == -1) {
-            return
-        }
-        const elem = this.userArr[index];
+    async handleChangeStatus(client: Socket, userStatus: TStatus) {
+        await this.getSockets(client)
 
-        if (elem.inGame && client.id != elem.inGame)
-            return
+        client.broadcast.emit("newStatusChange", userStatus)
+    }
+    // @SubscribeMessage('changeStatus')
+    // handleChangeStatus(client: Socket, arg: {userStatus: "available" | "inGame" | "challenged", userId: number, force? : boolean}) {
+    //     const index = this.userArr.findIndex((elem) => {
+    //         return elem.userId == arg.userId
+    //     })
+    //     if (index == -1) {
+    //         return
+    //     }
+    //     const elem = this.userArr[index];
 
-        if (elem.userStatus == 'challenged' && arg.userStatus == 'available' && !arg.force)
-            return
-        if (elem.inGame && arg.userStatus == 'available') {
-            elem.inGame = null
-        }
-        else if (!elem.inGame && arg.userStatus == 'inGame') {
-            elem.inGame = client.id
-        }
+    //     if (elem.inGame && client.id != elem.inGame.id)
+    //         return
 
-        this.userArr[index].userStatus = arg.userStatus
-        this.toSend[index].userStatus = arg.userStatus
+    //     if (elem.userStatus == 'challenged' && arg.userStatus == 'available' && !arg.force)
+    //         return
+    //     if (elem.inGame && arg.userStatus == 'available') {
+    //         elem.inGame = null
+    //     }
+    //     else if (!elem.inGame && arg.userStatus == 'inGame') {
+    //         elem.inGame = client
+    //     }
 
-        client.broadcast.emit("newStatusChange", arg)
+    //     this.userArr[index].userStatus = arg.userStatus
+    //     this.toSend[index].userStatus = arg.userStatus
+
+    //     client.broadcast.emit("newStatusChange", arg)
+    // }
+
+
+
+    @SubscribeMessage('newChallenge')
+    async newChallenge(client: Socket, challenge: TChallenge) {
+        const {challenged, challenger } = challenge
+
+        const socket = client.id
+        console.log("client_id = ", client.id)
+        client.to(makeId(challenged)).emit('newChallenge', {challenge, socket})
+    }
+
+    @SubscribeMessage('alreadyChallenged')
+    async alreadyChallenged(client: Socket, to: string) {
+        const {id, sockets} = await this.getSockets(client)
+
+        console.log("to = ", to);
+
+        this.server.to(to).emit('alreadyChallenged')
+    }
+
+    @SubscribeMessage('challengeOk')
+    async challengeOk(client: Socket, socket: string) {
+        const {id, sockets} = await this.getSockets(client)
+
+        this.server.to(socket).emit('challengeOk')
+    }
+
+    @SubscribeMessage('acceptChallenge')
+    async acceptChallenge(client: Socket, challenge: TChallenge) {
+        const {id, sockets} = await this.getSockets(client)
+
+        client.to(makeId(challenge.challenger)).emit('challengeAccepted', challenge)
+        client.broadcast.to(makeId(challenge.challenged)).emit('challengeAccepted', challenge)
     }
 
     @SubscribeMessage('refuseChallenge')
-    refuseChallenges(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
-        const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
-        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+    async refuseChallenges(client: Socket, challenge: TChallenge) {
+        const {id, sockets} = await this.getSockets(client)
 
-        if (receiver == -1 || sender == -1) {
-            return false
-        }
-
-        //console.log("i decline challenge from => ", receiver)
-        this.userArr[receiver].userStatus = 'available'
-        this.userArr[sender].userStatus = 'available'
-        this.toSend[receiver].userStatus = 'available'
-        this.toSend[sender].userStatus = 'available'
-        client.broadcast.to("user_" + this.userArr[receiver].userId).emit('refuseChallenge', challenge)
-        this.server.to("user_" + this.userArr[sender].userId).emit('refuseChallenge', challenge)
-        const arg = this.toSend[receiver]
-        const arg2 = this.toSend[sender]
-        console.log("arg == ", arg)
-        this.server.emit("newStatusChange", arg)
-        this.server.emit("newStatusChange", arg2)
-        return true
+        client.to(makeId(challenge.challenger)).emit('refuseChallenge', challenge)
+        client.broadcast.to(makeId(challenge.challenged)).emit('refuseChallenge', challenge)
     }
+    // @SubscribeMessage('newChallenge')
+    // newChallenge(client: Socket, challenge: TChallenge) {
+    //     const challenged = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
+    //     const challenger = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
+    //     // console.log("in new Challenge", this.userArr, "challenge = ",challenge, challenged)\
 
-    @SubscribeMessage('newChallenge')
-    newChallenge(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
-        const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
-        // console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
-
-        console.log("sender == ", this.userArr[sender].userStatus, "receiver", this.userArr[receiver].userStatus )
-        if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'available' || this.userArr[sender].userStatus != 'available') {
-            return false
-        }
-            console.log("i challenge => ", receiver)
-            this.userArr[receiver].userStatus = 'challenged' 
-            this.toSend[receiver].userStatus = 'challenged'
-            this.userArr[sender].userStatus = 'challenged' 
-            this.toSend[sender].userStatus = 'challenged'
-            this.server.to("user_" + this.userArr[receiver].userId).emit('newChallenge', challenge)
-            const arg = this.toSend[receiver]
-            const arg2 = this.toSend[sender]
-            console.log("arg == ", )
+    //     // console.log("challenger == ", this.userArr[challenger].userStatus, "challenged", this.userArr[challenged].userStatus )
+    //     if (challenged == -1 || challenger == -1 || this.userArr[challenger].userStatus != 'available' || this.userArr[challenger].userStatus != 'available') {
+    //         return false
+    //     }
+    //         // console.log("i challenge => ", challenged)
+    //         this.userArr[challenged].userStatus = 'challenged' 
+    //         this.userArr[challenger].userStatus = 'challenged' 
 
 
-            client.broadcast.emit("newStatusChange", arg)
-            this.server.emit("newStatusChange", arg2)
-            return true
-    }
+    //         this.userArr[challenger].inGame = client 
 
-    @SubscribeMessage('challengeAccepted')
-    acceptChallenge(client: Socket, challenge: TChallenge) {
-        const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
-        const sender = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
-        //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+            
+    //         this.toSend[challenged].userStatus = 'challenged'
+    //         this.toSend[challenger].userStatus = 'challenged'
 
-        if (receiver == -1 || sender == -1 || this.userArr[sender].userStatus != 'challenged' || this.userArr[sender].userStatus != 'challenged') {
-            return false
-        }
-        //console.log("i accept challenge from => ", receiver)
-        this.userArr[receiver].userStatus = 'available' 
-        this.toSend[receiver].userStatus = 'available'
-        this.userArr[sender].userStatus = 'available' 
-        this.toSend[sender].userStatus = 'available'
-        this.server.to("user_" + this.userArr[sender].userId).emit('challengeAccepted', challenge)
-        this.server.to("user_" + this.userArr[receiver].userId).emit('challengeAccepted', challenge)
-        const arg = this.toSend[receiver]
-        const arg2 = this.toSend[sender]
 
-        client.broadcast.emit("newStatusChange", arg)
-        this.server.emit("newStatusChange", arg2)
+    //         this.server.to("user_" + this.userArr[challenged].userId).emit('newChallenge', challenge)
 
-            return true
-    }
-//
-    // @SubscribeMessage('chatToServer')
+
+    //         const arg = this.toSend[challenged]
+    //         const arg2 = this.toSend[challenger]
+    //         console.log("arg == ", )
+
+
+    //         this.server.emit("newStatusChange", arg)
+    //         this.server.emit("newStatusChange", arg2)
+    //         return true
+    // }
+
+    // @SubscribeMessage('refuseChallenge')
+    // refuseChallenges(client: Socket, challenge: TChallenge) {
+    //     const receiver = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
+    //     //console.log("in new Challenge", this.userArr, "challenge = ",challenge, receiver)\
+
+    //     if (receiver == -1 || sender == -1) {
+    //         return false
+    //     }
+
+    //     //console.log("i decline challenge from => ", receiver)
+    //     this.userArr[receiver].userStatus = 'available'
+    //     this.userArr[sender].userStatus = 'available'
+
+
+    //     this.toSend[receiver].userStatus = 'available'
+    //     this.toSend[sender].userStatus = 'available'
+
+
+    //     client.broadcast.to("user_" + this.userArr[receiver].userId).emit('refuseChallenge', challenge)
+    //     this.server.to("user_" + this.userArr[sender].userId).emit('refuseChallenge', challenge)
+
+
+    //     const arg = this.toSend[receiver]
+    //     const arg2 = this.toSend[sender]
+
+
+    //     console.log("arg == ", arg)
+
+
+    //     this.server.emit("newStatusChange", arg)
+    //     this.server.emit("newStatusChange", arg2)
+//     //     return true
+//     // }
+
+//     @SubscribeMessage('challengeAccepted')
+//     acceptChallenge(client: Socket, challenge: TChallenge) {
+//         const challenged = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
+//         const challenger = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenger})
+//         //console.log("in new Challenge", this.userArr, "challenge = ",challenge, challenged)\
+
+//         if (challenged == -1 || challenger == -1 || this.userArr[challenger].userStatus != 'challenged' || this.userArr[challenger].userStatus != 'challenged') {
+//             return false
+//         }
+
+//         //console.log("i accept challenge from => ", challenged)
+//         this.userArr[challenged].userStatus = 'inGame' 
+//         this.userArr[challenger].userStatus = 'inGame'
+        
+        
+//         this.toSend[challenged].userStatus = 'inGame'
+//         this.toSend[challenger].userStatus = 'inGame'
+
+//         const challengedSocket = this.userArr[challenger].inGame;
+
+//         this.server.to(challengedSocket.id).emit('challengeAccepted', challenge)
+//         challengedSocket.broadcast.to("user_" + this.userArr[challenged].userId).emit('challengeAcceptedByMe', challenge)
+
+
+//         const arg = this.toSend[challenged]
+//         const arg2 = this.toSend[challenger]
+
+//         this.server.emit("newStatusChange", arg)
+//         this.server.emit("newStatusChange", arg2)
+
+//         return true
+//     }
+// //
+//     // @SubscribeMessage('chatToServer')
     // handleMessage(client: any, payload: { sender: string, room: string, payload: string }) {
     //     // Le to() permet d'emit a une room specifique et non pas a tout le namespace
     //     this.server.to(payload.room).emit('chatToClient', payload);

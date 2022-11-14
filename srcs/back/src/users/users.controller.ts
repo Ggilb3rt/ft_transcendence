@@ -57,12 +57,15 @@ export class UsersController {
     @Post(':id/pending')
     @UseGuards(JwtAuthGuard)
     acceptPending(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number, @Body('valid', ParseBoolPipe) valid: boolean): Promise<friends> {
+        
        return (this.usersService.acceptFriend(id, friend, valid))
     }
 
-    @Post(':id/2fa')
+    @Post('/2fa')
     // @UseGuards(JwtAuthGuard)
-    async switch2fa(@Param('id', ParseIntPipe) id: number, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
+    async switch2fa(@Req() req: Request, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
+        const id = await this.usersService.getToken(req)
+        
         let isCodeValid: boolean = false
         if (code) {
             isCodeValid = await this.usersService.isCodeValid(code, id)
@@ -82,21 +85,24 @@ export class UsersController {
         else return {msg: "disabled"}
     }
 
-    @Post(':id/friends')
+    @Post('/friends')
     @UseGuards(JwtAuthGuard)
-    addFriend(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number): Promise<friends> {
+    async addFriend(@Req() req: Request, number, @Body('friend', ParseIntPipe) friend: number): Promise<friends> {
+        const id = await this.usersService.getToken(req)
        return (this.usersService.addFriend(id, friend))
     }
 
-    @Post(':id/friends/remove')
+    @Post('/friends/remove')
     @UseGuards(JwtAuthGuard)
-    removeFriend(@Param('id', ParseIntPipe) id: number, @Body('friend', ParseIntPipe) friend: number) {
+    async removeFriend(@Req() req: Request, @Body('friend', ParseIntPipe) friend: number) {
+        const id = await this.usersService.getToken(req)
        return (this.usersService.removeFriend(id, friend))
     }
 
-    @Post(':id/ban/remove')
+    @Post('/ban/remove')
     @UseGuards(JwtAuthGuard)
-    unBan(@Param('id', ParseIntPipe) id, @Body('ban', ParseIntPipe) ban) {
+    async unBan(@Req() req: Request, @Body('ban', ParseIntPipe) ban) {
+        const id = await this.usersService.getToken(req)
        return (this.usersService.unBan(id, ban))
     }
 
@@ -112,29 +118,35 @@ export class UsersController {
         return (this.usersService.getBannedMe(id));
     }
 
-    @Post(':id/ban')
+    @Post('/ban')
     @UseGuards(JwtAuthGuard)
-    banUser(@Param('id', ParseIntPipe) id, @Body('banned', ParseIntPipe) banned): Promise<ban_users> {
+    async banUser(@Req() req: Request, @Body('banned', ParseIntPipe) banned): Promise<ban_users> {
+        const id = await this.usersService.getToken(req)
+
         return (this.usersService.banUser(id, banned));
     }
 
-    @Post(':id/nick')
+    @Post('/nick')
     @UseGuards(JwtAuthGuard)
-    changeNickname(@Param('id', ParseIntPipe) id, @Body('nickname') nick: string): Promise<users> {
+    async changeNickname(@Req() req: Request, @Body('nickname') nick: string): Promise<users> {
+        const id = await this.usersService.getToken(req)
+
         return (this.usersService.changeNickname(id, nick))
     }
 
-    @Post(':id/avatar')
+    @Post('/avatar')
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
-    uploadAvatar(@UploadedFile(
+    async uploadAvatar(@UploadedFile(
         new ParseFilePipe({
             validators: [
                 // new MaxFileSizeValidator({ maxSize: 10000}),
                 new FileTypeValidator({fileType:'jpeg'})
             ]
         })
-    ) file: Express.Multer.File, @Param('id', ParseIntPipe) id, @Body() req): Promise<string> {
+    ) file: Express.Multer.File, @Req() req: Request,): Promise<string> {
+        const id = await this.usersService.getToken(req)
+        
         return (this.usersService.changeAvatar(id, file));
     }
 

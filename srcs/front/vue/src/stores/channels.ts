@@ -272,7 +272,7 @@ export const useChannelsStore = defineStore('channels', () => {
 	}
 
 	function handlePromotion(args: {
-		promoted: number,
+		promoted_id: number,
 		channel_id: number,
 		promoted_by: number
 	})
@@ -283,8 +283,9 @@ export const useChannelsStore = defineStore('channels', () => {
 		if (index == -1) {
 			return
 		}
-		openChan.value[index].adminList.push(args.promoted_by)
-		openChan.value[index].messages.push(createCustomMessage(args.promoted, 'promoted', args.promoted_by, -1))
+		openChan.value[index].adminList.push(args.promoted_id)
+		console.log("open chan ")
+		openChan.value[index].messages.push(createCustomMessage(args.promoted_by, 'promoted', args.promoted_id, -1))
 	}
 
 	function handleBan(args: {

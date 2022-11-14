@@ -34,6 +34,7 @@ const usersStore = useUsersStore()
 const statusStore = useStatusStore()
 let isSetupStoreChannel = false
 
+
 async function testConnection() {
   try {
     console.log("Test Connection premiere ligne == ", userStore.conStatus)
@@ -57,7 +58,7 @@ async function testConnection() {
         console.log('userStore.id = ', userStore.user.id)
         statusStore.setup(userStore.user.id);
         if (!isSetupStoreChannel) {
-          await channelStore.getChansLists();
+          channelStore.getChansLists();
           isSetupStoreChannel = true
         }
       }
@@ -72,8 +73,15 @@ async function testConnection() {
   }
 }
 
-router.beforeResolve((to) => {
-    testConnection();
+router.beforeResolve(async (to) => {
+    await testConnection();
+        if (to.name == "game" ) {
+      //console.log(newRoute.name)
+      // change my status by 'inGame' and emit it
+      //console.log("in watch route user id should be 9 == ", userStore.user.id)
+      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
+      //console.log("should be inGame")
+    } 
     return true
 })
 
@@ -97,13 +105,7 @@ window.addEventListener('beforeunload', (e) => {
 watch(route, (newRoute) => {
   // console.log(route.matched)
   if (usersStore.socketStatus) {
-    if (newRoute.name == "game") {
-      //console.log(newRoute.name)
-      // change my status by 'inGame' and emit it
-      //console.log("in watch route user id should be 9 == ", userStore.user.id)
-      statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
-      //console.log("should be inGame")
-    } else {
+    if (newRoute.name != 'game') {
       if (statusStore.status == "inGame")
         statusStore.changeCurrentUserStatus("available", userStore.user.id);
     }
@@ -113,8 +115,6 @@ watch(route, (newRoute) => {
 onMounted(() => {
   userStore.loading = false
 })
-
-const timeDate = ref<string>("")
 </script>
 
 <template>

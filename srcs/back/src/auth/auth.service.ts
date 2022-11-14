@@ -28,14 +28,15 @@ export class AuthService {
         if (!token) {
             return {status: 2}
           }
-        const {validate} = await this.jwtAuthService.validate(token);
 
-        console.log("VALIDATE === ", validate)
+        const {validate} = this.jwtAuthService.validate(token);
+
+        // console.log("VALIDATE === ", validate)
         if (!validate || !validate.id) {
           throw new ForbiddenException("Invalid Token")
         }
         if (validate.first_time == true) {
-          return {status: 0}
+          return {status: 3}
         }
         if (validate.isAuth || !validate.two_factor_auth) {
           return {status: 0}

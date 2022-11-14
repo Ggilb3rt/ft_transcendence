@@ -8,12 +8,14 @@ export enum setStatus {
   connected = 0,
   need2fa,
   needLogin,
+  first_co
 }
 
 export type constatus =
   | setStatus.connected
   | setStatus.need2fa
-  | setStatus.needLogin;
+  | setStatus.needLogin
+  | setStatus.first_co;
 
 export interface IUserStoreState {
   user: IUser;
@@ -141,7 +143,7 @@ export const useUserStore = defineStore({
     },
     async refuseInvite(id: number) {
       const api = mande(
-        "http://localhost:3000/users/" + this.user.id + "/friends",
+        "http://localhost:3000/users/friends",
         { credentials: "include" }
       );
       try {
@@ -199,7 +201,7 @@ export const useUserStore = defineStore({
           else return;
         // send info to back and wait for res
         const api = mande(
-          "http://localhost:3000/users/" + this.user.id + "/ban",
+          "http://localhost:3000/users/ban",
           { credentials: "include" }
         );
         try {
@@ -224,7 +226,7 @@ export const useUserStore = defineStore({
         if (confirm(`Remove ${id} from your friends ?`)) {
           // send info to back and wait for res
           const api = mande(
-            "http://localhost:3000/users/" + this.user.id + "/friends/remove",
+            "http://localhost:3000/users/friends/remove",
             { credentials: "include" }
           );
           try {
@@ -249,7 +251,7 @@ export const useUserStore = defineStore({
         if (confirm(`Remove ${id} from your bans ?`)) {
           // send info to back and wait for res
           const api = mande(
-            "http://localhost:3000/users/" + this.user.id + "/ban/remove",
+            "http://localhost:3000/users/ban/remove",
             { credentials: "include" }
           );
           try {

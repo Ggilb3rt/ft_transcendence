@@ -55,7 +55,7 @@ async function changeImg(e: any) {
 			return
 		}
 		try {
-			await fetch(`http://localhost:3000/users/${userStore.user.id}/avatar`, {
+			await fetch(`http://localhost:3000/users/avatar`, {
 				method: 'POST',
 				credentials: "include",
 				body: newAvatar,
