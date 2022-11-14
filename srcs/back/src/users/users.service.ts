@@ -336,6 +336,24 @@ export class UsersService {
     return user.avatar_url;
   }
 
+  extractTokenFromReq = (req) => {
+    let token = null;
+
+    // console.log("extractJwtfromCookie ", req.cookies)
+    if (req && req.cookies) {
+      token = req.cookies['jwt'];
+      // console.log(token)
+    }
+    return token;
+  };
+
+
+  async getToken(req) {
+    const token = this.extractTokenFromReq(req)
+    const verifier = this.validate(token)
+    return verifier.validate.id
+}
+
   async changeAvatar(id:number, file: Express.Multer.File): Promise<string> {
     
     const user = await this.usersHelper.getUser(id);

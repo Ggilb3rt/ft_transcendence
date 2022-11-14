@@ -22,21 +22,22 @@ export class AuthService {
           first_connection: false
         }
       })
+
     }
 
     async verify(token: string | null) {
         if (!token) {
             return {status: 2}
           }
-        const {validate} = await this.jwtAuthService.validate(token);
+
+        const {validate} = this.jwtAuthService.validate(token);
 
         // console.log("VALIDATE === ", validate)
         if (!validate || !validate.id) {
           throw new ForbiddenException("Invalid Token")
         }
         if (validate.first_time == true) {
-          console.log("JE SUIS LA AVAN L'EXPLOSION")
-          return {status: 0}
+          return {status: 3}
         }
         if (validate.isAuth || !validate.two_factor_auth) {
           return {status: 0}
