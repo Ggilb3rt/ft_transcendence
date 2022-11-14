@@ -20,7 +20,7 @@ const chanType = ref<TChannelType>("public")
 const chanPass = ref("")
 const chanPassConfirm = ref("")
 const chanUserList = ref([])
-let newChannel = ref<IChannel | {}>({})
+let newChannel = ref<IChannel>()
 
 watch(chanType, (newChanType) => {
 	chanPass.value = ""
@@ -82,7 +82,8 @@ async function sendCreateChan() {
 			// faire des trucs avec la réponse... genre set le bon id
 			console.log("réponse de create ", data)
 			newChannel.value = data
-			await channelsStore.createChan(newChannel.value)
+			if (newChannel.value)
+				await channelsStore.createChan(newChannel.value)
 		}
 	} catch (error: any) {
 		const tempErr = JSON.parse(error.message)
@@ -122,9 +123,6 @@ async function sendCreateChan() {
 					</select>
 				</div>
 				<button v-if="chanPass == chanPassConfirm || chanType != 'pass'" @click="sendCreateChan()">Create</button>
-				<div @click="newChannel = {}">
-					<p v-if="newChannel">{{ newChannel }}</p>
-				</div>
 			<hr>
 			<h3><CarbonArrowLeft></CarbonArrowLeft>Join one</h3>
 			<h3>Or send direct message <CarbonArrowRight></CarbonArrowRight></h3>

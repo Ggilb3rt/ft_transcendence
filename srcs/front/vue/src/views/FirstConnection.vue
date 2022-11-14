@@ -39,7 +39,7 @@ async function valid() {
 		</div>
 		<div class="flex-column">
 			<UserEditableNick></UserEditableNick>
-			<UserEditableAvatar></UserEditableAvatar>
+			<UserEditableAvatar class="first-img"></UserEditableAvatar>
 
 			<button @click="valid()" class="btn">Done</button>
 		</div>
@@ -47,7 +47,11 @@ async function valid() {
 </template>
 
 <style>
-
+/* .first-img {
+	max-width: 50%;
+	max-height: 50%;
+	object-fit: cover;
+} */
 /* Uses the styles of LoginView.vue */
 
 </style>
