@@ -106,10 +106,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.server.in(data.roomName).emit("unpauseGame");
 	}
 
-	@SubscribeMessage("createGame") 
+	/*@SubscribeMessage("createGame") 
 	handleCreateGame(client: Socket, data: any) {
 		this.gameService.handleCreateGame(client, data, this.server);
-	}
+	}*/
 	
 	@SubscribeMessage("isUserInGame")
 	handleIsUserInGame(client: Socket, data: any) {
@@ -121,14 +121,21 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 		this.gameService.handleAddUserId(client, data, this.server);
 	}
 
-	@SubscribeMessage("createChallengeRoom")
-	handleCreateChallengeRoom(client: Socket, data: any){
-		this.gameService.handleCreateChallengeRoom(client, data);
+	@SubscribeMessage("handleCreateNewChallengeRoom")
+	handleCreateNewChallengeRoom(client: Socket, data: any){
+		this.gameService.handleCreateNewChallengeRoom(client, data, this.server);
 	}
 
 	@SubscribeMessage("joinChallengeRoom")
 	handleJoinChallengeRoom(client: Socket, data: any){
 		this.gameService.handleJoinChallengeRoom(client, data, this.server);
 	}
+
+	@SubscribeMessage("initGame")
+	handleInitGame(client: Socket, data: any){
+		this.gameService.handleInitGame(client, data, this.server);
+	}
+
+	
 
 }

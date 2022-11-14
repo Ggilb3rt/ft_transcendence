@@ -19,6 +19,7 @@ export default class Preloader extends Phaser.Scene {
     this.userId = data.userId;
     this.spectator = data.spectator;
     this.challenge = data.challenge;
+	this.challengeId = data.challengeId;
     this.key = data.key;
     this.level = data.level;
     this.challengeInfo = data.challengeInfo;
@@ -67,19 +68,19 @@ export default class Preloader extends Phaser.Scene {
     console.log(scene.data);
 
     if (
-      scene.level == "pong" ||
-      (scene.challenge === true && scene.challengeInfo.level === 0)
-    ) {
+      scene.level == "pong"/* ||
+      (scene.challenge === true && scene.challengeInfo.level === 0*/)
+     {
       scene.level = 1;
     } else if (
-      scene.level == "customizable" ||
-      (scene.challenge === true && scene.challengeInfo.level === 2)
-    ) {
+      scene.level == "customizable"/* ||
+      (scene.challenge === true && scene.challengeInfo.level === 2*/)
+     {
       scene.sceneName = "WaitingRoom";
       scene.level = 2;
     } else if (
-      scene.level == "catPong" ||
-      (scene.challenge === true && scene.challengeInfo.level === 1)
+      scene.level == "catPong"/*||
+      (scene.challenge === true && scene.challengeInfo.level === 1)*/
     ) {
       scene.level = 3;
       scene.images = scene.catImages;
@@ -90,6 +91,7 @@ export default class Preloader extends Phaser.Scene {
       spectator: scene.spectator,
       level: scene.level,
       challenge: scene.challenge,
+	  challengeId: scene.challengeId,
       challengeInfo: scene.challengeInfo,
       key: scene.key,
       images: scene.images,

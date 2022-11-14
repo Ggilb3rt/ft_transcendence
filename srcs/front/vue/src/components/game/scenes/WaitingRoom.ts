@@ -13,6 +13,7 @@ export default class WaitingRoom extends Phaser.Scene {
     this.level = data.level;
     this.userId = data.userId;
     this.challenge = data.challenge;
+	this.challengeId = data.challengeId;
 	this.challengeInfo = data.challengeInfo;
     this.spectator = data.spectator;
     this.key = data.key;

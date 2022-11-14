@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import { Ball, Player, WR1, WR2, WR3, WR4} from './classes';
+import { Ball, Player, WaitingRoom/*, WR1, WR2, WR3, WR4*/} from './classes';
 import { UsersHelper } from '../users/usersHelpers';
 import { CreateMatchDto } from 'src/users/createMatchDto';
-import type { WaitingRoom } from './classes';
 
 @Injectable()
 export class GameService {
@@ -12,13 +11,7 @@ export class GameService {
 	private userIds = {};
     private players = {};
 
-	constructor(private readonly usersHelper: UsersHelper) {
-		this.waitingRooms[1] = WR1;
-		this.waitingRooms[2] = WR2;
-		this.waitingRooms[3] = WR3;
-	}
-
-
+	constructor(private readonly usersHelper: UsersHelper) {}
 
     handleConnection(client: Socket, server: Server) {
 		console.log('CLIENT CONNECTED ' + client.id)
@@ -54,90 +47,94 @@ export class GameService {
 		else { client.emit("isUserInGame", { userId, bool: false });}
 	}
 
+	initPlayer(client: Socket, data: any, p: any, roomId: string) {
+		const player = this.players[client.id];
+		const userId = data.userId;
+		const level = Number(data.level);
+
+		p.id = player.socket.id;
+		p.socket = player.socket;
+		p.userId = userId;
+		p.roomId = roomId;
+		
+		player.roomId = roomId;
+		player.level = level;
+		player.userId = userId;
+	}
+
     handleJoinQueue(client: Socket, data: any, server: Server) {
         const level = Number(data.level);
 		const userId = data.userId;
 		const player = this.players[client.id];
 
-		let wr = this.waitingRooms[level]
+		let newRoom: WaitingRoom;
+		let wr;
+
+		if (!this.waitingRooms.hasOwnProperty(level)) {
+			let newRoom: WaitingRoom = new WaitingRoom();
+			wr = this.waitingRooms[level] = newRoom;
+		} else {
+			wr = this.waitingRooms[level];
+		}
+
 		console.log('JOINING QUEUE level ' + level)
 		console.log(client.id + " " + userId);
 
-        this.players[client.id].level = level;
-		this.players[client.id].userId = userId;
-
+		//console.log(wr);
+		//console.log(wr.players[0]);
         // Waiting room is empty
-        if (wr.playerOne.id === "" && wr.playerTwo.id === "") {
+		if (wr.players[0].id === 0  && wr.players[1].id === 0) {
+			const roomId = this.codeGenerator(5);
+			this.initPlayer(client, data, wr.players[0], roomId);
+			wr.level = level;
+			wr.roomId = roomId;
             console.log("room empty");
-            const roomId = this.codeGenerator(5);
-            wr.roomId = roomId;
-            wr.playerOne.id = player.id;
-            wr.playerOne.socket = player.socket;
-            wr.playerOne.roomId = roomId;
-			wr.playerOne.level = level;
-			wr.playerOne.userId = userId;
-            wr.level = level;
-            this.players[player.id].roomId = wr.roomId;
         }
         // Waiting room has 1 player
-        else if (wr.playerOne.id !== "" && wr.playerTwo.id === "") {
+		else if (wr.players[0].id !== 0 && wr.players[1].id === 0) {
             console.log("room waiting");
-			if (wr.playerOne.userId === userId) {
-				console.log("u cannot play against yourself");
-				client.emit("leftGame", 2);
-				client.disconnect();
-				return;
+			if (wr.players[0].userId === userId) {
+			 	console.log("u cannot play against yourself");
+			 	client.emit("leftGame", 2);
+			 	client.disconnect();
+			 	return;
 			}
-            wr.playerTwo.id = player.id;
-            wr.playerTwo.socket = player.socket;
-            wr.playerTwo.roomId = wr.roomId;
-			wr.playerTwo.level = level;
-			wr.playerTwo.userId = userId;
-            this.players[player.id].roomId = wr.roomId;
-            // Waiting room has 2 players
-            if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
-                 console.log("room complete");
-                const p1 = wr.playerOne;
-                const p2 = wr.playerTwo;
+			this.initPlayer(client, data, wr.players[1], wr.roomId);
+			if (wr.players[0].id !== 0 && wr.players[1].id !== 0) {
+			 	console.log("room complete");
                 this.activeGames[wr.roomId] = {
-                    playerOne: p1,
-                    playerTwo: p2,
+                    playerOne:  wr.players[0],
+                    playerTwo:  wr.players[1],
                     level: level,
                 }
-                this.initGame(wr.roomId, server);
-				//Reflect.deleteProperty(this.waitingRooms, level);
-
-				wr.roomId = "";
-                wr.playerOne.id = "";
-                wr.playerOne.socket = "";
-                wr.playerOne.roomId = "";
-				wr.playerOne.level = 0;
-				wr.playerOne.userId = 0;
-                wr.playerTwo.id = "";
-                wr.playerTwo.socket = "";
-                wr.playerTwo.roomId = "";
-				wr.playerTwo.level = 0;
-				wr.playerTwo.userId = 0;
-				wr.level = 0;
-            }
+                this.initGame(wr.roomId, level, server);
+			 	//Reflect.deleteProperty(this.waitingRooms, level);
+             }
         }
     }
 
-    initGame(roomId: any, server: Server) {
+    initGame(roomId: any, level: number, server: Server) {
         const gameRoom = this.activeGames[roomId];
-		const level = gameRoom.level;
+		//const level = gameRoom.level;
         const playerOne = gameRoom.playerOne;
         const playerTwo = gameRoom.playerTwo;
+
+		console.log(gameRoom);
+		console.log("ROOMID " + roomId)
        
         playerOne.socket.join(roomId);
-        playerOne.socket.emit("init", { playerNumber: 1, gameCode: roomId, level: gameRoom.level });
+        playerOne.socket.emit("init", { playerNumber: 1, gameCode: roomId, level });
         playerTwo.socket.join(roomId);
-        playerTwo.socket.emit("init", { playerNumber: 2, gameCode: roomId, level: gameRoom.level });
+        playerTwo.socket.emit("init", { playerNumber: 2, gameCode: roomId, level });
 
-        const state = this.createGameState();
-        state.players[0].id = gameRoom.playerOne.socket.id;
+		//let usersinroomname = await server.in(roomId).fetchSockets();
+		//console.log("LENNNNN " + Object.keys(usersinroomname).length);
+
+        const state = this.createGameState(playerOne, playerTwo);
+
+        state.players[0].id = gameRoom.playerOne.id;
 		state.players[0].userId = gameRoom.playerOne.userId;
-        state.players[1].id = gameRoom.playerTwo.socket.id;
+        state.players[1].id = gameRoom.playerTwo.id;
 		state.players[1].userId = gameRoom.playerTwo.userId;
         state.roomName = roomId;
         gameRoom.state = state;
@@ -159,15 +156,33 @@ export class GameService {
 		})
 	}
 
-    createGameState() {
+    createGameState(playerOne, playerTwo) {
         return {
-            ball: new Ball,
+			level: 0,
+            ball: new Ball(),
             players: [
-                new Player,
-                new Player,
+                new Player(playerOne),
+                new Player(playerTwo),
             ],
-            roomName: String
-        }
+            roomName: "",
+		}
+		
+		
+		/*{
+			ball: {
+			speed: 500,
+			initialVelocity: {
+				x: 0,
+				y: 0
+			},
+		},
+			players: [
+				playerOne,
+				playerTwo,
+			],
+			roomName: "",
+			level: 0,*/
+        //}
     }
 
     codeGenerator(length: number) : string {
@@ -181,6 +196,7 @@ export class GameService {
     }
 
     handlePlayerMovement(client: Socket, data: any, server: Server) {
+		console.log("MOVE PLAYER " + data.roomName);
         client.to(data.roomName).emit('playerMoved', data)
     }
 
@@ -295,16 +311,13 @@ export class GameService {
 				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].roomId);
 			} else {
 				if (this.waitingRooms.hasOwnProperty(level) && (level === 1 || level === 2 || level === 3)) {
-            	let wr = this.waitingRooms[level];
-			//	console.log("HAHAH");
-			//	console.log(this.waitingRooms.hasOwnProperty(level));
-			//	console.log(this.waitingRooms[level]);
-			//	if (wr !== undefined && (level === 1 || level === 2 || level === 3)) {
-           			if (wr.playerOne.id === client.id) {
-                		this.switchPlayers(wr.playerOne, wr.playerTwo, wr, 1);
-            		} else if (wr.playerTwo.id === client.id) {
+            		//let wr = this.waitingRooms[level];
+           			/*if (wr.players[0].id === client.id && wr.players[1] !== 0) {
+                		this.switchPlayers(wr.players[0], wr.players[1], wr, 1);
+            		} else if (wr.players[1].id === client.id) {
                 		this.switchPlayers(null, null, wr, 2)
-            		}
+            		}*/
+					Reflect.deleteProperty(this.waitingRooms, level);
 				}
 			}
 			client.emit("leftGame", 1);
@@ -319,21 +332,23 @@ export class GameService {
 		console.log(this.userIds);
     }
 
-    switchPlayers(playerOne, playerTwo, wr, n) {
-        if (n === 1) {
-			wr.roomId = wr.playerTwo.roomId;
-            wr.playerOne.id = wr.playerTwo.id;
-            wr.playerOne.socket = wr.playerTwo.socket;
-            wr.playerOne.roomId = wr.playerTwo.roomId;
-            wr.playerOne.level = wr.playerTwo.level;
-			wr.playerOne.userId = wr.playerTwo.userId;
+    switchPlayers(p1, p2, wr, n) {
+		console.log(p1);
+		console.log(p2);
+        /*if (n === 1) {
+			wr.roomId = wr.p2.roomId;
+            wr.p1.id = wr.p2.id;
+            wr.p1.socket = wr.p2.socket;
+            wr.p1.roomId = wr.p2.roomId;
+            wr.p1.level = wr.p2.level;
+			wr.p1.userId = wr.p2.userId;
         } else {
-            wr.playerTwo.id = "";
-            wr.playerTWo.socket = "";
-            wr.playerTwo.roomId = "";
-            wr.playerTwo.level = 0;
-			wr.playerTwo.userId = 0;
-        }
+            wr.p2.id = "";
+            wr.p2.socket = "";
+            wr.p2.roomId = "";
+            wr.p2.level = 0;
+			wr.p2.userId = 0;
+        }*/
     }
 
 	handleMoveAnim(client: Socket, data: any, server: Server) {
@@ -378,70 +393,11 @@ export class GameService {
 		}
 		return (roomNames);
 	}
-
-	handleCreateGame(client:Socket, data: any, server: Server ) {
-		console.log("HANDLE CREATE GAME |||")
-		console.log(data);
-		console.log("||||")
-		const challenger = Number(data.challengeInfo.challenger);
-		const level = data.challengeInfo.level;
-		const userId = data.userId;
-		const player = this.players[client.id];
-
-		player.userId = userId;
-		player.level = level;
-		player.challenge = true;
-		player.challengeInfo = data.challengeInfo;
-
-		let wr;
-		if (this.waitingRooms.hasOwnProperty(challenger + 3)) {
-			wr = this.waitingRooms[challenger + 3];
-		} else {
-			this.waitingRooms[challenger + 3] = WR4;
-			wr = this.waitingRooms[challenger + 3]
-		}
-
-		if (player.userId === data.challengeInfo.challenger ) {
-			wr.playerOne.id = player.id;
-			wr.playerOne.socket = player.socket;
-			wr.playerOne.level = level;
-			wr.playerOne.userId = userId;
-            wr.level = level;
-		} else if (player.userId === data.challengeInfo.challenged) {
-			wr.playerTwo.id = player.id;
-			wr.playerTwo.socket = player.socket;
-			wr.playerTwo.level = level;
-			wr.playerTwo.userId = userId;
-			wr.level = level;
-		}
-
-		if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
-			//console.log("room CREATION COMPLETE")
-			const roomId = this.codeGenerator(5);
-			wr.roomId = roomId;
-			wr.playerOne.roomId = roomId;
-			wr.playerTwo.roomId = roomId;
-			wr.level = level;
-			this.players[wr.playerOne.id].roomId = roomId;
-			this.players[wr.playerTwo.id].roomId = roomId;
-			this.players[wr.playerOne.id].level = wr.level;
-			this.players[wr.playerTwo.id].level = wr.level;
-			this.activeGames[roomId] = {
-				playerOne: wr.playerOne,
-				playerTwo: wr.playerTwo,
-				level: level,
-			}
-			console.log(this.activeGames[roomId]);
-
-			this.initGame(wr.roomId, server);
-
-			Reflect.deleteProperty(this.waitingRooms, data.challeneInfo.challeneger + 10);
-		}
-	}
 	
-	handleCreateChallengeRoom(client: Socket, data: any){
+	handleCreateNewChallengeRoom(client: Socket, data: any, server: Server){
 		console.log("CREATING WAITING ROOM CHALLENGE")
-		const level = data.challenge.level;
+		let { level, challenger, challenged, challengeId} = data.challenge;
+		console.log(data);
 		const userId = data.userId;
 		const player = this.players[client.id];
 
@@ -450,20 +406,63 @@ export class GameService {
 		player.challenge = true;
 		player.challengeInfo = data.challenge;
 
-		this.waitingRooms[data.challenge.challengeId] = WR4;
-		let wr = this.waitingRooms[data.challenge.challengeId];
+		let wr;
+		if (!this.waitingRooms.hasOwnProperty(challengeId)) {
+			let newRoom: WaitingRoom = new WaitingRoom();
+			wr = this.waitingRooms[challengeId] = newRoom;
+			wr.roomId = challengeId;
+			wr.level = ++level;
+		} else {
+			wr = this.waitingRooms[challengeId];
+		}
 
-		wr.playerOne.id = player.id;
-		wr.playerOne.socket = player.socket;
-		wr.playerOne.level = level;
-		wr.playerOne.userId = userId;
-        wr.level = level;
+		console.log("WE 1 ");
+		console.log(wr);
+
+		if (player.userId === challenger ) {
+			console.log('PLAYER ONE IS CHALLENGER')
+			wr.players[0].id = player.id;
+			wr.players[0].socket = player.socket;
+			wr.players[0].userId = userId;
+			wr.players[0].roomId = challengeId;
+		} else if (player.userId === challenged) {
+			console.log('PLAYER TWO IS CHALLENGER')
+			wr.players[1].id = player.id;
+			wr.players[1].socket = player.socket;
+			wr.players[1].userId = userId;
+			wr.players[1].roomId = challengeId;
+		}
+		console.log(this.waitingRooms[challengeId]);
+
+		if (wr.players[0].userId !== 0 && wr.players[1].userId !== 0) {
+			console.log("room CREATION COMPLETE")
+			this.players[wr.players[0].id].roomId = challengeId;
+			this.players[wr.players[1].id].roomId = challengeId;
+			this.players[wr.players[0].id].level = level;
+			this.players[wr.players[1].id].level = level;
+			if (!this.activeGames.hasOwnProperty(challengeId)) {
+			this.activeGames[challengeId] = {
+				playerOne: wr.players[0],
+				playerTwo: wr.players[1],
+				level: level,
+			}}
+			console.log(this.activeGames[challengeId]);
+			wr.players[0].socket.emit("newRoomCreated");
+			wr.players[1].socket.emit("newRoomCreated");
+
+			//this.initGame(wr.roomId, server);
+
+			//Reflect.deleteProperty(this.waitingRooms, challengeId);
+		}
 	}
 
 	
 	handleJoinChallengeRoom(client: Socket, data: any, server: Server){
-		console.log("JOINING WAITING ROOM CHALLENGE")
-		const level = data.challenge.level;
+		console.log("CREATING WAITING ROOM CHALLENGE")
+		let { level, challenger, challenged, challengeId} = data.challenge;
+		console.log(data);
+		//const level = data.challenge.level;
+		//const roomId = data.challenge.challengeId;
 		const userId = data.userId;
 		const player = this.players[client.id];
 
@@ -472,39 +471,74 @@ export class GameService {
 		player.challenge = true;
 		player.challengeInfo = data.challenge;
 
-		//this.waitingRooms[data.challenge.challengeId] = WR4;
-		let wr = this.waitingRooms[data.challenge.challengeId];
+		let wr;
+		if (!this.waitingRooms.hasOwnProperty(challengeId)) {
+			let newRoom: WaitingRoom = new WaitingRoom();
+			wr = this.waitingRooms[challengeId] = newRoom;
+			wr.roomId = challengeId;
+			wr.level = ++level;
+		} else {
+			wr = this.waitingRooms[challengeId];
+		}
+		console.log("WE 2 ");
+		console.log(wr);
 
-		wr.playerTwo.id = player.id;
-		wr.playerTWo.socket = player.socket;
-		wr.playerTWo.level = level;
-		wr.playerTWO.userId = userId;
-        wr.level = level;
+		if (player.userId === challenger ) {
+			console.log('PLAYER ONE IS CHALLENGER')
+			wr.players[0].id = player.id;
+			wr.players[0].socket = player.socket;
+			wr.players[0].userId = userId;
+			wr.players[0].roomId = challengeId;
+		} else if (player.userId === challenged) {
+			console.log('PLAYER TWO IS CHALLENGER')
+			wr.players[1].id = player.id;
+			wr.players[1].socket = player.socket;
+			wr.players[1].userId = userId;
+			wr.players[1].roomId = challengeId;
+		}
+		console.log(this.waitingRooms[challengeId]);
 
-
-		if (wr.playerOne.id !== "" && wr.playerTwo.id !== "") {
-			//console.log("room CREATION COMPLETE")
-			wr.roomId = data.challengeRoomId;
-			wr.playerOne.roomId = data.challengeRoomId;
-			wr.playerTwo.roomId = data.challengeRoomId;
-			wr.level = level;
-			this.players[wr.playerOne.id].roomId = data.challengeRoomId;
-			this.players[wr.playerTwo.id].roomId = data.challengeRoomId;
-			this.players[wr.playerOne.id].level = wr.level;
-			this.players[wr.playerTwo.id].level = wr.level;
-			this.activeGames[data.challengeRoomId] = {
-				playerOne: wr.playerOne,
-				playerTwo: wr.playerTwo,
-				level: level,
+		if (wr.players[0].userId !== 0 && wr.players[1].userId !== 0) {
+			console.log("room CREATION COMPLETE")
+			this.players[wr.players[0].id].roomId = challengeId;
+			this.players[wr.players[1].id].roomId = challengeId;
+			this.players[wr.players[0].id].level = level;
+			this.players[wr.players[1].id].level = level;
+			if (!this.activeGames.hasOwnProperty(challengeId)) {
+			this.activeGames[challengeId] = {
+				playerOne: wr.players[0],
+				playerTwo: wr.players[1],
+				level: ++level,
 			}
-			console.log(this.activeGames[data.challengeRoomId]);
+		}
+			console.log(this.activeGames[challengeId]);
+			wr.players[0].socket.emit("newRoomCreated");
+			wr.players[1].socket.emit("newRoomCreated");
 
-			this.initGame(wr.roomId, server);
+			//this.initGame(wr.roomId, server);
 
-			Reflect.deleteProperty(this.waitingRooms, data.challengeRoomId);
-		}	
+			//Reflect.deleteProperty(this.waitingRooms, challengeId);
 	}
-
+}
+handleInitGame(client: Socket, data: any, server: Server){
+	console.log("INIT  " + data.roomId + " " + data.userId);
+	console.log(this.waitingRooms[String(data.roomId)]);
+	if (this.waitingRooms.hasOwnProperty(String(data.roomId))) {
+		if (this.waitingRooms[data.roomId].players[0].userId === data.userId) {
+			this.waitingRooms[data.roomId].players[0].id = client.id;
+			this.waitingRooms[data.roomId].players[0].socket = client;
+			this.waitingRooms[data.roomId].players[0].connected = true ;
+			} else {
+				this.waitingRooms[data.roomId].players[1].id = client.id;
+			this.waitingRooms[data.roomId].players[1].socket = client;
+				this.waitingRooms[data.roomId].players[1].connected = true ;
+			} 
+		}
+		if (this.waitingRooms[data.roomId].players[0].connected === true  && this.waitingRooms[data.roomId].players[1].connected === true) {
+			this.initGame(this.waitingRooms[data.roomId].roomId, this.waitingRooms[data.roomId].level, server);
+			Reflect.deleteProperty(this.waitingRooms, data.roomId);
+		}
+	}
 }
 
 

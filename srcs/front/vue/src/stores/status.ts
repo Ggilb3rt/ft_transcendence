@@ -9,7 +9,7 @@ interface IUserStatusStore {
   status: TStatus;
   invitations: Number;
   socket: any;
-  //socketGame: any;
+  socketGame: any;
   statusList: ISocketStatus[];
   setuped: boolean;
   error: string | null;
@@ -26,14 +26,16 @@ export const useStatusStore = defineStore({
   state: (): IUserStatusStore => ({
     status: "disconnected" as TStatus,
     invitations: 0 as number,
-    socket: io("http://localhost:3000/userStatus", {
-      withCredentials: true,
-    }),
-    /*socketGame: io("http://localhost:3000/game", {
+    //socket: io("http://localhost:3000/userStatus", {
+    //  withCredentials: true,
+    //}),
+    socket: null,
+    socketGame: io("http://localhost:3000/game", {
       query: {
         type: "storeGameSocket",
       },
-    }),*/
+    }),
+    //socketGame: null,
     statusList: [],
     setuped: false,
     error: null,
@@ -85,12 +87,12 @@ export const useStatusStore = defineStore({
 
     connectSocket() {
       this.socket.connect();
-      //this.socketGame.connect();
+      this.socketGame.connect();
     },
 
     disconnectSocket() {
       this.socket.close();
-      //this.socketGame.close();
+      this.socketGame.close();
     },
 
     async setupSocket() {
@@ -178,6 +180,9 @@ export const useStatusStore = defineStore({
               console.log("No pending challenge");
               return;
             }
+            /*this.socket = io("http://localhost:3000/userStatus", {
+				withCredentials: true,
+			  });*/
             if (challenged == this.id) {
               this.challengeAccepted = true;
             } else if (challenger == this.id) {
@@ -191,15 +196,16 @@ export const useStatusStore = defineStore({
                 } else if (challenge.level === 2) {
                   levelName = "customizable";
                 }
-                /*this.socketGame.emit("createChallengeRoom", {
+                this.socketGame.emit("joinChallengeRoom", {
                   challenge: challenge,
                   userId: this.id,
                 });
-                this.socketGame.on("roomComplete", () => {
+                this.socketGame.on("newRoomCreated", () => {
+					console.log("ROOM COMPLETE");
                   router.push({
-                    path: `/game/${levelName}/${challenge.challengeId}`,
+                    path: `/game/3/${levelName}/${challenge.challengeId}`,
                   });
-                });*/
+                });
               }
               /*router.push({
                   path: "/game",
@@ -226,6 +232,14 @@ export const useStatusStore = defineStore({
     async setup(id: number) {
       // Check to do it only once
       if (this.setuped == false) {
+        this.socket = io("http://localhost:3000/userStatus", {
+          withCredentials: true,
+        });
+		this.socketGame = io("http://localhost:3000/game", {
+      query: {
+        type: "storeGameSocket",
+      },
+    }),
         this.id = id;
         this.setupSocket();
         this.status = "available";
@@ -257,9 +271,9 @@ export const useStatusStore = defineStore({
     },
 
     codeGenerator(length: number): string {
-      var result = "";
-      var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-      var charactersLength = characters.length;
+      let result = "";
+      const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+      const charactersLength = characters.length;
       for (var i = 0; i < length; i++) {
         result += characters.charAt(
           Math.floor(Math.random() * charactersLength)
@@ -311,16 +325,17 @@ export const useStatusStore = defineStore({
       } else if (this.challenge.level === 2) {
         levelName = "customizable";
       }
-      /*ame.emit("joinChallengeRoom", {
+      this.socketGame.emit("handleCreateNewChallengeRoom", {
         challenge: this.challenge,
         userId: this.id,
       });
       //console.log("THIS CHALLENGE " + JSON.stringify(challenge) + " " + levelName);
-      this.socketGame.on("roomComplete", () => {
+      this.socketGame.on("newRoomCreated", () => {
+		console.log("ROOM COMPLETE");
         router.push({
-          path: `/game/${levelName}/${challengeId}`,
+          path: `/game/3/${levelName}/${challengeId}`,
         });
-      });*/
+      });
 
       //router.push({ path: `/game/${levelName}/${this.challenge.challengeId}` });
     },

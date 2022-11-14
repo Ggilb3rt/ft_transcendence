@@ -21,11 +21,18 @@ socket.on("isUserInGame", (data) => {
   }
 });
 
-async function findGame(event: Event, game: string, spectator: boolean) {
+async function findGame(
+  event: Event,
+  level: string,
+  roomId: string,
+  spectator: boolean
+) {
   event.preventDefault();
   show.value = false;
-  if (spectator || canPlay.value) {
-    router.push({ path: `/game/${game}` });
+  if (spectator) {
+    router.push({ path: `/game/2/${level}/${roomId}` });
+  } else if (canPlay.value && !spectator) {
+    router.push({ path: `/game/1/${level}` });
   } else {
     show.value = true;
   }
@@ -57,7 +64,7 @@ onBeforeUnmount(() => {
         <li>
           <button
             id="pong"
-            @click="findGame($event, 'pong', false)"
+            @click="findGame($event, 'pong', '', false)"
             class="pongLink"
           >
             Pong<br />
@@ -71,7 +78,7 @@ onBeforeUnmount(() => {
         <li>
           <button
             id="catPong"
-            @click="findGame($event, 'catPong', false)"
+            @click="findGame($event, 'catPong', '', false)"
             class="pongLink"
           >
             CatPong<br />
@@ -85,7 +92,7 @@ onBeforeUnmount(() => {
         <li>
           <button
             id="customizable"
-            @click="findGame($event, 'customizable', false)"
+            @click="findGame($event, 'customizable', '', false)"
             class="pongLink"
           >
             Customizable<br />
@@ -101,7 +108,7 @@ onBeforeUnmount(() => {
         <p v-for="value in activeRoomNames" :key="value">
           <button
             id="customizable"
-            @click="findGame($event, `${value.level}/${value.id}`, true)"
+            @click="findGame($event, `${value.level}`, `${value.id}`, true)"
             class="pongLink"
           >
             {{ value.id }} {{ value.level }}

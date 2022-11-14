@@ -22,25 +22,28 @@ const userId = userStore.user.id;
 const route = useRoute();
 const socket = io("http://localhost:3000/game");
 const urlQuery = route.query.challenge;
-const urlLevel = String(route.params.ourGames);
-const urlRoomId = String(route.params.id);
+const urlLevel = String(route.params.level);
+const urlType = Number(route.params.type);
+const urlRoomId = String(route.params.roomId);
 const validLevels = ["pong", "catPong", "customizable"];
 let inGame = false;
 let oppInGame = false;
-let error = false;
+//let error = false;
 let activeRoomNames: string[];
 let gameInstance: Game;
 const data = {
   userId,
   spectator: false,
   challenge: false,
+  challengeId: "",
   key: "",
   level: "",
-  challengeInfo: {
+  /*challengeInfo: {
     challenger: "",
     level: 0,
     challenged: "",
-  },
+	challengeId:
+  },*/
 };
 
 window.addEventListener("beforeunload", (e) => {
@@ -84,21 +87,31 @@ function initGame() {
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = Object.keys(payload.roomNames);
 
-    if (/*(isChallenge() ||*/ isValidGame() && !error) {
+	console.log("TYPE " + urlType);
+	console.log("LEVEL " + urlLevel);
+	console.log("URL ROOMID " + urlRoomId)
+
+    if (isValidType() && isValidGame()/* && !error*/) {
       launchGame();
-    } else if (/*(!isChallenge() && */!isValidGame || error) {
+    } else {
       router.replace("/");
     }
   });
 }
 
-function isChallenge(): boolean {
-  if (!urlQuery) {
+function isValidType(): boolean {
+  if (urlType !== 1 && urlType !== 2 && urlType !== 3) {
     return false;
   }
-  console.log("urlQUERY " + urlQuery);
-  const challenge = JSON.parse(String(urlQuery)); // A VERIF
-  console.log("challenge" + challenge.challenger);
+  if (urlType === 2) {
+	data.spectator = true;
+  } else if (urlType === 3) {
+	data.challenge = true;
+	data.challengeId = urlRoomId;
+  }
+  //console.log("urlQUERY " + urlQuery);
+  //const challenge = JSON.parse(String(urlQuery)); // A VERIF
+  //console.log("challenge" + challenge.challenger);
 
   /*let opponent; 
   if (challenge.challenger === userId) {
@@ -112,14 +125,14 @@ function isChallenge(): boolean {
    if (!oppInGame) { // Si l'autre utilisateur n'est plus ingame, c'est que c'est un reload;
    	error = true;
    } else {*/
-  data.challenge = true;
-  data.challengeInfo.challenger = challenge.challenger;
-  data.challengeInfo.level = Number(challenge.level);
-  data.challengeInfo.challenged = challenge.challenged;
+  //data.challenge = true;
+  //data.challengeInfo.challenger = challenge.challenger;
+  //data.challengeInfo.level = Number(challenge.level);
+  //data.challengeInfo.challenged = challenge.challenged;
   //}
 
-  console.log("DATA CHALLENGE ");
-  console.log(data.challengeInfo);
+  //console.log("DATA CHALLENGE ");
+  //console.log(data.challengeInfo);
 
   return true;
   /*data.challenge = true;
@@ -195,13 +208,13 @@ function filterUsers(id: number) {
 </script>
 
 <template>
-  <div id="player-info">
-    <p>hahahehe</p>
+  <!-- <div id="player-info"> -->
+    <!-- <p>hahahehe</p> -->
     <!-- <button id="haha" -->
     <!-- @click="filterUsers(1)" -->
     <!-- > -->
     <!-- Pong<br /></button> -->
     <!-- <UserLink :other-user=userId></UserLink> -->
-  </div>
+  <!-- </div> -->
   <div :id="containerId" />
 </template>

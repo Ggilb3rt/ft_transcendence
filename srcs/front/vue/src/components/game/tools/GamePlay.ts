@@ -48,6 +48,7 @@ export default class GamePlay {
 
   listenInitGame(scene) {
     scene.socket.on("roomComplete", (state) => {
+		console.log('ROOM COMPLETE')
       scene.roomComplete = true;
       eventsCenter.emit("ready");
       scene.paddleSpeed = state.players[0].speed;
@@ -96,6 +97,7 @@ export default class GamePlay {
 
   listenPlayerMoved(width, height, scene) {
     scene.socket.on("playerMoved", (data) => {
+		console.log("playermoved");
       const { y, roomName, playerNumber } = data;
       if (playerNumber === 1 && playerNumber !== scene.playerNumber) {
         scene.playerOne.y = y;

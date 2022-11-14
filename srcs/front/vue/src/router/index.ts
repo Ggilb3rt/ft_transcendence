@@ -107,7 +107,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:ourGames?/:id?",
+      path: "/game/:type/:level/:roomId?", // 1 = player, 2 = spectator, 3 = challenge
       name: "game",
       component: Game,
     },

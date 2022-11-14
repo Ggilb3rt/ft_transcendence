@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import io, { Socket } from "socket.io-client";
 import GamePlay from "../tools/GamePlay";
+import eventsCenter from "../scenes/EventsCenter";
 
 const f = new GamePlay();
 
@@ -18,6 +19,7 @@ export default class GameScene extends Phaser.Scene {
     this.spectator = data.spectator;
     this.challenge = data.challenge;
     this.challengeInfo = data.challengeInfo;
+	this.challengeId = data.challengeId;
     this.key = data.key;
     this.images = data.images;
     this.custom = data.custom;
@@ -59,7 +61,8 @@ export default class GameScene extends Phaser.Scene {
     /* INIT SOCKET */
     if (!scene.roomComplete) {
       scene.socket = io("http://localhost:3000/game");
-    }
+    } 
+
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -82,7 +85,12 @@ export default class GameScene extends Phaser.Scene {
     /* JOIN QUEUE OR CREATE GAME*/
     if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
       f.joinQueue(scene, scene.level);
-    } else if (
+    } else if (!scene.spectator && scene.challenge) {
+		scene.roomName = scene.challengeId;
+		this.socket.emit("initGame", {roomId: scene.roomName, userId: scene.userId})
+	}
+	
+	/*else if (
       !scene.spectator &&
       !scene.roomComplete &&
       scene.challenge &&
@@ -94,7 +102,7 @@ export default class GameScene extends Phaser.Scene {
         challengeInfo: scene.challengeInfo,
         level: scene.level,
       });
-    }
+    }*/
 
     /* EVENT LISTENERS */
     f.addEventListeners(scene.level, width, height, scene, game);

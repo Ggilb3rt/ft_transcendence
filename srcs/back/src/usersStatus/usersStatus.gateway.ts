@@ -57,7 +57,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 
     async getSockets(client: Socket) {
         const id = await this.usersService.getGatewayToken(client.handshake.headers, client)
-        console.log("id == ", id)
+        //console.log("id == ", id)
         const sockets = await this.fetchUserSockets(id)
         const arr = this.getArrOfId(sockets)
         const arg = {id, sockets}
@@ -88,7 +88,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
 		if (client.handshake.headers.cookie) {
         client.join(makeId(id))
         
-        console.log("DEUXIEME FOIS -------------")
+        //console.log("DEUXIEME FOIS -------------")
         await this.getSockets(client);
         client.broadcast.emit('newStatusConnection', {userId: id, newClient: client.id})
 		}

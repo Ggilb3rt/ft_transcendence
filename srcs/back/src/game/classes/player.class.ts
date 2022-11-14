@@ -1,10 +1,15 @@
 export class Player {
-   // y = 0;
-    speed = 500;
-    id = null;
-    game_scores = [];
-    match_score = 0;
-	userId = 0;
-    //level = "";
+	id: number;
+	match_score: number;
+	userId: number;
+
+	constructor(player) {
+		const { id, userId } = player;
+		this.id = id;
+		this.userId = userId;
+		this.match_score = 0;
+	}
 }
+
+
   
