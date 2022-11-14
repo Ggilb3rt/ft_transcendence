@@ -78,6 +78,7 @@ export default class Preloader extends Phaser.Scene {
      {
       scene.sceneName = "WaitingRoom";
       scene.level = 2;
+	  scene.custom = true;
     } else if (
       scene.level == "catPong"/*||
       (scene.challenge === true && scene.challengeInfo.level === 1)*/

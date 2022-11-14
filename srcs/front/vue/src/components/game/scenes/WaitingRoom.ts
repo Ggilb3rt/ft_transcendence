@@ -1,9 +1,6 @@
 import Phaser from "phaser";
 
-import eventsCenter from "./EventsCenter";
-
 export default class WaitingRoom extends Phaser.Scene {
-  private container!: Phaser.GameObjects.Container;
 
   constructor() {
     super("WaitingRoom");
@@ -13,8 +10,8 @@ export default class WaitingRoom extends Phaser.Scene {
     this.level = data.level;
     this.userId = data.userId;
     this.challenge = data.challenge;
-	this.challengeId = data.challengeId;
-	this.challengeInfo = data.challengeInfo;
+    this.challengeId = data.challengeId;
+    this.challengeInfo = data.challengeInfo;
     this.spectator = data.spectator;
     this.key = data.key;
     this.images = data.images;
@@ -39,7 +36,7 @@ export default class WaitingRoom extends Phaser.Scene {
     let { width, height } = this.sys.game.canvas;
     console.log("custom " + scene.custom);
 
-	scene.createWaitingPanel(width, height, scene);
+    scene.createWaitingPanel(width, height, scene);
 
     if (scene.custom === true) {
       this.container = scene.add.container(0, height / 2 - 75);
@@ -49,8 +46,8 @@ export default class WaitingRoom extends Phaser.Scene {
       scene.buttonsBall(width, height, scene);
       scene.doneButton(width, height, scene);
     } else {
-		scene.popUp.setVisible(true);
-		scene.message.setVisible(true);
+      scene.popUp.setVisible(true);
+      scene.message.setVisible(true);
     }
   }
 
@@ -58,7 +55,7 @@ export default class WaitingRoom extends Phaser.Scene {
     const scene = this;
 
     if (scene.doneOK === true) {
-		console.log(scene.settings);
+      console.log(scene.settings);
       scene.scene.pause();
       scene.scene.start("GameScene", {
         level: scene.level,
@@ -74,7 +71,6 @@ export default class WaitingRoom extends Phaser.Scene {
   }
 
   createWaitingPanel(width, height, scene) {
-
     scene.popUp = scene.add.graphics().setVisible(false);
     scene.popUp.lineStyle(1, 0xffffff);
     scene.popUp.fillStyle(0xffffff, 0.5);
@@ -89,18 +85,8 @@ export default class WaitingRoom extends Phaser.Scene {
         boundsAlignH: "center",
         boundsAlignV: "middle",
       })
-      .setShadow(3, 3, "rgba(0,0,0,0.5)", 2).setVisible(false);
-
-    eventsCenter.on(
-      "ready",
-      () => {
-        scene.message.setText("GAME IS ABOUT TO START !");
-        scene.time.delayedCall(2000, function () {
-          scene.scene.stop("WaitingRoom");
-        });
-      },
-      scene
-    );
+      .setShadow(3, 3, "rgba(0,0,0,0.5)", 2)
+      .setVisible(false);
   }
 
   createPanel(width, height, scene) {

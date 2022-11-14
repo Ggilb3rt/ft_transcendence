@@ -1,15 +1,24 @@
 <script setup lang="ts">
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import router from "@/router";
-import { onBeforeUnmount, ref } from "vue";
-import { useStatusStore } from "@/stores/status";
+import { onBeforeUnmount, onMounted, ref } from "vue";
+//import { useStatusStore } from "@/stores/status";
 import { useUserStore } from "@/stores/user";
 import Modal from "@/components/Modal.vue";
-import { shallowEqual } from "@babel/types";
 
 const userStore = useUserStore();
 const userId = userStore.user.id;
-const socket = io("http://localhost:3000/game");
+const socket = io("http://localhost:3000/game", {
+  query: {
+    type: "homeViewSocket",
+  },
+});
+
+window.addEventListener("beforeunload", (e) => {
+  if (socket) {
+    socket.disconnect();
+  }
+});
 
 const canPlay = ref(true);
 const show = ref(false);
@@ -36,6 +45,7 @@ async function findGame(
   } else {
     show.value = true;
   }
+  //router.push({ path: `/game/1/${level}` });
 }
 
 socket.emit("getActiveRoomNames", { type: 1 });

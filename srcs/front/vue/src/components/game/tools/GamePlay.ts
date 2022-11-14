@@ -1,5 +1,4 @@
 import router from "@/router";
-import eventsCenter from "../scenes/EventsCenter";
 
 export default class GamePlay {
   constructor() {}
@@ -22,7 +21,7 @@ export default class GamePlay {
 
   addEventListeners(level, width, height, scene, game) {
     this.listenInitPlayer(scene);
-    this.listenInitGame(scene);
+    this.listenInitGame(scene, game);
     this.listenInitBallMovement(scene);
     this.listenBallMoved(width, height, scene);
     if (level === 3) {
@@ -46,11 +45,17 @@ export default class GamePlay {
     });
   }
 
-  listenInitGame(scene) {
+  listenInitGame(scene, game) {
     scene.socket.on("roomComplete", (state) => {
-		console.log('ROOM COMPLETE')
+      console.log("ROOM COMPLETE");
       scene.roomComplete = true;
-      eventsCenter.emit("ready");
+
+      game.scene.scenes[1].data.scene.message.setText(
+        "GAME IS ABOUT TO START !"
+      );
+      scene.time.delayedCall(2000, function () {
+        scene.scene.stop("WaitingRoom");
+      });
       scene.paddleSpeed = state.players[0].speed;
       scene.time.delayedCall(3000, () => {
         this.startGame(scene);
@@ -97,7 +102,7 @@ export default class GamePlay {
 
   listenPlayerMoved(width, height, scene) {
     scene.socket.on("playerMoved", (data) => {
-		console.log("playermoved");
+      console.log("playermoved");
       const { y, roomName, playerNumber } = data;
       if (playerNumber === 1 && playerNumber !== scene.playerNumber) {
         scene.playerOne.y = y;
@@ -173,7 +178,6 @@ export default class GamePlay {
       scene.playerNumber = 0;
       scene.roomComplete = false;
       scene.socket.disconnect();
-      //alert("3");
       router.push("/");
     });
   }

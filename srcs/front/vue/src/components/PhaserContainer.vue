@@ -5,9 +5,8 @@ import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
 import { useRoute } from "vue-router";
 import Phaser from "phaser";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import router from "@/router";
-import UserLink from "@/components/user/UserLink.vue";
 
 import config from "./game/config";
 import Preloader from "./game/scenes/Preloader";
@@ -20,15 +19,18 @@ const usersStore = useUsersStore();
 const statusStore = useStatusStore();
 const userId = userStore.user.id;
 const route = useRoute();
-const socket = io("http://localhost:3000/game");
+//let socket: Socket;
+const socket = io("http://localhost:3000/game", {
+  query: {
+    type: "phaserContainerSocket",
+  },
+});
+//alert("INIT 1");
 const urlQuery = route.query.challenge;
 const urlLevel = String(route.params.level);
 const urlType = Number(route.params.type);
 const urlRoomId = String(route.params.roomId);
 const validLevels = ["pong", "catPong", "customizable"];
-let inGame = false;
-let oppInGame = false;
-//let error = false;
 let activeRoomNames: string[];
 let gameInstance: Game;
 const data = {
@@ -38,31 +40,27 @@ const data = {
   challengeId: "",
   key: "",
   level: "",
-  /*challengeInfo: {
-    challenger: "",
-    level: 0,
-    challenged: "",
-	challengeId:
-  },*/
 };
 
 window.addEventListener("beforeunload", (e) => {
   disconnectGameSocket();
   destroyGame();
-  if (socket) {
+  if (socket !== undefined) {
     socket.disconnect();
   }
-  statusStore.changeCurrentUserStatus("available", userId);
+  //statusStore.changeCurrentUserStatus("available", userId);
+  //statusStore.changeChallengeForIngame(false);
+  //router.push("/");
 });
 
-socket.emit("isUserInGame", { userId });
+/*socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
   if (data.userId === userId) {
     inGame = data.bool;
   } else {
     oppInGame = data.bool;
   }
-});
+});*/
 
 onMounted(() => {
   if (!urlLevel && !urlQuery) {
@@ -75,6 +73,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   statusStore.changeCurrentUserStatus("available", userId);
+  statusStore.changeChallengeForIngame(false);
   disconnectGameSocket();
   destroyGame();
   if (socket) {
@@ -87,11 +86,11 @@ function initGame() {
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = Object.keys(payload.roomNames);
 
-	console.log("TYPE " + urlType);
-	console.log("LEVEL " + urlLevel);
-	console.log("URL ROOMID " + urlRoomId)
+    console.log("TYPE " + urlType);
+    console.log("LEVEL " + urlLevel);
+    console.log("URL ROOMID " + urlRoomId);
 
-    if (isValidType() && isValidGame()/* && !error*/) {
+    if (isValidType() && isValidGame() /* && !error*/) {
       launchGame();
     } else {
       router.replace("/");
@@ -100,46 +99,17 @@ function initGame() {
 }
 
 function isValidType(): boolean {
-  if (urlType !== 1 && urlType !== 2 && urlType !== 3) {
+  if (urlType < 0 || urlType > 3) {
     return false;
   }
+  console.log("URL TYPE" + urlType);
   if (urlType === 2) {
-	data.spectator = true;
+    data.spectator = true;
   } else if (urlType === 3) {
-	data.challenge = true;
-	data.challengeId = urlRoomId;
+    data.challenge = true;
+    data.challengeId = urlRoomId;
   }
-  //console.log("urlQUERY " + urlQuery);
-  //const challenge = JSON.parse(String(urlQuery)); // A VERIF
-  //console.log("challenge" + challenge.challenger);
-
-  /*let opponent; 
-  if (challenge.challenger === userId) {
-	opponent = challenge.challenged;
-  } else {
-	opponent = challenge.challenger;
-  }
-  //const opponent = challenge.challenged;
-  socket.emit("isUserInGame", { opponent });
-  console.log("OPPINGAME " + oppInGame)
-   if (!oppInGame) { // Si l'autre utilisateur n'est plus ingame, c'est que c'est un reload;
-   	error = true;
-   } else {*/
-  //data.challenge = true;
-  //data.challengeInfo.challenger = challenge.challenger;
-  //data.challengeInfo.level = Number(challenge.level);
-  //data.challengeInfo.challenged = challenge.challenged;
-  //}
-
-  //console.log("DATA CHALLENGE ");
-  //console.log(data.challengeInfo);
-
   return true;
-  /*data.challenge = true;
-  data.challengeInfo.challenger = challenge.challenger;
-  data.challengeInfo.level = Number(challenge.level);
-  data.challengeInfo.challenged = challenge.challenged;
-  return true;*/
 }
 
 function isValidGame(): boolean {
@@ -149,14 +119,14 @@ function isValidGame(): boolean {
 
   if (validLevels.includes(urlLevel)) {
     data.level = urlLevel;
-    /*if (urlRoomId) {
+    if (urlRoomId) {
       if (activeRoomNames.includes(urlRoomId)) {
         data.key = urlRoomId;
-        data.spectator = true;
+        //data.spectator = true;
       } else {
-        error = true;
+        return false;
       }
-    }*/
+    }
   }
   return true;
 }
@@ -173,7 +143,9 @@ class Game extends Phaser.Game {
 
 function launchGame() {
   socket.emit("addUserId", { userId });
+  console.log("ADD USER " + userId);
   statusStore.changeCurrentUserStatus("inGame", userId);
+  statusStore.changeChallengeForIngame(true);
   socket.on("userAdded", () => {
     gameInstance = new Game();
   });
@@ -193,28 +165,8 @@ function destroyGame() {
     gameInstance.destroy(false);
   }
 }
-
-function filterUsers(id: number) {
-  console.log("USER LIST");
-  console.log(usersStore.userList);
-  usersStore.userList.forEach((user, i) => {
-    console.log(usersStore.userList[i]);
-    if (user.id === id) {
-      console.log(usersStore.userList[i]);
-      return usersStore.userList[i];
-    }
-  });
-}
 </script>
 
 <template>
-  <!-- <div id="player-info"> -->
-    <!-- <p>hahahehe</p> -->
-    <!-- <button id="haha" -->
-    <!-- @click="filterUsers(1)" -->
-    <!-- > -->
-    <!-- Pong<br /></button> -->
-    <!-- <UserLink :other-user=userId></UserLink> -->
-  <!-- </div> -->
   <div :id="containerId" />
 </template>

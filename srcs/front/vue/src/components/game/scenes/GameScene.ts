@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import io, { Socket } from "socket.io-client";
 import GamePlay from "../tools/GamePlay";
-import eventsCenter from "../scenes/EventsCenter";
 
 const f = new GamePlay();
 
@@ -19,7 +18,7 @@ export default class GameScene extends Phaser.Scene {
     this.spectator = data.spectator;
     this.challenge = data.challenge;
     this.challengeInfo = data.challengeInfo;
-	this.challengeId = data.challengeId;
+    this.challengeId = data.challengeId;
     this.key = data.key;
     this.images = data.images;
     this.custom = data.custom;
@@ -61,13 +60,25 @@ export default class GameScene extends Phaser.Scene {
     /* INIT SOCKET */
     if (!scene.roomComplete) {
       scene.socket = io("http://localhost:3000/game");
-    } 
-
+		//alert("INIT 2");
+	}
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
-      scene.scene.launch("WaitingRoom", { custom: false });
+      console.log("NOT SPECTATOR");
+      scene.scene.launch("WaitingRoom", {
+        level: scene.level,
+        userId: scene.userId,
+        spectator: scene.spectator,
+        challenge: scene.challenge,
+        challengeInfo: scene.challengeInfo,
+        key: scene.key,
+        images: scene.images,
+        settings: scene.settings,
+        custom: false,
+      });
     } else {
+      console.log("SPECTATOR");
       f.watchGame(scene);
       scene.roomComplete = true;
     }
@@ -79,30 +90,19 @@ export default class GameScene extends Phaser.Scene {
       scene.images,
       width,
       height,
-      scene,
+      scene
     );
 
-    /* JOIN QUEUE OR CREATE GAME*/
+    /* JOIN QUEUE OR JOIN EXISTING GAME*/
     if (!scene.spectator && !scene.roomComplete && !scene.challenge) {
       f.joinQueue(scene, scene.level);
-    } else if (!scene.spectator && scene.challenge) {
-		scene.roomName = scene.challengeId;
-		this.socket.emit("initGame", {roomId: scene.roomName, userId: scene.userId})
-	}
-	
-	/*else if (
-      !scene.spectator &&
-      !scene.roomComplete &&
-      scene.challenge &&
-      scene.playerNumber === 0
-    ) {
-      console.log("CREATE GAME");
-      scene.socket.emit("createGame", {
+    } else if (!scene.spectator && !scene.roomComplete && scene.challenge) {
+      scene.roomName = scene.challengeId;
+      this.socket.emit("initGame", {
+        roomId: scene.roomName,
         userId: scene.userId,
-        challengeInfo: scene.challengeInfo,
-        level: scene.level,
       });
-    }*/
+    }
 
     /* EVENT LISTENERS */
     f.addEventListeners(scene.level, width, height, scene, game);
