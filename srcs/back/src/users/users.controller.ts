@@ -146,7 +146,6 @@ export class UsersController {
         })
     ) file: Express.Multer.File, @Req() req: Request,): Promise<string> {
         const id = await this.usersService.getToken(req)
-        
         return (this.usersService.changeAvatar(id, file));
     }
 
@@ -155,6 +154,14 @@ export class UsersController {
     @Header('Content-Type', 'image/jpeg')
     @Header('Content-Disposition', 'attachment; filename="your_avatar.jpeg"')
     async getAvatar(@Param('id', ParseIntPipe) id): Promise<StreamableFile> {
+        const file = createReadStream(await this.usersService.getAvatar(id))
+        return new StreamableFile(file);
+    }
+
+    @Get('/default')
+    @Header('Content-Type', 'image/jpeg')
+    @Header('Content-Disposition', 'attachment; filename="your_avatar.jpeg"')
+    async getDefault(@Param('id', ParseIntPipe) id): Promise<StreamableFile> {
         const file = createReadStream(await this.usersService.getAvatar(id))
         return new StreamableFile(file);
     }

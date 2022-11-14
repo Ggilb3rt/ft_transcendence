@@ -277,21 +277,6 @@ class UsersHelper {
       }
     }
 
-    async changeAvatarUrl(id: number, dest: string) {
-      try {
-        const user = await prisma.users.update({
-          where: {id},
-          data:{
-            avatar_url: dest
-          }
-        })
-        return (user)
-      }
-      catch (e) {
-        throw new Error(e)
-      }
-    }
-
     async postOneUser(user: CreateUserDto): Promise<users> {
       try {
         const existsAlready = await prisma.users.findFirst({where:{nick_fourtytwo: user.nick_fourtytwo}})
@@ -326,7 +311,6 @@ class UsersHelper {
       const users = await prisma.users.findMany({select:{
         id:true,
         nickname:true,
-        avatar_url:true
       }})
       return (users);
     }
