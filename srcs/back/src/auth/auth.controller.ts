@@ -59,12 +59,12 @@ export class AuthController {
   @UseGuards(FourtyTwoGuard)
   async secondTime (@Req() req, @Res({passthrough: true}) res: Response) {
     await this.authService.secondTime(req.cookies.jwt)
-    const { accessToken } = await this.jwtAuthService.login(req.user);
+    const {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+    const { accessToken } = await this.jwtAuthService.login({id, username}, false);
     res.cookie("jwt", accessToken, {
       httpOnly:true
     });
     return res.send({status:200, msg: true})
-
   }
 
   @Get('verify')
