@@ -22,7 +22,6 @@ export class AuthService {
           first_connection: false
         }
       })
-
     }
 
     async verify(token: string | null) {

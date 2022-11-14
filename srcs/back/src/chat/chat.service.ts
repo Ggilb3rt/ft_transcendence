@@ -68,6 +68,11 @@ export class ChatService {
         return true
     }
 
+    async getChannelType(channel_id: number) {
+        const type = await this.chatHelper.getChannelType(channel_id)
+        return type.type
+    }
+
     async getChannel(channel_id: number, req) {
         const token = await this.getToken(req);
 

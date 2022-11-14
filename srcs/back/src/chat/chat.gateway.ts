@@ -210,7 +210,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!res)
             return false
         client.broadcast.to(makeId(false, channel_id)).emit('promoted', {
-            promoted: promoted_id,
+            promoted_id: promoted_id,
             channel_id,
             promoted_by: id,
         })
@@ -278,6 +278,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!res)
             return false
         client.broadcast.to(makeId(false, channel_id)).emit('typeChanged', {channel_id, type, id, pass})
+        return true
     }
 
     @SubscribeMessage('mute')
@@ -302,6 +303,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const {channel_id, pass} = basicJoin
+        const type: string = await this.chatService.getChannelType(channel_id)
+        if (!type || type == 'private') {
+            return false
+        }
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
         // console.log("res == ", res)
         if (res.status == false)
