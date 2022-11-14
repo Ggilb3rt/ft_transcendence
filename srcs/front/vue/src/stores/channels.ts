@@ -516,7 +516,11 @@ export const useChannelsStore = defineStore('channels', () => {
 					name: newChan.ChanName,
 					id: newChan.id
 				})
-				await getChan(newChan.id)
+				if (newChan.type == "pass")
+					emitJoin(newChan.id, newChan.pass)
+				else
+					emitJoin(newChan.id)
+				// await getChan(newChan.id)
 				return true
 			}
 			return false
