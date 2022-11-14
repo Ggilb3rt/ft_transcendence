@@ -39,7 +39,7 @@ async function testConnection() {
   try {
     console.log("Test Connection premiere ligne == ", userStore.conStatus)
     // userStore.loading = true
-  if (userStore.conStatus == setStatus.connected) {
+  if (userStore.conStatus == setStatus.connected || userStore.conStatus == setStatus.first_co) {
     const response = await fetch(`http://localhost:3000/users/current`, {credentials: "include"})
     localStorage.clear();
     var data;

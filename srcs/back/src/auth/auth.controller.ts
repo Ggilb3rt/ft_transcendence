@@ -17,8 +17,8 @@ export class AuthController {
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body('code') code: string, @Res() res: Response) {
       console.log("debut 2fa; code: ", code)
-      console.log("validate == ", await this.jwtAuthService.validate(req.cookies.jwt).validate)
-      let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+      console.log("validate == ", await this.jwtAuthService.validate(req.cookies.jwt, res).validate)
+      let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt, res).validate
       console.log("id and username valides ", id, username)
       // const isCodeValid = await this.usersService.isCodeValid(code, id)
       // console.log("code is valide ?", code, isCodeValid)
@@ -58,8 +58,8 @@ export class AuthController {
   @Get('first')
   @UseGuards(JwtAuthGuard)
   async secondTime (@Req() req, @Res({passthrough: true}) res: Response) {
-    await this.authService.secondTime(req.cookies.jwt)
-    const {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+    await this.authService.secondTime(req.cookies.jwt, res)
+    const {id, username} = await this.jwtAuthService.validate(req.cookies.jwt, res).validate
     const { accessToken } = await this.jwtAuthService.login({id, username}, false);
 
     res.cookie("jwt", accessToken, {
@@ -70,9 +70,10 @@ export class AuthController {
   }
 
   @Get('verify')
-  @HttpCode(200)
-  async verif(@Req() req) {
-    return (this.authService.verify(req.cookies.jwt))
+  async verif(@Req() req, @Res() res: Response) {
+    const ret = await this.authService.verify(req.cookies.jwt, res)
+    console.log("ret = ", ret)
+    res.send(ret)
   }
 
   @Get('logout')

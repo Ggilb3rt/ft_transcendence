@@ -3,6 +3,9 @@ import { useStatusStore } from '@/stores/status'
 import { useUserStore} from '@/stores/user'
 import MdiCrown from "@/components/icones-bags/MdiCrown.vue"
 import ArcticonsPong from "@/components/icones-bags/ArcticonsPong.vue"
+import MdiSwordCross from "@/components/icones-bags/MdiSwordCross.vue"
+import MdiSword from "@/components/icones-bags/MdiSword.vue"
+import LucideSword from "@/components/icones-bags/LucideSwords.vue"
 
 const userStore = useUserStore()
 const statusStore = useStatusStore()
@@ -22,7 +25,10 @@ function refuseChallenge() {
 	<div v-if="statusStore.status == 'challenged'" class="challenger-timer">
 		<button @click="refuseChallenge()" title="Cancel Challenge">
 			<i>
-				<MdiCrown></MdiCrown>
+				<!-- <MdiCrown></MdiCrown> -->
+				<MdiSwordCross></MdiSwordCross>
+				<MdiSword></MdiSword>
+				<LucideSword></LucideSword>
 				<!-- <ArcticonsPong></ArcticonsPong> -->
 			</i>
 			<!-- Cancel challenge -->

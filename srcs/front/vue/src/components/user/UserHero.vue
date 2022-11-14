@@ -24,6 +24,7 @@ const userStore = useUserStore()
 			:user="userStore.user"
 		/>
 		
+		<img src="http://l" alt="">
 		<UserList title="Friends" :user="userStore.user" :list="userStore.user.friends" canEdit></UserList>
 		<UserList title="Ban" :user="userStore.user" :list="userStore.user.bans" canEdit></UserList>
 		

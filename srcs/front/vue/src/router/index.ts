@@ -144,6 +144,7 @@ router.beforeEach(async (to, from) => {
   //console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
+  console.log("debut router")
   try {
   const res = await fetch(`http://localhost:3000/auth/verify`, {
 			method: 'GET',
@@ -151,6 +152,7 @@ router.beforeEach(async (to, from) => {
 		})
 
     const {status} = await res.json();
+    console.log("les status ", status, to)
     userStore.conStatus = status
     if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
       console.log('userStore.conStatus === ', userStore.conStatus)
