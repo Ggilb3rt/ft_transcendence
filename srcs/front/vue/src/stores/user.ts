@@ -171,7 +171,7 @@ export const useUserStore = defineStore({
           else return;
         // send info to back and wait for res
         const api = mande(
-          "http://localhost:3000/users/" + this.user.id + "/friends",
+          "http://localhost:3000/users/friends",
           { credentials: "include" }
         );
         try {
