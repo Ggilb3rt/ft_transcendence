@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Loader from '@/components/navigation/loader.vue';
+// import Loader from '@/components/navigation/loader.vue';
 
 window.addEventListener('beforeunload', () => {
   localStorage.setItem('second listener', 'true')
@@ -10,7 +10,7 @@ window.addEventListener('beforeunload', () => {
 <template>
     <div class="loginWrapper">
       <h1>Let's play <br>a <span class="red">game</span></h1>
-      <Loader></Loader>
+      <!-- <Loader></Loader> -->
       <figure>
         <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
         <a href="http://localhost:3000/auth" class="btn">Connection with 42</a>

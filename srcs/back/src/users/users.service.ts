@@ -11,6 +11,7 @@ import { authenticator } from 'otplib';
 import { toFileStream } from 'qrcode';
 import { JwtAuthService } from 'src/jwt-auth/jwt-auth.service';
 import { JwtService } from '@nestjs/jwt';
+const fs = require("fs");
 
   const prisma = new PrismaClient();
 
@@ -22,7 +23,7 @@ export class UsersService {
 
   // ban user
 
-  async verify(token: string | null) {
+  async verify(token: string) {
     if (!token) {
       throw new ForbiddenException("No Token")
     }
@@ -113,7 +114,7 @@ export class UsersService {
       throw new NotFoundException({msg: "No user at this ID", status: false})
     }
 
-    const {nick_fourtytwo, nickname, first_name, last_name, avatar_url, ranking, wins, loses, two_factor_auth, first_connection } = user
+    const {nick_fourtytwo, nickname, first_name, last_name, ranking, wins, loses, two_factor_auth, first_connection } = user
 
     const friends = await this.getFriends(id);
     const bannedBy = await this.getBannedMe(id);
@@ -127,7 +128,6 @@ export class UsersService {
       nickname,
       first_name,
       last_name,
-      avatar_url,
       ranking,
       wins,
       loses,
@@ -292,7 +292,7 @@ export class UsersService {
       //console.log("jesuis la ")
       const user = await prisma.users.findFirst({where:{id}})
 
-      const {nickname, first_name, last_name, avatar_url, ranking, wins, loses} = user
+      const {nickname, first_name, last_name, ranking, wins, loses} = user
       const matches = await this.getMatches(id);
       const friends = await this.getFriends(id);
   
@@ -301,7 +301,6 @@ export class UsersService {
         nickname,
         first_name,
         last_name,
-        avatar_url,
         ranking,
         wins,
         loses,
@@ -333,8 +332,32 @@ export class UsersService {
   async getAvatar(id:number): Promise<string> {
 
     const user = await this.usersHelper.getUser(id);
-    return user.avatar_url;
+
+    const dest: string = path.join('/app/resources/', (id.toString() + '_id.jpeg'))
+
+    if (fs.existsSync(dest)) {
+      return dest
+    }
+    return "/app/resources/default.jpeg"
   }
+
+  extractTokenFromReq = (req) => {
+    let token = null;
+
+    // console.log("extractJwtfromCookie ", req.cookies)
+    if (req && req.cookies) {
+      token = req.cookies['jwt'];
+      // console.log(token)
+    }
+    return token;
+  };
+
+
+  async getToken(req) {
+    const token = this.extractTokenFromReq(req)
+    const verifier = this.validate(token)
+    return verifier.validate.id
+}
 
   async changeAvatar(id:number, file: Express.Multer.File): Promise<string> {
     
@@ -350,7 +373,6 @@ export class UsersService {
     } catch (e) {
       throw new Error('writing file to fs failed')
     }
-    const ret = await this.usersHelper.changeAvatarUrl(id, dest);
     //console.log(ret)
     return (dest);
   }

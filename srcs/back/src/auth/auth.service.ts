@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 export class AuthService {
     constructor(private jwtAuthService: JwtAuthService) {}
 
-    async secondTime(token: string | null) {
+    async secondTime(token: string) {
       if (!token) {
         throw new ForbiddenException("Need Token")
       }
@@ -24,18 +24,21 @@ export class AuthService {
       })
     }
 
-    async verify(token: string | null) {
+    async verify(token: string) {
+      console.log("dans verify token = ", token)
         if (!token) {
+          console.log("je return")
             return {status: 2}
           }
-        const {validate} = await this.jwtAuthService.validate(token);
+
+        const {validate} = this.jwtAuthService.validate(token);
 
         // console.log("VALIDATE === ", validate)
         if (!validate || !validate.id) {
           throw new ForbiddenException("Invalid Token")
         }
         if (validate.first_time == true) {
-          return {status: 0}
+          return {status: 3}
         }
         if (validate.isAuth || !validate.two_factor_auth) {
           return {status: 0}

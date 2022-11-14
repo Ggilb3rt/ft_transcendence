@@ -109,8 +109,7 @@ model users {
   first_name                                 String
   last_name                                  String
   nickname                                   String   @unique
-  nick_fourtytwo                             String   @unique          
-  avatar_url                                 String   @default("/app/resources/default.jpg")       
+  nick_fourtytwo                             String   @unique             
   ranking                                    Int? @default(0)
   wins                                       Int? @default(0)
   loses                                      Int? @default(0)

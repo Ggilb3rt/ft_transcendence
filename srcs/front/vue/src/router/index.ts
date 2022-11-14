@@ -9,6 +9,7 @@ import Channel from "@/views/ChannelView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
 import { setStatus, useUserStore } from "@/stores/user";
+import { useChannelsStore } from "@/stores/channels";
 import { useStatusStore } from "@/stores/status";
 
 
@@ -20,6 +21,7 @@ const ourGames: gameList = 'pong';
 const Dashboard = () => import("@/views/DashboardView.vue")
 // const DashOther = () => import("@/views/DashOtherView.vue")
 const Game = () => import("@/views/GameView.vue")
+const FisrtConnection = () => import("@/views/FirstConnection.vue")
 
 function goToDisconnect() {
   const userStore = useUserStore()
@@ -111,6 +113,11 @@ const router = createRouter({
       name: "game",
       component: Game,
     },
+    {
+      path: "/first",
+      name: "first",
+      component: FisrtConnection,
+    },
     // {
     //   // cf https://router.vuejs.org/guide/essentials/named-views.html
     //   path: "/chat/room",
@@ -138,6 +145,7 @@ router.beforeEach(async (to, from) => {
   //console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
+  console.log("debut router")
   try {
   const res = await fetch(`http://localhost:3000/auth/verify`, {
 			method: 'GET',
@@ -145,8 +153,12 @@ router.beforeEach(async (to, from) => {
 		})
 
     const {status} = await res.json();
+    console.log("les status ", status, to)
     userStore.conStatus = status
-    if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
+    if (status == setStatus.first_co && to.name != "first") {
+      return { name: "first" }
+    }
+    else if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
       console.log('userStore.conStatus === ', userStore.conStatus)
       return { name: "2fa"}
     }

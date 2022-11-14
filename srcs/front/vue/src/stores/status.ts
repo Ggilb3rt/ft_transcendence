@@ -213,34 +213,23 @@ export const useStatusStore = defineStore({
                 });
               }
             }
-          }
-        });
-        this.socket.on("refuseChallenge", () => {
-          this.finishChallenge();
-        });
-        return;
-      } else {
-        setTimeout(this.setupSocket, 100);
-      }
-    },
-
-    async setup(id: number) {
-      // Check to do it only once
-      if (this.setuped == false) {
-        this.socket = io("http://localhost:3000/userStatus", {
-          withCredentials: true,
-        });
-		/*this.socketGame = io("http://localhost:3000/game", {
-          query: {
-            type: "storeGameSocket",
-          },
-        });*/
-        this.id = id;
-        this.setupSocket();
-        this.status = "available";
-        this.setuped = true;
-      }
-    },
+            else {
+                setTimeout(this.setupSocket, 100)
+            }
+        },
+        
+        async setup(id: number) {
+            // Check to do it only once
+            if (this.setuped == false) {
+              this.socket = io('http://localhost:3000/userStatus', {
+      withCredentials: true,
+    })
+                this.id = id
+                this.setupSocket()
+                this.status = 'available'
+                this.setuped = true;
+            }
+        },
 
     onClose() {
       this.socket.close();

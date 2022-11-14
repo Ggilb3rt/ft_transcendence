@@ -31,6 +31,9 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	const refsocket = ref(io('http://localhost:3000/chat', {
 		withCredentials: true,
+		query: {
+			userId: userStore.user.id
+		}
 	}));
 
 	const loading = ref<boolean>(false)
@@ -39,14 +42,19 @@ export const useChannelsStore = defineStore('channels', () => {
 	function getChanIndex(rhs: number, isDirect: boolean): number {
 		const directType: TChannelType = "direct"
 		if (!isDirect) {
-			return openChan.value.findIndex((elem) => {
+			const toto = openChan.value.findIndex((elem) => {
+				console.log("promoet getCHanIndex", elem)
 				return elem.getId() === rhs && elem.getType() != directType
 			})
+			console.log("toto = ", toto)
+			return toto
 		}
-		return openChan.value.findIndex((elem) => {
-			console.log("elem values ", elem.getType() === directType)
-			return elem.getId() === rhs && elem.getType() === directType
-		})
+		else {
+			return openChan.value.findIndex((elem) => {
+				console.log("elem values ", elem.getType() === directType)
+				return elem.getId() === rhs && elem.getType() === directType
+			})
+		}
 	}
 	// privates functions
 	function moveToAnotherArray<T>(arrFrom: Array<T>, arrTo: Array<T>, index: number) {
@@ -191,9 +199,9 @@ export const useChannelsStore = defineStore('channels', () => {
 	function emitJoin(channel_id: number, pass?: string) {
 		refsocket.value.emit("join", {channel_id: channel_id, pass},  (res: any) => {
 			console.log("le joiiiiiin ", res)
-			if (res.status === false && res.msg.includes("pass")) {
-				console.log("need password")
-				error.value = `${res.msg}/${channel_id}`
+			if (res.status === false) {
+				if (res.msg.includes("pass"))
+					error.value = `${res.msg}/${channel_id}`
 			}
 			else {
 				// ce serai cool d'avoir les infos direct si le join est ok
@@ -222,6 +230,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			console.log("la roome id quand je recois un message", msg.receiver)
 			const index : number = getChanIndex(msg.receiver, false)
 			console.log("son index", index)
+			console.log("le message ", msg)
 			if (index === -1)
 				return
 			openChan.value[index].unBan(msg.sender)
@@ -267,17 +276,20 @@ export const useChannelsStore = defineStore('channels', () => {
 	}
 
 	function handlePromotion(args: {
-		promoted: number,
+		promoted_id: number,
 		channel_id: number,
-		promoted_by: number	})
-		
-		{
+		promoted_by: number
+	})
+	{
+		console.log("_________before index", args)
 		const index: number = getChanIndex(args.channel_id, false)
-		if (index === -1) {
+		console.log("__________promote index ", index)
+		if (index == -1) {
 			return
 		}
-		openChan.value[index].adminList.push(args.promoted)
-		openChan.value[index].messages.push(createCustomMessage(args.promoted_by, 'promoted', args.promoted, -1))
+		openChan.value[index].adminList.push(args.promoted_id)
+		console.log("open chan ")
+		openChan.value[index].messages.push(createCustomMessage(args.promoted_by, 'promoted', args.promoted_id, -1))
 	}
 
 	function handleBan(args: {
@@ -389,7 +401,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		refsocket.value.on('messageSentToChannel', handleMessage)
 		refsocket.value.on('directMessageSent', handleMessage)
 		refsocket.value.on('typeChanged', handleTypeChange)
-		refsocket.value.on('promote', handlePromotion)
+		refsocket.value.on('promoted', handlePromotion)
 		refsocket.value.on('demoted', handleDemote)
 		refsocket.value.on('ban', handleBan)
 		refsocket.value.on('kick', handleKick)
@@ -459,6 +471,7 @@ export const useChannelsStore = defineStore('channels', () => {
 			// if (isChanInList(id))
 			// 	return
 			try {
+				console.log(`JE FETCH LE CHANNEL ${id}`)
 				const response: Response = await fetch(`http://localhost:3000/channels/${id}`, {credentials: "include"})
 				let data: IChannel;
 				if (response.status >= 200 && response.status < 300)
@@ -503,7 +516,11 @@ export const useChannelsStore = defineStore('channels', () => {
 					name: newChan.ChanName,
 					id: newChan.id
 				})
-				await getChan(newChan.id)
+				if (newChan.type == "pass")
+					emitJoin(newChan.id, newChan.pass)
+				else
+					emitJoin(newChan.id)
+				// await getChan(newChan.id)
 				return true
 			}
 			return false

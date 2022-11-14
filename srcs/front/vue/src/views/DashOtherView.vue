@@ -2,6 +2,7 @@
 import { watch } from "vue";
 import router from "@/router";
 import { useUsersStore } from "@/stores/users";
+import { useUserStore } from "@/stores/user";
 import UserHero from "@/components/user/UserHero.vue";
 import UserGameStats from "@/components/user/UserGameStats.vue"
 import UserMatchHistory from "@/components/user/UserMatchHistory.vue";
@@ -10,6 +11,7 @@ import UserBasicsOther from "@/components/user/UserBasicsOther.vue";
 import Loader from "@/components/navigation/loader.vue"
 
 const usersStore = useUsersStore()
+const userStore = useUserStore()
 
 </script>
 
@@ -25,9 +27,10 @@ const usersStore = useUsersStore()
 			:user-win-rate="usersStore.getUserWinRate()"
 		/>
 
-		<UserMatchHistory :user="usersStore.user" />
-
-		<UserList title="Friends" :user="usersStore.user" :list="usersStore.user.friends"></UserList>
+			<div v-if="userStore.isFriends(usersStore.user.id)">
+				<UserMatchHistory :user="usersStore.user" />
+				<UserList title="Friends" :user="usersStore.user" :list="usersStore.user.friends"></UserList>
+			</div>
 		</div>
 	</div>
 	<div v-else-if="usersStore.loading" class="vue_wrapper dashboard">

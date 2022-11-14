@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jwt-auth.strategy';
 import { PrismaClient } from '@prisma/client';
@@ -29,8 +29,8 @@ export class JwtAuthService {
 
   validate(token) {
     // console.log("token in validate in jwt-auth service", token)
-    return {
+      return {
         validate: this.jwtService.verify(token)
-    }
+      }
   }
 }

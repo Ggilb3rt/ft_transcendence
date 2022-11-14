@@ -81,19 +81,8 @@ function isAdmin(el: sideNavLink): boolean {
 </script>
 
 <template>
-	<ul :class="{side_right: onRight, side_left: !onRight}" class="second_side_menu">
-		<button 
-			v-if="winWidth < 768"
-			class="btn_side"
-			@click="toggle(0)"
-		>
-			<i class="icon_btn">
-				<CarbonClose></CarbonClose>
-			</i>
-		</button>
-
 		<li>
-			<button @click="toggle(0)">Friends [{{ isOpen(0) ? '-' : '+' }}]</button>
+			<button @click="toggle(0)" class="folder">Friends [{{ isOpen(0) ? '-' : '+' }}]</button>
 			<nav class="bold">
 				<ul v-show="isOpen(0)">
 					<li v-for="el in usersStore.getUsersListForChat(userStore.getFriendsList())" :key="el.id">
@@ -103,7 +92,7 @@ function isAdmin(el: sideNavLink): boolean {
 					</li>
 				</ul>
 			</nav>
-			<button @click="toggle(1)">Current user [{{ isOpen(1) ? '-' : '+' }}]</button>
+			<button @click="toggle(1)" class="folder">Current user [{{ isOpen(1) ? '-' : '+' }}]</button>
 			<nav class="bold">
 				<ul v-show="isOpen(1)">
 					<li v-for="el in usersStore.getUsersListForChat(channelsStore.getUsersInChannel())" :key="el.id">
@@ -114,106 +103,8 @@ function isAdmin(el: sideNavLink): boolean {
 				</ul>
 			</nav>
 		</li>
-	</ul>
 </template>
 
 <style scoped>
-.second_side_menu {
-	height: calc(100vh - 89px);
-	overflow-y: scroll;
-	overflow-x: hidden;
-	display: none;
-	background: #000;
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	z-index: 10;
-	padding: 20px 10px;
-}
-
-.channel_link {
-	/* display: flex; */
-	overflow: hidden;
-	position: relative;
-}
-.channel_link:hover .btn_hide {
-	right: 0;
-}
-
-.btn_hide {
-	position: absolute;
-	border: none;
-	color: var(--vt-c-white-mute);
-	width: 25px;
-	height: 25px;
-	right: -25px;
-	transition: right .3s ease-in-out;
-}
-.btn_join {
-	background: var(--global-c-blue);
-}
-.btn_leave {
-	background: var(--global-c-red);
-}
-
-.btn_side {
-	font-size: 1.5rem;
-	display: inline-flex;
-}
-
-.side_left.open {
-	display: block;
-}
-
-.side_right.open {
-	display: block;
-}
-
-ul a, .like-link {
-	word-break: break-all;
-}
-
-ul li button {
-	border: none;
-	background: none;
-	color: gray;
-}
-
-ul li nav {
-	padding-left: 15px;
-}
-
-ul li ul {
-	padding: 0;
-	margin: 10px 0;
-}
-
-ul li ul li a, .like-link {
-	padding: 5px;
-	display: block;
-}
-
-/* ul li ul li:nth-child(even) a{
-	background: var(--color-background-soft);
-} */
-
-ul li ul li:nth-child(n+2) a{
-	/* border-top: 1px solid #fff; */
-}
-
-@media screen and (min-width: 768px) {
-	.second_side_menu {
-		position: relative;
-		width: 20vw;
-	}
-}
-
-@media screen and (min-width: 1024px) {
-	.side_right, .side_left {
-		width: calc(1 / 6 * 100%);
-	}
-}
-
 
 </style>

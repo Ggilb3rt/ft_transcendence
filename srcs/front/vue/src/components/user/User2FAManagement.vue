@@ -13,7 +13,7 @@ const disable2FACode = ref("")
 async function enable2FA() {
 	// send to server
 	try {
-		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
+		await fetch(`http://localhost:3000/users/2fa`, {
 			method: 'POST',
 			headers: {
 				// 'Accept': 'application/json',
@@ -55,7 +55,7 @@ async function enable2FA() {
 
 async function disable2FA() {
 	try {
-		await fetch(`http://localhost:3000/users/${userStore.user.id}/2fa`, {
+		await fetch(`http://localhost:3000/users/2fa`, {
 			method: 'POST',
 			headers: {
 				// 'Accept': 'application/json',

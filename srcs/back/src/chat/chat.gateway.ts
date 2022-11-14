@@ -92,7 +92,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     @SubscribeMessage('getMyRooms')
     async getMyRooms(client: Socket) {
 
-        const user_id = await this.chatService.getGatewayToken(client.handshake.headers, client)
+        let user_id;
+        if (!client.handshake.headers.cookie)
+            user_id = client.handshake.query.userId;
+        else
+            user_id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const ids: number[] = [];
         const rooms: string[] = [];
@@ -210,8 +214,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!res)
             return false
         client.broadcast.to(makeId(false, channel_id)).emit('promoted', {
-            promoted_id,
-            channel_id
+            promoted_id: promoted_id,
+            channel_id,
+            promoted_by: id,
         })
         return true
     }
@@ -277,6 +282,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         if (!res)
             return false
         client.broadcast.to(makeId(false, channel_id)).emit('typeChanged', {channel_id, type, id, pass})
+        return true
     }
 
     @SubscribeMessage('mute')
@@ -301,6 +307,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const {channel_id, pass} = basicJoin
+        const type: string = await this.chatService.getChannelType(channel_id)
+        if (!type || type == 'private') {
+            return {msg: "private", status: false}
+        }
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
         // console.log("res == ", res)
         if (res.status == false)

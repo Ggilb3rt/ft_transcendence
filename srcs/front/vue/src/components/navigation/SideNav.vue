@@ -19,9 +19,6 @@ const usersStore = useUsersStore()
 function isOpen(index: number) {
 	return props.model.items[index].isOpen
 }
-function isFolder(index: number) {
-	return props.model.items[index].children && props.model.items[index].children.length
-}
 function toggle(index: number) {
 	props.model.items[index].isOpen = !props.model.items[index].isOpen
 }
@@ -34,59 +31,18 @@ function updateWinWidthValue(e: Event) {
 			props.model.isOpen = false
 }
 
-function getChanIdFromLink(link: string): number {
-	return parseInt(link.split('/').at(-1))
-}
-
-function leaveChannel(link: string) {
-	const id: number = getChanIdFromLink(link)
-	
-	if(id && confirm(`You want to leave chan ${id} ?`)) {
-		// emit to server
-		if (channelsStore.currentChan)
-			channelsStore.emitQuitChannel(channelsStore.currentChan.getId())
-		console.log("you leave chan", id)
-	}
-}
-
-function joinChannel(e: Event, link: string) {
-	e.preventDefault()
-	const id: number = getChanIdFromLink(link)
-	// emit sur join et attendre la réponse
-	if (confirm(`join channel '${id}' from '${link}' ?`))
-		if (channelsStore.emitJoin(id))
-			router.push(link)
-}
-
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue(e));
+	console.log("winWidth value ", winWidth.value)
 	// check on start
 	if (winWidth.value >= 768)
 		props.model.isOpen = true
 	else
 		props.model.isOpen = false
-
-	if (props.onRight) {
-		if (channelsStore.currentChan) {
-			if (props.model.items.length > 1) {
-				props.model.items[1].children = usersStore.getUsersListForChat(channelsStore.getUsersInChannel())
-			}
-		}
-		else{
-			if (props.model.items.length > 1) {
-				props.model.items[1].children = []
-			}
-		}
-	}
-	console.log("la side nav ", props.model.items)
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue(e))
-})
-
-onRenderTriggered((e) => {
-	debugger
 })
 
 </script>
@@ -102,37 +58,15 @@ onRenderTriggered((e) => {
 				<CarbonClose></CarbonClose>
 			</i>
 		</button>
-		<li v-for="el, index in model.items" :key="el">
-			<nav
-				:class="{ bold: isFolder(index) }"
-				@click="toggle(index)"
-			>
-				<RouterLink v-if="el.id" :to="el.id">
-					{{ el.name }}
-				</RouterLink>
-				<button v-else>{{ el.name }}
-					<span v-if="isFolder(index)">[{{ isOpen(index) ? '-' : '+' }}]</span>
-				</button>
-			</nav>
-			<nav>
-				<ul v-show="isOpen(index)" v-if="isFolder(index)">
-					<li v-for="child in el.children" :key="child">
-						<a href="#" rel="nofollow" v-if="child.id && el.canJoin" class="channel_link" @click="joinChannel($event, child.id)">{{ child.name }}</a>
-						<RouterLink v-else-if="child.id" :to="child.id" class="channel_link">
-							{{ child.name }}
-							<button v-if="!onRight && !el.canJoin" @click.prevent="leaveChannel(child.id)" class="btn_hide btn_leave"><CarbonClose></CarbonClose></button>
-						</RouterLink>
-						<button v-else>{{ child.name }}</button>
-					</li>
-				</ul>
-			</nav>
-		</li>
+		<slot></slot>
 	</ul>
 </template>
 
-<style scoped>
+<style>
 .second_side_menu {
-	min-height: 100vh;
+	height: calc(100vh - 89px);
+	overflow-y: scroll;
+	overflow-x: hidden;
 	display: none;
 	background: #000;
 	position: absolute;
@@ -140,7 +74,7 @@ onRenderTriggered((e) => {
 	left: 0;
 	right: 0;
 	z-index: 10;
-	padding: 20px;
+	padding: 20px 10px;
 }
 
 .channel_link {
@@ -151,6 +85,17 @@ onRenderTriggered((e) => {
 .channel_link:hover .btn_hide {
 	right: 0;
 }
+.channel_link.router-link-active.router-link-exact-active::before {
+	content: '';
+	display: block;
+	width: 10px;
+	height: 10px;
+	border-radius: 10px;
+	background: white;
+	position: absolute;
+	top: calc(50% - 5px);
+	right: -5px;
+}
 
 .btn_hide {
 	position: absolute;
@@ -159,6 +104,7 @@ onRenderTriggered((e) => {
 	width: 25px;
 	height: 25px;
 	right: -25px;
+	top: calc(50% - 12px);
 	transition: right .3s ease-in-out;
 }
 .btn_join {
@@ -185,9 +131,23 @@ ul a, .like-link {
 	word-break: break-all;
 }
 
+ul li button.folder {
+	border: none;
+	background: none;
+	color: gray;
+	font-size: 15px;
+}
+
+ul li nav {
+	padding-left: 5px;
+	margin-left: 15px;
+	margin-bottom: 15px;
+	border-left: 1px solid rgba(255,255,255,.2);
+}
+
 ul li ul {
 	padding: 0;
-	margin: 10px 0;
+	margin: 0;
 }
 
 ul li ul li a, .like-link {
@@ -200,13 +160,13 @@ ul li ul li a, .like-link {
 } */
 
 ul li ul li:nth-child(n+2) a{
-	border-top: 1px solid #fff;
+	/* border-top: 1px solid #fff; */
 }
 
 @media screen and (min-width: 768px) {
 	.second_side_menu {
 		position: relative;
-		max-width: 15vw;
+		width: 20vw;
 	}
 }
 
@@ -215,6 +175,5 @@ ul li ul li:nth-child(n+2) a{
 		width: calc(1 / 6 * 100%);
 	}
 }
-
 
 </style>

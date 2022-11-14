@@ -44,38 +44,51 @@ export class AuthController {
    @UseGuards(FourtyTwoGuard)
   async authRedirect(@Req() req: Request, @Res({passthrough: true}) res: Response) {
 
-    const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
-    res.cookie('jwt', accessToken, {
-      httpOnly:true,
-    })
-    if (two_factor_auth == false) {
-      return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
+    try {
+      const { accessToken, two_factor_auth } = await this.jwtAuthService.login(req.user);
+      res.cookie('jwt', accessToken, {
+        httpOnly:true,
+      })
+      if (two_factor_auth == false) {
+        return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
+      }
+      else
+        return res.redirect(process.env.URL_LOGIN_2FA)
+    } catch {
+      res.clearCookie('jwt')
+      res.send({status: 2})
     }
-    else
-      return res.redirect(process.env.URL_LOGIN_2FA)
   }
 
-  @Post('first')
-  @UseGuards(FourtyTwoGuard)
+  @Get('first')
+  @UseGuards(JwtAuthGuard)
   async secondTime (@Req() req, @Res({passthrough: true}) res: Response) {
     await this.authService.secondTime(req.cookies.jwt)
-    const { accessToken } = await this.jwtAuthService.login(req.user);
+    const {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
+    const { accessToken } = await this.jwtAuthService.login({id, username}, false);
+
     res.cookie("jwt", accessToken, {
       httpOnly:true
     });
-    return res.send({status:200, msg: true})
 
+    return {status:200, msg: true}
   }
 
   @Get('verify')
   @HttpCode(200)
-  async verif(@Req() req) {
-    return (this.authService.verify(req.cookies.jwt))
+  async verif(@Req() req, @Res() res) {
+    try {
+      res.send(await this.authService.verify(req.cookies.jwt))
+    } catch {
+      res.clearCookie('jwt')
+      res.send({status: 2, test: "YOOOOLOOO"})
+    }
   }
 
   @Get('logout')
   @UseGuards(JwtAuthGuard)
   async logout(@Res() res: Response) {
     res.clearCookie('jwt')
+    res.send({statusCode: 200, message: 'Bye !!'})
   }
 }

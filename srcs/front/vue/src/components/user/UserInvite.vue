@@ -10,7 +10,7 @@ const usersStore = useUsersStore()
 function resInvite(sayYes: boolean, id: number) {
 	if (sayYes) {
 		//console.log(id)
-		userStore.addFriend(id)
+		userStore.acceptInvite(id)
 	}
 	else {
 		userStore.refuseInvite(id)

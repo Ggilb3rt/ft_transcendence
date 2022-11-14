@@ -148,44 +148,11 @@ const route = useRoute()
 const sideNavDataLeft = ref({
 	name: 'Channels',
 	isOpen: false,
-	items: [
-		// {
-		// 	name: 'New',
-		// 	children: null,
-		// 	id '/chat/new'
-		// },
-		{
-			name: 'All channels3',
-			// children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
-			children: channelsStore.getChanListForSideBar(false),
-			canJoin: true,
-			isOpen: false
-		},
-		{
-			name: 'My channels',
-			children: channelsStore.getChanListForSideBar(true),
-			isOpen: true
-		}
-	]
 })
 
 const sideNavDataRight = ref({
 	name: 'Friends',
 	isOpen: false,
-	items: [
-		{
-			name: 'All friends',
-			children: usersStore.getUsersListForChat(userStore.getFriendsList()),
-			isOpen: false
-		},
-		{
-			name: 'Currents users in channel',
-			// children: currentUserList.value,
-			// children: childMounted.value,	// marche pas parceque je devrai props au sideNav qu'il doit se mettre à jour
-			children: usersStore.getUsersListForChat(channelsStore.getUsersInChannel()), // bug, la mise à jour se fait en décalé
-			isOpen: true
-		}
-	]
 })
 
 
@@ -204,13 +171,20 @@ onBeforeMount(() => {
 		<button class="btn_side" @click="sideNavDataLeft.isOpen = !sideNavDataLeft.isOpen">{{ sideNavDataLeft.name }}</button>
 		<button class="btn_side" @click="sideNavDataRight.isOpen = !sideNavDataRight.isOpen">{{ sideNavDataRight.name }}</button>
 		<!-- <SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false"></SideNav> -->
-		<chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft>
+		<!-- <chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft> -->
+		<SideNav :class="{open: sideNavDataLeft.isOpen}" class="item" :model="sideNavDataLeft" :onRight="false">
+			<chatSideNavLeft class="item open" :onRight="false"></chatSideNavLeft>
+		</SideNav>
+
 
 		<Loader v-if="route.name == 'chat' && userStore.loading"></Loader>
 		<CreateChanForm v-else-if="route.name == 'chat'"></CreateChanForm>
 		<router-view v-else></router-view>
-		<chatSideNav class="item open" :onRight="true"></chatSideNav>
-		<!-- <SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true"></SideNav> -->
+		<!-- <chatSideNav class="item open" :onRight="true"></chatSideNav> -->
+
+		<SideNav :class="{open: sideNavDataRight.isOpen}" class="item" :model="sideNavDataRight" :onRight="true">
+			<chatSideNav class="item open" :onRight="true"></chatSideNav>
+		</SideNav>
 		<!-- <ModalNeedPass v-if="channelsStore.error.includes('pass')"></ModalNeedPass> -->
 		<ModalNeedPass></ModalNeedPass>
 		

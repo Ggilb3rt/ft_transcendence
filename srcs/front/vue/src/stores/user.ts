@@ -8,12 +8,14 @@ export enum setStatus {
   connected = 0,
   need2fa,
   needLogin,
+  first_co
 }
 
 export type constatus =
   | setStatus.connected
   | setStatus.need2fa
-  | setStatus.needLogin;
+  | setStatus.needLogin
+  | setStatus.first_co;
 
 export interface IUserStoreState {
   user: IUser;
@@ -141,7 +143,7 @@ export const useUserStore = defineStore({
     },
     async refuseInvite(id: number) {
       const api = mande(
-        "http://localhost:3000/users/" + this.user.id + "/friends",
+        `http://localhost:3000/users/${this.user.id}/pending`,
         { credentials: "include" }
       );
       try {
@@ -161,6 +163,29 @@ export const useUserStore = defineStore({
       if (this.isInvite(id))
         this.user.invites = this.user.invites.filter((item) => item != id);
     },
+    async acceptInvite(id: number) {
+      const api = mande(
+        `http://localhost:3000/users/${this.user.id}/pending`,
+        { credentials: "include" }
+      );
+      try {
+        await api
+          .post({
+            friend: id,
+            valid: true,
+          })
+          .then((data) => {
+            //console.log("data refuse friend invite", data);
+          });
+      } catch (error: any) {
+        //console.log("refuse friend invite err ", error.message);
+        this.error = error.body;
+        return;
+      }
+      if (this.isInvite(id))
+        this.user.invites = this.user.invites.filter((item) => item != id);
+      this.user.friends.push(id);
+    },
     async addFriend(id: number) {
       if (id && !this.isFriends(id)) {
         if (this.isBan(id))
@@ -169,7 +194,7 @@ export const useUserStore = defineStore({
           else return;
         // send info to back and wait for res
         const api = mande(
-          "http://localhost:3000/users/" + this.user.id + "/friends",
+          "http://localhost:3000/users/friends",
           { credentials: "include" }
         );
         try {
@@ -188,7 +213,7 @@ export const useUserStore = defineStore({
         }
         if (this.isInvite(id))
           this.user.invites = this.user.invites.filter((item) => item != id);
-        this.user.friends.push(id);
+        // this.user.friends.push(id);
       }
     },
     async addBan(id: number) {
@@ -199,7 +224,7 @@ export const useUserStore = defineStore({
           else return;
         // send info to back and wait for res
         const api = mande(
-          "http://localhost:3000/users/" + this.user.id + "/ban",
+          "http://localhost:3000/users/ban",
           { credentials: "include" }
         );
         try {
@@ -224,7 +249,7 @@ export const useUserStore = defineStore({
         if (confirm(`Remove ${id} from your friends ?`)) {
           // send info to back and wait for res
           const api = mande(
-            "http://localhost:3000/users/" + this.user.id + "/friends/remove",
+            "http://localhost:3000/users/friends/remove",
             { credentials: "include" }
           );
           try {
@@ -249,7 +274,7 @@ export const useUserStore = defineStore({
         if (confirm(`Remove ${id} from your bans ?`)) {
           // send info to back and wait for res
           const api = mande(
-            "http://localhost:3000/users/" + this.user.id + "/ban/remove",
+            "http://localhost:3000/users/ban/remove",
             { credentials: "include" }
           );
           try {

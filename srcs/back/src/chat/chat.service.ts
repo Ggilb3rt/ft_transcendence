@@ -68,6 +68,11 @@ export class ChatService {
         return true
     }
 
+    async getChannelType(channel_id: number) {
+        const type = await this.chatHelper.getChannelType(channel_id)
+        return type.type
+    }
+
     async getChannel(channel_id: number, req) {
         const token = await this.getToken(req);
 
@@ -222,6 +227,8 @@ export class ChatService {
         if (!await this.chatHelper.isAdmin(channel_id, user_id) && !await this.chatHelper.isOwner(channel_id, user_id))
             return false
         if (!await this.chatHelper.isInChannel(channel_id, id))
+            return false
+        if (await this.chatHelper.isAdmin(channel_id, user_id))
             return false
         await this.chatHelper.addAdmin(id, channel_id)
         return true

@@ -20,7 +20,7 @@ const chanType = ref<TChannelType>("public")
 const chanPass = ref("")
 const chanPassConfirm = ref("")
 const chanUserList = ref([])
-let newChannel = ref<IChannel | {}>({})
+let newChannel = ref<IChannel>()
 
 watch(chanType, (newChanType) => {
 	chanPass.value = ""
@@ -82,7 +82,8 @@ async function sendCreateChan() {
 			// faire des trucs avec la réponse... genre set le bon id
 			console.log("réponse de create ", data)
 			newChannel.value = data
-			await channelsStore.createChan(newChannel.value)
+			if (newChannel.value)
+				await channelsStore.createChan(newChannel.value)
 		}
 	} catch (error: any) {
 		const tempErr = JSON.parse(error.message)
@@ -97,41 +98,44 @@ async function sendCreateChan() {
 
 
 <template>
-	<div class="create_chan_form">
-		<h1>Create a new channel</h1>
-			<input type="text" v-model="chanName" placeholder="channel name" autocomplete="off">
-			<p class="error red" v-if="nameErr">Invalide name</p>
-			<select v-model="chanType">
-					<option>public</option>
-					<option>private</option>
-					<option value="pass">password</option>
-			</select>
-			<div v-if="chanType == 'pass'">
-				<input type="password" v-model="chanPass" placeholder="channel password" autocomplete="off">
-				<input type="password" v-model="chanPassConfirm" placeholder="confirm" autocomplete="off">
-				<p class="error red" v-if="chanPass != chanPassConfirm">Not same password</p>
-				<p class="error red" v-if="chanPass.length < 5">Need at least 5 characters</p>
-			</div>
-			<p v-if="chanType == 'private'">Add some of your friends on this channel</p>
-			<div v-if="chanType == 'private'">
-				<select v-model="chanUserList" multiple>
-					<option :value=user v-for="user in userStore.user.friends" :key="user">
-						{{ usersStore.getUserNickById(user) }}
-					</option>
+	<div class="create_chan_form_wrapper">
+		<div class="create_chan_form">
+			<h1>Create a new channel</h1>
+				<input type="text" v-model="chanName" placeholder="channel name" autocomplete="off">
+				<p class="error red" v-if="nameErr">Invalide name</p>
+				<select v-model="chanType">
+						<option>public</option>
+						<option>private</option>
+						<option value="pass">password</option>
 				</select>
-			</div>
-			<button v-if="chanPass == chanPassConfirm || chanType != 'pass'" @click="sendCreateChan()">Create</button>
-			<div @click="newChannel = {}">
-				<p v-if="newChannel">{{ newChannel }}</p>
-			</div>
-		<hr>
-		<h3><CarbonArrowLeft></CarbonArrowLeft>Join one</h3>
-		<h3>Or send direct message <CarbonArrowRight></CarbonArrowRight></h3>
+				<div v-if="chanType == 'pass'">
+					<input type="password" v-model="chanPass" placeholder="channel password" autocomplete="off">
+					<input type="password" v-model="chanPassConfirm" placeholder="confirm" autocomplete="off">
+					<p class="error red" v-if="chanPass != chanPassConfirm">Not same password</p>
+					<p class="error red" v-if="chanPass.length < 5">Need at least 5 characters</p>
+				</div>
+				<p v-if="chanType == 'private'">Add some of your friends on this channel</p>
+				<div v-if="chanType == 'private'">
+					<select v-model="chanUserList" multiple>
+						<option :value=user v-for="user in userStore.user.friends" :key="user">
+							{{ usersStore.getUserNickById(user) }}
+						</option>
+					</select>
+				</div>
+				<button v-if="chanPass == chanPassConfirm || chanType != 'pass'" @click="sendCreateChan()">Create</button>
+			<hr>
+			<h3><CarbonArrowLeft></CarbonArrowLeft>Join one</h3>
+			<h3>Or send direct message <CarbonArrowRight></CarbonArrowRight></h3>
+		</div>
 	</div>
 </template>
 
 
 <style>
+.create_chan_form_wrapper {
+	padding: 20px;
+}
+
 .create_chan_form {
 	display: flex;
 	flex-flow: column;
@@ -145,9 +149,13 @@ h3 {
 }
 
 @media screen and (min-width: 768px) {
-  .create_chan_form {
-	align-self: flex-start;
-  }
+	.create_chan_form_wrapper {
+		width: 60vw;
+		padding: 10px 10vw;
+	}
+	.create_chan_form {
+		align-self: flex-start;
+	}
 }
 
 </style>

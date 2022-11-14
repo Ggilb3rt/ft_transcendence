@@ -56,8 +56,12 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     }
 
     async getSockets(client: Socket) {
-        const id = await this.usersService.getGatewayToken(client.handshake.headers, client)
-        //console.log("id == ", id)
+        let id
+        if (client.handshake.headers.cookie)
+            id = await this.usersService.getGatewayToken(client.handshake.headers, client)
+        else
+            id = client.handshake.query.userId
+        console.log("id == ", id)
         const sockets = await this.fetchUserSockets(id)
         const arr = this.getArrOfId(sockets)
         const arg = {id, sockets}
@@ -93,7 +97,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         client.broadcast.emit('newStatusConnection', {userId: id, newClient: client.id})
 		}
     }
-
 
     @SubscribeMessage('changeStatus')
     async handleChangeStatus(client: Socket, userStatus: TStatus) {
@@ -163,6 +166,14 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         client.to(makeId(challenge.challenger)).emit('challengeAccepted', challenge)
         client.broadcast.to(makeId(challenge.challenged)).emit('challengeAccepted', challenge)
     }
+
+    @SubscribeMessage('refuseChallenge')
+    async refuseChallenges(client: Socket, challenge: TChallenge) {
+        const {id, sockets} = await this.getSockets(client)
+
+        client.to(makeId(challenge.challenger)).emit('refuseChallenge', challenge)
+        client.broadcast.to(makeId(challenge.challenged)).emit('refuseChallenge', challenge)
+    }
     // @SubscribeMessage('newChallenge')
     // newChallenge(client: Socket, challenge: TChallenge) {
     //     const challenged = this.userArr.findIndex((el) => {/*console.log(el);*/ return el.userId === challenge.challenged})
@@ -197,11 +208,6 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
     //         this.server.emit("newStatusChange", arg2)
     //         return true
     // }
-
-
-    @SubscribeMessage('refuseChallenge')
-    refuseChallenges(client: Socket, challenge: TChallenge) {
-    }
 
     // @SubscribeMessage('refuseChallenge')
     // refuseChallenges(client: Socket, challenge: TChallenge) {
