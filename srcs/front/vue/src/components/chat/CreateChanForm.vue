@@ -123,9 +123,7 @@ async function sendCreateChan() {
 					</select>
 				</div>
 				<button v-if="chanPass == chanPassConfirm || chanType != 'pass'" @click="sendCreateChan()">Create</button>
-			<hr>
-			<h3><CarbonArrowLeft></CarbonArrowLeft>Join one</h3>
-			<h3>Or send direct message <CarbonArrowRight></CarbonArrowRight></h3>
+
 		</div>
 	</div>
 </template>

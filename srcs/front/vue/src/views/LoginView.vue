@@ -27,7 +27,8 @@ window.addEventListener('beforeunload', () => {
   align-items: center;
   height: 100vh;
   padding: 50px;
-  background: url(@/assets/space-flame.png) no-repeat center center;
+  background: #000 url(@/assets/space-flame.png) no-repeat center center;
+  background-size: cover;
 }
 
 .loginWrapper figure {

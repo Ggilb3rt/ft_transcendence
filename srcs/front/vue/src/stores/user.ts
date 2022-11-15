@@ -41,10 +41,21 @@ export const useUserStore = defineStore({
     //     if (state.user)
     //         return `@${state.user.nickname}`
     // },
-    getUserRank: (state): string => {
-      if (state.user.ranking >= 5)
-        return "God"
-      switch (state.user.ranking) {
+  },
+  actions: {
+    // getters and setters
+    getUserNick(): string {
+      return `${this.user.nickname}`;
+    },
+    getFriendsList(): number[] {
+      return this.user.friends;
+    },
+    getWinRate(): number {
+      const calc = (this.user.wins / (this.user.loses + this.user.wins) * 100);
+      return isNaN(calc) ? 0 : calc
+    },
+    getUserRank(): string {
+      switch (this.user.ranking) {
         case 0:
           return "Pipou";
           break;
@@ -60,22 +71,13 @@ export const useUserStore = defineStore({
         case 4:
           return "Master";
           break;
+        case 5:
+          return "God";
+          break;
         default:
           return "Prrrrt";
           break;
       }
-    },
-  },
-  actions: {
-    // getters and setters
-    getUserNick(): string {
-      return `${this.user.nickname}`;
-    },
-    getFriendsList(): number[] {
-      return this.user.friends;
-    },
-    getWinRate(): string {
-      return (this.user.wins / (this.user.loses + this.user.wins) * 100).toPrecision(2) + "%";
     },
     setUserNick(newTag: string) {
       if (this.user) this.user.nickname = newTag;
@@ -96,14 +98,15 @@ export const useUserStore = defineStore({
     },
     async getUser(data: any) {
       // this.loading = true;
-      let winrate = ""
+      let winrate:number = 0
         if (data) {
           this.user = data
           
           if (this.user) {
             this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
             winrate = this.getWinRate()
-            this.user.ranking = (this.user.wins / (this.user.loses + this.user.wins) * 100) % 100 / 2
+            this.user.ranking = Math.round(this.getWinRate()/20)
+            console.log("user ranking ", this.user.ranking)
             if (!this.user.match_history && !this.error) {
               this.user.match_history = new Array();
               if (this.user.matches) {

@@ -4,8 +4,12 @@ import type { IUser, IOtherUser} from '@/types'
 const props = defineProps<{
 	user: IUser | IOtherUser,
   userRank: string,
-  userWinRate: string
+  userWinRate: number
 }>()
+
+function canPrintWinRate(): boolean {
+  return isNaN(props.userWinRate)
+}
 
 </script>
 
@@ -15,11 +19,11 @@ const props = defineProps<{
     <div class="heroGameStat">
       <div>
         <h3>Level</h3>
-        <p class="level statVal">{{ props.userRank }}</p>
+        <p class="level statVal">{{ userRank }}</p>
       </div>
       <div>
         <h3>Win rate</h3>
-        <p class="winRate statVal">{{ props.userWinRate }}</p>
+        <p class="winRate statVal">{{ userWinRate.toFixed(2) }}%</p>
       </div>
       <div>
         <h3>Last battle</h3>

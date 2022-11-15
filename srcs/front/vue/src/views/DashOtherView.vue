@@ -23,7 +23,7 @@ const userStore = useUserStore()
 
 		<UserGameStats
 			:user="usersStore.user"
-			:user-rank="usersStore.getUserRank"
+			:user-rank="usersStore.getUserRank()"
 			:user-win-rate="usersStore.getUserWinRate()"
 		/>
 

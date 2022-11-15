@@ -19,7 +19,6 @@ async function valid() {
 			throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 		}
 		if (data) {
-			console.log("first time ", data)
 			router.push("/home")
 		}
 	} catch (error: any) {
@@ -33,26 +32,56 @@ async function valid() {
 </script>
 
 <template>
-	<div class="loginWrapper">
+	<div class="loginWrapper vue-wrapper">
 		<Loader></Loader>
 		<div>
-			<h1>Welcome to the internet !</h1>
+			<h1>Welcome <span class="red">{{ userStore.user.first_name }}</span> </h1>
+			<p>Please choose your avatar and nick</p>
 		</div>
-		<div class="flex-column">
-			<UserEditableNick></UserEditableNick>
+		<div id="first-wrapper">
 			<UserEditableAvatar class="first-img"></UserEditableAvatar>
-
-			<button @click="valid()" class="btn">Done</button>
+			<div>
+				<h3>Nick based on 42 nick</h3>
+				<UserEditableNick no-hero-name></UserEditableNick>
+			</div>
 		</div>
+		<button @click="valid()" class="btn">Done</button>
 	</div>
 </template>
 
-<style>
+<style scoped>
+
+.loginWrapper {
+	height: auto;
+	gap: 30px;
+	text-align: right;
+}
+
+#first-wrapper {
+	display: flex;
+	flex-direction: column-reverse;
+	gap: 20px;
+}
+
+p {color: var(--vt-c-white-mute); text-shadow: #000 1px 1px 10px;}
+h3 {color: var(--vt-c-white-soft); text-shadow: #000 1px 1px 10px;}
+
 /* .first-img {
 	max-width: 50%;
 	max-height: 50%;
 	object-fit: cover;
 } */
 /* Uses the styles of LoginView.vue */
+
+@media screen and (min-width: 768px) {
+	.loginWrapper {
+		text-align: left;
+	}
+
+	#first-wrapper {
+		flex-direction: row;
+		gap: 20px;
+	}
+}
 
 </style>

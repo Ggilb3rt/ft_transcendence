@@ -124,10 +124,13 @@ onMounted(() => {
     <header
       v-if="
         router.currentRoute.value.path != '/login' &&
-        router.currentRoute.value.path != '/2fa'
+        router.currentRoute.value.path != '/2fa' &&
+        router.currentRoute.value.path != '/first'
       "
     >
+    <RouterLink to="/">
       <img alt="Pong logo" class="logo" src="@/assets/logo.svg" />
+    </RouterLink>
       <PrimaryNav></PrimaryNav>
     </header>
 

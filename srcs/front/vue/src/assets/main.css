@@ -61,12 +61,12 @@ a, .blue, .like-link {
 }
 
 .red {
-  /* color: #EB5757; */
+  color: #EB5757;
   transition: 0.4s;
-  background: linear-gradient(to right,#3E140C, #F15E11);
+  /* background: linear-gradient(to right,#3E140C, #F15E11);
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: transparent; */
 }
 
 .vue_wrapper {
