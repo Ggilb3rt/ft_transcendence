@@ -24,6 +24,7 @@ export default class GameScene extends Phaser.Scene {
     this.custom = data.custom;
     this.level = data.level;
     this.settings = data.settings;
+    this.vueSocket = data.vueSocket;
     this.roomComplete = false;
     this.playerInit = false;
     this.playerNumber = 0;
@@ -57,9 +58,11 @@ export default class GameScene extends Phaser.Scene {
 
     /* INIT SOCKET */
     if (!scene.roomComplete) {
+      if (!scene.spectator) {
+        scene.vueSocket.emit("addUserId", { userId: scene.userId });
+      }
       scene.socket = io("http://localhost:3000/game");
-		//alert("INIT 2");
-	}
+    }
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -82,6 +85,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     /* ADD GAME OBJECTS */
+    console.log("SETINGSSSS");
+    console.log(scene.settings);
     f.createGameObjects(
       scene.level,
       scene.settings,

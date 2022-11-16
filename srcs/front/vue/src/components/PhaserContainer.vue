@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from "vue";
+import { onBeforeUnmount, onMounted, onRenderTriggered } from "vue";
 import { useUserStore } from "@/stores/user";
 import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
@@ -19,19 +19,18 @@ const usersStore = useUsersStore();
 const statusStore = useStatusStore();
 const userId = userStore.user.id;
 const route = useRoute();
-//let socket: Socket;
 const socket = io("http://localhost:3000/game", {
   query: {
     type: "phaserContainerSocket",
   },
 });
-//alert("INIT 1");
 const urlQuery = route.query.challenge;
 const urlLevel = String(route.params.level);
 const urlType = Number(route.params.type);
 const urlRoomId = String(route.params.roomId);
 const validLevels = ["pong", "catPong", "customizable"];
 let activeRoomNames: string[];
+let activeRooms;
 let gameInstance: Game;
 const data = {
   userId,
@@ -40,18 +39,8 @@ const data = {
   challengeId: "",
   key: "",
   level: "",
+  vueSocket: socket,
 };
-
-window.addEventListener("beforeunload", (e) => {
-  disconnectGameSocket();
-  //destroyGame();
-  if (socket !== undefined) {
-    socket.disconnect();
-  }
-  statusStore.changeCurrentUserStatus("available", userId);
-  statusStore.changeChallengeForIngame(false);
-  router.push("/");
-});
 
 /*socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
@@ -84,13 +73,15 @@ onBeforeUnmount(() => {
 function initGame() {
   socket.emit("getActiveRoomNames", { type: 2 });
   socket.on("getActiveRoomNames", (payload) => {
+	activeRooms = payload.roomNames;
     activeRoomNames = Object.keys(payload.roomNames);
+	console.log(activeRooms);
 
     console.log("TYPE " + urlType);
     console.log("LEVEL " + urlLevel);
     console.log("URL ROOMID " + urlRoomId);
 
-    if (isValidType() && isValidGame() /* && !error*/) {
+    if (isValidURL()) {
       launchGame();
     } else {
       router.replace("/");
@@ -98,16 +89,50 @@ function initGame() {
   });
 }
 
-function isValidType(): boolean {
+function isValidURL(): boolean {
   if (urlType < 0 || urlType > 3) {
     return false;
   }
-  console.log("URL TYPE" + urlType);
-  if (urlType === 2) {
+
+  if (!validLevels.includes(urlLevel)) {
+    return false;
+  }
+
+  if (urlType == undefined && urlLevel == undefined) {
+    return false;
+  }
+
+  if (urlType === 1) {
+    data.level = urlLevel;
+    if (urlRoomId) {
+      return false;
+    }
+  } else if (urlType === 2) {
+    if (urlRoomId != undefined && !activeRoomNames.includes(urlRoomId)) {
+      return false;
+    }
     data.spectator = true;
+    data.level = urlLevel;
+    data.key = urlRoomId;
   } else if (urlType === 3) {
-    data.challenge = true;
-    data.challengeId = urlRoomId;
+    console.log("URL ROOM ID " + urlRoomId);
+    console.log("ACTIVE ROOM NAMES " + activeRoomNames);
+    if (urlRoomId != undefined && activeRoomNames.includes(urlRoomId)) {
+      if (
+        activeRooms[urlRoomId].p1 != userId &&
+        activeRooms[urlRoomId].p2 != userId
+      ) {
+        data.spectator = true;
+        data.level = urlLevel;
+        data.key = urlRoomId;
+      } else {
+        data.challenge = true;
+        data.challengeId = urlRoomId;
+        data.level = urlLevel;
+      }
+    } else {
+      return false;
+    }
   }
   return true;
 }
@@ -120,15 +145,16 @@ function isValidGame(): boolean {
   if (validLevels.includes(urlLevel)) {
     data.level = urlLevel;
     if (urlRoomId) {
-      if (activeRoomNames.includes(urlRoomId)) {
+      if (urlType === 2 && activeRoomNames.includes(urlRoomId)) {
         data.key = urlRoomId;
-        //data.spectator = true;
+        data.spectator = true;
       } else {
         return false;
       }
     }
+    return true;
   }
-  return true;
+  return false;
 }
 
 class Game extends Phaser.Game {
@@ -142,13 +168,9 @@ class Game extends Phaser.Game {
 }
 
 function launchGame() {
-  socket.emit("addUserId", { userId });
-  console.log("ADD USER " + userId);
   statusStore.changeCurrentUserStatus("inGame", userId);
   statusStore.changeChallengeForIngame(true);
-  socket.on("userAdded", () => {
-    gameInstance = new Game();
-  });
+  gameInstance = new Game();
 }
 
 function disconnectGameSocket() {

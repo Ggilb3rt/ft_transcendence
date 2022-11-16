@@ -11,18 +11,13 @@ export default class WaitingRoom extends Phaser.Scene {
     this.userId = data.userId;
     this.challenge = data.challenge;
     this.challengeId = data.challengeId;
-    this.challengeInfo = data.challengeInfo;
+    //this.challengeInfo = data.challengeInfo;
     this.spectator = data.spectator;
     this.key = data.key;
     this.images = data.images;
     this.custom = data.custom;
+	this.vueSocket = data.vueSocket;
     this.doneOK = false;
-    this.settingsOK = false;
-    this.settings = {
-      playerOne: "WHITE",
-      playerTwo: "WHITE",
-      ball: "WHITE",
-    };
     this.message;
     this.panel;
     this.popup;
@@ -62,10 +57,11 @@ export default class WaitingRoom extends Phaser.Scene {
         userId: scene.userId,
         spectator: scene.spectator,
         challenge: scene.challenge,
-        challengeInfo: scene.challengeInfo,
+        challengeId: scene.challengeId,
         key: scene.key,
         images: scene.images,
         settings: scene.settings,
+		vueSocket: scene.vueSocket,
       });
     }
   }
@@ -107,11 +103,11 @@ export default class WaitingRoom extends Phaser.Scene {
       button.setInteractive();
       button.on("pointerdown", () => {
         if (elem === 1) {
-          scene.settings.playerOne = text;
+          scene.images.playerOne = "p1" + text;
         } else if (elem === 2) {
-          scene.settings.playerTwo = text;
+          scene.images.playerTwo = "p2" + text;
         } else if (elem === 3) {
-          scene.settings.ball = text;
+          scene.images.ball = "ball" + text;
         } else {
           scene.doneOK = true;
         }

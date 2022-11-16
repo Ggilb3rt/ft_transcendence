@@ -169,7 +169,7 @@ export default class GamePlay {
   listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
       if (type === 1) {
-        alert("THE OTHER PLAYER LEFT THE GAME");
+        alert("PLAYER(S) DISCONNECTED");
       } else if (type === 2) {
         alert("YOU CAN'T PLAY AGAINST YOURSELF");
       }
@@ -177,7 +177,7 @@ export default class GamePlay {
       scene.playerNumber = 0;
       scene.roomComplete = false;
       scene.socket.disconnect();
-      router.push("/");
+      //router.push("/");
     });
   }
 
@@ -185,7 +185,24 @@ export default class GamePlay {
     game.events.on(
       "hidden",
       function () {
-        if (scene.activeGame) {
+        if (
+          scene.activeGame &&
+          (scene.playerNumber === 1 || scene.playerNumber === 2)
+        ) {
+          scene.socket.emit("pauseGame", { roomName: scene.roomName });
+          scene.scene.resume();
+        }
+      },
+      scene
+    );
+
+    game.events.on(
+      "pause",
+      function () {
+        if (
+          scene.activeGame &&
+          (scene.playerNumber === 1 || scene.playerNumber === 2)
+        ) {
           scene.socket.emit("pauseGame", { roomName: scene.roomName });
           scene.scene.resume();
         }
@@ -194,7 +211,8 @@ export default class GamePlay {
     );
 
     scene.socket.on("pauseGame", () => {
-      if (scene.activeGame) {
+		if (scene.activeGame) {
+        console.log("PAUSE GAME");
         scene.pauseText.setVisible(true);
         scene.scene.pause();
       }
@@ -203,16 +221,18 @@ export default class GamePlay {
     game.events.on(
       "visible",
       function () {
-        if (scene.activeGame) {
+		if (scene.playerNumber === 1 || scene.playerNumber === 2) {
           scene.socket.emit("unpauseGame", { roomName: scene.roomName });
-        }
-      },
+		}
+		},
       scene
     );
 
     scene.socket.on("unpauseGame", () => {
+	 if (scene.activeGame) {
       scene.pauseText.setVisible(false);
       scene.scene.resume();
+	 }
     });
   }
 
@@ -346,7 +366,7 @@ export default class GamePlay {
   checkPlayerMovement(scene) {
     if (scene.playerNumber === 1) {
       if (this.playerMoved(scene.playerOne, scene)) {
-        console.log("playerone y " + scene.playerOne.y)
+        console.log("playerone y " + scene.playerOne.y);
         scene.socket.emit("playerMovement", {
           y: scene.playerOne.y,
           roomName: scene.roomName,
@@ -383,10 +403,12 @@ export default class GamePlay {
   createGameObjects(level, settings, images, width, height, scene) {
     this.initBackground(level, width, height, scene);
     this.initBallObject(level, settings, images, width, height, scene);
+    //if (level === 1 || level === 3) {
     this.initPlayerObjects(level, settings, images, width, height, scene);
-    if (level === 2) {
-      this.customizeSettings(settings, scene);
-    }
+    //}
+    //if (level === 2) {
+    //  this.customizeSettings(settings, scene);
+    //}
     if (level === 3) {
       this.initAnimation(images, width, height, scene);
     }
@@ -431,8 +453,11 @@ export default class GamePlay {
 
     scene.playerOne.setCollideWorldBounds(true);
     scene.playerOne.setImmovable(true);
-    if (level === 1 || level === 2) {
+    if (level === 1) {
       scene.playerOne.displayWidth = 10;
+    } else if (level === 2) {
+      scene.playerOne.displayWidth = 40;
+      scene.playerOne.setScale(4);
     } else if (level === 3) {
       scene.playerOne.displayWidth = 20;
       scene.playerOne.setScale(1);
@@ -450,8 +475,11 @@ export default class GamePlay {
 
     scene.playerTwo.setCollideWorldBounds(true);
     scene.playerTwo.setImmovable(true);
-    if (level === 1 || level === 2) {
+    if (level === 1) {
       scene.playerTwo.displayWidth = 10;
+    } else if (level === 2) {
+      scene.playerTwo.displayWidth = 40;
+      scene.playerTwo.setScale(4);
     } else if (level === 3) {
       scene.playerTwo.displayWidth = 20;
       scene.playerTwo.setScale(1);
@@ -537,7 +565,8 @@ export default class GamePlay {
       if (scene.playerNumber === 1) {
         scene.ball.setVelocity(
           -Math.cos(bounceAngle) * 500,
-          Math.sin(bounceAngle) * 500); 
+          Math.sin(bounceAngle) * 500
+        );
       }
     });
     scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
@@ -549,7 +578,8 @@ export default class GamePlay {
       if (scene.playerNumber === 1) {
         scene.ball.setVelocity(
           Math.cos(bounceAngle) * 500,
-          -Math.sin(bounceAngle) * 500); 
+          -Math.sin(bounceAngle) * 500
+        );
       }
     });
 
@@ -643,52 +673,103 @@ export default class GamePlay {
   }
 
   customizeSettings(settings, scene) {
+    scene.playerOne = scene.physics.add.sprite(
+      scene.ball.body.width / 2 + 1,
+      height / 2,
+      images.playerOne
+    );
+    scene.playerTwo = scene.physics.add.sprite(
+      width - (scene.ball.body.width / 2 + 1),
+      height / 2,
+      images.playerTwo
+    );
+
+    scene.playerOne.setCollideWorldBounds(true);
+    scene.playerOne.setImmovable(true);
+    if (level === 1 || level === 2) {
+      scene.playerOne.displayWidth = 10;
+    } else if (level === 3) {
+      scene.playerOne.displayWidth = 20;
+      scene.playerOne.setScale(1);
+    }
+    scene.playerOne.scaleY = scene.playerOne.scaleX;
+    scene.playerOne.setInteractive({ draggable: true }).on(
+      "drag",
+      function (pointer, dragX, dragY) {
+        if (scene.playerNumber === 1 && scene.activeGame) {
+          scene.playerOne.y = dragY;
+        }
+      },
+      scene
+    );
+
+    scene.playerTwo.setCollideWorldBounds(true);
+    scene.playerTwo.setImmovable(true);
+    if (level === 1 || level === 2) {
+      scene.playerTwo.displayWidth = 10;
+    } else if (level === 3) {
+      scene.playerTwo.displayWidth = 20;
+      scene.playerTwo.setScale(1);
+    }
+    scene.playerTwo.scaleY = scene.playerTwo.scaleX;
+    scene.playerTwo.setInteractive({ draggable: true }).on(
+      "drag",
+      function (pointer, dragX, dragY) {
+        if (scene.playerNumber === 2 && scene.activeGame) {
+          scene.playerTwo.y = dragY;
+        }
+      },
+      scene
+    );
+    console.log("BBB SETTINGS");
+    console.log(settings);
     switch (settings.ball) {
       case "WHITE":
         break;
       case "BLUE":
+        console.log("BLUE");
         scene.ball.tint = 0x0080ff;
         break;
       case "GREEN":
-        scene.ball.tint = 0x008000;
+        scene.ball.tint = "#008000";
         break;
       case "ORANGE":
-        scene.ball.tint = 0xffa500;
+        scene.ball.tint = "#ffa500";
         break;
       case "YELLOW":
-        scene.ball.tint = 0xffff00;
+        scene.ball.tint = "#ffff00";
     }
 
     switch (settings.playerOne) {
       case "WHITE":
         break;
       case "BLUE":
-        scene.playerOne.tint = 0x0080ff;
+        scene.playerOne.tint = "#080ff";
         break;
       case "GREEN":
-        scene.playerOne.tint = 0x008000;
+        scene.playerOne.tint = "#008000";
         break;
       case "ORANGE":
-        scene.playerOne.tint = 0xffa500;
+        scene.playerOne.tint = "#ffa500";
         break;
       case "YELLOW":
-        scene.playerOne.tint = 0xffff00;
+        scene.playerOne.tint = "#ffff00";
     }
 
     switch (settings.playerTwo) {
       case "WHITE":
         break;
       case "BLUE":
-        scene.playerTwo.tint = 0x0080ff;
+        scene.playerTwo.tint = "#0080ff";
         break;
       case "GREEN":
-        scene.playerTwo.tint = 0x008000;
+        scene.playerTwo.tint = "#008000";
         break;
       case "ORANGE":
-        scene.playerTwo.tint = 0xffa500;
+        scene.playerTwo.tint = "#ffa500";
         break;
       case "YELLOW":
-        scene.playerTwo.tint = 0xffff00;
+        scene.playerTwo.tint = "#ffff00";
     }
   }
 }

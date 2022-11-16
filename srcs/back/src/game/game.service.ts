@@ -14,7 +14,7 @@ export class GameService {
 	constructor(private readonly usersHelper: UsersHelper) {}
 
     handleConnection(client: Socket, server: Server) {
-		//console.log('CLIENT CONNECTED ' + client.id)
+		console.log('CLIENT CONNECTED ' + client.id)
         this.players[client.id] = {
             id: client.id,
             socket: client,
@@ -29,7 +29,7 @@ export class GameService {
 		if (client.handshake.query.type !== undefined) {
 			this.players[client.id].type = client.handshake.query.type;
 		}
-		// console.log(Object.keys(this.players));
+		console.log(Object.keys(this.players));
 		// console.log(this.players);
 	}
 
@@ -261,17 +261,17 @@ export class GameService {
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-		// //("CLIENT DISCONNECTED " + client.id);
-		// //("PREVIOUS USER IDS")
-		// //(this.userIds);
+		console.log("CLIENT DISCONNECTED " + client.id);
+		console.log("PREVIOUS USER IDS");
+		console.log(this.userIds);
 		
 		const roomName = this.players[client.id].roomId;
 		const userId = this.players[client.id].userId;
 		const level = Number(this.players[client.id].level);
 		const spectator = this.players[client.id].spectator;
 
-		// //("roomName " + roomName + " " + userId);
-		// //("level  " +level);
+		console.log("roomName " + roomName + " " + userId);
+		console.log("level  " +level);
 		// //(this.activeGames[roomName]);
 
 		if (spectator) {
@@ -310,10 +310,10 @@ export class GameService {
 		Reflect.deleteProperty(this.userIds, userId);
 		Reflect.deleteProperty(this.players, client.id);
 
-		// //("REMAINING CLIENTS ")
-		// //(Object.keys(this.players));
-		// //("USER IDS")
-		// //(this.userIds);
+		console.log("REMAINING CLIENTS ");
+		console.log(Object.keys(this.players));
+		console.log("USER IDS");
+		console.log(this.userIds);
 
 		// //("REMAINING ACTIVE ROOMS")
 		// //(this.activeGames);
@@ -350,7 +350,7 @@ export class GameService {
     }
 
 	getActiveRoomNames(client: Socket, data: any) {
-		// //("GET ACTIVE ROOM NAMES");
+		//console.log("GET ACTIVE ROOM NAMES");
 		if (client !== null) {
 			if (data.type === 1) {
 				this.players[client.id].type = "general";
@@ -365,6 +365,8 @@ export class GameService {
 		let levelname;
 
 		for (var key in this.activeGames) {
+			//console.log(this.activeGames[key].playerOne.userId);
+			//console.log(this.activeGames[key].playerTwo.userId)
 			level = this.activeGames[key].level;
 			if (level === 1) {
 				levelname = "pong"
@@ -377,7 +379,9 @@ export class GameService {
 			}
 			room = {
 				id: key,
-				level: levelname
+				level: levelname,
+				p1: this.activeGames[key].playerOne.userId,
+				p2: this.activeGames[key].playerTwo.userId,
 			};
 			roomNames[key] = room;
 		}
@@ -386,8 +390,8 @@ export class GameService {
 	
 	handleCreateNewChallengeRoom(client: Socket, data: any, server: Server){
 		let { level, challenger, challenged, challengeId } = data.challenge;
-		// //("CREATING WAITING ROOM CHALLENGE " + level + " USERID " + data.userId );
-		// //(data);
+		console.log("CREATING WAITING ROOM CHALLENGE " + level + " USERID " + data.userId );
+		console.log(data);
 		const userId = data.userId;
 		const player = this.players[client.id];
 
@@ -448,8 +452,8 @@ export class GameService {
 	handleJoinChallengeRoom(client: Socket, data: any, server: Server){
 		let { level, challenger, challenged, challengeId} = data.challenge;
 		const userId = data.userId;
-		// //("JOINING WAITING ROOM CHALLENGE " + level + " USERID " + data.userId );
-		// //(data);
+		console.log("JOINING WAITING ROOM CHALLENGE " + level + " USERID " + data.userId );
+		console.log(data);
 		const roomId = challengeId;
 		const player = this.players[client.id];
 
@@ -514,7 +518,7 @@ handleInitGame(client: Socket, data: any, server: Server){
 
 	let wr;
 	let player;
-	// //("INIT  " + data.roomId + " " + data.userId);
+	console.log("INIT  " + data.roomId + " " + data.userId);
 	
 	if (this.waitingRooms.hasOwnProperty(roomId)) {
 		wr = this.waitingRooms[roomId];
@@ -531,6 +535,7 @@ handleInitGame(client: Socket, data: any, server: Server){
 		if (wr.players[0].connected === true  && wr.players[1].connected === true) {
 			this.initGame(roomId, level, server);
 			Reflect.deleteProperty(this.waitingRooms, data.roomId);
+			console.log(this.activeGames[roomId]);
 		}
 	}
 }

@@ -43,7 +43,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
         console.log(room)
 
         const clients = await this.server.in(room).fetchSockets();
-        console.log("number of clients = ", clients.length)
+        //console.log("number of clients = ", clients.length)
         return clients
     }
 
@@ -61,7 +61,7 @@ export class UsersStatusGateway implements OnGatewayInit, OnGatewayDisconnect {
             id = await this.usersService.getGatewayToken(client.handshake.headers, client)
         else
             id = client.handshake.query.userId
-        console.log("id == ", id)
+        //console.log("id == ", id)
         const sockets = await this.fetchUserSockets(id)
         const arr = this.getArrOfId(sockets)
         const arg = {id, sockets}

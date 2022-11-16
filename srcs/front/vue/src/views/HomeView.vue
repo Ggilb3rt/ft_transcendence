@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import io, { Socket } from "socket.io-client";
 import router from "@/router";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, onRenderTriggered, ref } from "vue";
 //import { useStatusStore } from "@/stores/status";
 import { useUserStore } from "@/stores/user";
 import Modal from "@/components/Modal.vue";
@@ -12,12 +12,6 @@ const socket = io("http://localhost:3000/game", {
   query: {
     type: "homeViewSocket",
   },
-});
-
-window.addEventListener("beforeunload", (e) => {
-  if (socket) {
-    socket.disconnect();
-  }
 });
 
 const canPlay = ref(true);
@@ -56,8 +50,15 @@ socket.on("getActiveRoomNames", (payload) => {
 });
 
 onBeforeUnmount(() => {
+	if (socket != undefined) {
   socket.disconnect();
+	}
 });
+/*
+onRenderTriggered((e) => {
+  debugger;
+})*/
+
 </script>
 
 <template>
@@ -114,7 +115,6 @@ onBeforeUnmount(() => {
     <h1>Let's watch a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
-        <!-- <p v-for="room in activeRoomNames" :key="room"> -->
         <p v-for="value in activeRoomNames" :key="value">
           <button
             id="customizable"
