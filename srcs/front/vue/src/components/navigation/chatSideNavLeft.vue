@@ -62,9 +62,9 @@ function joinChannel(e: Event, link: string) {
 	e.preventDefault()
 	const id: number = getChanIdFromLink(link)
 	// emit sur join et attendre la réponse
-	if (confirm(`join channel '${id}' from '${link}' ?`)) {
+	// if (confirm(`join channel '${id}' from '${link}' ?`)) {
 		channelsStore.emitJoin(id)
-	}
+	// }
 }
 
 onBeforeMount(() => {
@@ -81,34 +81,6 @@ onBeforeUnmount(() => {
 // onRenderTriggered((e) => {
 // 	debugger
 // })
-
-
-
-
-const sideNavDataLeft = ref({
-	name: 'Channels',
-	isOpen: false,
-	items: [
-		// {
-		// 	name: 'New',
-		// 	children: null,
-		// 	id '/chat/new'
-		// },
-		{
-			name: 'All channels3',
-			// children: channelList.value,	// need to getAllChannelRestrict [IChannelRestrict]
-			children: channelsStore.getChanListForSideBar(false),
-			canJoin: true,
-			isOpen: false
-		},
-		{
-			name: 'My channels',
-			children: channelsStore.getChanListForSideBar(true),
-			isOpen: true
-		}
-	]
-})
-
 
 </script>
 
@@ -141,6 +113,11 @@ const sideNavDataLeft = ref({
 </template>
 
 <style scoped>
+
+button {
+	margin: 0;
+	padding: 0;
+}
 
 
 </style>

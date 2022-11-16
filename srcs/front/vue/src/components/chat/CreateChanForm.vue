@@ -116,14 +116,14 @@ async function sendCreateChan() {
 				</div>
 				<p v-if="chanType == 'private'">Add some of your friends on this channel</p>
 				<div v-if="chanType == 'private'">
-					<select v-model="chanUserList" multiple>
+					<select v-model="chanUserList" multiple v-if="userStore.user.friends.length > 0">
 						<option :value=user v-for="user in userStore.user.friends" :key="user">
 							{{ usersStore.getUserNickById(user) }}
 						</option>
 					</select>
+					<p v-else>You need friends</p>
 				</div>
 				<button v-if="chanPass == chanPassConfirm || chanType != 'pass'" @click="sendCreateChan()">Create</button>
-
 		</div>
 	</div>
 </template>
