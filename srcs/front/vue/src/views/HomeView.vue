@@ -1,29 +1,21 @@
 <script setup lang="ts">
-import io, { Socket } from "socket.io-client";
 import router from "@/router";
 import { onBeforeUnmount, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 import Modal from "@/components/Modal.vue";
-import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
+import WatchGameListVue from "@/components/WatchGameList.vue";
 
 const userStore = useUserStore();
-const usersStore = useUsersStore();
 const userId = userStore.user.id;
 const statusStore = useStatusStore();
 const socket = statusStore.socketGame;
-
-/*const socket = io("http://localhost:3000/game", {
-  query: {
-    type: "homeViewSocket",
-  },
-});*/
 
 const canPlay = ref(true);
 const show = ref(false);
 socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
-    console.log("IS USER IN GAME " + data.bool);
+    //console.log("IS USER IN GAME " + data.bool);
   if (data.userId === userId) {
     canPlay.value = !data.bool;
   }
@@ -48,28 +40,14 @@ async function findGame(
   }
 }
 
-socket.emit("getActiveRoomNames", { type: 1 });
-
-const activeRoomNames = ref([]);
-socket.on("getActiveRoomNames", (payload) => {
-  activeRoomNames.value = payload.roomNames;
-});
 
 onBeforeUnmount(() => {
-  //if (socket != undefined) {
- //   socket.disconnect();
-  //}
+  socket.off();
 });
 </script>
 
 <template>
   <div class="vue_wrapper home">
-    <!-- <div v-if="canPlay === true">
-      <p>can play</p>
-    </div>
-    <div v-else>
-      <p>cannot play</p>
-    </div> -->
     <h1>Let's play a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
@@ -114,20 +92,7 @@ onBeforeUnmount(() => {
       </ul>
     </nav>
     <h1>Let's watch a <span class="red">game</span></h1>
-    <nav>
-      <ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
-        <p v-for="value in activeRoomNames" :key="value">
-          <button
-            id="customizable"
-            @click="findGame($event, `${value.level}`, `${value.id}`, true)"
-            class="pongLink"
-          >
-            {{ value.level }} {{ usersStore.getUserNickById(value.p1) }} vs {{ usersStore.getUserNickById(value.p2) }}
-          </button>
-        </p>
-      </ul>
-      <p v-else>No game</p>
-    </nav>
+    <WatchGameListVue></WatchGameListVue>
     <Modal v-if="!canPlay" :show="show" removeOK>
       <template #header>
         <h2>YOU ALREADY ARE IN A GAME OR WAITING ROOM</h2>
@@ -140,20 +105,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
-/* #fox_pong_img {
-  background: url("../components/game/assets/spritesheets/walking_fox.png") no-repeat;
-  background-size: 200px 200px;
-  width: calc(256px / 8);
-  height: 200px;
-  animation: sprite 1s linear infinite reverse;
-  animation-timing-function: steps(8);
-} */
-
-@keyframes sprite {
-  from { background-position: 0px; }
-  to { background-position: -256px; }
-}
-
 .gameList .loader {
   content: "";
   position: absolute;

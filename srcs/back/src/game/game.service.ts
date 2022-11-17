@@ -344,14 +344,9 @@ export class GameService {
 
 	getActiveRoomNames(client: Socket, data: any) {
 		console.log("GET ACTIVE ROOM NAMES");
-		/*if (client !== null) {
-			if (data.type === 1) {
-				this.players[client.id].type = "general";
-			} else if (data.type === 2) {
-				this.players[client.id].type = "game-component";
-			}
-			// //(client.id + " " + this.players[client.id].type)
-		}*/
+		if (client !== null) {
+			this.players[client.id].type = "general";
+		}
 		let roomNames = {};
 		let room;
 		let level;

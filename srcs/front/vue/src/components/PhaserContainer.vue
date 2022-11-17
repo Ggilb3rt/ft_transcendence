@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, onRenderTriggered } from "vue";
+import { onBeforeUnmount, onMounted } from "vue";
 import { useUserStore } from "@/stores/user";
-import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
 import { useRoute } from "vue-router";
 import Phaser from "phaser";
-import io, { Socket } from "socket.io-client";
 import router from "@/router";
 
 import config from "./game/config";
@@ -15,23 +13,17 @@ import GameScene from "./game/scenes/GameScene";
 
 const containerId = "game-container";
 const userStore = useUserStore();
-const usersStore = useUsersStore();
 const statusStore = useStatusStore();
 const userId = userStore.user.id;
 const route = useRoute();
 const socket = statusStore.socketGame;
-/*const socket = io("http://localhost:3000/game", {
-  query: {
-    type: "phaserContainerSocket",
-  },
-});*/
 const urlQuery = route.query.challenge;
 const urlLevel = String(route.params.level);
 const urlType = Number(route.params.type);
 const urlRoomId = String(route.params.roomId);
 const validLevels = ["pong", "catPong", "customizable"];
 let activeRoomNames: string[];
-let activeRooms;
+let activeRooms:any;
 let gameInstance: Game;
 const data = {
   userId,
@@ -44,7 +36,6 @@ const data = {
 };
 
 onMounted(() => {
-  alert("MOUNT");
   if (!urlLevel && !urlQuery) {
     alert("YOU ALREADY ARE IN A GAME/CANNOT ACCESS DIRECT");
     router.push("/");
@@ -54,20 +45,16 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  alert("UNMOUNT");
   statusStore.changeCurrentUserStatus("available", userId);
   statusStore.changeChallengeForIngame(false);
   disconnectGameSocket();
   destroyGame();
-  /*if (socket) {
-    socket.disconnect();
-  }*/
   socket.off();
 });
 
 function initGame() {
   socket.emit("getActiveRoomNames", { type: 2 });
-  socket.on("getActiveRoomNames", (payload) => {
+  socket.on("getActiveRoomNames", (payload: any) => {
     activeRooms = payload.roomNames;
     activeRoomNames = Object.keys(payload.roomNames);
     console.log(activeRooms);
