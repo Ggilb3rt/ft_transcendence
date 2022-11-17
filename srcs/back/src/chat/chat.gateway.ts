@@ -290,6 +290,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const { channel_id, banned_id, expires} = arg
+        console.log("-------------ARG == ", arg);
         const res = await this.chatService.muteUser(channel_id, banned_id, expires, id)
         if (!res)
             return false

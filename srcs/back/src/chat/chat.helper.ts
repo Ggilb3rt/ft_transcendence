@@ -165,13 +165,16 @@ export class ChatHelper {
                 }
             })
             if (!muted) {
-                return await prisma.muted.create({
+                console.log("muted_id: ", muted_id, "channel_id: ", channel_id, "mute_date = ", expires);
+                const ret = await prisma.muted.create({
                     data: {
                         muted_id,
                         channel_id,
                         mute_date: expires
                     }
                 })
+                console.log("ret = ", ret);
+                return (ret);
             }
         } catch (e) {
             console.log(e);

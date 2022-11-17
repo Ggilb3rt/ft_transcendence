@@ -62,8 +62,8 @@ async function testConnection() {
   }
 }
 
-router.beforeResolve(async (to) => {
-  await testConnection()
+router.beforeResolve((to) => {
+  testConnection()
   if (to.name == "game" )
     statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
     return true;

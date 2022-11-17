@@ -101,25 +101,31 @@ export class ChatService {
         if (isBannedOwner) {
             return false
         }
+        const admins = this.chatHelper.getAdmins(channel_id);
+        console.log("admins ", admins);
         const isBannedByOwner = await this.chatHelper.isOwner(channel_id, bannedBy)
         if (isBannedByOwner) {
             return true
         }
-        else if (this.chatHelper.isAdmin(channel_id, bannedBy) && !this.chatHelper.isAdmin(channel_id, banned)) {
+        else if (await this.chatHelper.isAdmin(channel_id, bannedBy) && !await this.chatHelper.isAdmin(channel_id, banned)) {
             return true
         }
         return false
     }
 
-    async kickUser(channel_id: number, banned: number, id) {
+    async kickUser(channel_id: number, banned: number, id: number) {
+        if (!channel_id || !banned || !id)
+            return false
         if (await this.banPolicy(channel_id, banned, id) == false && (banned != id)){
-            throw new ForbiddenException("Can't kick him")
+            return false
         }
         return (await this.chatHelper.kickOne(banned, channel_id))
     }
 
     async banUser(channel_id: number, banned: number, expires: Date, id: number) {
         // check if ban is in admin
+        if (!expires || !channel_id || !banned || !id)
+            return false
         if (await this.banPolicy(channel_id, banned, id) == false)
             return false
         return (await this.chatHelper.banOne(banned, channel_id, expires))
@@ -128,7 +134,9 @@ export class ChatService {
     async muteUser(channel_id: number, muted: number, expires: Date, id: number) {
         //check if mute is in admin 
         if (await this.banPolicy(channel_id, muted, id) == false)
-            throw new ForbiddenException("You have no right to restrict this user")
+            return false
+        if (!expires || !channel_id || !muted || !id)
+            return false
         return await this.chatHelper.muteOne(muted, channel_id, expires)
     }
 
@@ -151,10 +159,7 @@ export class ChatService {
             return false
         }
         const mute = await this.chatHelper.getMute(channel_id, user_id)
-        console.log("channel_id, user_id ", channel_id, user_id)
-        console.log("mute ", mute)
         if (mute && mute.mute_date > new Date()) {
-            console.log("tout va bien")
             return false
         }
         else if (mute) {
