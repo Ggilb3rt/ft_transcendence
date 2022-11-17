@@ -18,9 +18,7 @@ if (channelsStore.currentChan)
 function valid() {
 	if (channelsStore.currentChan) {
 		if (channelsStore.currentChan.canChangeType(userStore.user.id, newChannelType.value, newPass.value)) {
-			// send data
 			channelsStore.emitTypeChange(channelsStore.currentChan.getId(), newChannelType.value, newPass.value)
-			console.log("change type ", newChannelType.value, `'${newPass.value}'`)
 			cancel()
 		}
 	else

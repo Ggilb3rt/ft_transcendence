@@ -55,6 +55,7 @@ async function valid() {
 	height: auto;
 	gap: 30px;
 	text-align: right;
+	background: var(--color-background);
 }
 
 #first-wrapper {

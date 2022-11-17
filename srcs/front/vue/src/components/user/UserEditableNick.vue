@@ -14,7 +14,7 @@ const props = defineProps<{
 
 // Nickname management
 // const maxNickLength = Number(process.env.MAX_NICK_LENGTH)
-const maxNickLength = 10
+const maxNickLength = 30
 let editMode = ref(false)
 let nicknameEdit = ref("")
 

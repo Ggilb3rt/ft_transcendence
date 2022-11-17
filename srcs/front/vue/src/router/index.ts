@@ -30,15 +30,6 @@ function goToDisconnect() {
     return ( {name: "home"} )
 }
 
-function isConnectionOk(to: any, from: any) {
-  const userStore = useUserStore()
-
-  if (to.name == 'success' && userStore.connected && (from.name == "2fa" && userStore.twoFactorAuth) )
-    console.log("success route")
-  else
-    return ( {name: "login"} )
-}
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -53,25 +44,11 @@ const router = createRouter({
       component: Login,
       beforeEnter: [goToDisconnect]
     },
-    // {
-    //   path: "/success",
-    //   name: "success",
-    //   component: Success,
-    //   // beforeEnter: [isConnectionOk]
-    // },
     {
       path: "/2fa",
       name: "2fa",
       component: TwoFactorAuth
     },
-    // {
-    //   path: "/about",
-    //   name: "about",
-    //   // route level code-splitting
-    //   // this generates a separate chunk (About.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   component: () => import("../views/AboutView.vue"),
-    // },
     {
       path: "/chat",
       name: "chat",
@@ -95,13 +72,6 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: Dashboard,
-      // children: [
-      //   {
-      //     path: ":id",
-      //     name: "dashOther",
-      //     component: DashOther
-      //   }
-      // ]
     },
     {
       path: "/user/:id",
@@ -118,16 +88,6 @@ const router = createRouter({
       name: "first",
       component: FisrtConnection,
     },
-    // {
-    //   // cf https://router.vuejs.org/guide/essentials/named-views.html
-    //   path: "/chat/room",
-    //   name: "chat2",
-    //   components: {
-    //     default: Chat,
-    //     channelList,
-    //     friendsList
-    //   }
-    // }
     {
       path: '/:pathMatch(.*)*',
       name: "notFound",
@@ -137,41 +97,30 @@ const router = createRouter({
 });
 
 
-//! need to add a canAccess global guad naviguation with token
-
-// ? -1 == non, 0 == OK, 1 == 2FA
 router.beforeEach(async (to, from) => {
   const userStore = useUserStore()
-  //console.log("Before each premiere ligne \n", "from == ", from.path, "\n\nto == ", to.path)
   userStore.loading = true
 
-  console.log("debut router")
   try {
-  const res = await fetch(`http://localhost:3000/auth/verify`, {
+    const res = await fetch(`http://localhost:3000/auth/verify`, {
 			method: 'GET',
 			credentials: "include",
 		})
-
     const {status} = await res.json();
-    console.log("les status ", status, to)
     userStore.conStatus = status
     if (status == setStatus.first_co && to.name != "first") {
       return { name: "first" }
     }
     else if (res.status == 412 || userStore.conStatus == setStatus.need2fa && to.name != "2fa") {
-      console.log('userStore.conStatus === ', userStore.conStatus)
       return { name: "2fa"}
     }
     else if (userStore.conStatus == setStatus.needLogin && to.name != 'login') {
-      console.log('userStore.conStatus je need login === ', userStore.conStatus)
       return { name: 'login' }
     }
   } catch(err) {
     return {name: 'login'}
   }
-  // return { name: to.name}
 })
-
 
 router.beforeEach(async (to, from) => {
   if (to.name == "dashOther") {

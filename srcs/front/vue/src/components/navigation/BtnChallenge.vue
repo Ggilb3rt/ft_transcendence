@@ -20,37 +20,20 @@ const statusStore = useStatusStore();
 
 function userIsAvailable() {
 	if (statusStore.status === "available") {
-		console.log('usER STATUS ' + statusStore.status)
 		return true;
 	}
-	console.log('usER STATUS ' + statusStore.status)
 	return false;
 }
 
 async function selecteGameType() {
   await challenge();
   showModal.value = false;
-  //("le choix est : ", gameType.value)
 }
 
 async function challenge() {
-	console.log("lkdfjgbsdfkjhbsdjhbsdvjksd gvjl ")
 	if (userStore.user)
 		statusStore.challengeUser(userStore.user.id, gameType.value, props.userId)
-	
-    // if (usersStore.user && statusStore.socketIsAvailable(props.userId)) {
-    //     //console.log(`challenge from ${userStore.user.id} to ${props.userId}`)
-    //     // put invitation in a modal in the other side
-    // }
 }
-
-// async function goSpectate() {
-//     if (usersStore.user && statusStore.socketIs(usersStore.user.id, 'inGame')) {
-//        // console.log("go to game with user ", usersStore.user.id)
-//     // fetch gameId from back
-//     // router.push(/game/${gameId})
-//     }
-// }
 
 </script>
 
@@ -62,7 +45,6 @@ async function challenge() {
 			</button>
 			<!-- <button @click="goSpectate()" v-else-if="!userStore.isBan(userId) && statusStore.socketIs(userId, 'inGame')">Spectate</button> -->
 		</div>
-		<!-- <button @click="challenge()" v-else>Pouet</button> -->
 		<Modal :show="showModal" @close="showModal = false" removeOK>
 			<template #header>
 				<h2>Challenge {{ usersStore.getUserNickById(userId) }}</h2>

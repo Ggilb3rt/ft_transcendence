@@ -73,27 +73,6 @@ export const useUsersStore = defineStore({
                 return img.avatar_url
             return ""
         },
-        // getUserStatus(id: number): status {
-        //     let ret: ISocketStatus | undefined = undefined;
-            
-        //     console.log("start socketStatus", this.socketStatus)
-        //     if (this.socketStatus) {
-        //         this.socketStatus.forEach((el: any) => {
-        //             console.log(`mon tableau de fou \n\t${el.userId[0]}\n\t${el.userStatus}`)
-        //         })
-        //         ret = this.socketStatus.includes((el: any) => {
-        //             el.userId[0] == id;
-        //             console.log("ref el", el)
-        //         })
-        //     }
-        //     console.log("return of socketStatus", ret)
-        //     if (ret == undefined)
-        //         return 'disconnected'
-        //     console.log("get userStatus ", ret)
-        //     return ret.userStatus
-        // },
-        
-        // je devrai plutot return string[] et adapter si besoin dans les composents
         getUsersListForChat(idList: number[]): sideNavLink[] {
             let list: sideNavLink[] = []
             if (!idList)

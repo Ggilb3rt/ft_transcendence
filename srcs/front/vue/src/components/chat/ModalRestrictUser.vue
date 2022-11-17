@@ -24,7 +24,6 @@ function valid() {
 					selectedUser.value,
 					timeDate.value
 				)
-			console.log("send restrict user ", selectedUser.value, isMute.value, timeDate.value)
 			cancel()
 	}
 	else

@@ -23,9 +23,7 @@ const folders = ref([{isOpen: true}, {isOpen: true}])
 function isOpen(index: number) {
 	return folders.value[index].isOpen
 }
-// function isFolder(index: number) {
-// 	return props.model.items[index].children && props.model.items[index].children.length
-// }
+
 function toggle(index: number) {
 	folders.value[index].isOpen = !folders.value[index].isOpen
 }
@@ -43,44 +41,29 @@ function updateWinWidthValue() {
 }
 
 function getChanIdFromLink(link: string): number {
-	console.log("LINK == ", link)
 	return parseInt(link.split('/').at(-1))
 }
 
 function leaveChannel(link: string) {
 	const id: number = getChanIdFromLink(link)
 	
-	if(id) {
-		// emit to server
-		// if (channelsStore.currentChan)
+	if(id)
 		channelsStore.emitQuitChannel(id)
-		console.log("you leave chan", id)
-	}
 }
 
 function joinChannel(e: Event, link: string) {
 	e.preventDefault()
 	const id: number = getChanIdFromLink(link)
-	// emit sur join et attendre la réponse
-	// if (confirm(`join channel '${id}' from '${link}' ?`)) {
-		channelsStore.emitJoin(id)
-	// }
+	channelsStore.emitJoin(id)
 }
 
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue());
-	// check on start
-	// updateWinWidthValue()
-
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue())
 })
-
-// onRenderTriggered((e) => {
-// 	debugger
-// })
 
 </script>
 

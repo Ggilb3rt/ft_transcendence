@@ -79,8 +79,6 @@ async function sendCreateChan() {
 			throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 		}
 		if (data) {
-			// faire des trucs avec la réponse... genre set le bon id
-			console.log("réponse de create ", data)
 			newChannel.value = data
 			if (newChannel.value)
 				await channelsStore.createChan(newChannel.value)

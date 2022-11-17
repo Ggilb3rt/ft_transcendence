@@ -21,11 +21,9 @@ function valid() {
 	if (splitedError.length > 1) {
 		formError.value = ""
 		finalId = parseInt(splitedError[1])
-		console.log("finalId", finalId)
 		channelsStore.emitJoin(finalId, needPass.value)
 		cancel()
 	}
-	console.log("go end")
 }
 
 function cancel() {

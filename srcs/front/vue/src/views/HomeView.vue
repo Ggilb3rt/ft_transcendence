@@ -24,7 +24,6 @@ const canPlay = ref(true);
 const show = ref(false);
 socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
-  console.log("DATA BOOL " + data.bool);
   if (data.userId === userId) {
     canPlay.value = !data.bool;
   }
@@ -91,10 +90,10 @@ onBeforeUnmount(() => {
             @click="findGame($event, 'catPong', '', false)"
             class="pongLink"
           >
-            CatPong<br />
-            <img
-              src="../assets/pongCat.png"
-              alt="view of special game Cat pong"
+            FoxPong<br />
+            <img id="fox_pong_img"
+              src="../assets/foxPong.png"
+              alt="view of special game Fox pong"
               srcset=""
             />
           </button>
@@ -139,6 +138,20 @@ onBeforeUnmount(() => {
 </template>
 
 <style>
+/* #fox_pong_img {
+  background: url("../components/game/assets/spritesheets/walking_fox.png") no-repeat;
+  background-size: 200px 200px;
+  width: calc(256px / 8);
+  height: 200px;
+  animation: sprite 1s linear infinite reverse;
+  animation-timing-function: steps(8);
+} */
+
+@keyframes sprite {
+  from { background-position: 0px; }
+  to { background-position: -256px; }
+}
+
 .gameList .loader {
   content: "";
   position: absolute;
