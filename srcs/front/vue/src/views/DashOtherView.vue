@@ -9,6 +9,7 @@ import UserMatchHistory from "@/components/user/UserMatchHistory.vue";
 import UserList from "@/components/user/UserList.vue";
 import UserBasicsOther from "@/components/user/UserBasicsOther.vue";
 import Loader from "@/components/navigation/loader.vue"
+import WatchGameList from "@/components/WatchGameList.vue";
 
 const usersStore = useUsersStore()
 const userStore = useUserStore()
@@ -28,6 +29,7 @@ const userStore = useUserStore()
 		/>
 
 			<div v-if="userStore.isFriends(usersStore.user.id)">
+				<WatchGameList friends></WatchGameList>
 				<UserMatchHistory :user="usersStore.user" />
 				<UserList title="Friends" :user="usersStore.user" :list="usersStore.user.friends"></UserList>
 			</div>

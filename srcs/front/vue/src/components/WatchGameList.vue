@@ -6,6 +6,11 @@ import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
 import { useUserStore } from "@/stores/user";
 
+const props = defineProps<{
+    friends?: boolean
+}>()
+
+
 const userStore = useUserStore();
 const userId = userStore.user.id;
 const usersStore = useUsersStore();
@@ -38,6 +43,16 @@ socket.on("getActiveRoomNames", (payload: any) => {
           id="customizable"
           @click="findGameWatch($event, `${value.level}`, `${value.id}`)"
           class="pongLink"
+          v-if="friends == false"
+        >
+          {{ value.level }} {{ usersStore.getUserNickById(value.p1) }} vs
+          {{ usersStore.getUserNickById(value.p2) }}
+        </button>
+        <button
+          id="customizable"
+          @click="findGameWatch($event, `${value.level}`, `${value.id}`)"
+          class="pongLink"
+          v-else-if="value.p1 === usersStore.user.id || value.p2 === usersStore.user.id"
         >
           {{ value.level }} {{ usersStore.getUserNickById(value.p1) }} vs
           {{ usersStore.getUserNickById(value.p2) }}

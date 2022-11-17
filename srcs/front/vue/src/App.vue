@@ -64,19 +64,8 @@ async function testConnection() {
 
 router.beforeResolve((to) => {
   testConnection()
-  if (to.name == "game" )
-    statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
     return true;
 })
-
-watch(route, (newRoute) => {
-  if (usersStore.socketStatus) {
-    if (newRoute.name != "game") {
-      if (statusStore.status == "inGame")
-        statusStore.changeCurrentUserStatus("available", userStore.user.id);
-    }
-  }
-});
 
 onMounted(() => {
   userStore.loading = false;
