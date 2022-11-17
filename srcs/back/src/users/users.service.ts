@@ -264,7 +264,7 @@ export class UsersService {
       const users = await prisma.users.findMany();
       return (users);
     } catch (e) {
-      throw new Error(e)
+      throw new HttpException(e, 401)
     }
   }
   
@@ -273,6 +273,7 @@ export class UsersService {
     try {
       const test = await this.usersHelper.testNickname(nickname);
       if (!test) {
+        console.log("c'est false")
         return false
       }
       await this.usersHelper.getUser(id);
@@ -284,7 +285,7 @@ export class UsersService {
         }
       })
     } catch (e) {
-      throw new Error(e)
+      throw new HttpException(e, 401)
     }
   }
 
@@ -313,7 +314,7 @@ export class UsersService {
   
        return (otherFormat)
     } catch (e) {
-      throw new Error(e)
+      throw new HttpException(e, 401)
     }
   }
 
@@ -436,7 +437,7 @@ export class UsersService {
         return this.pipeQrCodeStream(response, otpauthUrl);
       }
     } catch (e) {
-      throw new Error(e)
+      throw new HttpException(e, 401)
     }
   }
 

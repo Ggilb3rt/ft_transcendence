@@ -93,7 +93,7 @@ class UsersHelper {
           }
         }))
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -105,7 +105,7 @@ class UsersHelper {
           }
         }))
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -117,7 +117,7 @@ class UsersHelper {
           }
         }))
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -138,7 +138,7 @@ class UsersHelper {
           }
         }))
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -157,7 +157,7 @@ class UsersHelper {
           }
         }))
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -169,7 +169,7 @@ class UsersHelper {
         }
         return (user);
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -177,7 +177,7 @@ class UsersHelper {
       try {
         await prisma.ban_users.delete({where:{id:ban.id}})
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -186,7 +186,7 @@ class UsersHelper {
       try {
         await prisma.friends.delete({where:{id: friendship.id}})
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -211,7 +211,7 @@ class UsersHelper {
         return true
       } catch (e) {
         //console.log("catch == ", e);
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -226,7 +226,7 @@ class UsersHelper {
         // console.log("friends == ", friends)
         return (friends)
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
 
     }
@@ -248,7 +248,7 @@ class UsersHelper {
         })
         return (friends)
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -269,7 +269,7 @@ class UsersHelper {
                 }
             })
         } catch(e) {
-            throw new Error(e)
+            throw new HttpException(e, 401)
         }
 	}
 	
@@ -294,7 +294,7 @@ class UsersHelper {
         
         return (matches)
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -312,7 +312,7 @@ class UsersHelper {
         } })
         return ret;
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
@@ -324,7 +324,7 @@ class UsersHelper {
           two_factor_secret: secret
         }})
       } catch (e) {
-        throw new Error(e)
+        throw new HttpException(e, 401)
       }
     }
 
