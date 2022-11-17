@@ -91,6 +91,7 @@ export class AuthController {
   @Get('logout')
   @UseGuards(JwtAuthGuard)
   async logout(@Res() res: Response) {
+    //console.log("CIAO PANTIN")
     res.clearCookie('jwt')
     res.send({statusCode: 200, message: 'Bye !!'})
   }
