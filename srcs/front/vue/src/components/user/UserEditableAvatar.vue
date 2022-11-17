@@ -14,7 +14,7 @@ let sizeFileError = ref(false)
 function validMIMEtype(file: any): boolean {
 	if (file === undefined)
 		return false
-	const validMIMEtype = ["image/jpeg", "image/png", "image/gif", "image/svg+xml", "image/webp", "image/avif", "image/apng"]
+	const validMIMEtype = ["image/jpeg"]
 	const fileMIME = file.type
 
 	if (fileMIME.split('/')[0] != "image")
@@ -51,7 +51,7 @@ async function changeImg(e: any) {
 			sizeFileError.value = true
 			return
 		}
-		if (!confirm("Change your avatar ?" + img)) {
+		if (!confirm("Change your avatar ?")) {
 			return
 		}
 		try {
@@ -73,7 +73,7 @@ async function changeImg(e: any) {
 							if (fileReader.result)
 								userStore.user.avatar_url = fileReader.result
 						}
-						usersStore.changeUserAvatar(userStore.user.id, data.url)
+						// usersStore.changeUserAvatar(userStore.user.id, data.url)
 					}
 				})
 		} catch (error: any) {
@@ -87,7 +87,7 @@ async function changeImg(e: any) {
 <template>
 	<figure class="heroFigure">
 		<img class="heroAvatar" :src="userStore.user.avatar_url" :alt="userStore.user.nickname + ' avatar'">
-		<input type="file" @change="changeImg( $event )" id="changeAvatar">
+		<input type="file" @change="changeImg( $event )" id="changeAvatar" accept="image/jpeg,.jpeg,.jpg">
 		<p v-if="MIMEtypeError" class="red">Invalid file format</p>
 		<p v-if="sizeFileError" class="red">File size must be &lt= 3Mo</p>
 	</figure>

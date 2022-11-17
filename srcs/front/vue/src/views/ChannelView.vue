@@ -165,7 +165,7 @@ onUpdated(() => {
 }
 
 .room .robot-message {
-	background: olive;
+	background: var(--global-c-blue-hover);
 }
 
 .room .message .tag {
