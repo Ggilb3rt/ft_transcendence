@@ -202,7 +202,7 @@ export class ChatService {
         if (!this.canJoin(user_id, channel_id, pass))
             return {msg: 'no right', status: false}
         const {type} = await this.chatHelper.getChannel(channel_id)
-        if (type === "private") {
+        if (type === "private" && !this.chatHelper.isOwner(channel_id, user_id)) {
             return {msg: 'no right', status: false}
         }
         else if (type === "pass") {
