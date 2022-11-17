@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useUserStore } from "@/stores/user";
+import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
 import { useRoute } from "vue-router";
 import Phaser from "phaser";
@@ -13,6 +14,7 @@ import GameScene from "./game/scenes/GameScene";
 
 const containerId = "game-container";
 const userStore = useUserStore();
+const usersStore = useUsersStore();
 const statusStore = useStatusStore();
 const userId = userStore.user.id;
 const route = useRoute();
@@ -22,8 +24,10 @@ const urlLevel = String(route.params.level);
 const urlType = Number(route.params.type);
 const urlRoomId = String(route.params.roomId);
 const validLevels = ["pong", "catPong", "customizable"];
+const playerOneUserId = ref(0);
+const playerTwoUserId = ref(0);
 let activeRoomNames: string[];
-let activeRooms:any;
+let activeRooms: any;
 let gameInstance: Game;
 const data = {
   userId,
@@ -33,6 +37,8 @@ const data = {
   key: "",
   level: "",
   vueSocket: socket,
+  playerOneUserId,
+  playerTwoUserId,
 };
 
 onMounted(() => {
@@ -53,19 +59,26 @@ onBeforeUnmount(() => {
 });
 
 function initGame() {
-  socket.emit("getActiveRoomNames", { type: 2 });
+  socket.emit("getActiveRoomNames", { userId, roomId: urlRoomId });
   socket.on("getActiveRoomNames", (payload: any) => {
     activeRooms = payload.roomNames;
     activeRoomNames = Object.keys(payload.roomNames);
-    console.log(activeRooms);
+    //console.log(activeRooms);
 
     if (isValidURL()) {
-      socket.off();
+      socket.off("getActiveRoomNames");
       launchGame();
     } else {
       socket.off();
       router.replace("/");
     }
+  });
+  socket.on("getPlayersIds", (data) => {
+    //console.log("RECEIVING PLAYERS IDS");
+    //console.log(data);
+    playerOneUserId.value = data.playerOneUserId;
+    playerTwoUserId.value = data.playerTwoUserId;
+    socket.off("getPlayersIds");
   });
 }
 
@@ -95,8 +108,8 @@ function isValidURL(): boolean {
     data.level = urlLevel;
     data.key = urlRoomId;
   } else if (urlType === 3) {
-    console.log("URL ROOM ID " + urlRoomId);
-    console.log("ACTIVE ROOM NAMES " + activeRoomNames);
+    //console.log("URL ROOM ID " + urlRoomId);
+    //console.log("ACTIVE ROOM NAMES " + activeRoomNames);
     if (urlRoomId != undefined && activeRoomNames.includes(urlRoomId)) {
       if (
         activeRooms[urlRoomId].p1 != userId &&
@@ -150,5 +163,31 @@ function destroyGame() {
 </script>
 
 <template>
+  <div id="playersIds">
+    <div v-if="playerOneUserId == 0 && playerTwoUserId == 0">
+      <h1><span style="float: left">PLAYER ONE : Waiting...</span></h1>
+      <h1><span style="float: right">PLAYER TWO : Waiting...</span></h1>
+      <div class="clear"></div>
+    </div>
+    <div v-else>
+      <h1>
+        <span style="float: left"
+          >PLAYER ONE :
+          <span class="red">
+            {{ usersStore.getUserNickById(playerOneUserId) }}</span
+          ></span
+        >
+      </h1>
+      <h1>
+        <span style="float: right"
+          >PLAYER TWO :
+          <span class="red">{{
+            usersStore.getUserNickById(playerTwoUserId)
+          }}</span></span
+        >
+      </h1>
+      <div class="clear"></div>
+    </div>
+  </div>
   <div :id="containerId" />
 </template>

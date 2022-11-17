@@ -4,7 +4,10 @@ import { ref } from "vue";
 import router from "@/router";
 import { useUsersStore } from "@/stores/users";
 import { useStatusStore } from "@/stores/status";
+import { useUserStore } from "@/stores/user";
 
+const userStore = useUserStore();
+const userId = userStore.user.id;
 const usersStore = useUsersStore();
 const statusStore = useStatusStore();
 const socket = statusStore.socketGame;
@@ -19,7 +22,7 @@ async function findGameWatch(
   router.push({ path: `/game/2/${level}/${roomId}` });
 }
 
-socket.emit("getActiveRoomNames", { type: 1 });
+socket.emit("getActiveRoomNames", { userId });
 
 const activeRoomNames = ref([]);
 socket.on("getActiveRoomNames", (payload: any) => {

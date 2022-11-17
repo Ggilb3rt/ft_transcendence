@@ -8,6 +8,8 @@ export default class GameScene extends Phaser.Scene {
   socket: Socket;
   spectator: boolean;
   level: number;
+  roomName: string;
+
 
   constructor() {
     super("GameScene");
