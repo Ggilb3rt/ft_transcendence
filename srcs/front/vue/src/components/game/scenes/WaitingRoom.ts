@@ -11,7 +11,6 @@ export default class WaitingRoom extends Phaser.Scene {
     this.userId = data.userId;
     this.challenge = data.challenge;
     this.challengeId = data.challengeId;
-    //this.challengeInfo = data.challengeInfo;
     this.spectator = data.spectator;
     this.key = data.key;
     this.images = data.images;
@@ -50,7 +49,6 @@ export default class WaitingRoom extends Phaser.Scene {
     const scene = this;
 
     if (scene.doneOK === true) {
-      console.log(scene.settings);
       scene.scene.pause();
       scene.scene.start("GameScene", {
         level: scene.level,
@@ -60,7 +58,6 @@ export default class WaitingRoom extends Phaser.Scene {
         challengeId: scene.challengeId,
         key: scene.key,
         images: scene.images,
-        settings: scene.settings,
 		vueSocket: scene.vueSocket,
       });
     }

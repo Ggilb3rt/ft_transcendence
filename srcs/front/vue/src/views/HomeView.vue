@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import io, { Socket } from "socket.io-client";
 import router from "@/router";
-import { onBeforeUnmount, onMounted, onRenderTriggered, ref } from "vue";
-//import { useStatusStore } from "@/stores/status";
+import { onBeforeUnmount, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 import Modal from "@/components/Modal.vue";
 
@@ -18,7 +17,6 @@ const canPlay = ref(true);
 const show = ref(false);
 socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
-  console.log("DATA BOOL " + data.bool);
   if (data.userId === userId) {
     canPlay.value = !data.bool;
   }
@@ -39,7 +37,6 @@ async function findGame(
   } else {
     show.value = true;
   }
-  //router.push({ path: `/game/1/${level}` });
 }
 
 socket.emit("getActiveRoomNames", { type: 1 });
@@ -50,25 +47,20 @@ socket.on("getActiveRoomNames", (payload) => {
 });
 
 onBeforeUnmount(() => {
-	if (socket != undefined) {
-  socket.disconnect();
-	}
+  if (socket != undefined) {
+    socket.disconnect();
+  }
 });
-/*
-onRenderTriggered((e) => {
-  debugger;
-})*/
-
 </script>
 
 <template>
   <div class="vue_wrapper home">
-    <div v-if="canPlay === true">
+    <!-- <div v-if="canPlay === true">
       <p>can play</p>
     </div>
     <div v-else>
       <p>cannot play</p>
-    </div>
+    </div> -->
     <h1>Let's play a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
