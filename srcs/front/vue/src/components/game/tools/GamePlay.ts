@@ -102,7 +102,7 @@ export default class GamePlay {
 
   listenPlayerMoved(width, height, scene) {
     scene.socket.on("playerMoved", (data) => {
-      console.log("playermoved");
+      //console.log("playermoved");
       const { y, roomName, playerNumber } = data;
       if (playerNumber === 1 && playerNumber !== scene.playerNumber) {
         scene.playerOne.y = y;
@@ -122,6 +122,9 @@ export default class GamePlay {
         scene.playerTwoScore = score;
         scene.playerTwoScoreText.setText(scene.playerTwoScore);
       }
+
+      scene.playerOne.setVelocity(0);
+      scene.playerTwo.setVelocity(0);
       scene.ball.x = width / 2;
       scene.ball.y = height / 2;
       scene.playerOne.y = height / 2;
@@ -169,7 +172,7 @@ export default class GamePlay {
   listenLeftGame(width, height, scene, game) {
     scene.socket.on("leftGame", (type) => {
       if (type === 1) {
-        alert("THE OTHER PLAYER LEFT THE GAME");
+        alert("PLAYER(S) DISCONNECTED");
       } else if (type === 2) {
         alert("YOU CAN'T PLAY AGAINST YOURSELF");
       }
@@ -185,7 +188,24 @@ export default class GamePlay {
     game.events.on(
       "hidden",
       function () {
-        if (scene.activeGame) {
+        if (
+          scene.activeGame &&
+          (scene.playerNumber === 1 || scene.playerNumber === 2)
+        ) {
+          scene.socket.emit("pauseGame", { roomName: scene.roomName });
+          scene.scene.resume();
+        }
+      },
+      scene
+    );
+
+    game.events.on(
+      "pause",
+      function () {
+        if (
+          scene.activeGame &&
+          (scene.playerNumber === 1 || scene.playerNumber === 2)
+        ) {
           scene.socket.emit("pauseGame", { roomName: scene.roomName });
           scene.scene.resume();
         }
@@ -195,6 +215,7 @@ export default class GamePlay {
 
     scene.socket.on("pauseGame", () => {
       if (scene.activeGame) {
+        console.log("PAUSE GAME");
         scene.pauseText.setVisible(true);
         scene.scene.pause();
       }
@@ -203,7 +224,7 @@ export default class GamePlay {
     game.events.on(
       "visible",
       function () {
-        if (scene.activeGame) {
+        if (scene.playerNumber === 1 || scene.playerNumber === 2) {
           scene.socket.emit("unpauseGame", { roomName: scene.roomName });
         }
       },
@@ -211,8 +232,10 @@ export default class GamePlay {
     );
 
     scene.socket.on("unpauseGame", () => {
-      scene.pauseText.setVisible(false);
-      scene.scene.resume();
+      if (scene.activeGame) {
+        scene.pauseText.setVisible(false);
+        scene.scene.resume();
+      }
     });
   }
 
@@ -346,7 +369,6 @@ export default class GamePlay {
   checkPlayerMovement(scene) {
     if (scene.playerNumber === 1) {
       if (this.playerMoved(scene.playerOne, scene)) {
-        console.log("playerone y " + scene.playerOne.y)
         scene.socket.emit("playerMovement", {
           y: scene.playerOne.y,
           roomName: scene.roomName,
@@ -367,12 +389,15 @@ export default class GamePlay {
   playerMoved(player, scene) {
     const speed = 500;
     let playerMoved = false;
-    player.body.setVelocityY(0);
+    //player.body.setVelocityY(0);
+    player.setVelocityY(0);
     if (scene.cursors.up.isDown) {
-      player.body.setVelocityY(-speed);
+      //player.body.setVelocityY(-speed);
+      player.setVelocityY(-speed);
       playerMoved = true;
     } else if (scene.cursors.down.isDown) {
-      player.body.setVelocityY(speed);
+      //player.body.setVelocityY(speed);
+      player.setVelocityY(speed);
       playerMoved = true;
     }
     return playerMoved;
@@ -380,13 +405,15 @@ export default class GamePlay {
 
   /* GAME OBJECT CREATION */
 
-  createGameObjects(level, settings, images, width, height, scene) {
+  createGameObjects(level, images, width, height, scene) {
     this.initBackground(level, width, height, scene);
-    this.initBallObject(level, settings, images, width, height, scene);
-    this.initPlayerObjects(level, settings, images, width, height, scene);
-    if (level === 2) {
-      this.customizeSettings(settings, scene);
-    }
+    this.initBallObject(level, images, width, height, scene);
+    //if (level === 1 || level === 3) {
+    this.initPlayerObjects(level, images, width, height, scene);
+    //}
+    //if (level === 2) {
+    //  this.customizeSettings(settings, scene);
+    //}
     if (level === 3) {
       this.initAnimation(images, width, height, scene);
     }
@@ -410,14 +437,14 @@ export default class GamePlay {
     scene.middleLine.stroke();
   }
 
-  initBallObject(level, settings, images, width, height, scene) {
+  initBallObject(level, images, width, height, scene) {
     scene.ball = scene.physics.add.sprite(width / 2, height / 2, images.ball);
     scene.ball.setCollideWorldBounds(true);
     scene.ball.setBounce(1, 1);
     scene.ball.scaleY = scene.ball.scaleX;
   }
 
-  initPlayerObjects(level, settings, images, width, height, scene) {
+  initPlayerObjects(level, images, width, height, scene) {
     scene.playerOne = scene.physics.add.sprite(
       scene.ball.body.width / 2 + 1,
       height / 2,
@@ -431,41 +458,29 @@ export default class GamePlay {
 
     scene.playerOne.setCollideWorldBounds(true);
     scene.playerOne.setImmovable(true);
-    if (level === 1 || level === 2) {
+    if (level === 1) {
       scene.playerOne.displayWidth = 10;
+    } else if (level === 2) {
+      scene.playerOne.displayWidth = 40;
+      scene.playerOne.setScale(4);
     } else if (level === 3) {
       scene.playerOne.displayWidth = 20;
       scene.playerOne.setScale(1);
     }
     scene.playerOne.scaleY = scene.playerOne.scaleX;
-    scene.playerOne.setInteractive({ draggable: true }).on(
-      "drag",
-      function (pointer, dragX, dragY) {
-        if (scene.playerNumber === 1 && scene.activeGame) {
-          scene.playerOne.y = dragY;
-        }
-      },
-      scene
-    );
 
     scene.playerTwo.setCollideWorldBounds(true);
     scene.playerTwo.setImmovable(true);
-    if (level === 1 || level === 2) {
+    if (level === 1) {
       scene.playerTwo.displayWidth = 10;
+    } else if (level === 2) {
+      scene.playerTwo.displayWidth = 40;
+      scene.playerTwo.setScale(4);
     } else if (level === 3) {
       scene.playerTwo.displayWidth = 20;
       scene.playerTwo.setScale(1);
     }
     scene.playerTwo.scaleY = scene.playerTwo.scaleX;
-    scene.playerTwo.setInteractive({ draggable: true }).on(
-      "drag",
-      function (pointer, dragX, dragY) {
-        if (scene.playerNumber === 2 && scene.activeGame) {
-          scene.playerTwo.y = dragY;
-        }
-      },
-      scene
-    );
   }
 
   initAnimation(images, width, height, scene) {
@@ -529,6 +544,7 @@ export default class GamePlay {
 
   initColliders(level, scene) {
     scene.physics.add.collider(scene.ball, scene.playerOne, () => {
+      console.log("COLLISION");
       const bounceAngle = this.getBounceAngle(
         scene.ball,
         scene.playerOne,
@@ -537,10 +553,12 @@ export default class GamePlay {
       if (scene.playerNumber === 1) {
         scene.ball.setVelocity(
           -Math.cos(bounceAngle) * 500,
-          Math.sin(bounceAngle) * 500); 
+          Math.sin(bounceAngle) * 500
+        );
       }
     });
     scene.physics.add.collider(scene.ball, scene.playerTwo, () => {
+      console.log("COLLISION");
       const bounceAngle = this.getBounceAngle(
         scene.ball,
         scene.playerTwo,
@@ -549,7 +567,8 @@ export default class GamePlay {
       if (scene.playerNumber === 1) {
         scene.ball.setVelocity(
           Math.cos(bounceAngle) * 500,
-          -Math.sin(bounceAngle) * 500); 
+          -Math.sin(bounceAngle) * 500
+        );
       }
     });
 
@@ -639,56 +658,8 @@ export default class GamePlay {
       scene.fox.y = height / 2 - 60;
       scene.playerOne.setScale(1);
       scene.playerTwo.setScale(1);
-    }
-  }
-
-  customizeSettings(settings, scene) {
-    switch (settings.ball) {
-      case "WHITE":
-        break;
-      case "BLUE":
-        scene.ball.tint = 0x0080ff;
-        break;
-      case "GREEN":
-        scene.ball.tint = 0x008000;
-        break;
-      case "ORANGE":
-        scene.ball.tint = 0xffa500;
-        break;
-      case "YELLOW":
-        scene.ball.tint = 0xffff00;
-    }
-
-    switch (settings.playerOne) {
-      case "WHITE":
-        break;
-      case "BLUE":
-        scene.playerOne.tint = 0x0080ff;
-        break;
-      case "GREEN":
-        scene.playerOne.tint = 0x008000;
-        break;
-      case "ORANGE":
-        scene.playerOne.tint = 0xffa500;
-        break;
-      case "YELLOW":
-        scene.playerOne.tint = 0xffff00;
-    }
-
-    switch (settings.playerTwo) {
-      case "WHITE":
-        break;
-      case "BLUE":
-        scene.playerTwo.tint = 0x0080ff;
-        break;
-      case "GREEN":
-        scene.playerTwo.tint = 0x008000;
-        break;
-      case "ORANGE":
-        scene.playerTwo.tint = 0xffa500;
-        break;
-      case "YELLOW":
-        scene.playerTwo.tint = 0xffff00;
+      scene.playerOne.setVelocity(0);
+      scene.playerTwo.setVelocity(0);
     }
   }
 }

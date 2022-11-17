@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import io, { Socket } from "socket.io-client";
 import router from "@/router";
-import { onBeforeUnmount, onMounted, ref } from "vue";
-//import { useStatusStore } from "@/stores/status";
+import { onBeforeUnmount, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 import Modal from "@/components/Modal.vue";
 
@@ -12,12 +11,6 @@ const socket = io("http://localhost:3000/game", {
   query: {
     type: "homeViewSocket",
   },
-});
-
-window.addEventListener("beforeunload", (e) => {
-  if (socket) {
-    socket.disconnect();
-  }
 });
 
 const canPlay = ref(true);
@@ -44,7 +37,6 @@ async function findGame(
   } else {
     show.value = true;
   }
-  //router.push({ path: `/game/1/${level}` });
 }
 
 socket.emit("getActiveRoomNames", { type: 1 });
@@ -55,18 +47,20 @@ socket.on("getActiveRoomNames", (payload) => {
 });
 
 onBeforeUnmount(() => {
-  socket.disconnect();
+  if (socket != undefined) {
+    socket.disconnect();
+  }
 });
 </script>
 
 <template>
   <div class="vue_wrapper home">
-    <div v-if="canPlay === true">
+    <!-- <div v-if="canPlay === true">
       <p>can play</p>
     </div>
     <div v-else>
       <p>cannot play</p>
-    </div>
+    </div> -->
     <h1>Let's play a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList">
@@ -113,7 +107,6 @@ onBeforeUnmount(() => {
     <h1>Let's watch a <span class="red">game</span></h1>
     <nav>
       <ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
-        <!-- <p v-for="room in activeRoomNames" :key="room"> -->
         <p v-for="value in activeRoomNames" :key="value">
           <button
             id="customizable"

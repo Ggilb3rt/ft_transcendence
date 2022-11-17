@@ -19,7 +19,7 @@ import { useChannelsStore } from "./stores/channels";
 import Footer from "./components/Footer.vue";
 import PrimaryNav from "./components/navigation/PrimaryNav.vue";
 import ErrorPopUp from "./components/ErrorPopUp.vue";
-import ModalChallenge from "@/components/ModalChallenge.vue"
+import ModalChallenge from "@/components/ModalChallenge.vue";
 import Loader from "./components/navigation/loader.vue";
 
 const route = useRoute()
@@ -50,10 +50,10 @@ async function testConnection() {
         statusStore.setup(userStore.user.id);
         if (!isSetupStoreChannel) {
           channelStore.getChansLists();
-          isSetupStoreChannel = true
+          isSetupStoreChannel = true;
         }
       }
-  }
+    }
   } catch (error: any) {
     const tempErr = JSON.parse(error.message);
     userStore.error = tempErr.body;
@@ -70,7 +70,7 @@ router.beforeResolve((to) => {
 
 watch(route, (newRoute) => {
   if (usersStore.socketStatus) {
-    if (newRoute.name != 'game') {
+    if (newRoute.name != "game") {
       if (statusStore.status == "inGame")
         statusStore.changeCurrentUserStatus("available", userStore.user.id);
     }
@@ -78,13 +78,19 @@ watch(route, (newRoute) => {
 });
 
 onMounted(() => {
-  userStore.loading = false
-})
+  userStore.loading = false;
+});
 </script>
 
 <template>
   <main>
-    <ErrorPopUp v-if="router.currentRoute.value.path != '/login' && router.currentRoute.value.path != '/2fa'"></ErrorPopUp>
+    <ErrorPopUp
+      v-if="
+        router.currentRoute.value.path != '/login' &&
+        router.currentRoute.value.path != '/2fa' &&
+        router.currentRoute.value.path != '/first'
+      "
+    ></ErrorPopUp>
 
     <header
       v-if="

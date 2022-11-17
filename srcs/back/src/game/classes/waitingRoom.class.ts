@@ -1,6 +1,6 @@
 
 export class PlayerWR {
-	id:number;
+	id: string;
     socket: any;
     roomId: string;
 	userId: number;
@@ -15,7 +15,7 @@ export class PlayerWR {
 		this.userId = player.userId;
 		this.connected = false;
 		} else {
-			this.id = 0;
+			this.id = "";
 		this.socket = null;
 		this.roomId = "";
 		this.userId = 0;

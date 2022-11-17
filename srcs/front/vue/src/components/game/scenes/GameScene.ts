@@ -23,7 +23,7 @@ export default class GameScene extends Phaser.Scene {
     this.images = data.images;
     this.custom = data.custom;
     this.level = data.level;
-    this.settings = data.settings;
+    this.vueSocket = data.vueSocket;
     this.roomComplete = false;
     this.playerInit = false;
     this.playerNumber = 0;
@@ -53,13 +53,15 @@ export default class GameScene extends Phaser.Scene {
     const scene = this;
     const { width, height } = this.sys.game.canvas;
     const game = this.sys.game;
-    console.log("level = " + scene.level);
+    //console.log("level = " + scene.level);
 
     /* INIT SOCKET */
     if (!scene.roomComplete) {
+      if (!scene.spectator) {
+        scene.vueSocket.emit("addUserId", { userId: scene.userId });
+      }
       scene.socket = io("http://localhost:3000/game");
-		//alert("INIT 2");
-	}
+    }
 
     /* GO TO WAITING ROOM UNLESS SPECTATOR*/
     if (!scene.spectator) {
@@ -72,7 +74,6 @@ export default class GameScene extends Phaser.Scene {
         challengeInfo: scene.challengeInfo,
         key: scene.key,
         images: scene.images,
-        settings: scene.settings,
         custom: false,
       });
     } else {
@@ -84,7 +85,6 @@ export default class GameScene extends Phaser.Scene {
     /* ADD GAME OBJECTS */
     f.createGameObjects(
       scene.level,
-      scene.settings,
       scene.images,
       width,
       height,
