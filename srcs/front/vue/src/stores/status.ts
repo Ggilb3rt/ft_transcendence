@@ -63,32 +63,25 @@ export const useStatusStore = defineStore({
     },
 
     async getPending(id: Number) {
-      const invitedBy = await fetch(
-        `http://localhost:3000/users/${id}/pending`
-      );
-      if (!invitedBy) return null;
-      //console.log("invitedBy = ", invitedBy, "invitedBy.json = ", invitedBy.json)
+      const invitedBy = await fetch(`http://localhost:3000/users/${id}/pending`);
+      if (!invitedBy)
+        return null;
       return invitedBy.json;
     },
 
     pushToList(socketStatus: ISocketStatus) {
-      //console.log("el == ", socketStatus)
-      //console.log("liste == ", this.statusList.length)
       const el = this.statusList.findIndex((el) => {
-        /*console.log(socketStatus.userId, "   ", el.userId);return  socketStatus.userId === el.userId*/
+        return el.userId == socketStatus.userId
       });
-      //console.log("TROUVE", el)
       if (el != -1) {
         this.statusList.splice(el, 1);
       }
       this.statusList.push(socketStatus);
-      //console.log("DANS PUSH TO LIST ", this.statusList.length)
     },
 
     connectSocket() {
       this.socket.connect();
       alert("CONNECT");
-      //this.socketGame.connect();
     },
 
     disconnectSocket() {
@@ -97,8 +90,6 @@ export const useStatusStore = defineStore({
     },
 
     async setupSocket() {
-        console.log("je sais paaaas")
-
       if (this.socket.connected) {
         this.socket.emit("connectionStatus", this.id);
 
@@ -156,9 +147,7 @@ export const useStatusStore = defineStore({
         this.socket.on(
           "newChallenge",
           (res: { challenge: Challenge; socket: string }) => {
-            console.log("Challenge recu");
             if (res.challenge && !this.challenge) {
-              console.log("Challenge valide", res.challenge);
               this.challenge = res.challenge;
               this.changeCurrentUserStatus("challenged", this.id);
               this.socket.emit("challengeOk", res.socket);
@@ -173,14 +162,12 @@ export const useStatusStore = defineStore({
         });
         this.socket.on("challengeOk", (challenge: Challenge) => {
           this.iChallenged = true;
-          console.log("I CHALLENGED = ", this.iChallenged);
           this.changeCurrentUserStatus("challenged", this.id);
         });
         this.socket.on("challengeAccepted", (challenge: Challenge) => {
           if (challenge) {
             const { challenger, challenged, level } = challenge;
             if (!this.challenge) {
-              console.log("No pending challenge");
               return;
             }
             /*this.socket = io("http://localhost:3000/userStatus", {
@@ -206,9 +193,7 @@ export const useStatusStore = defineStore({
                   challenge: challenge,
                   userId: this.id,
                 });
-                console.log("CHALLENGE LEVEL B " + level + " " + levelName);
                 this.socketGame.on("newRoomCreated", () => {
-                  console.log("ROOM COMPLETE");
                   router.push({
                     path: `/game/3/${levelName}/${challenge.challengeId}`,
                   });
@@ -218,7 +203,6 @@ export const useStatusStore = defineStore({
           }
         });
       }else {
-        console.log("as con")
       setTimeout(this.setupSocket, 100);
     }
     },
@@ -226,7 +210,6 @@ export const useStatusStore = defineStore({
     async setup(id: number) {
       // Check to do it only once
       if (this.setuped == false) {
-        console.log("MY ID IN SETUP == ", id);
         this.socket = io("http://localhost:3000/userStatus", {
           withCredentials: true,
           query: {
@@ -257,7 +240,6 @@ export const useStatusStore = defineStore({
     findSocket(id: Number) {
       const el = this.statusList.find((el) => el.userId === id);
       if (el === undefined) {
-        //console.log("inside error")
         this.error =
           "Failed to find current user id in statusList array store on status change";
       }
@@ -277,7 +259,6 @@ export const useStatusStore = defineStore({
     },
 
     challengeUser(id: Number, level: Number, challenged: Number) {
-      console.log("je challenge un user");
       const challengeId = this.codeGenerator(5);
       const challenge: Challenge = {
         challenger: id,
@@ -286,10 +267,8 @@ export const useStatusStore = defineStore({
         socketId: this.socket.id,
         challengeId,
       };
-      console.log("challenge = ", challenge);
       const el = this.findSocket(challenge.challenged);
       if (el) {
-        console.log("je suis la ");
         this.challenge = challenge;
         this.socket.emit("newChallenge", challenge);
       } else {
@@ -298,21 +277,16 @@ export const useStatusStore = defineStore({
     },
 
     acceptChallenge() {
-      console.log("this.challenge");
       if (!this.challenge) {
-        console.log("No pending challenge");
         return;
       }
       this.socket.emit("acceptChallenge", this.challenge);
-      console.log("ACCEPT CHALLENGE");
-      console.log(this.challenge);
       const { challenger, challenged, level, challengeId } = this.challenge;
       /*router.push({
         path: "/game",
         query: { challenge: JSON.stringify({ challenger, level, challenged }) },
       });*/
       let levelName = "";
-      //console.log("CHALLENGE LEVEL A " + this.challenge.level);
       if (Number(this.challenge.level) === 0) {
         levelName = "pong";
         this.challenge.level = 1;
@@ -327,12 +301,7 @@ export const useStatusStore = defineStore({
         challenge: this.challenge,
         userId: this.id,
       });
-      console.log(
-        "CHALLENGE LEVEL A " + this.challenge.level + " " + levelName
-      );
-      //console.log("THIS CHALLENGE " + JSON.stringify(challenge) + " " + levelName);
       this.socketGame.on("newRoomCreated", () => {
-        console.log("ROOM COMPLETE");
         router.push({
           path: `/game/3/${levelName}/${challengeId}`,
         });
@@ -342,7 +311,6 @@ export const useStatusStore = defineStore({
     },
 
     changeCurrentUserStatus(newStatus: TStatus, id: Number) {
-      //console.log("----------- CHANGING STATUS -----------\n\n -----EL = ", el, "-----STATUS = ", newStatus)
       this.status = newStatus;
       this.socket.emit("changeStatus", {
         userId: this.id,
@@ -361,9 +329,6 @@ export const useStatusStore = defineStore({
         };
         this.challenge = challenge;
       } else this.finishChallenge();
-
-      console.log("NEW CHALLENGEeee  ");
-      console.log(this.challenge);
     },
 
     finishChallenge() {

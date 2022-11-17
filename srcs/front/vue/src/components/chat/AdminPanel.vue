@@ -55,6 +55,15 @@ const adminPanel = ref(false)
 #admin-panel-btn {
 	background: #fff;
 	border: none;
+	color: var(--vt-c-black-soft);
+}
+#admin-panel-btn:hover {
+	color: var(--vt-c-white-mute);
+}
+
+.admin-bar button {
+	background: var(--vt-c-white-mute);
+	color: var(--vt-c-black-soft);
 }
 
 @keyframes whao {

@@ -8,9 +8,13 @@ import Loader from '../navigation/loader.vue';
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 
+const props = defineProps<{
+    noHeroName?: boolean,
+}>()
+
 // Nickname management
 // const maxNickLength = Number(process.env.MAX_NICK_LENGTH)
-const maxNickLength = 10
+const maxNickLength = 30
 let editMode = ref(false)
 let nicknameEdit = ref("")
 
@@ -55,7 +59,7 @@ watch(nicknameEdit, () => {
 
 <template>
 	<div>
-		<p class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
+		<p v-if="!noHeroName" class="heroName">{{ userStore.user.first_name }} {{ userStore.user.last_name}}</p>
 		<div class="heroTag">
 			<Loader></Loader>
 			<div v-if="editMode">

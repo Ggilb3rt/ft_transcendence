@@ -45,7 +45,6 @@ function submit(e: Event) {
 			}
 			else {
 				channelsStore.emitDirectMessage(channelIdNumber, msg.value)
-				console.log("direct message ", msg.value)
 			}
 			
 				
@@ -67,14 +66,10 @@ onBeforeMount(async() => {
 	// fetch Channel
 	// alert(`before mount channel ${JSON.stringify(route.params)}`)
 	const isDirectMsg = route.name == "channelDirect" ? true : false
-	console.log(`----------before mount getChan id '${channelIdNumber}' is direct message ? => `, isDirectMsg)
 	if (isDirectMsg)
 		await channelsStore.getDirectChan(channelIdNumber)
-	else {
-		console.log("I FETCH CHAN = ", channelIdNumber)
+	else
 		await channelsStore.getChan(channelIdNumber)
-	}
-	console.log(`----------before mount getChan id 2 '${channelIdNumber}'`)
 	channelsStore.selectCurrentChan(channelIdNumber)
 })
 

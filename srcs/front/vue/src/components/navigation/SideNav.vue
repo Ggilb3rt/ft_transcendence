@@ -33,8 +33,6 @@ function updateWinWidthValue(e: Event) {
 
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue(e));
-	console.log("winWidth value ", winWidth.value)
-	// check on start
 	if (winWidth.value >= 768)
 		props.model.isOpen = true
 	else
@@ -105,12 +103,15 @@ onBeforeUnmount(() => {
 	height: 25px;
 	right: -25px;
 	top: calc(50% - 12px);
-	transition: right .3s ease-in-out;
+	transition: all .3s ease-in-out;
 }
 .btn_join {
 	background: var(--global-c-blue);
 }
 .btn_leave {
+	background: var(--global-c-red);
+}
+.btn_leave:hover {
 	background: var(--global-c-red);
 }
 
@@ -159,9 +160,9 @@ ul li ul li a, .like-link {
 	background: var(--color-background-soft);
 } */
 
-ul li ul li:nth-child(n+2) a{
-	/* border-top: 1px solid #fff; */
-}
+/* ul li ul li:nth-child(n+2) a{
+	border-top: 1px solid #fff;
+} */
 
 @media screen and (min-width: 768px) {
 	.second_side_menu {

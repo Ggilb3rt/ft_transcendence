@@ -6,12 +6,6 @@ import BtnChallenge from '../navigation/BtnChallenge.vue';
 
 const userStore = useUserStore()
 const usersStore = useUsersStore()
-
-
-// async function sendInvite() {
-//     console.log(`invitation from ${userStore.user.id} to ${usersStore.user.id}`)
-// }
-
 const inviteSend = ref<boolean>(false)
 
 function befriend() {
@@ -20,7 +14,6 @@ function befriend() {
         inviteSend.value = true
     }
 }
-
 
 </script>
 

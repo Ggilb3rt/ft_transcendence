@@ -86,10 +86,6 @@ function initGame() {
   socket.on("getActiveRoomNames", (payload) => {
     activeRoomNames = Object.keys(payload.roomNames);
 
-    console.log("TYPE " + urlType);
-    console.log("LEVEL " + urlLevel);
-    console.log("URL ROOMID " + urlRoomId);
-
     if (isValidType() && isValidGame() /* && !error*/) {
       launchGame();
     } else {
@@ -102,7 +98,6 @@ function isValidType(): boolean {
   if (urlType < 0 || urlType > 3) {
     return false;
   }
-  console.log("URL TYPE" + urlType);
   if (urlType === 2) {
     data.spectator = true;
   } else if (urlType === 3) {
@@ -143,7 +138,6 @@ class Game extends Phaser.Game {
 
 function launchGame() {
   socket.emit("addUserId", { userId });
-  console.log("ADD USER " + userId);
   statusStore.changeCurrentUserStatus("inGame", userId);
   statusStore.changeChallengeForIngame(true);
   socket.on("userAdded", () => {

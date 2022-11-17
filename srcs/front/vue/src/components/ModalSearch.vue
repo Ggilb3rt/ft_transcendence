@@ -3,7 +3,6 @@ import { ref, onMounted, onUpdated, watch } from "vue"
 import { useUsersStore } from '../stores/users'
 import { useUserStore } from '../stores/user'
 import Modal from './Modal.vue'
-import IconCommunity from "./icons/IconCommunity.vue";
 import UserLink from "./user/UserLink.vue";
 import CarbonSearch from "@/components/icones-bags/CarbonSearch.vue"
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
@@ -16,10 +15,6 @@ const props = defineProps({
 const userStore = useUserStore()
 const usersStore = useUsersStore()
 
-// il serait sympa de mettre un focus sur le premier user de la liste
-// ==> ajout d'un @keypress.enter="..." sur le input
-// userFriendly++
-
 const showSearchUserModal = ref(false)
 const searchInput = ref<HTMLElement | null>(null)
 
@@ -29,16 +24,13 @@ function filteredNames() {
 }
 
 
-// Le focus sur l'input marche pas, d'l'a merde
 onUpdated(() => {
-    // console.log("modal search update", searchInput)
     if (searchInput.value)
             searchInput.value.focus()
 })
 
 watch(showSearchUserModal, (newVal) => {
     if (newVal == true) {
-        // console.log("modal search watch", searchInput)
         if (searchInput.value)
             searchInput.value.focus()
     }

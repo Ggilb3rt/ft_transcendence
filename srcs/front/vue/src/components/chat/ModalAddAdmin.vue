@@ -16,9 +16,7 @@ const formError = ref("")
 function valid() {
 	if (channelsStore.currentChan) {
 		if (channelsStore.currentChan.canAddAdmin(userStore.user.id, selectedUser.value)) {
-			// send data
 			channelsStore.emitPromoteUser(channelsStore.currentChan.getId(), selectedUser.value)
-			console.log("set admin user ", selectedUser.value)
 			cancel()
 		}
 		else

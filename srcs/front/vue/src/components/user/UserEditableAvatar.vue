@@ -63,11 +63,10 @@ async function changeImg(e: any) {
 				.then((response) => {
 					if (response.status >= 200 && response.status < 300)
 						return response
-					throw new Error(response.statusText)
+					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 				})
 				.then((data) => {
 					if (data) {
-						//console.log("return data ", data)
 						const fileReader = new FileReader()
 						fileReader.readAsDataURL(img)
 						fileReader.onload = () => {
@@ -78,7 +77,8 @@ async function changeImg(e: any) {
 					}
 				})
 		} catch (error: any) {
-			userStore.error = "changeImg avatar " + error
+			const tempErr = JSON.parse(error.message);
+    		userStore.error = tempErr.body;
 		}
 	}
 }

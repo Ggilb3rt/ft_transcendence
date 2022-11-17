@@ -8,13 +8,10 @@ const userStore = useUserStore()
 const usersStore = useUsersStore()
 
 function resInvite(sayYes: boolean, id: number) {
-	if (sayYes) {
-		//console.log(id)
+	if (sayYes)
 		userStore.acceptInvite(id)
-	}
-	else {
+	else
 		userStore.refuseInvite(id)
-	}
 	userStore.user.invites.forEach((el, index) => {
 		if (el == id)
 			userStore.user.invites.splice(index, 1)

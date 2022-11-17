@@ -46,35 +46,6 @@ export const useUsersStore = defineStore({
         //     if (state.user)
         //         return `@${state.user.nickname}`
         // },
-        getUserRank: (state): string => {
-            if (state.user) {
-                switch (state.user.ranking) {
-                    case 0:
-                        return ("Pipou")
-                        break
-                    case 1:
-                        return ("Adept")
-                        break
-                    case 2:
-                        return ("Pongger")
-                        break
-                    case 3:
-                        return ("Your body is ready")
-                        break
-                    case 4:
-                        return ("Master")
-                        break
-                    case 5:
-                        return ("God")
-                        break
-                    default:
-                        return ("Prrrrt")
-                        break
-                }
-            }
-            return ("Prrrrt")
-        },
-
     },
     actions: {
         isUserConnected(id: number): boolean {
@@ -102,27 +73,6 @@ export const useUsersStore = defineStore({
                 return img.avatar_url
             return ""
         },
-        // getUserStatus(id: number): status {
-        //     let ret: ISocketStatus | undefined = undefined;
-            
-        //     console.log("start socketStatus", this.socketStatus)
-        //     if (this.socketStatus) {
-        //         this.socketStatus.forEach((el: any) => {
-        //             console.log(`mon tableau de fou \n\t${el.userId[0]}\n\t${el.userStatus}`)
-        //         })
-        //         ret = this.socketStatus.includes((el: any) => {
-        //             el.userId[0] == id;
-        //             console.log("ref el", el)
-        //         })
-        //     }
-        //     console.log("return of socketStatus", ret)
-        //     if (ret == undefined)
-        //         return 'disconnected'
-        //     console.log("get userStatus ", ret)
-        //     return ret.userStatus
-        // },
-        
-        // je devrai plutot return string[] et adapter si besoin dans les composents
         getUsersListForChat(idList: number[]): sideNavLink[] {
             let list: sideNavLink[] = []
             if (!idList)
@@ -154,10 +104,39 @@ export const useUsersStore = defineStore({
                 }
             })
         },
-        getUserWinRate(): string {
+        getUserWinRate(): number {
+            let calc = 0
             if (this.user)
-                return (this.user.wins / this.user.loses).toPrecision(2)
-            return '0'
+                calc = (this.user.wins / (this.user.loses + this.user.wins) * 100);
+            return isNaN(calc) ? 0 : calc
+        },
+        getUserRank(): string {
+            if (this.user) {
+                switch (this.user?.ranking) {
+                case 0:
+                    return "Pipou";
+                    break;
+                case 1:
+                    return "Adept";
+                    break;
+                case 2:
+                    return "Pongger";
+                    break;
+                case 3:
+                    return "Your body is ready";
+                    break;
+                case 4:
+                    return "Master";
+                    break;
+                case 5:
+                    return "God";
+                    break;
+                default:
+                    return "Prrrrt";
+                    break;
+                }
+            }
+            return "Prrrrt";
         },
         async getUsers() {
             this.loading = true
@@ -196,6 +175,7 @@ export const useUsersStore = defineStore({
                     .then((data) => {
                         this.user = data
                         if (this.user) {
+                            this.user.ranking = Math.round(this.getUserWinRate()/20)
                             this.user.avatar_url = `http://localhost:3000/users/${this.user.id}/avatar`
                             this.changUserNick(this.user.id, this.user.nickname)
                         }

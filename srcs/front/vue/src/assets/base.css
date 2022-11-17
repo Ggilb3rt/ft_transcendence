@@ -117,8 +117,19 @@ img {
   /* display: block; */
 }
 
+button {
+  border: none;
+  padding: 10px;
+  background: var(--global-c-blue);
+  color: var(--vt-c-white-soft);
+  margin: 5px;
+  border-radius: var(--global-border-radius);
+  transition: all .2s ease-out;
+}
+
 button:hover {
   cursor: pointer;
+  background: var(--global-c-blue-hover);
 }
 
 button:active {

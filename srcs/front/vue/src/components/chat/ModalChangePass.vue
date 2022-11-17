@@ -13,9 +13,7 @@ const formError = ref("")
 function valid() {
 	if (channelsStore.currentChan) {
 		if (channelsStore.currentChan.canChangePass(userStore.user.id, newPass.value)) {
-			// send data
 			channelsStore.emitPassChange(channelsStore.currentChan.getId(), newPass.value)
-			console.log(`change pass '${newPass.value}'`)
 			cancel()
 		}
 		else
