@@ -62,10 +62,11 @@ async function testConnection() {
   }
 }
 
-router.beforeResolve((to) => {
-  testConnection()
+router.beforeResolve(async (to) => {
+  await testConnection()
   if (to.name == "game" )
     statusStore.changeCurrentUserStatus("inGame", userStore.user.id);
+    return true;
 })
 
 watch(route, (newRoute) => {

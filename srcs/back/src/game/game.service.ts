@@ -14,7 +14,7 @@ export class GameService {
 	constructor(private readonly usersHelper: UsersHelper) {}
 
     handleConnection(client: Socket, server: Server) {
-		//console.log('CLIENT CONNECTED ' + client.id)
+		console.log('CLIENT CONNECTED ' + client.id)
         this.players[client.id] = {
             id: client.id,
             socket: client,
@@ -28,9 +28,11 @@ export class GameService {
 		}
 		if (client.handshake.query.type !== undefined) {
 			this.players[client.id].type = client.handshake.query.type;
+            console.log("GENERAL SOCKET");
+            console.log(this.players[client.id])
 		}
-		//console.log(Object.keys(this.players));
-		// console.log(this.players);
+		console.log(Object.keys(this.players));
+	    //console.log(this.players);
 	}
 
 	handleAddUserId(client: Socket, data: any, server: Server) {
@@ -46,8 +48,8 @@ export class GameService {
 	handleIsUserInGame(client: Socket, data: any) {
 		const userId = data.userId;
 		// //("USER ID2 " + userId);
-		// //("IS USER IN GAME")
-		// //(this.userIds);
+		console.log("IS USER IN GAME")
+		console.log(this.userIds);
 		if (this.userIds.hasOwnProperty(userId)) { client.emit("isUserInGame", { userId, bool: true }); } 
 		else { client.emit("isUserInGame", { userId, bool: false });}
 	}
@@ -259,7 +261,7 @@ export class GameService {
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-		//console.log("CLIENT DISCONNECTED " + client.id);
+		console.log("CLIENT DISCONNECTED " + client.id);
 		//console.log("PREVIOUS USER IDS");
 		//console.log(this.userIds);
         //console.log("PREVIOUS WAITING ROOMS")
@@ -341,15 +343,15 @@ export class GameService {
     }
 
 	getActiveRoomNames(client: Socket, data: any) {
-		//console.log("GET ACTIVE ROOM NAMES");
-		if (client !== null) {
+		console.log("GET ACTIVE ROOM NAMES");
+		/*if (client !== null) {
 			if (data.type === 1) {
 				this.players[client.id].type = "general";
 			} else if (data.type === 2) {
 				this.players[client.id].type = "game-component";
 			}
 			// //(client.id + " " + this.players[client.id].type)
-		}
+		}*/
 		let roomNames = {};
 		let room;
 		let level;

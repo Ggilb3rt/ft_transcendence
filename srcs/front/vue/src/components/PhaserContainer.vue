@@ -19,11 +19,12 @@ const usersStore = useUsersStore();
 const statusStore = useStatusStore();
 const userId = userStore.user.id;
 const route = useRoute();
-const socket = io("http://localhost:3000/game", {
+const socket = statusStore.socketGame;
+/*const socket = io("http://localhost:3000/game", {
   query: {
     type: "phaserContainerSocket",
   },
-});
+});*/
 const urlQuery = route.query.challenge;
 const urlLevel = String(route.params.level);
 const urlType = Number(route.params.type);
@@ -42,16 +43,8 @@ const data = {
   vueSocket: socket,
 };
 
-/*socket.emit("isUserInGame", { userId });
-socket.on("isUserInGame", (data) => {
-  if (data.userId === userId) {
-    inGame = data.bool;
-  } else {
-    oppInGame = data.bool;
-  }
-});*/
-
 onMounted(() => {
+  alert("MOUNT");
   if (!urlLevel && !urlQuery) {
     alert("YOU ALREADY ARE IN A GAME/CANNOT ACCESS DIRECT");
     router.push("/");
@@ -61,29 +54,29 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  alert("UNMOUNT");
   statusStore.changeCurrentUserStatus("available", userId);
   statusStore.changeChallengeForIngame(false);
   disconnectGameSocket();
   destroyGame();
-  if (socket) {
+  /*if (socket) {
     socket.disconnect();
-  }
+  }*/
+  socket.off();
 });
 
 function initGame() {
   socket.emit("getActiveRoomNames", { type: 2 });
   socket.on("getActiveRoomNames", (payload) => {
-	activeRooms = payload.roomNames;
+    activeRooms = payload.roomNames;
     activeRoomNames = Object.keys(payload.roomNames);
-	console.log(activeRooms);
-
-    console.log("TYPE " + urlType);
-    console.log("LEVEL " + urlLevel);
-    console.log("URL ROOMID " + urlRoomId);
+    console.log(activeRooms);
 
     if (isValidURL()) {
+      socket.off();
       launchGame();
     } else {
+      socket.off();
       router.replace("/");
     }
   });
@@ -135,26 +128,6 @@ function isValidURL(): boolean {
     }
   }
   return true;
-}
-
-function isValidGame(): boolean {
-  if (!urlLevel) {
-    return false;
-  }
-
-  if (validLevels.includes(urlLevel)) {
-    data.level = urlLevel;
-    if (urlRoomId) {
-      if (urlType === 2 && activeRoomNames.includes(urlRoomId)) {
-        data.key = urlRoomId;
-        data.spectator = true;
-      } else {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
 }
 
 class Game extends Phaser.Game {

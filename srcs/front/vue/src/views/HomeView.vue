@@ -4,19 +4,26 @@ import router from "@/router";
 import { onBeforeUnmount, ref } from "vue";
 import { useUserStore } from "@/stores/user";
 import Modal from "@/components/Modal.vue";
+import { useUsersStore } from "@/stores/users";
+import { useStatusStore } from "@/stores/status";
 
 const userStore = useUserStore();
+const usersStore = useUsersStore();
 const userId = userStore.user.id;
-const socket = io("http://localhost:3000/game", {
+const statusStore = useStatusStore();
+const socket = statusStore.socketGame;
+
+/*const socket = io("http://localhost:3000/game", {
   query: {
     type: "homeViewSocket",
   },
-});
+});*/
 
 const canPlay = ref(true);
 const show = ref(false);
 socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
+    console.log("IS USER IN GAME " + data.bool);
   if (data.userId === userId) {
     canPlay.value = !data.bool;
   }
@@ -31,8 +38,10 @@ async function findGame(
   event.preventDefault();
   show.value = false;
   if (spectator) {
+    socket.off();
     router.push({ path: `/game/2/${level}/${roomId}` });
   } else if (canPlay.value && !spectator) {
+    socket.off();
     router.push({ path: `/game/1/${level}` });
   } else {
     show.value = true;
@@ -47,9 +56,9 @@ socket.on("getActiveRoomNames", (payload) => {
 });
 
 onBeforeUnmount(() => {
-  if (socket != undefined) {
-    socket.disconnect();
-  }
+  //if (socket != undefined) {
+ //   socket.disconnect();
+  //}
 });
 </script>
 
@@ -113,7 +122,7 @@ onBeforeUnmount(() => {
             @click="findGame($event, `${value.level}`, `${value.id}`, true)"
             class="pongLink"
           >
-            {{ value.id }} {{ value.level }}
+            {{ value.level }} {{ usersStore.getUserNickById(value.p1) }} vs {{ usersStore.getUserNickById(value.p2) }}
           </button>
         </p>
       </ul>
