@@ -108,11 +108,13 @@ export const useUserStore = defineStore({
               if (this.user.matches) {
                 this.user.matches.forEach((el) => {
                   const selectOpponent = el.player_left_id != this.user.id ? el.player_left_id : el.player_right_id
+                  const selectOpponentScore = el.player_left_id != this.user.id ? el.score_left : el.score_right
+                  const myScore = el.player_left_id == this.user.id ? el.score_left : el.score_right
                   const match: IMatchHistory = {
                     opponent: selectOpponent,
-                    myScore: el.score_left,
-                    opponentScore: el.score_right,
-                    win: el.score_left > el.score_right,
+                    myScore:myScore,
+                    opponentScore: selectOpponentScore,
+                    win: myScore > selectOpponentScore,
                     date: new Date(),
                   };
                   this.user.match_history.push(match);
