@@ -61,16 +61,16 @@ function submit(e: Event) {
 	msg.value = ""
 }
 
-
 onBeforeMount(async() => {
-	// fetch Channel
-	// alert(`before mount channel ${JSON.stringify(route.params)}`)
-	const isDirectMsg = route.name == "channelDirect" ? true : false
-	if (isDirectMsg)
-		await channelsStore.getDirectChan(channelIdNumber)
-	else
-		await channelsStore.getChan(channelIdNumber)
-	channelsStore.selectCurrentChan(channelIdNumber)
+    const isDirectMsg = route.name == "channelDirect" ? true : false
+    if (isDirectMsg) {
+        await channelsStore.getDirectChan(channelIdNumber)
+        channelsStore.selectCurrentChan(channelIdNumber, true)
+    }
+    else {
+        await channelsStore.getChan(channelIdNumber)
+        channelsStore.selectCurrentChan(channelIdNumber, false)
+    }
 })
 
 onMounted(() => {

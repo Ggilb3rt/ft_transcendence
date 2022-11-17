@@ -585,9 +585,13 @@ export const useChannelsStore = defineStore("channels", () => {
   }
 
   // Getter
-  function selectCurrentChan(id: number) {
+  function selectCurrentChan(id: number, isDirect: boolean) {
     if (!isChanInList(id)) return;
-    const found = openChan.value.find((el) => el.getId() == id);
+    let found = undefined
+    if (isDirect)
+        found = openChan.value.find((el) => el.getType() == "direct" && el.getId() == id);
+    else
+        found = openChan.value.find((el) => el.getType() != "direct" && el.getId() == id);
     if (found) currentChan.value = found;
   }
   function unselectCurrentChan() {
