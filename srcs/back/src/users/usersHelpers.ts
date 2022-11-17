@@ -193,18 +193,22 @@ class UsersHelper {
     async testNickname(nickname: string) {
 
       try {
-        var regex = /^([0-9]|[a-z])+([0-9a-z])$/i;
+        var regex = /([ `{})(\]\[="':;.,/\\])/g;
         if (nickname.length >= 10) {
           nickname = nickname.slice(0, 10);
         }
-        if (!nickname.match(regex)) {
-          throw new HttpException("Only alphanumeric characters", HttpStatus.NOT_ACCEPTABLE)
+        if (nickname.match(regex)) {
+          console.log("NOT ACCEPTABLE ICI")
+          return false
         }
         const test = await prisma.users.findUnique({where:{nickname}})
         //console.log("test == ", test)
         if (test) {
-          throw new HttpException("nickname already taken", HttpStatus.CONFLICT);
+          console.log("c'est false")
+          return false
         }
+        console.log("le test est bon")
+        return true
       } catch (e) {
         //console.log("catch == ", e);
         throw new Error(e)

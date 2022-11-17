@@ -133,7 +133,7 @@ export class UsersController {
 
     @Post('/nick')
     @UseGuards(JwtAuthGuard)
-    async changeNickname(@Req() req: Request, @Body('nickname') nick: string): Promise<users> {
+    async changeNickname(@Req() req: Request, @Body('nickname') nick: string): Promise<users | false> {
         const id = await this.usersService.getToken(req)
 
         return (this.usersService.changeNickname(id, nick))

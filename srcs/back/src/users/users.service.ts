@@ -269,9 +269,12 @@ export class UsersService {
   }
   
   //do i need to explain?
-  async changeNickname(id: number, nickname: string): Promise<users> {
+  async changeNickname(id: number, nickname: string): Promise<users | false> {
     try {
-      await this.usersHelper.testNickname(nickname);
+      const test = await this.usersHelper.testNickname(nickname);
+      if (!test) {
+        return false
+      }
       await this.usersHelper.getUser(id);
   
       return await prisma.users.update({
