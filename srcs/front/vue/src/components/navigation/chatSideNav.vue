@@ -7,6 +7,7 @@ import router from '@/router';
 import { useChannelsStore } from '@/stores/channels';
 import { useUsersStore } from '@/stores/users';
 import { useUserStore } from '@/stores/user';
+import WatchGameList from '../WatchGameList.vue';
 import CarbonClose from "@/components/icones-bags/CarbonClose.vue"
 import MdiCrown from "@/components/icones-bags/MdiCrown.vue"
 import MdiCrownOutline from "@/components/icones-bags/MdiCrownOutline.vue"
@@ -20,36 +21,36 @@ const channelsStore = useChannelsStore()
 const usersStore = useUsersStore()
 const userStore = useUserStore()
 const folders = ref([{isOpen: true}, {isOpen: true}, {isOpen: true}])
-const socket = io("http://localhost:3000/game", {
-  query: {
-    type: "chatSideBarSocket",
-  },
-});
-const activeRoomNames = ref([]);
-const canPlay = ref(true);
-const show = ref(false);
+// const socket = io("http://localhost:3000/game", {
+//   query: {
+//     type: "chatSideBarSocket",
+//   },
+// });
+// const activeRoomNames = ref([]);
+// const canPlay = ref(true);
+// const show = ref(false);
 
-async function findGame(
-  event: Event,
-  level: string,
-  roomId: string,
-  spectator: boolean
-) {
-  event.preventDefault();
-  show.value = false;
-  if (spectator) {
-    router.push({ path: `/game/2/${level}/${roomId}` });
-  } else if (canPlay.value && !spectator) {
-    router.push({ path: `/game/1/${level}` });
-  } else {
-    show.value = true;
-  }
-}
+// async function findGame(
+//   event: Event,
+//   level: string,
+//   roomId: string,
+//   spectator: boolean
+// ) {
+//   event.preventDefault();
+//   show.value = false;
+//   if (spectator) {
+//     router.push({ path: `/game/2/${level}/${roomId}` });
+//   } else if (canPlay.value && !spectator) {
+//     router.push({ path: `/game/1/${level}` });
+//   } else {
+//     show.value = true;
+//   }
+// }
 
-socket.emit("getActiveRoomNames", { type: 1 });
-socket.on("getActiveRoomNames", (payload) => {
-  activeRoomNames.value = payload.roomNames;
-});
+// socket.emit("getActiveRoomNames", { type: 1 });
+// socket.on("getActiveRoomNames", (payload) => {
+//   activeRoomNames.value = payload.roomNames;
+// });
 
 
 function isOpen(index: number) {
@@ -87,9 +88,9 @@ onBeforeMount(() => {
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue())
-	if (socket != undefined) {
-    	socket.disconnect();
-  	}
+	// if (socket != undefined) {
+    // 	socket.disconnect();
+  	// }
 })
 
 function isOwner(el: sideNavLink): boolean {
@@ -133,8 +134,9 @@ function isAdmin(el: sideNavLink): boolean {
 				</ul>
 			</nav>
 			<button @click="toggle(2)" class="folder">Watch a game [{{ isOpen(2) ? '-' : '+' }}]</button>
-			<nav>
-				<ul v-show="isOpen(2)" class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
+			<WatchGameList v-show="isOpen(2)"></WatchGameList>
+			<!-- <nav v-show="isOpen(2)">
+				<ul class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
 					<p v-for="value in activeRoomNames" :key="value">
 					<button
 						id="customizable"
@@ -146,7 +148,7 @@ function isAdmin(el: sideNavLink): boolean {
 					</p>
 				</ul>
 				<p v-else>No game</p>
-			</nav>
+			</nav> -->
 		</li>
 </template>
 
