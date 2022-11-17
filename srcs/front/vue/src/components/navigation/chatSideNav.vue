@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onBeforeMount, onBeforeUnmount, onRenderTriggered, ref } from 'vue'
+import { onBeforeMount, onBeforeUnmount, ref } from 'vue'
+import io, { Socket } from "socket.io-client";
 import type { sideNav, sideNavItem, sideNavLink } from "../../../types"
 import { RouterLink } from "vue-router";
 import router from '@/router';
@@ -18,7 +19,37 @@ let winWidth = ref(window.innerWidth)
 const channelsStore = useChannelsStore()
 const usersStore = useUsersStore()
 const userStore = useUserStore()
-const folders = ref([{isOpen: true}, {isOpen: true}])
+const folders = ref([{isOpen: true}, {isOpen: true}, {isOpen: true}])
+const socket = io("http://localhost:3000/game", {
+  query: {
+    type: "chatSideBarSocket",
+  },
+});
+const activeRoomNames = ref([]);
+const canPlay = ref(true);
+const show = ref(false);
+
+async function findGame(
+  event: Event,
+  level: string,
+  roomId: string,
+  spectator: boolean
+) {
+  event.preventDefault();
+  show.value = false;
+  if (spectator) {
+    router.push({ path: `/game/2/${level}/${roomId}` });
+  } else if (canPlay.value && !spectator) {
+    router.push({ path: `/game/1/${level}` });
+  } else {
+    show.value = true;
+  }
+}
+
+socket.emit("getActiveRoomNames", { type: 1 });
+socket.on("getActiveRoomNames", (payload) => {
+  activeRoomNames.value = payload.roomNames;
+});
 
 
 function isOpen(index: number) {
@@ -56,11 +87,10 @@ onBeforeMount(() => {
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue())
+	if (socket != undefined) {
+    	socket.disconnect();
+  	}
 })
-
-// onRenderTriggered((e) => {
-// 	debugger
-// })
 
 function isOwner(el: sideNavLink): boolean {
 	const userId: number = getChanIdFromLink(el.id)
@@ -101,6 +131,21 @@ function isAdmin(el: sideNavLink): boolean {
 						<i v-else-if="isAdmin(el)"><MdiCrownOutline></MdiCrownOutline></i>
 					</li>
 				</ul>
+			</nav>
+			<button @click="toggle(2)" class="folder">Watch a game [{{ isOpen(2) ? '-' : '+' }}]</button>
+			<nav>
+				<ul v-show="isOpen(2)" class="gameList" v-if="Object.keys(activeRoomNames).length > 0">
+					<p v-for="value in activeRoomNames" :key="value">
+					<button
+						id="customizable"
+						@click="findGame($event, `${value.level}`, `${value.id}`, true)"
+						class="pongLink"
+					>
+						{{ value.level }} {{ usersStore.getUserNickById(value.p1) }} vs {{ usersStore.getUserNickById(value.p2) }}
+					</button>
+					</p>
+				</ul>
+				<p v-else>No game</p>
 			</nav>
 		</li>
 </template>
