@@ -11,7 +11,7 @@ export interface IUsersStoreState {
     error: any | null
 }
 
-// Datas to fetch from api
+
 const matchsHistory = [
     {
       opponent: 2,
@@ -29,8 +29,8 @@ const matchsHistory = [
     }
 ]
 
-// dans un soucis d'optimisation on pourrai uniquement remplir UsersList avec les users dont le user principal connait les relations
-// sinon cf virtualList from VueUse
+
+
 
 export const useUsersStore = defineStore({
     id: "users",
@@ -42,10 +42,10 @@ export const useUsersStore = defineStore({
         error: null
     }),
     getters: {
-        // getUserNick: (state) => {
-        //     if (state.user)
-        //         return `@${state.user.nickname}`
-        // },
+        
+        
+        
+        
     },
     actions: {
         isUserConnected(id: number): boolean {
@@ -205,7 +205,7 @@ export const useUsersStore = defineStore({
                             this.user.matches = null
                         }
                     }
-                    // this.error = null
+                    
                 }
                 this.loading = false
             }

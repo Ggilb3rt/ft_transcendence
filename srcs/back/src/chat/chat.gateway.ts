@@ -40,10 +40,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async unBanExpired(user_id: number) {
 
             const bans: ban_channels[] = await this.chatService.getMyBans(user_id)
-            // 
+            
             bans.forEach(async (ban) => {
                 if(ban.expires < new Date()) {
-                    // 
+                    
                     await this.chatService.unBan(ban)
                     await this.unBan(user_id, ban.channel_id)
                 }
@@ -70,12 +70,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     async leaveChannelId(banned_id: number, channel_id: number) {
         const room = makeId(true, banned_id)
-        // 
+        
         const clients = await this.server.in(room).fetchSockets();
-        // 
+        
         clients.forEach((client) => {
-            // 
-            // 
+            
+            
             client.leave(makeId(false, channel_id))
         })
     }
@@ -144,30 +144,30 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: false,
             date,
         }
-        // const size = this.server.sockets.adapter.rooms[room].size
-        // 
+        
+        
         client.broadcast.to(makeId(false, channel_id)).emit('messageSentToChannel', message)
         return (true)
     }
 
     @SubscribeMessage('sendDirectMessage')
     async sendDirectMessage(client: Socket, arg: { content: string, receiver: number, date: Date}) {
-        // 
+        
         
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        // 
+        
 
         const { content, receiver, date} = arg
 
         if (await this.usersService.isBan(id, receiver) == true)
             return
 
-        // 
+        
 
         const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
 
-        // 
+        
 
         if (!res)
             return false
@@ -178,7 +178,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: true,
             date,
         }
-        // 
+        
         client.to(makeId(true, receiver)).emit('directMessageSent', message)
         return (true)
     }
@@ -247,7 +247,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const { channel_id, banned_id, expires} = arg
 
         const res: boolean = await this.chatService.banUser(channel_id, banned_id, expires, id)
-        // 
+        
 
         if (!res)
             return false
@@ -290,7 +290,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const { channel_id, banned_id, expires} = arg
-        // 
+        
         const res = await this.chatService.muteUser(channel_id, banned_id, expires, id)
         if (!res)
             return false
@@ -311,7 +311,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const type: string = await this.chatService.getChannelType(channel_id)
 
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
-        // 
+        
     
         if (res.status == false)
             return res

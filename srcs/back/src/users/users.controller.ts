@@ -67,7 +67,7 @@ export class UsersController {
     }
 
     @Post('/2fa')
-    // @UseGuards(JwtAuthGuard)
+    
     async switch2fa(@Req() req: Request, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
         const id = await this.usersService.getToken(req)
         
@@ -156,7 +156,7 @@ export class UsersController {
     async uploadAvatar(@UploadedFile(
         new ParseFilePipe({
             validators: [
-                // new MaxFileSizeValidator({ maxSize: 10000}),
+                
                 new FileTypeValidator({fileType:'jpeg'})
             ]
         })

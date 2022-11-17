@@ -19,10 +19,10 @@ export class AuthController {
 
       let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
       const isCodeValid = await this.usersService.isCodeValid(code, id)
-      // 
+      
       if (!isCodeValid) {
         res.status(HttpStatus.FORBIDDEN).send({status: HttpStatus.FORBIDDEN, msg: "Wrong code"});
-        // 
+        
       }
       else {
         const { accessToken } = await this.jwtAuthService.login({id, username}, true)
@@ -37,7 +37,7 @@ export class AuthController {
   @Get()
   @UseGuards(FourtyTwoGuard)
   async auth(@Req() _req) {
-    // Guard redirects
+    
   }
 
   @Get('redirect')
@@ -51,7 +51,7 @@ export class AuthController {
         httpOnly:true,
       })
       if (two_factor_auth == false) {
-        return res.redirect(process.env.FRONT_URL) // a la base c'est URL_LOGIN_SUCCESS
+        return res.redirect(process.env.FRONT_URL) 
       }
       else
         return res.redirect(process.env.URL_LOGIN_2FA)

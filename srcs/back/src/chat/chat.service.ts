@@ -12,7 +12,7 @@ export class ChatService {
         private chatHelper: ChatHelper, private jwtService: JwtService, private usersHelper: UsersHelper) {}
 
     validate(token) {
-        // 
+        
         return {
             validate: this.jwtService.verify(token, {secret: process.env.JWT_SECRET})
         }
@@ -34,10 +34,10 @@ export class ChatService {
       extractTokenFromReq = (req) => {
         let token = null;
   
-        // 
+        
         if (req && req.cookies) {
           token = req.cookies['jwt'];
-          // 
+          
         }
         return token;
       };
@@ -123,7 +123,7 @@ export class ChatService {
     }
 
     async banUser(channel_id: number, banned: number, expires: Date, id: number) {
-        // check if ban is in admin
+        
         if (!expires || !channel_id || !banned || !id)
             return false
         if (await this.banPolicy(channel_id, banned, id) == false)

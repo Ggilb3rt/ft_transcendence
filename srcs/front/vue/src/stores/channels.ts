@@ -58,7 +58,7 @@ export const useChannelsStore = defineStore("channels", () => {
       });
     }
   }
-  // privates functions
+  
   function moveToAnotherArray<T>(
     arrFrom: Array<T>,
     arrTo: Array<T>,
@@ -94,7 +94,7 @@ export const useChannelsStore = defineStore("channels", () => {
     return false;
   }
 
-  // sockets emiters
+  
   function emitMessage(channel_id: number, content: string) {
     const date = new Date();
     refsocket.value.emit(
@@ -209,7 +209,7 @@ export const useChannelsStore = defineStore("channels", () => {
     banned_id: number,
     expires: string
   ) {
-    // si le user est déjà ban il faut remplacer avec la nouvelle date
+    
     let dateExpires: Date = new Date(expires);
     let whereToSend: "mute" | "ban" = "ban";
 
@@ -257,7 +257,7 @@ export const useChannelsStore = defineStore("channels", () => {
     });
   }
 
-  // sockets handlers
+  
   function handleMessage(msg: TMessage) {
     if (msg) msg.date = new Date(msg.date);
     if (!msg.isDirect) {
@@ -444,7 +444,7 @@ export const useChannelsStore = defineStore("channels", () => {
   async function setup() {
     refsocket.value.emit("getMyRooms", (res: boolean | any) => {
       if (res == false) {
-        // throw new blabla
+        
       } else {
         availableChannels.value = res.availableChannels;
         joinedChannels.value = res.joinedChannels;
@@ -461,11 +461,11 @@ export const useChannelsStore = defineStore("channels", () => {
     refsocket.value.on("join", handleJoin);
     refsocket.value.on("quit", handleQuit);
   }
-  // Initialise
+  
   async function getChansLists() {
     loading.value = true;
     try {
-      // const response = await fetch("http://localhost:3000/channels", {credentials: "include"})
+      
 
       setup();
     } catch (error: any) {
@@ -579,12 +579,12 @@ export const useChannelsStore = defineStore("channels", () => {
     return false;
   }
 
-  // Checker
+  
   function isChanInList(id: number): boolean {
     return openChan.value.find((el) => el.getId() == id) ? true : false;
   }
 
-  // Getter
+  
   function selectCurrentChan(id: number, isDirect: boolean) {
     if (!isChanInList(id)) return;
     let found = undefined
@@ -626,11 +626,11 @@ export const useChannelsStore = defineStore("channels", () => {
   }
 
   return {
-    // ! probablement pas necessaire de les ouvrirs
+    
     availableChannels,
     joinedChannels,
     openChan,
-    // ! fin
+    
     currentChan,
     loading,
     error,
@@ -642,7 +642,7 @@ export const useChannelsStore = defineStore("channels", () => {
     unselectCurrentChan,
     getUsersInChannel,
     getChanListForSideBar,
-    // emits
+    
     emitMessage,
     emitDirectMessage,
     emitPromoteUser,

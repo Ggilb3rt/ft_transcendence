@@ -21,44 +21,44 @@ const channelsStore = useChannelsStore()
 const usersStore = useUsersStore()
 const userStore = useUserStore()
 const folders = ref([{isOpen: true}, {isOpen: true}, {isOpen: true}])
-// const socket = io("http://localhost:3000/game", {
-//   query: {
-//     type: "chatSideBarSocket",
-//   },
-// });
-// const activeRoomNames = ref([]);
-// const canPlay = ref(true);
-// const show = ref(false);
 
-// async function findGame(
-//   event: Event,
-//   level: string,
-//   roomId: string,
-//   spectator: boolean
-// ) {
-//   event.preventDefault();
-//   show.value = false;
-//   if (spectator) {
-//     router.push({ path: `/game/2/${level}/${roomId}` });
-//   } else if (canPlay.value && !spectator) {
-//     router.push({ path: `/game/1/${level}` });
-//   } else {
-//     show.value = true;
-//   }
-// }
 
-// socket.emit("getActiveRoomNames", { type: 1 });
-// socket.on("getActiveRoomNames", (payload) => {
-//   activeRoomNames.value = payload.roomNames;
-// });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function isOpen(index: number) {
 	return folders.value[index].isOpen
 }
-// function isFolder(index: number) {
-// 	return props.model.items[index].children && props.model.items[index].children.length
-// }
+
+
+
 function toggle(index: number) {
 	folders.value[index].isOpen = !folders.value[index].isOpen
 }
@@ -81,16 +81,16 @@ function getChanIdFromLink(link: string): number {
 
 onBeforeMount(() => {
 	window.addEventListener('resize', (e) => updateWinWidthValue());
-	// check on start
-	// updateWinWidthValue()
+	
+	
 
 })
 
 onBeforeUnmount(() => {
 	window.removeEventListener('resize', (e) => updateWinWidthValue())
-	// if (socket != undefined) {
-    // 	socket.disconnect();
-  	// }
+	
+    
+  	
 })
 
 function isOwner(el: sideNavLink): boolean {

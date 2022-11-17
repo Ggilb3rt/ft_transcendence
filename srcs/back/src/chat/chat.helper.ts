@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 
 @Injectable()
 export class ChatHelper {
-    // TODO: hash all passwords
+    
     async formatChannels(channel_id: number) {
 
         const { id, name, type, owner, users_list, banned, messages, muted, admins } = await this.getChannel(channel_id)
@@ -57,11 +57,11 @@ export class ChatHelper {
             return formated_channel
         }
 
-        // format relations to array
-        // return
-        // const ret: TChannel = {
+        
+        
+        
 
-        // }
+        
     }
 
     async getChannelType(channel_id: number) {
@@ -84,10 +84,10 @@ export class ChatHelper {
     async createChannel(chan: TChannel) {
         try {
             if (chan.pass) {
-                // 
-                // 
+                
+                
                 const hash: string = await bcrypt.hash(chan.pass, 10)
-                // 
+                
                 const channel = await prisma.channels.create({
                         data:{
                             name: chan.ChanName,
@@ -105,7 +105,7 @@ export class ChatHelper {
                     })
                     await this.joinChannel(channel.id, chan.owner)
                     await this.addAdmin(chan.owner, channel.id)
-                    // 
+                    
                     return channel.id;
             }
             else {
@@ -129,7 +129,7 @@ export class ChatHelper {
             }
             
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -151,7 +151,7 @@ export class ChatHelper {
                 }) 
             }
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -165,7 +165,7 @@ export class ChatHelper {
                 }
             })
             if (!muted) {
-                // 
+                
                 const ret = await prisma.muted.create({
                     data: {
                         muted_id,
@@ -173,11 +173,11 @@ export class ChatHelper {
                         mute_date: expires
                     }
                 })
-                // 
+                
                 return (ret);
             }
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -200,7 +200,7 @@ export class ChatHelper {
             }})
             return userList
         } catch(e) {
-            // 
+            
             throw new Error(`Error querying id:${user_id} in channel[${channel_id}]`)
         }
     }
@@ -212,7 +212,7 @@ export class ChatHelper {
                 where: user
             })
         } catch (e) {
-            // 
+            
             throw new Error(`Error removing id:${user_id} in channel[${channel_id}]`)
         }
     }
@@ -239,7 +239,7 @@ export class ChatHelper {
             return true
         }
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -252,7 +252,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -267,7 +267,7 @@ export class ChatHelper {
             return bans
         }
         catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
 
@@ -276,18 +276,18 @@ export class ChatHelper {
     async getBan(user_id: number, channel_id: number) {
         try {
 
-            // 
-            // if (typeof(channel_id) == 'string')
-            //     channel_id = parseInt(channel_id)
+            
+            
+            
 
             const ban = await prisma.ban_channels.findFirst({where: {
                 user_id,
                 channel_id
             }})
-            // 
+            
             return (ban)
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -298,7 +298,7 @@ export class ChatHelper {
                 where: {id:ban.id}
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -323,7 +323,7 @@ export class ChatHelper {
             })
             return (myPrivateChannels)
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -337,14 +337,10 @@ export class ChatHelper {
             })
             return myChannels
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
-
-    // async getPrivateChannels() {
-       
-    // }
 
     async getAvailableChannels() {
         try {
@@ -366,7 +362,7 @@ export class ChatHelper {
             })
             return availableChannels
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -379,7 +375,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -393,7 +389,7 @@ export class ChatHelper {
             })  
             return admins
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -407,7 +403,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -422,7 +418,7 @@ export class ChatHelper {
             return (mutes)
         }
         catch(e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -437,7 +433,7 @@ export class ChatHelper {
             })
             return (mute)
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -452,7 +448,7 @@ export class ChatHelper {
             }
         })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -484,7 +480,7 @@ export class ChatHelper {
     async unMute(channel_id: number, muted) {
         try {
             const mute = await this.getMute(channel_id, muted)
-            // 
+            
             if (!mute)
                 return false
             await prisma.muted.delete({
@@ -494,7 +490,7 @@ export class ChatHelper {
             })
             return true
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -508,7 +504,7 @@ export class ChatHelper {
                 }
             })  
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -536,7 +532,7 @@ export class ChatHelper {
                     }
                 })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -551,7 +547,7 @@ export class ChatHelper {
             })
            return user ? true : false
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -586,7 +582,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -602,7 +598,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -618,7 +614,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error("Database Chat Error")
         }
     }
@@ -636,7 +632,7 @@ export class ChatHelper {
                     }
                 })
         } catch (e) {
-            // 
+            
             throw new Error("Error modifying channel passs")
         }
     }
@@ -644,12 +640,12 @@ export class ChatHelper {
     async checkPass(pass: string, channel_id) {
         const channel = await this.getChannel(channel_id)
 
-        // 
-        // 
+        
+        
 
 
         const checked = await bcrypt.compare(pass, channel.pass)
-        // 
+        
         return checked
     }
 
@@ -664,7 +660,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error(`Message from ${sender} to channel ${channel_id} failed`)
         }
     }
@@ -680,7 +676,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            // 
+            
             throw new Error(`Message from ${sender} to ${receiver} failed`)
         }
     }
@@ -705,76 +701,76 @@ export class ChatHelper {
     }
 
 
-    // isInChannel(userId:number): boolean { this.userList.find(el => el == userId) ? true : false }
-	// 	isOwner(userId:number): boolean { userId == this.owner ? true : false }
-	// 	isAdmin(userId:number): boolean { this.adminList.find(el => el == userId) ? true : false }
-	// 	isMute(userId:number): boolean { this.muteList.find(el => el.userId == userId) ? true : false }
-	// 	endOfMute(userId:number): Date | null {
-	// 		const mutedUser: TRestrictUserTime = this.muteList.find(el => el.userId == userId)
+    
+	
+	
+	
+	
+	
 
-	// 		if (mutedUser)
-	// 			return mutedUser.expire
-	// 		return null
-	// 	} (soit ça soit isMute() return directement la Date ?)
-	// 	isBan(userId:number): Date { this.banList.find(el => el.userId == userId) ? true : false} (même chose que endOfMute mais en version Ban)
-    // leaveChannel(userId:number, channelId:number): boolean {
-    //     // check channelId exist
-    //         // check user is in chan.userList
-    //             // remove userId from chan.userList
-    //             // return true
-    //     // return false
-    // }
-    // renameChannel(userId:number, channelId:number, newName:string): boolean {
-    //     // if channelId exist
-    //         // if isOwner(userId)
-    //             // if newName != chan.name
-    //                 // chan.name = newName
-    //                 // return true
-    //     return false
-    // }
-    // changeChannelType(userId:number, channelId:number, newType:TChannel, pass?:string): boolean {
-    //     // if channelId exist
-    //         // if isOwner(userId)
-    //             // if newType != chan.type
-    //                 // if newType === "pass" && pass.length > 5
-    //                     // chan.type = newType
-    //                     // chan.pass = pass
-    //                     // return true
-    //                 // else if newType === "direct"
-    //                     // return false
-    //                 // else
-    //                     // chan.type = newType
-    //                     // return true
-    //     return false
-    // }
-    // changePass(userId:number, channelId:number, newPass:string): boolean {
-    //     // if channelId exist
-    //         // if isOwner(userId)
-    //             // if chan.type == "pass"
-    //                 // if chan.pass != newPass && chan.pass > 5
-    //                     // chan.pass = newPass
-    //                     // return true
-    //     // return false
-    // }
-    // addAdmin(nominator:number, nominated:number, channelId:number): boolean {
-    //     // if channelId exist
-    //         // if chan.isAdmin(nominator) && !chan.isAdmin(nominated)
-    //             // chan.adminList.push(nominated)
-    //             // return true
-    //     return false
-    // }
-    // removeAdmin(remover:number, removed:number, channelId:number): boolean {
-    //     // if channelId exist
-    //         // if chan.isOwner(remover) && chan.isAdmin(removed) && remover != removed && removed != chan.owner
-    //             // const find = chan.adminList.findIndex(el => el == removed)
-    //             // chan.adminList.splice(find, 1)
-    //             // return true
-    //     return false
-    // }
-    // restrictUser(restrictor:number, restricted:number, channelId:number, onlyMute: boolean): boolean {
-    //     // if channelId exist
-    //         // if chan.isAdmin(restrictor)
-    // }
+	
+	
+	
+	
+	
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 }

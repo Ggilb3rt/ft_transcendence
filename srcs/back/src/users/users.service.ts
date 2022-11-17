@@ -19,9 +19,9 @@ const fs = require("fs");
 @Injectable()
 export class UsersService {
   constructor(private usersHelper: UsersHelper, private jwtAuthService: JwtAuthService, private jwtService: JwtService) {}
-  // OPERATIONS AROUND USERS AND RELATIONS BETWEEN THEM
+  
 
-  // ban user
+  
 
   async verify(token: string) {
     if (!token) {
@@ -76,22 +76,22 @@ export class UsersService {
   }
 
   //deprecated, get userbynick
-  // async getUserByNick(nick: string): Promise<userRestrict> {
-  //   const res = await prisma.users.findUnique({
-  //     where:{
-  //       nickname: nick
-  //     },
-  //     select:{
-  //       id: true,
-  //       avatar_url: true,
-  //       nickname: true
-  //     }
-  //   })
-  //   if (!res) {
-  //     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-  //   }
-  //   return (res);
-  // }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
 
   //get resolved friendships: both agreed
@@ -105,7 +105,7 @@ export class UsersService {
   }
   
 
-  // main getter for users: every info front needs 
+  
   async getUserById(id: number): Promise<userFront> {
 
     const user = await this.usersHelper.getUser(id);
@@ -173,7 +173,7 @@ export class UsersService {
   };
 
   validate(token) {
-    // 
+    
     return {
         validate: this.jwtService.verify(token, {secret: process.env.JWT_SECRET})
     }
@@ -192,7 +192,7 @@ export class UsersService {
   //create an unresolved friendship: invitation
   async addFriend(id: number, friend: number): Promise<friends> {
 
-    // check if ids are the same and if they are not already friends. If there is an invite pending for me, accept it
+    
     this.usersHelper.checkSame(id, friend);
     const already_friend = await this.usersHelper.getFriendship(id, friend)
     if (already_friend && already_friend.status == true) {
@@ -206,8 +206,8 @@ export class UsersService {
       throw new HttpException("You already sent invite", HttpStatus.CONFLICT)
     }
 
-    // check if both users exists and if not banned,
-    // if banned by me, erase ban
+    
+    
     await this.usersHelper.getUser(id);
     await this.usersHelper.getUser(friend);
     const ban = await this.usersHelper.getBan(id, friend) 
@@ -215,9 +215,9 @@ export class UsersService {
 
     if (ban && ban.banned_id == id) {
       throw new HttpException("Banned by this user", HttpStatus.FORBIDDEN)
-    }// else if (ban && ban.user_id == id) {
-    //   this.usersHelper.unBan(ban)
-    // }
+    }
+    
+    
     
     //create and return friendship
     const friendship = await prisma.friends.create({
@@ -348,10 +348,10 @@ export class UsersService {
   extractTokenFromReq = (req) => {
     let token = null;
 
-    // 
+    
     if (req && req.cookies) {
       token = req.cookies['jwt'];
-      // 
+      
     }
     return token;
   };

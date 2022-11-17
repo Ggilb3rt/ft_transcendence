@@ -24,19 +24,19 @@ const route = useRoute()
 let msg = ref("")
 
 
-// ChannelView need to
-	// getChannel(x)
-	// print his msg
-	// sendNewMessages
-	// manage users
 
-// async function getChannel(id: number) {
-// 	const res = await fetch(`localhost:3000/channel/${id}`, {credentials: "include"})
-// }
+	
+	
+	
+	
+
+
+
+
 
 function submit(e: Event) {
 	e.preventDefault()
-	// emit to server
+	
 	if (msg.value != "") {
 		if (channelsStore.currentChan)
 			if (channelsStore.currentChan.getType() != "direct") {
@@ -48,15 +48,15 @@ function submit(e: Event) {
 			}
 			
 				
-		// if (channelsStore.currentChan) { // && emitMessage return true
-		// 	channelsStore.currentChan.sendMessage({
-		// 		sender: userStore.user.id,
-		// 		receiver: channelIdNumber,
-		// 		msg: msg.value,
-		// 		isDirect: props.direct,
-		// 		date: new Date()
-		// 	})
-		// }
+		
+		
+		
+		
+		
+		
+		
+		
+		
 	}
 	msg.value = ""
 }
@@ -74,13 +74,13 @@ onBeforeMount(async() => {
 })
 
 onMounted(() => {
-	// emit('im-mounted')
-	// alert(`mounted channel ${JSON.stringify(route.params)}`)
+	
+	
 
 })
 
 onUpdated(() => {
-	// alert(`updated channel ${JSON.stringify(route.params)}`)
+	
 
 	const room = document.getElementById('room-view')
 	if (room) {

@@ -223,7 +223,7 @@ class UsersHelper {
             status: false
           }
         })
-        // 
+        
         return (friends)
       } catch (e) {
         throw new HttpException(e, 401)

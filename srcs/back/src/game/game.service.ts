@@ -38,16 +38,16 @@ export class GameService {
 	handleAddUserId(client: Socket, data: any, server: Server) {
 		const userId = Number(data.userId);
 		this.userIds[userId] = userId;
-		// //("ADD USER ");
-		// //("USER ID " + userId);
-		// //(this.userIds);
+		
+		
+		
 		client.emit("userAdded");
 		server.emit("isUserInGame", { userId, bool: true});
 	} 
 
 	handleIsUserInGame(client: Socket, data: any) {
 		const userId = data.userId;
-		// //("USER ID2 " + userId);
+		
 		//
 		//
 		if (this.userIds.hasOwnProperty(userId)) { client.emit("isUserInGame", { userId, bool: true }); } 
@@ -56,7 +56,7 @@ export class GameService {
 
 	initPlayer(client: Socket, data: any, p: any, roomId: string, level: number) {
 		const player = this.players[client.id];
-		// //("INIT PLAYER " + data.userId)
+		
 		const userId = data.userId;
 
 		p.id = client.id;
@@ -91,7 +91,7 @@ export class GameService {
 		//
         //
 
-        // Waiting room is empty
+        
 		if (wr.players[0].id === ""  && wr.players[1].id === "") {
 			const roomId = this.codeGenerator(5);
 			this.initPlayer(client, data, wr.players[0], roomId, level);
@@ -99,11 +99,11 @@ export class GameService {
 			wr.roomId = roomId;
             //
         }
-        // Waiting room has 1 player
+        
 		else if (wr.players[0].id !== "" && wr.players[1].id === "") {
             //
 			if (wr.players[0].userId === userId) {
-			 	// //("u cannot play against yourself");
+			 	
 			 	client.emit("leftGame", 2);
 			 	client.disconnect();
 			 	return;
@@ -193,15 +193,15 @@ export class GameService {
     }
 
     handlePlayerMovement(client: Socket, data: any, server: Server) {
-		// //("MOVE PLAYER " + data.roomName);
+		
         client.to(data.roomName).emit('playerMoved', data)
     }
 
     handleLaunchBall(client: Socket, data: any, server: Server) {
         const state = this.activeGames[String(data.roomName)].state;
-		// //("LAUNCH BALL " + data.roomName)
-		// //(this.activeGames[String(data.roomName)]);
-		// //(state);
+		
+		
+		
         this.initBall(state.ball);
         client.emit("launchBall", state);
     }
@@ -241,7 +241,7 @@ export class GameService {
 
 	async injectScoresDB(room: any, client: Socket) {
 
-		// Player disconnected before the end of the game
+		
 		if (client !== null) {
 			if (room.state.players[0].match_score !== 10 && room.state.players[1].match_score !== 10) {
 				if (client.id === room.state.players[0].id) {
@@ -268,8 +268,8 @@ export class GameService {
 	}
 
     handleWatchGame(client: Socket, data: any, server: Server) {
-        // //("WATCH GAME");
-        // //(data.roomName);
+        
+        
 		const roomName = data.roomName;
         this.players[client.id].level = 0;
         this.players[client.id].spectator = true;
@@ -296,13 +296,13 @@ export class GameService {
 
 		//
 		//
-		// //(this.activeGames[roomName]);
+		
 		if (this.players[client.id].type === "general") {
 			return;
 		}
 
 		if (spectator) {
-			// //("spectator leaving room")
+			
 			client.leave(roomName);
 			client.emit("leftGame", 1)
 			Reflect.deleteProperty(this.players, client.id);
@@ -310,10 +310,10 @@ export class GameService {
 		}
 
 		if (roomName && !spectator) {
-			// //("ROOM NAAAAME " + roomName);
-			// //(this.activeGames[roomName])
+			
+			
 			if (this.activeGames[roomName] !== undefined) {
-				// //("injecting db only once")
+				
 				await this.injectScoresDB(this.activeGames[roomName], client);
 			}
 			Reflect.deleteProperty(this.activeGames, roomName);
@@ -323,7 +323,7 @@ export class GameService {
 
 		if (level !== 0) {
 			if (this.players[client.id].challenge) {
-				// //("deleting wr after challenge");
+				
 				Reflect.deleteProperty(this.waitingRooms, this.players[client.id].roomId);
 			} else {
 				if (this.waitingRooms.hasOwnProperty(level) && (level === 1 || level === 2 || level === 3)) {
@@ -352,8 +352,8 @@ export class GameService {
 		//
 		//
 
-		// //("REMAINING ACTIVE ROOMS")
-		// //(this.activeGames);
+		
+		
 		//
 		//
 		
@@ -428,18 +428,18 @@ export class GameService {
 			wr = this.waitingRooms[challengeId];
 		}
 
-		// //("WE 1 ");
-		// //(wr);
+		
+		
 
 		if (player.userId === challenger ) {
-			// //('PLAYER ONE IS CHALLENGER')
+			
 			wr.players[0].id = player.id;
 			wr.players[0].socket = player.socket;
 			wr.players[0].userId = userId;
 			wr.players[0].roomId = challengeId;
 			wr.players[0].level = level;
 		} else if (player.userId === challenged) {
-			// //('PLAYER TWO IS CHALLENGER')
+			
 			wr.players[1].id = player.id;
 			wr.players[1].socket = player.socket;
 			wr.players[1].userId = userId;
@@ -448,7 +448,7 @@ export class GameService {
 		}
 
 		if (wr.players[0].userId !== 0 && wr.players[1].userId !== 0) {
-			// //("room CREATION COMPLETE")
+			
 			this.players[wr.players[0].id].roomId = challengeId;
 			this.players[wr.players[1].id].roomId = challengeId;
 			this.players[wr.players[0].id].level = level;
@@ -460,7 +460,7 @@ export class GameService {
 				level: level,
 				roomId: wr.roomId
 			}}
-			// //(this.activeGames[challengeId]);
+			
 			wr.players[0].socket.emit("newRoomCreated");
 			wr.players[1].socket.emit("newRoomCreated");
 		}
@@ -491,24 +491,24 @@ export class GameService {
 		}
 
 		if (player.userId === challenger ) {
-			// //('PLAYER ONE IS CHALLENGER')
+			
 			wr.players[0].id = player.id;
 			wr.players[0].socket = player.socket;
 			wr.players[0].userId = userId;
 			wr.players[0].roomId = challengeId;
 			wr.players[0].level = level;
 		} else if (player.userId === challenged) {
-			// //('PLAYER TWO IS CHALLENGER')
+			
 			wr.players[1].id = player.id;
 			wr.players[1].socket = player.socket;
 			wr.players[1].userId = userId;
 			wr.players[1].roomId = challengeId;
 			wr.players[1].level = level;
 		}
-		// //(this.waitingRooms[challengeId]);
+		
 
 		if (wr.players[0].userId !== 0 && wr.players[1].userId !== 0) {
-			// //("room CREATION COMPLETE")
+			
 			this.players[wr.players[0].id].roomId = challengeId;
 			this.players[wr.players[1].id].roomId = challengeId;
 			this.players[wr.players[0].id].level = level;

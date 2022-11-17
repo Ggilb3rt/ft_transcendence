@@ -37,13 +37,13 @@ export const useUserStore = defineStore({
     conStatus: setStatus.needLogin,
   }),
   getters: {
-    // getUserNick: (state) => {
-    //     if (state.user)
-    //         return `@${state.user.nickname}`
-    // },
+    
+    
+    
+    
   },
   actions: {
-    // getters and setters
+    
     getUserNick(): string {
       return `${this.user.nickname}`;
     },
@@ -126,7 +126,7 @@ export const useUserStore = defineStore({
         }
     },
 
-    // Manage Friends and Bans
+    
     isFriends(id: number): boolean {
       if (this.user.friends) return this.user.friends.includes(id);
       return false;
@@ -192,7 +192,7 @@ export const useUserStore = defineStore({
           if (confirm("Remove from bans before add to friends"))
             this.removeFriendOrBan(id);
           else return;
-        // send info to back and wait for res
+        
         const api = mande(
           "http://localhost:3000/users/friends",
           { credentials: "include" }
@@ -212,7 +212,7 @@ export const useUserStore = defineStore({
         }
         if (this.isInvite(id))
           this.user.invites = this.user.invites.filter((item) => item != id);
-        // this.user.friends.push(id);
+        
       }
     },
     async addBan(id: number) {
@@ -221,7 +221,7 @@ export const useUserStore = defineStore({
           if (confirm("Remove from friends before ban ?"))
             this.removeFriendOrBan(id);
           else return;
-        // send info to back and wait for res
+        
         const api = mande(
           "http://localhost:3000/users/ban",
           { credentials: "include" }
@@ -245,7 +245,7 @@ export const useUserStore = defineStore({
       if (id && this.isFriends(id)) {
         const index = this.user.friends.indexOf(id, 0);
         if (confirm(`Remove ${id} from your friends ?`)) {
-          // send info to back and wait for res
+          
           const api = mande(
             "http://localhost:3000/users/friends/remove",
             { credentials: "include" }
@@ -266,9 +266,9 @@ export const useUserStore = defineStore({
       }
       if (id && this.isBan(id)) {
         const indexBan = this.user.bans.indexOf(id, 0);
-        // const indexOtherFriend =
+        
         if (confirm(`Remove ${id} from your bans ?`)) {
-          // send info to back and wait for res
+          
           const api = mande(
             "http://localhost:3000/users/ban/remove",
             { credentials: "include" }

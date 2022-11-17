@@ -5,7 +5,7 @@ import TwoFactorAuth from "@/views/TwoFactorAuthView.vue"
 import DashOther from "@/views/DashOtherView.vue";
 import Chat from "@/views/ChatView.vue";
 import Channel from "@/views/ChannelView.vue"
-// import Success from "@/views/SuccessView.vue"
+
 import path from "path";
 import { useUsersStore } from "@/stores/users";
 import { setStatus, useUserStore } from "@/stores/user";
@@ -16,10 +16,10 @@ import { useStatusStore } from "@/stores/status";
 type gameList = "pong" | "catPong"
 
 const ourGames: gameList = 'pong';
-// const Chat = () => import("@/views/ChatView.vue")
-// const Channel = () => import("@/views/ChannelView.vue")
+
+
 const Dashboard = () => import("@/views/DashboardView.vue")
-// const DashOther = () => import("@/views/DashOtherView.vue")
+
 const Game = () => import("@/views/GameView.vue")
 const FisrtConnection = () => import("@/views/FirstConnection.vue")
 
@@ -79,7 +79,7 @@ const router = createRouter({
       component: DashOther,
     },
     {
-      path: "/game/:type/:level/:roomId?", // 1 = player, 2 = spectator, 3 = challenge
+      path: "/game/:type/:level/:roomId?", 
       name: "game",
       component: Game,
     },
