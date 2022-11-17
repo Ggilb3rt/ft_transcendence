@@ -55,14 +55,14 @@ function refuseChallenge() {
 	background: none;
 	color: black;
 	font-size: 1.2em;
-	animation: timer 4s infinite reverse ease-out;
+	animation: challenge_timer 4s infinite reverse ease-out;
 	border: none;
 }
 
 
 
 
-@keyframes timer {
+@keyframes challenge_timer {
 	0% {
 		color: var(--global-c-blue);
 	}

@@ -164,6 +164,15 @@ export const useStatusStore = defineStore({
           this.iChallenged = true;
           this.changeCurrentUserStatus("challenged", this.id);
         });
+        this.socket.on("refuseChallenge", (challenge: Challenge) => {
+          if (challenge) {
+            const { challengeId } = challenge
+            if (this.challenge && challengeId == this.challenge.challengeId) {
+              this.challenge = null
+              this.changeCurrentUserStatus("available", this.id)
+            }
+          }
+        })
         this.socket.on("challengeAccepted", (challenge: Challenge) => {
           if (challenge) {
             const { challenger, challenged, level } = challenge;

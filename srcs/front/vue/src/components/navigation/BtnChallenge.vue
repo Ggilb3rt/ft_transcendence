@@ -58,7 +58,6 @@ async function challenge() {
 				</select>
 				<button @click="selecteGameType()">Go !</button>
 				<button @click="showModal = false">Cancel</button>
-				{{ gameType}}
 			</template>
 		</Modal>
 	</div>
