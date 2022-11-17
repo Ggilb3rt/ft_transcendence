@@ -53,7 +53,7 @@ export class ChatHelper {
                 adminList,
                 messages: messagesTrimmed
             }
-            console.log("Channel on reload = ", formated_channel)
+            
             return formated_channel
         }
 
@@ -75,7 +75,7 @@ export class ChatHelper {
             })
             return chan
         } catch (e) {
-            console.log(e);
+            
             throw new Error("Database error")
         }
 
@@ -84,10 +84,10 @@ export class ChatHelper {
     async createChannel(chan: TChannel) {
         try {
             if (chan.pass) {
-                // console.log("bcrypt = ", bcrypt)
-                console.log("chan = ", chan)
+                // 
+                // 
                 const hash: string = await bcrypt.hash(chan.pass, 10)
-                console.log('hash == ', hash)
+                // 
                 const channel = await prisma.channels.create({
                         data:{
                             name: chan.ChanName,
@@ -105,7 +105,7 @@ export class ChatHelper {
                     })
                     await this.joinChannel(channel.id, chan.owner)
                     await this.addAdmin(chan.owner, channel.id)
-                    console.log("channel = ", channel)
+                    // 
                     return channel.id;
             }
             else {
@@ -124,12 +124,12 @@ export class ChatHelper {
                 })
                 await this.joinChannel(channel.id, chan.owner)
                 await this.addAdmin(chan.owner, channel.id)
-                console.log("ou je suis ici ", channel)
+                
                 return channel.id;
             }
             
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -151,7 +151,7 @@ export class ChatHelper {
                 }) 
             }
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -165,7 +165,7 @@ export class ChatHelper {
                 }
             })
             if (!muted) {
-                console.log("muted_id: ", muted_id, "channel_id: ", channel_id, "mute_date = ", expires);
+                // 
                 const ret = await prisma.muted.create({
                     data: {
                         muted_id,
@@ -173,11 +173,11 @@ export class ChatHelper {
                         mute_date: expires
                     }
                 })
-                console.log("ret = ", ret);
+                // 
                 return (ret);
             }
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -200,7 +200,7 @@ export class ChatHelper {
             }})
             return userList
         } catch(e) {
-            console.log(e)
+            // 
             throw new Error(`Error querying id:${user_id} in channel[${channel_id}]`)
         }
     }
@@ -212,7 +212,7 @@ export class ChatHelper {
                 where: user
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error(`Error removing id:${user_id} in channel[${channel_id}]`)
         }
     }
@@ -239,7 +239,7 @@ export class ChatHelper {
             return true
         }
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -252,7 +252,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -267,7 +267,7 @@ export class ChatHelper {
             return bans
         }
         catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
 
@@ -276,7 +276,7 @@ export class ChatHelper {
     async getBan(user_id: number, channel_id: number) {
         try {
 
-            console.log("JE SUIS LAAAA", user_id, channel_id)
+            // 
             // if (typeof(channel_id) == 'string')
             //     channel_id = parseInt(channel_id)
 
@@ -284,10 +284,10 @@ export class ChatHelper {
                 user_id,
                 channel_id
             }})
-            console.log("ban = ", ban)
+            // 
             return (ban)
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -298,7 +298,7 @@ export class ChatHelper {
                 where: {id:ban.id}
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -323,7 +323,7 @@ export class ChatHelper {
             })
             return (myPrivateChannels)
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -337,7 +337,7 @@ export class ChatHelper {
             })
             return myChannels
         } catch (e) {
-            console.log("error ", e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -366,7 +366,7 @@ export class ChatHelper {
             })
             return availableChannels
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -379,7 +379,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -393,7 +393,7 @@ export class ChatHelper {
             })  
             return admins
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -407,7 +407,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -422,7 +422,7 @@ export class ChatHelper {
             return (mutes)
         }
         catch(e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -437,7 +437,7 @@ export class ChatHelper {
             })
             return (mute)
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -452,7 +452,7 @@ export class ChatHelper {
             }
         })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -484,7 +484,7 @@ export class ChatHelper {
     async unMute(channel_id: number, muted) {
         try {
             const mute = await this.getMute(channel_id, muted)
-            console.log("mute ", mute)
+            // 
             if (!mute)
                 return false
             await prisma.muted.delete({
@@ -494,7 +494,7 @@ export class ChatHelper {
             })
             return true
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -508,7 +508,7 @@ export class ChatHelper {
                 }
             })  
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -536,7 +536,7 @@ export class ChatHelper {
                     }
                 })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -551,7 +551,7 @@ export class ChatHelper {
             })
            return user ? true : false
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -586,7 +586,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -602,7 +602,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -618,7 +618,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Database Chat Error")
         }
     }
@@ -636,7 +636,7 @@ export class ChatHelper {
                     }
                 })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error("Error modifying channel passs")
         }
     }
@@ -644,12 +644,12 @@ export class ChatHelper {
     async checkPass(pass: string, channel_id) {
         const channel = await this.getChannel(channel_id)
 
-        console.log("channel = ", channel)
-        console.log("pass = ", pass)
+        // 
+        // 
 
 
         const checked = await bcrypt.compare(pass, channel.pass)
-        console.log("Checked == ", checked)
+        // 
         return checked
     }
 
@@ -664,7 +664,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error(`Message from ${sender} to channel ${channel_id} failed`)
         }
     }
@@ -680,7 +680,7 @@ export class ChatHelper {
                 }
             })
         } catch (e) {
-            console.log(e);
+            // 
             throw new Error(`Message from ${sender} to ${receiver} failed`)
         }
     }

@@ -155,7 +155,7 @@ export const useUserStore = defineStore({
             valid: false,
           })
           .then((data) => {
-            console.log("data refuse friend invite", data);
+            
           });
       } catch (error: any) {
         this.error = error.body;
@@ -176,7 +176,7 @@ export const useUserStore = defineStore({
             valid: true,
           })
           .then((data) => {
-            console.log("data refuse friend invite", data);
+            
           });
       } catch (error: any) {
         this.error = error.body;
@@ -204,7 +204,7 @@ export const useUserStore = defineStore({
               valid: true,
             })
             .then((data) => {
-              console.log("data add friend", data);
+              
             });
         } catch (error: any) {
           this.error = error.body;
@@ -232,7 +232,7 @@ export const useUserStore = defineStore({
               banned: id,
             })
             .then((data) => {
-              console.log("data ban", data);
+              
             });
         } catch (error: any) {
           this.error = error.body;

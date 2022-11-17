@@ -71,23 +71,34 @@ export class UsersController {
     async switch2fa(@Req() req: Request, @Body('status', ParseBoolPipe) status: boolean, @Body('code') code: string, @Res() response) {
         const id = await this.usersService.getToken(req)
         
+        
         let isCodeValid: boolean = false
         if (code) {
             isCodeValid = await this.usersService.isCodeValid(code, id)
         }
+        
+
         if (status == false && isCodeValid == false) {
             throw new UnauthorizedException('Wrong authentication code');
         }
+        
+
         const user = await this.usersService.getUserById(id);
         const {accessToken} = await this.jwtAuthService.login(user, status)
+
+        
 
         response.cookie("jwt", accessToken, {
             httpOnly:true
           });
 
         if (status == true)
-            return (this.usersService.switch2fa(id, status, response))
-        else return {msg: "disabled"}
+            return (await this.usersService.switch2fa(id, status, response))
+        else  {
+            await this.usersService.switch2fa(id, status, response)
+            response.clearCookie('jwt');
+            response.status(200).send({status: 200, msg: "disabled"})
+        }
     }
 
     @Post('/friends')

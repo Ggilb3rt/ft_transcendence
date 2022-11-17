@@ -173,7 +173,7 @@ export class UsersService {
   };
 
   validate(token) {
-    // console.log("token in validate in jwt-auth service", token)
+    // 
     return {
         validate: this.jwtService.verify(token, {secret: process.env.JWT_SECRET})
     }
@@ -273,7 +273,7 @@ export class UsersService {
     try {
       const test = await this.usersHelper.testNickname(nickname);
       if (!test) {
-        console.log("c'est false")
+        
         return false
       }
       await this.usersHelper.getUser(id);
@@ -293,7 +293,7 @@ export class UsersService {
   async getOtherUser(id: number): Promise<otherFormat> {
 
     try {
-      //console.log("jesuis la ")
+      //
       const user = await prisma.users.findFirst({where:{id}})
 
       const {nickname, first_name, last_name, ranking, wins, loses} = user
@@ -348,10 +348,10 @@ export class UsersService {
   extractTokenFromReq = (req) => {
     let token = null;
 
-    // console.log("extractJwtfromCookie ", req.cookies)
+    // 
     if (req && req.cookies) {
       token = req.cookies['jwt'];
-      // console.log(token)
+      // 
     }
     return token;
   };
@@ -371,13 +371,13 @@ export class UsersService {
     //("change avatar ", user.id.toString())
     const dest: string = path.join('/app/resources/', (user.id.toString() + '_id.jpeg'))
 
-    //console.log("new dest ", dest)
+    //
     try {
       await myWriteFile(dest, file.buffer, 'ascii')
     } catch (e) {
       throw new Error('writing file to fs failed')
     }
-    //console.log(ret)
+    //
     return (dest);
   }
 
@@ -416,7 +416,7 @@ export class UsersService {
 
   async isBan(id: number, ban: number) {
     const banned = await this.usersHelper.getBan(id, ban)
-    console.log("return of isBan", id, ban, banned)
+    
     if (banned)
       return true
     return false
@@ -424,6 +424,7 @@ export class UsersService {
 
   async switch2fa(id: number, status: boolean, response) {
     try {
+
       await this.usersHelper.getUser(id);
 
       const ret = await prisma.users.update({
@@ -432,6 +433,7 @@ export class UsersService {
           two_factor_auth: status
         }
       })
+      
       if (ret.two_factor_auth == true) {
         const { otpauthUrl } = await this.generate2faSecret(id);
         return this.pipeQrCodeStream(response, otpauthUrl);

@@ -40,10 +40,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
     async unBanExpired(user_id: number) {
 
             const bans: ban_channels[] = await this.chatService.getMyBans(user_id)
-            // console.log("bans = ", bans)
+            // 
             bans.forEach(async (ban) => {
                 if(ban.expires < new Date()) {
-                    // console.log("le ban ", ban)
+                    // 
                     await this.chatService.unBan(ban)
                     await this.unBan(user_id, ban.channel_id)
                 }
@@ -70,12 +70,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
     async leaveChannelId(banned_id: number, channel_id: number) {
         const room = makeId(true, banned_id)
-        // console.log(room)
+        // 
         const clients = await this.server.in(room).fetchSockets();
-        // console.log("banning ", banned_id)
+        // 
         clients.forEach((client) => {
-            // console.log("le banning ", channel_id)
-            // console.log("socket = ", client.id)
+            // 
+            // 
             client.leave(makeId(false, channel_id))
         })
     }
@@ -145,29 +145,29 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             date,
         }
         // const size = this.server.sockets.adapter.rooms[room].size
-        // console.log("\n\navant le broadcast", id, client.id, "\n DANS ROOM = ", room, "ils sont ", size),
+        // 
         client.broadcast.to(makeId(false, channel_id)).emit('messageSentToChannel', message)
         return (true)
     }
 
     @SubscribeMessage('sendDirectMessage')
     async sendDirectMessage(client: Socket, arg: { content: string, receiver: number, date: Date}) {
-        console.log("starting sendDirectMessage handler", arg)
+        // 
         
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
-        console.log("after getGatewayToken before check ban", id)
+        // 
 
         const { content, receiver, date} = arg
 
         if (await this.usersService.isBan(id, receiver) == true)
             return
 
-        console.log("send direct message after check ban, before send to chat service", arg)
+        // 
 
         const res = await this.chatService.sendDirectMessage(receiver, content, date, id)
 
-        console.log("res of service", res)
+        // 
 
         if (!res)
             return false
@@ -178,7 +178,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
             isDirect: true,
             date,
         }
-        console.log("before emit ", message)
+        // 
         client.to(makeId(true, receiver)).emit('directMessageSent', message)
         return (true)
     }
@@ -247,7 +247,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const { channel_id, banned_id, expires} = arg
 
         const res: boolean = await this.chatService.banUser(channel_id, banned_id, expires, id)
-        // console.log("res == ", res)
+        // 
 
         if (!res)
             return false
@@ -290,7 +290,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
         const id = await this.chatService.getGatewayToken(client.handshake.headers, client)
 
         const { channel_id, banned_id, expires} = arg
-        console.log("-------------ARG == ", arg);
+        // 
         const res = await this.chatService.muteUser(channel_id, banned_id, expires, id)
         if (!res)
             return false
@@ -309,11 +309,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayDisconnect, OnGatewa
 
         const {channel_id, pass} = basicJoin
         const type: string = await this.chatService.getChannelType(channel_id)
-        if (!type || type == 'private') {
-            return {msg: "private", status: false}
-        }
+
         const res: {msg: string, status: boolean} = await this.chatService.joinChannel(id, channel_id, pass)
-        // console.log("res == ", res)
+        // 
+    
         if (res.status == false)
             return res
         this.server.to(makeId(false, channel_id)).emit('join', {

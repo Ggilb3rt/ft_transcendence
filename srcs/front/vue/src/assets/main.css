@@ -73,12 +73,12 @@ a, .blue, .like-link {
   padding: 0 1rem;
 }
 
-.triangleUp::after {
+/* .triangleUp::after {
   content: "  ▴";
 }
 .triangleDown::after {
   content: "  ▾"
-}
+} */
 
 button.cant_click {
 	opacity: .5;

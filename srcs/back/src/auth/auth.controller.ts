@@ -16,15 +16,13 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(TwoFactorGuard)
     async authenticate(@Req() req, @Body('code') code: string, @Res() res: Response) {
-      console.log("debut 2fa; code: ", code)
-      console.log("validate == ", await this.jwtAuthService.validate(req.cookies.jwt).validate)
+
       let {id, username} = await this.jwtAuthService.validate(req.cookies.jwt).validate
-      console.log("id and username valides ", id, username)
       const isCodeValid = await this.usersService.isCodeValid(code, id)
-      console.log("code is valide ?", code, isCodeValid)
+      // 
       if (!isCodeValid) {
         res.status(HttpStatus.FORBIDDEN).send({status: HttpStatus.FORBIDDEN, msg: "Wrong code"});
-        console.log("je m'arrete la")
+        // 
       }
       else {
         const { accessToken } = await this.jwtAuthService.login({id, username}, true)
@@ -89,9 +87,7 @@ export class AuthController {
   }
 
   @Get('logout')
-  @UseGuards(JwtAuthGuard)
   async logout(@Res() res: Response) {
-    //console.log("CIAO PANTIN")
     res.clearCookie('jwt')
     res.send({statusCode: 200, message: 'Bye !!'})
   }

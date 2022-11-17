@@ -31,7 +31,7 @@ function befriend() {
             </div>
         </div>
         <div class="invite" v-if="usersStore.user && userStore.user.id != usersStore.user.id && !userStore.isBanBy(usersStore.user.id)">
-            <button @click="befriend()" v-if="!userStore.isFriends(usersStore.user.id) || !inviteSend">Be friends</button>
+            <button @click="befriend()" v-if="!userStore.isFriends(usersStore.user.id)">Be friends</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnFriend</button>
             <button @click="userStore.addBan(usersStore.user.id)" v-if="!userStore.isBan(usersStore.user.id)">Ban !</button>
             <button @click="userStore.removeFriendOrBan(usersStore.user.id)" v-else>UnBan</button>

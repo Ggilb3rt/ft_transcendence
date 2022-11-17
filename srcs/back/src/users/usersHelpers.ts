@@ -198,19 +198,19 @@ class UsersHelper {
           nickname = nickname.slice(0, 10);
         }
         if (nickname.match(regex)) {
-          console.log("NOT ACCEPTABLE ICI")
+          
           return false
         }
         const test = await prisma.users.findUnique({where:{nickname}})
-        //console.log("test == ", test)
+        //
         if (test) {
-          console.log("c'est false")
+          
           return false
         }
-        console.log("le test est bon")
+        
         return true
       } catch (e) {
-        //console.log("catch == ", e);
+        //
         throw new HttpException(e, 401)
       }
     }
@@ -223,7 +223,7 @@ class UsersHelper {
             status: false
           }
         })
-        // console.log("friends == ", friends)
+        // 
         return (friends)
       } catch (e) {
         throw new HttpException(e, 401)
@@ -252,7 +252,7 @@ class UsersHelper {
       }
     }
 
-	async addMatch(match: CreateMatchDto, loser: number, winner: number) {
+	async addMatch(match: CreateMatchDto, winner: number, loser: number) {
         try {
             await prisma.match.create({ data: match })
 

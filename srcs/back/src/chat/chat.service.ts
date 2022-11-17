@@ -12,7 +12,7 @@ export class ChatService {
         private chatHelper: ChatHelper, private jwtService: JwtService, private usersHelper: UsersHelper) {}
 
     validate(token) {
-        // console.log("token in validate in jwt-auth service", token)
+        // 
         return {
             validate: this.jwtService.verify(token, {secret: process.env.JWT_SECRET})
         }
@@ -34,10 +34,10 @@ export class ChatService {
       extractTokenFromReq = (req) => {
         let token = null;
   
-        // console.log("extractJwtfromCookie ", req.cookies)
+        // 
         if (req && req.cookies) {
           token = req.cookies['jwt'];
-          // console.log(token)
+          // 
         }
         return token;
       };
@@ -102,7 +102,7 @@ export class ChatService {
             return false
         }
         const admins = this.chatHelper.getAdmins(channel_id);
-        console.log("admins ", admins);
+        
         const isBannedByOwner = await this.chatHelper.isOwner(channel_id, bannedBy)
         if (isBannedByOwner) {
             return true
@@ -199,7 +199,7 @@ export class ChatService {
             return newMessage
         })
 
-        console.log("le nouveau direct message ", likeTMessage)
+        
         return likeTMessage
     }
 
@@ -207,7 +207,7 @@ export class ChatService {
         if (!this.canJoin(user_id, channel_id, pass))
             return {msg: 'no right', status: false}
         const {type} = await this.chatHelper.getChannel(channel_id)
-        if (type === "private" && !this.chatHelper.isOwner(channel_id, user_id)) {
+        if (type === "private" && !await this.chatHelper.isOwner(channel_id, user_id)) {
             return {msg: 'no right', status: false}
         }
         else if (type === "pass") {
@@ -218,10 +218,10 @@ export class ChatService {
                 await this.chatHelper.joinChannel(channel_id, user_id)
                 return {msg: 'joined', status: true}
             }
-            console.log("OULA")
+            
             return {msg: 'password incorrect', status: false}
         }
-        else if (type === "public") {
+        else {
                 await this.chatHelper.joinChannel(channel_id, user_id)
             return {msg: 'joined', status: true}
         }
@@ -243,7 +243,7 @@ export class ChatService {
         if (await this.chatHelper.isOwner(channel_id, id) == false) {
             return false
         }
-        console.log("arg == ", id, pass)
+        
         await this.chatHelper.changePass(channel_id, pass)
         return true
     }
