@@ -248,7 +248,7 @@ class UsersHelper {
       }
     }
 
-	async addMatch(match: CreateMatchDto, winner: number, loser: number) {
+	async addMatch(match: CreateMatchDto, loser: number, winner: number) {
         try {
             await prisma.match.create({ data: match })
 
