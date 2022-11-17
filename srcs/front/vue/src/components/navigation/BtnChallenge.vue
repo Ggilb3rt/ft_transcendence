@@ -40,7 +40,7 @@ async function challenge() {
 <template>
 	<div class="anime" v-if="usersStore.getUserRestrictById(userId)">
 		<div v-if="userStore.user.id != userId">
-			<button @click="showModal = true" v-if="!userStore.isBan(userId) && statusStore.socketIsAvailable(userId)">
+			<button id="btn_challenge" @click="showModal = true" v-if="!userStore.isBan(userId) && statusStore.socketIsAvailable(userId)">
 				<MdiSwordCross></MdiSwordCross>
 			</button>
 			<!-- <button @click="goSpectate()" v-else-if="!userStore.isBan(userId) && statusStore.socketIs(userId, 'inGame')">Spectate</button> -->
@@ -77,4 +77,11 @@ h2 {
 	transform: translate(120%, -220%) scale(.1);
 
 }
+
+/* #btn_challenge:hover {
+	transform: scale(1.05);
+	animation: whao 0.5s infinite alternate ease-out;
+} */
+
+
 </style>

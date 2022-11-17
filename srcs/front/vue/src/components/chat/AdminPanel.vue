@@ -66,24 +66,6 @@ const adminPanel = ref(false)
 	color: var(--vt-c-black-soft);
 }
 
-@keyframes whao {
-	0% {
-		background: #fff;
-	}
-	25% {
-		background: rgb(255, 28, 28);
-	}
-	50% {
-		background: rgb(30, 30, 247);
-	}
-	75% {
-		background: rgb(6, 255, 6);
-	}
-	100% {
-		background: rgb(251, 0, 255);
-	}
-}
-
 .admin-bar {
 	position: absolute;
 	top: 0;

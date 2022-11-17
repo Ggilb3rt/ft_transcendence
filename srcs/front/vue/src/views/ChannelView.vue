@@ -112,8 +112,8 @@ onUpdated(() => {
 							<span v-if="channelsStore.currentChan.isBan(msg.sender)"> (is ban)</span>
 							<span v-if="channelsStore.currentChan.isMute(msg.sender)"> (is mute)</span>
 						</span> |
-						<span class="time"> {{ msg.date }} (pas de type date)</span>
-						<!-- <span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span> -->
+						<!-- <span class="time"> {{ msg.date }} (pas de type date)</span> -->
+						<span class="time"> {{ msg.date.toLocaleDateString('fr-fr') }} {{ msg.date.getHours() }}:{{ (msg.date.getMinutes() < 10) ? '0' + String(msg.date.getMinutes()) : msg.date.getMinutes() }}</span>
 						<br>
 						<span>{{ msg.msg }}</span>
 					</p>

@@ -198,6 +198,7 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	// sockets handlers
 	function handleMessage(msg: TMessage) {
+		msg.date = new Date(msg.date)
 		if (!msg.isDirect) {
 			const index : number = getChanIndex(msg.receiver, false)
 			if (index === -1)
@@ -442,6 +443,11 @@ export const useChannelsStore = defineStore('channels', () => {
 							data.muteList,
 							data.messages
 						)
+						if (data.messages) {
+							data.messages.forEach(msg => {
+								msg.date = new Date(msg.date)
+							});
+						}
 						openChan.value.push(newChan)
 					}
 				}
