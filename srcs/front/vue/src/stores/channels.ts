@@ -198,7 +198,8 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	// sockets handlers
 	function handleMessage(msg: TMessage) {
-		msg.date = new Date(msg.date)
+		if (msg)
+			msg.date = new Date(msg.date)
 		if (!msg.isDirect) {
 			const index : number = getChanIndex(msg.receiver, false)
 			if (index === -1)
@@ -397,6 +398,9 @@ export const useChannelsStore = defineStore('channels', () => {
 				else
 					throw new Error(JSON.stringify({response: response, body: {statusCode: response.status, message: response.statusText }}))
 				if (data) {
+					data.forEach(msg => {
+						msg.date = new Date(msg.date)
+					});
 					let newChan = new CChannel(
 						id, 
 						usersStore.getUserNickById(id), 
@@ -409,6 +413,7 @@ export const useChannelsStore = defineStore('channels', () => {
 						[],
 						data
 					)
+
 					openChan.value.push(newChan)
 				}
 			} catch (error: any) {
@@ -518,9 +523,9 @@ export const useChannelsStore = defineStore('channels', () => {
 
 	return {
 		// ! probablement pas necessaire de les ouvrirs
-		// availableChannels,
-		// joinedChannels,
-		// openChan,
+		availableChannels,
+		joinedChannels,
+		openChan,
 		// ! fin
 		currentChan,
 		loading,
