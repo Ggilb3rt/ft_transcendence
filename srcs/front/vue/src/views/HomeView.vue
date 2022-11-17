@@ -15,7 +15,6 @@ const canPlay = ref(true);
 const show = ref(false);
 socket.emit("isUserInGame", { userId });
 socket.on("isUserInGame", (data) => {
-    //console.log("IS USER IN GAME " + data.bool);
   if (data.userId === userId) {
     canPlay.value = !data.bool;
   }

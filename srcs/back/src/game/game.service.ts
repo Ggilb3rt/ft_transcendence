@@ -14,7 +14,7 @@ export class GameService {
 	constructor(private readonly usersHelper: UsersHelper) {}
 
     handleConnection(client: Socket, server: Server) {
-		console.log('CLIENT CONNECTED ' + client.id)
+		//console.log('CLIENT CONNECTED ' + client.id)
         this.players[client.id] = {
             id: client.id,
             socket: client,
@@ -26,12 +26,12 @@ export class GameService {
 			challenged: false,
 			challengeInfo: {},
 		}
-		if (client.handshake.query.type !== undefined) {
-			this.players[client.id].type = client.handshake.query.type;
-            console.log("GENERAL SOCKET");
-            console.log(this.players[client.id])
-		}
-		console.log(Object.keys(this.players));
+		//if (client.handshake.query.type !== undefined) {
+			//this.players[client.id].type = client.handshake.query.type;
+            //console.log("GENERAL SOCKET");
+            //console.log(this.players[client.id])
+		//}
+		//console.log(Object.keys(this.players));
 	    //console.log(this.players);
 	}
 
@@ -48,8 +48,8 @@ export class GameService {
 	handleIsUserInGame(client: Socket, data: any) {
 		const userId = data.userId;
 		// //("USER ID2 " + userId);
-		console.log("IS USER IN GAME")
-		console.log(this.userIds);
+		//console.log("IS USER IN GAME")
+		//console.log(this.userIds);
 		if (this.userIds.hasOwnProperty(userId)) { client.emit("isUserInGame", { userId, bool: true }); } 
 		else { client.emit("isUserInGame", { userId, bool: false });}
 	}
@@ -130,9 +130,9 @@ export class GameService {
         const playerTwo = gameRoom.playerTwo;
        
         playerOne.socket.join(roomId);
-        playerOne.socket.emit("init", { playerNumber: 1, gameCode: roomId, level });
+        playerOne.socket.emit("init", { playerNumber: 1, gameCode: roomId, level, playerOneUserId: playerOne.userId, playerTwoUsrId: playerTwo.userId });
         playerTwo.socket.join(roomId);
-        playerTwo.socket.emit("init", { playerNumber: 2, gameCode: roomId, level });
+        playerTwo.socket.emit("init", { playerNumber: 2, gameCode: roomId, level, playerOneUserId: playerOne.userId, playerTwoUsrId: playerTwo.userId });
 
         let state = new GameState();
 		state.level = playerOne.level;
@@ -147,7 +147,27 @@ export class GameService {
         this.activeGames[roomId].state = state;
         server.to(roomId).emit("roomComplete", state);
 		this.updateActiveRoomNames();
+        this.sendPlayersIds(playerOne.userId, playerTwo.userId, roomId);
 	}
+
+    sendPlayersIds(playerOneUserId: number, playerTwoUserId: number, roomId: string) {
+        //console.log(this.players);
+        if (this.activeGames.hasOwnProperty(roomId)) {
+            let genSock = [];
+            for (var player in this.players) {
+                if (this.players[player].type === "general" && ((this.players[player].userId === playerOneUserId || this.players[player].userId === playerTwoUserId)
+                || this.players[player].roomId == roomId)) {
+                    genSock.push(this.players[player]);
+                }	
+            }
+            //console.log("GEN SOCKS SEND PLAYER IDS") 
+            //console.log(genSock);
+            genSock.forEach((player) => {
+                player.socket.emit("getPlayersIds", { playerOneUserId, playerTwoUserId });
+            })
+        }
+
+    }
 
 	updateActiveRoomNames() {
 		const roomNames = this.getActiveRoomNames(null, null);
@@ -257,11 +277,13 @@ export class GameService {
         if (this.activeGames[roomName]) {
 			client.join(roomName);
             client.emit("upDateInfo", this.activeGames[roomName].state);
-        }   
+        }
+        this.sendPlayersIds(this.activeGames[roomName].playerOne.userId, this.activeGames[roomName].playerTwo.userId, roomName);  
+        
     }
 
     async handleDisconnect(client: Socket, server: Server) {
-		console.log("CLIENT DISCONNECTED " + client.id);
+		//console.log("CLIENT DISCONNECTED " + client.id);
 		//console.log("PREVIOUS USER IDS");
 		//console.log(this.userIds);
         //console.log("PREVIOUS WAITING ROOMS")
@@ -307,7 +329,7 @@ export class GameService {
                         //console.log("DELETING ROOM BCZ CLIENT IS FIRSt IN WR");
                         Reflect.deleteProperty(this.waitingRooms, level);
                     } else {
-                        console.log("RESETTING PLAYER TWO IN WAITING ROOM");
+                        //console.log("RESETTING PLAYER TWO IN WAITING ROOM");
                         wr.players[1].id = "";
                         wr.players[1].socket = "";
                         wr.players[1].roomId = "";
@@ -343,9 +365,14 @@ export class GameService {
     }
 
 	getActiveRoomNames(client: Socket, data: any) {
-		console.log("GET ACTIVE ROOM NAMES");
+		//console.log("GET ACTIVE ROOM NAMES");
 		if (client !== null) {
-			this.players[client.id].type = "general";
+			    this.players[client.id].type = "general";
+                this.players[client.id].userId = data.userId;
+                //console.log(data.roomId);
+                if (data.roomId != undefined) {
+                    this.players[client.id].roomId = data.roomId;
+                }
 		}
 		let roomNames = {};
 		let room;

@@ -42,7 +42,6 @@ export default class Preloader extends Phaser.Scene {
     this.challengeId = data.challengeId;
     this.key = data.key;
     this.level = data.level;
-    this.challengeInfo = data.challengeInfo;
     this.vueSocket = data.vueSocket;
     this.sceneName = "GameScene";
     this.images = {
