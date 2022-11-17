@@ -62,8 +62,10 @@ function submit(e: Event) {
 	msg.value = ""
 }
 
+
 onBeforeMount(async() => {
 	// fetch Channel
+	// alert(`before mount channel ${JSON.stringify(route.params)}`)
 	const isDirectMsg = route.name == "channelDirect" ? true : false
 	console.log(`----------before mount getChan id '${channelIdNumber}' is direct message ? => `, isDirectMsg)
 	if (isDirectMsg)
@@ -78,9 +80,13 @@ onBeforeMount(async() => {
 
 onMounted(() => {
 	// emit('im-mounted')
+	// alert(`mounted channel ${JSON.stringify(route.params)}`)
+
 })
 
 onUpdated(() => {
+	// alert(`updated channel ${JSON.stringify(route.params)}`)
+
 	const room = document.getElementById('room-view')
 	if (room) {
 		room.scrollTo({

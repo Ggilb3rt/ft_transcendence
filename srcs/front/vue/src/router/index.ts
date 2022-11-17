@@ -9,6 +9,7 @@ import Channel from "@/views/ChannelView.vue"
 import path from "path";
 import { useUsersStore } from "@/stores/users";
 import { setStatus, useUserStore } from "@/stores/user";
+import { useChannelsStore } from "@/stores/channels";
 import { useStatusStore } from "@/stores/status";
 
 

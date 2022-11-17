@@ -200,7 +200,7 @@ export const useChannelsStore = defineStore('channels', () => {
 		refsocket.value.emit("join", {channel_id: channel_id, pass},  (res: any) => {
 			console.log("le joiiiiiin ", res)
 			if (res.status === false) {
-				if (res.msg.include("pass"))
+				if (res.msg.includes("pass"))
 					error.value = `${res.msg}/${channel_id}`
 			}
 			else {
@@ -516,7 +516,11 @@ export const useChannelsStore = defineStore('channels', () => {
 					name: newChan.ChanName,
 					id: newChan.id
 				})
-				await getChan(newChan.id)
+				if (newChan.type == "pass")
+					emitJoin(newChan.id, newChan.pass)
+				else
+					emitJoin(newChan.id)
+				// await getChan(newChan.id)
 				return true
 			}
 			return false

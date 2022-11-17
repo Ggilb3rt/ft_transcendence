@@ -92,7 +92,7 @@ export class UsersController {
 
     @Post('/friends')
     @UseGuards(JwtAuthGuard)
-    async addFriend(@Req() req: Request, number, @Body('friend', ParseIntPipe) friend: number): Promise<friends> {
+    async addFriend(@Req() req: Request, @Body('friend', ParseIntPipe) friend: number): Promise<friends> {
         const id = await this.usersService.getToken(req)
        return (this.usersService.addFriend(id, friend))
     }
